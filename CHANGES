@@ -10,7 +10,7 @@ UNRELEASED
 Compatibility Breaks
 ********************
 
-* None
+* Packaging moved to use ppa:canonical-qt5-edgers/qt5-proper
 
 API Changes
 ***********

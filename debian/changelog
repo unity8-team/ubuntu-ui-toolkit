@@ -1,4 +1,4 @@
-qt-components-ubuntu (0.1.27) quantal; urgency=low
+qt-components-ubuntu (0.1.27) UNRELEASED; urgency=low
 
   * Build against qt5-proper instead
   * Force imports -> qml

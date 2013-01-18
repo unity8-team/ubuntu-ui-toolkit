@@ -53,7 +53,7 @@ SOURCES += plugin.cpp \
     inversemouseareatype.cpp
 
 # deployment rules for the plugin
-installPath = $$[QT_INSTALL_IMPORTS]/$$replace(uri, \\., /)
+installPath = $$[QT_INSTALL_QML]/$$replace(uri, \\., /)
 target.path = $$installPath
 INSTALLS += target
 
