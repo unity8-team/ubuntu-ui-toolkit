@@ -1,3 +1,21 @@
+qt-components-ubuntu (0.1.29) precise; urgency=low
+
+  * Move to Qt 5.0.0 proper packages
+
+ -- Zoltán Balogh <zoltan@bakter.hu>  Tue, 22 Jan 2013 21:02:25 +0200
+
+qt-components-ubuntu (0.1.28) raring; urgency=low
+
+  * Move to Qt 5.0.0 proper packages
+
+ -- Zoltán Balogh <zoltan@bakter.hu>  Tue, 22 Jan 2013 21:01:41 +0200
+
+qt-components-ubuntu (0.1.27) quantal; urgency=low
+
+  * Move to Qt 5.0.0 proper packages
+
+ -- Zoltán Balogh <zoltan@bakter.hu>  Tue, 22 Jan 2013 20:24:26 +0200
+
 qt-components-ubuntu (0.1.26) quantal; urgency=low
 
   * New release
