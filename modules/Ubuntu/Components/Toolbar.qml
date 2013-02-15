@@ -35,7 +35,6 @@ GenericToolbar {
     Theming.ItemStyle.class: "toolbar"
 
     height: background.height
-    hintSize: Theming.ComponentUtils.style(toolbar, "hintSize", units.gu(1))
 
     /*!
       \preliminary
@@ -43,15 +42,8 @@ GenericToolbar {
      */
     property ToolbarActions tools
     onToolsChanged: {
-        if (tools && tools.active && tools.lock) {
-            internal.visibleTools = tools;
-            active = true;
-        }
-        else {
-            active = false;
-            // internal.visibleTools will be updated
-            // when the hide animation is finished
-        }
+        if (tools && tools.active && tools.lock) active = true;
+        else active = false;
     }
 
     // if tools is not specified, lock the toolbar in inactive position
@@ -62,16 +54,8 @@ GenericToolbar {
         onActiveChanged: toolbar.active = tools.active;
     }
     onActiveChanged: if (tools) tools.active = toolbar.active
-    QtObject {
-        id: internal
-        property ToolbarActions visibleTools: tools
-    }
 
-    onAnimatingChanged: {
-        if (!animating && !active) {
-            internal.visibleTools = toolbar.tools;
-        }
-    }
+    hintSize: Theming.ComponentUtils.style(toolbar, "hintSize", units.gu(1))
 
     Item {
         // All visual items go into the background because only the children
@@ -125,7 +109,7 @@ GenericToolbar {
         spacing: units.gu(1)
 
         Repeater {
-            model: internal.visibleTools ? internal.visibleTools.children : 0
+            model: toolbar.tools ? toolbar.tools.children : 0
             Button {
                 id: toolButton
                 Theming.ItemStyle.class: "toolbar-button"

@@ -39,9 +39,6 @@ Item {
             bottom: background.top
         }
         source: Qt.resolvedUrl("artwork/toolbar_dropshadow.png")
-        opacity: item.state == "" ? 0.0 : 0.5
-        Behavior on opacity {
-            NumberAnimation { duration: 50; easing.type: Easing.OutQuad }
-        }
+        opacity: 0.5
     }
 }
