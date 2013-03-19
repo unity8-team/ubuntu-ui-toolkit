@@ -19,11 +19,10 @@
 #ifndef LAYOUT_H
 #define LAYOUT_H
 
-#include <qqml.h>
+#include <QQuickItem>
 
 class LayoutPrivate;
 class LayoutAttachedPrivate;
-class LayoutManager;
 class LayoutAttached : public QObject
 {
     Q_OBJECT
@@ -50,7 +49,7 @@ private:
 
 
 class QQmlBinding;
-class QQuickItem;
+class LayoutManager;
 class Layout : public QObject
 {
     Q_OBJECT

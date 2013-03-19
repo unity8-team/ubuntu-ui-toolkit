@@ -19,11 +19,8 @@
 #ifndef LAYOUTMANAGER_H
 #define LAYOUTMANAGER_H
 
-#include <QObject>
-#include <qqml.h>
 #include <QQuickItem>
 
-class LayoutManager;
 class LayoutManagerAttached : public QObject
 {
     Q_OBJECT
@@ -64,11 +61,12 @@ Q_SIGNALS:
     void layoutChanged();
     
 private:
-    friend class LayoutManagerPrivate;
     friend class Layout;
+    friend class LayoutManagerPrivate;
     bool updateAutoLayout();
     LayoutManagerPrivate *d;
 };
 
 QML_DECLARE_TYPEINFO(LayoutManager, QML_HAS_ATTACHED_PROPERTIES)
+
 #endif // LAYOUTMANAGER_H
