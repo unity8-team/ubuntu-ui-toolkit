@@ -39,7 +39,11 @@ HEADERS += plugin.h \
     qquickclipboard.h \
     qquickmimedata.h \
     qquickclipboard_p.h \
-    selector_p.h
+    selector_p.h \
+    layoutmanager.h \
+    layout.h \
+    layout_p.h \
+    layoutmanager_p.h
 
 SOURCES += plugin.cpp \
     themeengine.cpp \
@@ -59,7 +63,9 @@ SOURCES += plugin.cpp \
     bottombarvisibilitycommunicator.cpp \
     qquickclipboard.cpp \
     qquickmimedata.cpp \
-    selector.cpp
+    selector.cpp \
+    layoutmanager.cpp \
+    layout.cpp
 
 # deployment rules for the plugin
 installPath = $$[QT_INSTALL_QML]/$$replace(uri, \\., /)

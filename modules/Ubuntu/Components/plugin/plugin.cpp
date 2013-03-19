@@ -37,6 +37,8 @@
 #include "qquickclipboard.h"
 #include "qquickmimedata.h"
 #include "bottombarvisibilitycommunicator.h"
+#include "layoutmanager.h"
+#include "layout.h"
 
 #include <sys/types.h>
 #include <unistd.h>
@@ -64,6 +66,8 @@ void UbuntuComponentsPlugin::registerTypes(const char *uri)
     qmlRegisterType<ShapeItem>(uri, 0, 1, "Shape");
     qmlRegisterType<InverseMouseAreaType>(uri, 0, 1, "InverseMouseArea");
     qmlRegisterType<QQuickMimeData>(uri, 0, 1, "MimeData");
+    qmlRegisterType<LayoutManager>(uri, 0, 1, "LayoutManager");
+    qmlRegisterType<Layout>(uri, 0, 1, "Layout");
     qmlRegisterSingletonType<QQuickClipboard>(uri, 0, 1, "Clipboard", registerClipboard);
 }
 
