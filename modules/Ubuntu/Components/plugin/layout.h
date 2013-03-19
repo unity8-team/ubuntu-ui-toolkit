@@ -24,6 +24,7 @@
 
 class LayoutPrivate;
 class LayoutAttachedPrivate;
+class LayoutManager;
 class LayoutAttached : public QObject
 {
     Q_OBJECT
@@ -76,6 +77,9 @@ public:
     void setWhen(QQmlBinding *);
 
     QQmlListProperty<QQuickItem> items();
+
+    LayoutManager* layoutManager() const;
+    void setLayoutManager(LayoutManager *);
     
     static LayoutAttached *qmlAttachedProperties(QObject *);
 

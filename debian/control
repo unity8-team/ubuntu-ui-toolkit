@@ -13,6 +13,8 @@ Build-Depends: debhelper (>= 9.0.0),
                qtdeclarative5-private-dev,
                qtdeclarative5-qtquick2-plugin,
                qtdeclarative5-test-plugin,
+               qtbase5-private-dev,
+               libqt5v8-5-private-dev,
 Standards-Version: 3.9.4
 Homepage: https://launchpad.net/ubuntu-ui-toolkit
 # If you aren't a member of ~ubuntu-sdk-team but need to upload packaging 

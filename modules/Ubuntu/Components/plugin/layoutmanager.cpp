@@ -18,9 +18,10 @@
 
 #include "layoutmanager.h"
 #include "layoutmanager_p.h"
+#include <QDebug>
 
-LayoutManagerAttached::LayoutManagerAttached(QObject *object)
-    : QObject(object)
+LayoutManagerAttached::LayoutManagerAttached(QObject *parent)
+    : QObject(parent)
     , m_itemName(QString())
 {
 }
@@ -30,7 +31,8 @@ QString LayoutManagerAttached::itemName() const
     return m_itemName;
 }
 
-void LayoutManagerAttached::setItemName(const QString &name) {
+void LayoutManagerAttached::setItemName(const QString &name)
+{
     if (name != m_itemName) {
         m_itemName = name;
         Q_EMIT itemNameChanged();
@@ -39,24 +41,37 @@ void LayoutManagerAttached::setItemName(const QString &name) {
 
 LayoutManager::LayoutManager(QQuickItem *parent)
     : QQuickItem(parent)
-    , m_layout(QString())
+    , d(new LayoutManagerPrivate(parent, this))
 {
 }
 
 QString LayoutManager::layout() const
 {
-    return m_layout;
+    return d->currentLayout;
+}
+
+void LayoutManager::setLayout(const QString &layout)
+{
+    if (layout != d->currentLayout) {
+        d->currentLayout = layout;
+        Q_EMIT layoutChanged();
+    }
 }
 
 QQmlListProperty<Layout> LayoutManager::layouts()
 {
-    return QQmlListProperty<Layout>(this, &m_layouts, &LayoutManagerPrivate::append_layout,
-                                                      &LayoutManagerPrivate::count_layouts,
-                                                      &LayoutManagerPrivate::at_layout,
-                                                      &LayoutManagerPrivate::clear_layouts);
+    return QQmlListProperty<Layout>(this, &(d->layouts), &LayoutManagerPrivate::append_layout,
+                                                         &LayoutManagerPrivate::count_layouts,
+                                                         &LayoutManagerPrivate::at_layout,
+                                                         &LayoutManagerPrivate::clear_layouts);
 }
 
-LayoutManagerAttached *LayoutManager::qmlAttachedProperties(QObject *object)
+bool LayoutManager::updateAutoState()
 {
-    return new LayoutManagerAttached(object);
+    return d->updateAutoState();
+}
+
+LayoutManagerAttached *LayoutManager::qmlAttachedProperties(QObject *parent)
+{
+    return new LayoutManagerAttached(parent);
 }

@@ -20,16 +20,18 @@
 #define LAYOUT_P_H
 
 #include "layout.h"
+#include "layoutmanager.h"
 #include <QDebug>
 
 class LayoutPrivate : public QObject {
     Q_DECLARE_PUBLIC(Layout)
 public:
     LayoutPrivate(Layout *qq)
-        : when(0), named(false), q_ptr(qq) {};
+        : when(0), layoutManager(0), named(false), q_ptr(qq) {};
 
     QString name;
     QQmlBinding *when;
+    LayoutManager *layoutManager;
     bool named;
 
     Layout *q_ptr;

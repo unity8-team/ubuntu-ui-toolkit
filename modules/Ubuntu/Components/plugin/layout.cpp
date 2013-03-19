@@ -18,6 +18,7 @@
 
 #include "layout.h"
 #include "layout_p.h"
+#include "layoutmanager.h"
 #include <QDebug>
 
 Layout::Layout(QObject *parent)
@@ -75,6 +76,7 @@ QQmlBinding *Layout::when() const
 void Layout::setWhen(QQmlBinding *when)
 {
     d->when = when;
+    if (d->layoutManager) d->layoutManager->updateAutoState();
 }
 
 QQmlListProperty<QQuickItem> Layout::items()
@@ -84,6 +86,28 @@ QQmlListProperty<QQuickItem> Layout::items()
                                                         &LayoutPrivate::at_item,
                                                         &LayoutPrivate::clear_items);
 }
+
+LayoutManager* Layout::layoutManager() const
+{
+    return d->layoutManager;
+}
+
+void Layout::setLayoutManager(LayoutManager *layoutManager)
+{
+    d->layoutManager = layoutManager;
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
 QString LayoutAttached::item() const
 {

@@ -24,6 +24,7 @@ Rectangle {
 
     LayoutManager {
         anchors.fill: parent
+        onLayoutChanged: print("layout", layout)
         layouts: [
             Layout {
                 name: "one"

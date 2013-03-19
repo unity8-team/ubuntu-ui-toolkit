@@ -23,6 +23,7 @@
 #include <qqml.h>
 #include <QQuickItem>
 
+class LayoutManager;
 class LayoutManagerAttached : public QObject
 {
     Q_OBJECT
@@ -54,6 +55,7 @@ public:
     explicit LayoutManager(QQuickItem *parent = 0);
 
     QString layout() const;
+    void setLayout(const QString&);
     QQmlListProperty<Layout> layouts();
 
     static LayoutManagerAttached *qmlAttachedProperties(QObject *);
@@ -63,8 +65,9 @@ Q_SIGNALS:
     
 private:
     friend class LayoutManagerPrivate;
-    QList<Layout*> m_layouts;
-    QString m_layout;
+    friend class Layout;
+    bool updateAutoState();
+    LayoutManagerPrivate *d;
 };
 
 QML_DECLARE_TYPEINFO(LayoutManager, QML_HAS_ATTACHED_PROPERTIES)

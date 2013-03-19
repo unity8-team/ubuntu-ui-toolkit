@@ -7,7 +7,7 @@ unix {
 
 TEMPLATE = lib
 TARGET = ../UbuntuComponents
-QT += qml quick quick-private dbus
+QT += core-private v8-private qml qml-private quick quick-private dbus
 CONFIG += qt plugin no_keywords
 
 #comment in the following line to disable traces
