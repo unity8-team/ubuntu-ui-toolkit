@@ -19,74 +19,27 @@
 #ifndef LAYOUTMANAGER_P_H
 #define LAYOUTMANAGER_P_H
 
-#include "layoutmanager.h"
-#include "layout.h"
+#include <QQuickItem>
 
-#define foreach Q_FOREACH //workaround to fix private v8 include
-#include <QtQml/private/qqmlbinding_p.h>
+class Layout;
+class LayoutManager;
 
 class LayoutManagerPrivate : public QObject {
 public:
-    LayoutManagerPrivate(QObject *parent, LayoutManager *layoutManager)
-        : QObject(parent)
-        , currentLayout(QString())
-        , q(layoutManager)
-    {};
+    LayoutManagerPrivate(QObject *parent, LayoutManager *layoutManager);
+
+    bool updateAutoLayout();
+
+    // callbacks for the "layouts" QQmlListProperty of LayoutManager
+    static void append_layout(QQmlListProperty<Layout>*, Layout*);
+    static int count_layouts(QQmlListProperty<Layout>*);
+    static Layout *at_layout(QQmlListProperty<Layout>*, int);
+    static void clear_layouts(QQmlListProperty<Layout>*);
 
     QList<Layout *> layouts;
+    QHash <QString, QQuickItem*> items;
     QString currentLayout;
     LayoutManager *q;
-
-    bool updateAutoState()
-    {
-        for (int ii = 0; ii < layouts.count(); ++ii) {
-            Layout *layout = layouts.at(ii);
-            if (layout->isWhenKnown()) {
-                if (layout->isNamed()) {
-                    if (layout->when() && layout->when()->evaluate().toBool()) {
-                        //qDebug() << "Setting auto state due to:" << layout->when()->expression();
-                        if (currentLayout != layout->name()) {
-                            q->setLayout(layout->name());
-                            return true;
-                        } else {
-                            return false;
-                        }
-                    }
-                }
-            }
-        }
-        return false;
-    }
-
-    // helper functions for the "layouts" QQmlListProperty
-    static void append_layout(QQmlListProperty<Layout> *list, Layout *layout)
-    {
-        LayoutManager *_this = static_cast<LayoutManager *>(list->object);
-        if (layout) {
-            // check if name unique!! If so, register it.
-            layout->setLayoutManager(_this);
-            _this->d->layouts.append(layout);
-        }
-    }
-
-    static int count_layouts(QQmlListProperty<Layout> *list)
-    {
-        LayoutManager *_this = static_cast<LayoutManager *>(list->object);
-        return _this->d->layouts.count();
-    }
-
-    static Layout *at_layout(QQmlListProperty<Layout> *list, int index)
-    {
-        LayoutManager *_this = static_cast<LayoutManager *>(list->object);
-        return _this->d->layouts.at(index);
-    }
-
-    static void clear_layouts(QQmlListProperty<Layout> *list)
-    {
-        LayoutManager *_this = static_cast<LayoutManager *>(list->object);
-        //FIXME: reset LayoutManager property when removing
-        _this->d->layouts.clear();
-    }
 };
 
-#endif // LAYOUTMANAGER_P_H
+#endif

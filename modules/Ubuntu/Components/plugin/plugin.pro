@@ -65,7 +65,8 @@ SOURCES += plugin.cpp \
     qquickmimedata.cpp \
     selector.cpp \
     layoutmanager.cpp \
-    layout.cpp
+    layout.cpp \
+    layoutmanager_p.cpp
 
 # deployment rules for the plugin
 installPath = $$[QT_INSTALL_QML]/$$replace(uri, \\., /)

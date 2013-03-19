@@ -66,9 +66,9 @@ QQmlListProperty<Layout> LayoutManager::layouts()
                                                          &LayoutManagerPrivate::clear_layouts);
 }
 
-bool LayoutManager::updateAutoState()
+bool LayoutManager::updateAutoLayout()
 {
-    return d->updateAutoState();
+    return d->updateAutoLayout();
 }
 
 LayoutManagerAttached *LayoutManager::qmlAttachedProperties(QObject *parent)

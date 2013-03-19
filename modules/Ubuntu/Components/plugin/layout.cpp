@@ -76,7 +76,7 @@ QQmlBinding *Layout::when() const
 void Layout::setWhen(QQmlBinding *when)
 {
     d->when = when;
-    if (d->layoutManager) d->layoutManager->updateAutoState();
+    if (d->layoutManager) d->layoutManager->updateAutoLayout();
 }
 
 QQmlListProperty<QQuickItem> Layout::items()

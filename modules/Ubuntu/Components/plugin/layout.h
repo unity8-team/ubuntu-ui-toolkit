@@ -19,7 +19,6 @@
 #ifndef LAYOUT_H
 #define LAYOUT_H
 
-#include <QObject>
 #include <qqml.h>
 
 class LayoutPrivate;

@@ -66,7 +66,7 @@ Q_SIGNALS:
 private:
     friend class LayoutManagerPrivate;
     friend class Layout;
-    bool updateAutoState();
+    bool updateAutoLayout();
     LayoutManagerPrivate *d;
 };
 
