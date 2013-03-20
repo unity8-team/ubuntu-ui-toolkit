@@ -35,8 +35,10 @@ Rectangle {
                     color: "green"
                 }
                 Item {
-                    anchors.fill: parent
+                    anchors { bottom: parent.bottom; right: parent.right }
                     Layout.item: "rectangle"
+                    width: childrenRect.width
+                    height: childrenRect.height
                 }
             },
             Layout {
@@ -53,7 +55,7 @@ Rectangle {
         Rectangle {
             width: 200
             height: 100
-            color: (width % 20 <= 10) ? "red" : "yellow"
+            color: (root.width % 20 <= 10) ? "red" : "yellow"
             LayoutManager.itemName: "rectangle"
         }
 
