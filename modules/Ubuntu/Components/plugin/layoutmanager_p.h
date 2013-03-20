@@ -31,6 +31,7 @@ public:
     bool updateAutoLayout();
     void performLayoutChange();
     void getItemsToLayout();
+    void reparentItems();
 
     // callbacks for the "layouts" QQmlListProperty of LayoutManager
     static void append_layout(QQmlListProperty<Layout>*, Layout*);
@@ -41,6 +42,7 @@ public:
     QList<Layout*> layouts;
     QHash <QString, QQuickItem*> items;
     Layout *currentLayout;
+    Layout *oldLayout;
     LayoutManager *q;
 };
 

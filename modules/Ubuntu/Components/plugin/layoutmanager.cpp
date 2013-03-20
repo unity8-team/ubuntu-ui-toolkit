@@ -55,6 +55,7 @@ QString LayoutManager::layout() const
 void LayoutManager::setLayout(Layout *layout)
 {
     if (layout != d->currentLayout) {
+        d->oldLayout = d->currentLayout;
         d->currentLayout = layout;
         d->performLayoutChange();
         Q_EMIT layoutChanged();

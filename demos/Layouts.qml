@@ -31,11 +31,11 @@ Rectangle {
                 when: root.width > 600
                 Rectangle {
                     anchors.fill: parent
+                    opacity: 0.4
                     color: "green"
                 }
                 Item {
                     anchors.fill: parent
-                    opacity: 0.5
                     Layout.item: "rectangle"
                 }
             },
@@ -45,7 +45,7 @@ Rectangle {
                 Item {
                     anchors.fill: parent
                     opacity: 0.2
-                    Layout.item: "rectangle"
+                    Layout.item: "box"
                 }
             }
         ]
@@ -53,7 +53,7 @@ Rectangle {
         Rectangle {
             width: 200
             height: 100
-            color: "red"
+            color: (width % 20 <= 10) ? "red" : "yellow"
             LayoutManager.itemName: "rectangle"
         }
 
@@ -63,6 +63,15 @@ Rectangle {
             width: 300
             height: 200
             color: "blue"
+        }
+
+        Rectangle {
+            x: 300
+            y: 100
+            width: 200
+            height: 200
+            color: "purple"
+            LayoutManager.itemName: "box"
         }
     }
 }

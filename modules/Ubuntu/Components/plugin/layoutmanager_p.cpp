@@ -20,13 +20,14 @@
 #include "layoutmanager.h"
 #include "layout.h"
 
-#define foreach Q_FOREACH //workaround to fix private v8 include
-#include <QtQml/private/qqmlbinding_p.h>
+#define foreach Q_FOREACH //workaround to fix private includes
+#include <QtQml/private/qqmlbinding_p.h>     // for QmlBinding
 #undef foreach
 
 LayoutManagerPrivate::LayoutManagerPrivate(QObject *parent, LayoutManager *layoutManager)
     : QObject(parent)
     , currentLayout(NULL)
+    , oldLayout(NULL)
     , q(layoutManager)
 {
 }
@@ -58,11 +59,54 @@ void LayoutManagerPrivate::performLayoutChange()
 
     // undo all changes previous state made
 
-    // reparent children of the layout to the LayoutManager
-    for (int i = 0; i < currentLayout->m_items.count(); i++) {
-        currentLayout->m_items.at(i)->setParentItem(q);
+    // hide old layout
+    if (oldLayout != NULL) {
+        for (int i = 0; i < oldLayout->m_items.count(); i++) {
+            oldLayout->m_items.at(i)->setProperty("visible", false);
+            //currentLayout->m_items.at(i)->setParentItem(QQuickItem(0));
+        }
     }
 
+    // show new layout
+    for (int i = 0; i < currentLayout->m_items.count(); i++) {
+        currentLayout->m_items.at(i)->setParentItem(q);
+        currentLayout->m_items.at(i)->setProperty("visible", true);
+    }
+
+    reparentItems();
+}
+
+void LayoutManagerPrivate::getItemsToLayout()
+{
+    items.clear();
+
+    const QObjectList* children = &(q->children());
+    for (int i = 0; i < children->count(); i++) {
+        QQuickItem* child = static_cast<QQuickItem*>(children->at(i));
+
+        // has child the LayoutManager.itemName attached property set?
+        LayoutManagerAttached *attached =
+                qobject_cast<LayoutManagerAttached*>(qmlAttachedPropertiesObject<LayoutManager>(child, false));
+
+        if (attached != 0 && attached->itemName() != "") {
+            if (!items.contains(attached->itemName())) {
+                items.insert(attached->itemName(), child);
+            } else {
+                qDebug() << "Duplicate itemName" << attached->itemName() << ", Item will not be managed by LayoutManager";
+            }
+        } else {
+            // if no itemName set, hide the component
+            if (QString(child->metaObject()->className()) != "Layout") {
+                qDebug() << "Child of LayoutManager with no or empty itemName:"
+                         << child->metaObject()->className() << "it will be hidden and not managed by LayoutManager";
+                child->setProperty("visible", false);
+            }
+        }
+    }
+}
+
+void LayoutManagerPrivate::reparentItems()
+{
     // iterate through the Layout definition to find those Items with Layout.item set
     QList<QQuickItem *> layoutChildren = currentLayout->findChildren<QQuickItem *>();
 
@@ -81,36 +125,10 @@ void LayoutManagerPrivate::performLayoutChange()
     }
 }
 
-void LayoutManagerPrivate::getItemsToLayout()
-{
-    items.clear();
-
-    const QObjectList* children = &(q->children());
-    for (int i = 0; i < children->count(); i++) {
-        QQuickItem* child = static_cast<QQuickItem*>(children->at(i));
-
-        // has child the LayoutManager.itemName attached property set?
-        LayoutManagerAttached *attached =
-                qobject_cast<LayoutManagerAttached*>(qmlAttachedPropertiesObject<LayoutManager>(child, false));
-
-        if (attached != 0 && attached->itemName() != "" && !items.contains(attached->itemName())) {
-            items.insert(attached->itemName(), child);
-        } else {
-            child->setProperty("visible", false);
-        }
-    }
-}
-
 void LayoutManagerPrivate::append_layout(QQmlListProperty<Layout> *list, Layout *layout)
 {
     LayoutManager *_this = static_cast<LayoutManager *>(list->object);
     if (layout) {
-        // check if name unique!! If so, register it.
-//            if (_this->d->items.contains(layout->name())) {
-//                qDebug() << "Duplicate itemName" << layout->name() << ", Item will not be managed by LayoutManager";
-//                return;
-//            }
-//            _this->d->items.insert(layout->name(), layout)
         layout->setLayoutManager(_this);
         _this->d->layouts.append(layout);
     }
