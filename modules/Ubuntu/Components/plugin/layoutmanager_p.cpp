@@ -24,6 +24,55 @@
 #include <QtQml/private/qqmlbinding_p.h>     // for QmlBinding
 #undef foreach
 
+class Action
+{
+public:
+    Action(QObject *, const QString &, const QVariant &);
+    void execute();
+    void reverse();
+
+    QQmlProperty property;
+    QVariant fromValue;
+    QVariant toValue;
+
+    QQmlAbstractBinding *fromBinding;
+    QWeakPointer<QQmlAbstractBinding> toBinding;
+};
+
+Action::Action(QObject *target, const QString &propertyName, const QVariant &value)
+    : property(target, propertyName, qmlEngine(target))
+    , toValue(value)
+    , fromBinding(0)
+{
+    if (property.isValid())
+        fromValue = property.read();
+}
+
+void Action::execute()
+{
+//    fromBinding = QQmlPropertyPrivate::binding(property);
+//    if (!fromBinding) {
+//        fromValue = property.read();
+//    }
+
+    if (!toBinding.isNull()) {
+        QQmlPropertyPrivate::setBinding(property, toBinding.data(), QQmlPropertyPrivate::DontRemoveBinding);
+    } else {
+        property.write(toValue);
+    }
+}
+
+void Action::reverse()
+{
+    if (fromBinding) {
+        QQmlPropertyPrivate::setBinding(property, fromBinding, QQmlPropertyPrivate::DontRemoveBinding);
+    } else {
+        property.write(fromValue);
+    }
+}
+
+
+
 LayoutManagerPrivate::LayoutManagerPrivate(QObject *parent, LayoutManager *layoutManager)
     : QObject(parent)
     , currentLayout(NULL)
@@ -55,25 +104,19 @@ bool LayoutManagerPrivate::updateAutoLayout()
 
 void LayoutManagerPrivate::performLayoutChange()
 {
-    QHash<QString, QQuickItem*> itemParents;
+    // undo all changes previous property changes
+    applyActionsList(actions, true);
 
-    // undo all changes previous state made
-
-    // hide old layout
-    if (oldLayout != NULL) {
-        for (int i = 0; i < oldLayout->m_items.count(); i++) {
-            oldLayout->m_items.at(i)->setProperty("visible", false);
-            //currentLayout->m_items.at(i)->setParentItem(QQuickItem(0));
-        }
-    }
+    actions.clear();
 
     // show new layout
     for (int i = 0; i < currentLayout->m_items.count(); i++) {
-        currentLayout->m_items.at(i)->setParentItem(q);
-        currentLayout->m_items.at(i)->setProperty("visible", true);
+        actions << Action(currentLayout->m_items.at(i), "parent", qVariantFromValue(q));
+        actions << Action(currentLayout->m_items.at(i), "visible", true);
     }
 
     reparentItems();
+    applyActionsList(actions);
 }
 
 void LayoutManagerPrivate::getItemsToLayout()
@@ -107,6 +150,9 @@ void LayoutManagerPrivate::getItemsToLayout()
 
 void LayoutManagerPrivate::reparentItems()
 {
+    // create copy of items list, to keep track of which ones we change
+    QHash <QString, QQuickItem*> unusedItems = items;
+
     // iterate through the Layout definition to find those Items with Layout.item set
     QList<QQuickItem *> layoutChildren = currentLayout->findChildren<QQuickItem *>();
 
@@ -118,12 +164,31 @@ void LayoutManagerPrivate::reparentItems()
                 qobject_cast<LayoutAttached*>(qmlAttachedPropertiesObject<Layout>(child, false));
 
         if (attached != 0 && attached->item() != "") {
-            if (items.contains(attached->item())) {
-                items.value(attached->item())->setParentItem(child);
+            if (unusedItems.contains(attached->item())) {
+                actions << Action(unusedItems.value(attached->item()), "parent", qVariantFromValue(child));
+                unusedItems.remove(attached->item());
             }
         }
     }
+
+    QHashIterator<QString, QQuickItem*> i(unusedItems);
+    while (i.hasNext()) {
+        i.next();
+        actions << Action(i.value(), "visible", false);
+    }
 }
+
+void LayoutManagerPrivate::applyActionsList(const ActionsList& list, bool reverse)
+{
+    Q_FOREACH (Action a, list) {
+        if (!reverse) {
+            a.execute();
+        } else {
+            a.reverse();
+        }
+    }
+}
+
 
 void LayoutManagerPrivate::append_layout(QQmlListProperty<Layout> *list, Layout *layout)
 {

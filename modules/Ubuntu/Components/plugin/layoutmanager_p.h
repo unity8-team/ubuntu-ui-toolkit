@@ -23,15 +23,19 @@
 
 class Layout;
 class LayoutManager;
+class Action;
 
 class LayoutManagerPrivate : public QObject {
 public:
     LayoutManagerPrivate(QObject *parent, LayoutManager *layoutManager);
 
+    typedef QList<Action> ActionsList;
+
     bool updateAutoLayout();
     void performLayoutChange();
     void getItemsToLayout();
     void reparentItems();
+    void applyActionsList(const ActionsList&, bool reverse = false);
 
     // callbacks for the "layouts" QQmlListProperty of LayoutManager
     static void append_layout(QQmlListProperty<Layout>*, Layout*);
@@ -41,6 +45,7 @@ public:
 
     QList<Layout*> layouts;
     QHash <QString, QQuickItem*> items;
+    ActionsList actions;
     Layout *currentLayout;
     Layout *oldLayout;
     LayoutManager *q;
