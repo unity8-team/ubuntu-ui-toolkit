@@ -58,7 +58,6 @@ class Layout : public QObject
     Q_PROPERTY(QQmlBinding *when READ when WRITE setWhen)
     Q_PROPERTY(QQmlListProperty<QQuickItem> items READ items)
     Q_CLASSINFO("DefaultProperty", "items")
-    Q_CLASSINFO("DeferredPropertyNames", "items")
 
 public:
     explicit Layout(QObject *parent = 0);
@@ -86,6 +85,7 @@ Q_SIGNALS:
 
 private:
     friend class LayoutPrivate;
+    friend class LayoutManagerPrivate;
     LayoutPrivate* d;
     QList<QQuickItem*> m_items;
     Q_DISABLE_COPY(Layout)

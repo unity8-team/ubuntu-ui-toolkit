@@ -29,6 +29,8 @@ public:
     LayoutManagerPrivate(QObject *parent, LayoutManager *layoutManager);
 
     bool updateAutoLayout();
+    void performLayoutChange();
+    void getItemsToLayout();
 
     // callbacks for the "layouts" QQmlListProperty of LayoutManager
     static void append_layout(QQmlListProperty<Layout>*, Layout*);

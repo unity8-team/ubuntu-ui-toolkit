@@ -43,6 +43,7 @@ LayoutManager::LayoutManager(QQuickItem *parent)
     : QQuickItem(parent)
     , d(new LayoutManagerPrivate(parent, this))
 {
+    QObject::connect(this, &LayoutManager::childrenChanged, d, &LayoutManagerPrivate::getItemsToLayout);
 }
 
 QString LayoutManager::layout() const
@@ -54,6 +55,7 @@ void LayoutManager::setLayout(const QString &layout)
 {
     if (layout != d->currentLayout) {
         d->currentLayout = layout;
+        d->performLayoutChange();
         Q_EMIT layoutChanged();
     }
 }

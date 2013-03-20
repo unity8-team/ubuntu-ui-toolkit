@@ -38,7 +38,7 @@ public:
 
     // helper functions for the "items" QQmlListProperty
     static void append_item(QQmlListProperty<QQuickItem> *items, QQuickItem *item)
-    {qDebug() << "append_item";
+    {
         Layout *_this = static_cast<Layout *>(items->object);
         if (item) {
             _this->m_items.append(item);

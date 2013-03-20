@@ -31,6 +31,7 @@ Rectangle {
                 when: root.width > 600
                 Item {
                     anchors.fill: parent
+                    opacity: 0.5
                     Layout.item: "rectangle"
                 }
                 Rectangle {
@@ -41,6 +42,11 @@ Rectangle {
             Layout {
                 name: "two"
                 when: root.width <= 600
+                Item {
+                    anchors.fill: parent
+                    opacity: 0.2
+                    Layout.item: "rectangle"
+                }
             }
         ]
 
@@ -49,6 +55,14 @@ Rectangle {
             height: 100
             color: "red"
             LayoutManager.itemName: "rectangle"
+        }
+
+        Rectangle {
+            x: 100
+            y: 200
+            width: 300
+            height: 200
+            color: "blue"
         }
     }
 }

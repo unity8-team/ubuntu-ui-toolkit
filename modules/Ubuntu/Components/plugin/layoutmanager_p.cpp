@@ -28,12 +28,13 @@ LayoutManagerPrivate::LayoutManagerPrivate(QObject *parent, LayoutManager *layou
     : QObject(parent)
     , currentLayout(QString())
     , q(layoutManager)
-{};
+{
+}
 
 bool LayoutManagerPrivate::updateAutoLayout()
 {
-    for (int ii = 0; ii < layouts.count(); ++ii) {
-        Layout *layout = layouts.at(ii);
+    for (int i = 0; i < layouts.count(); i++) {
+        Layout *layout = layouts.at(i);
         if (layout->isWhenKnown()) {
             if (layout->isNamed()) {
                 if (layout->when() && layout->when()->evaluate().toBool()) {
@@ -49,6 +50,67 @@ bool LayoutManagerPrivate::updateAutoLayout()
         }
     }
     return false;
+}
+
+void LayoutManagerPrivate::performLayoutChange()
+{
+    QHash<QString, QQuickItem*> itemParents;
+    Layout *currentLayoutItem = NULL;
+
+    // find the Layout with the correct name
+    for (int i = 0; i < layouts.count(); i++) {
+        if (layouts.at(i)->name() == currentLayout) {
+            currentLayoutItem = layouts.at(i);
+            break;
+        }
+    }
+
+    if (currentLayoutItem == NULL) {
+        qDebug() << "unable to find layout" << currentLayout;
+        return;
+    }
+
+    // reparent children of the layout to the LayoutManager
+    for (int i = 0; i < currentLayoutItem->m_items.count(); i++) {
+        currentLayoutItem->m_items.at(i)->setParentItem(q);
+    }
+
+    // iterate through the Layout definition to find those Items with Layout.item set
+    QList<QQuickItem *> layoutChildren = currentLayoutItem->findChildren<QQuickItem *>();
+
+    for (int i = 0; i < layoutChildren.count(); i++) {
+        QQuickItem* child = static_cast<QQuickItem*>(layoutChildren.at(i));
+
+        // has child the Layout.item attached property set?
+        LayoutAttached *attached =
+                qobject_cast<LayoutAttached*>(qmlAttachedPropertiesObject<Layout>(child, false));
+
+        if (attached != 0 && attached->item() != "") {
+            if (items.contains(attached->item())) {
+                items.value(attached->item())->setParentItem(child);
+            }
+        }
+    }
+}
+
+void LayoutManagerPrivate::getItemsToLayout()
+{
+    items.clear();
+
+    const QObjectList* children = &(q->children());
+    for (int i = 0; i < children->count(); i++) {
+        QQuickItem* child = static_cast<QQuickItem*>(children->at(i));
+
+        // has child the LayoutManager.itemName attached property set?
+        LayoutManagerAttached *attached =
+                qobject_cast<LayoutManagerAttached*>(qmlAttachedPropertiesObject<LayoutManager>(child, false));
+
+        if (attached != 0 && attached->itemName() != "" && !items.contains(attached->itemName())) {
+            items.insert(attached->itemName(), child);
+        } else {
+            child->setProperty("visible", false);
+        }
+    }
 }
 
 void LayoutManagerPrivate::append_layout(QQmlListProperty<Layout> *list, Layout *layout)
