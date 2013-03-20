@@ -38,9 +38,9 @@ public:
     static Layout *at_layout(QQmlListProperty<Layout>*, int);
     static void clear_layouts(QQmlListProperty<Layout>*);
 
-    QList<Layout *> layouts;
+    QList<Layout*> layouts;
     QHash <QString, QQuickItem*> items;
-    QString currentLayout;
+    Layout *currentLayout;
     LayoutManager *q;
 };
 

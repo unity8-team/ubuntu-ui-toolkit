@@ -18,6 +18,7 @@
 
 #include "layoutmanager.h"
 #include "layoutmanager_p.h"
+#include "layout.h"
 #include <QDebug>
 
 LayoutManagerAttached::LayoutManagerAttached(QObject *parent)
@@ -48,10 +49,10 @@ LayoutManager::LayoutManager(QQuickItem *parent)
 
 QString LayoutManager::layout() const
 {
-    return d->currentLayout;
+    return d->currentLayout->name();
 }
 
-void LayoutManager::setLayout(const QString &layout)
+void LayoutManager::setLayout(Layout *layout)
 {
     if (layout != d->currentLayout) {
         d->currentLayout = layout;

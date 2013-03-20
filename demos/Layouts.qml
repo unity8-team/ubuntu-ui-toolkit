@@ -29,14 +29,14 @@ Rectangle {
             Layout {
                 name: "one"
                 when: root.width > 600
+                Rectangle {
+                    anchors.fill: parent
+                    color: "green"
+                }
                 Item {
                     anchors.fill: parent
                     opacity: 0.5
                     Layout.item: "rectangle"
-                }
-                Rectangle {
-                    anchors.fill: parent
-                    color: "green"
                 }
             },
             Layout {

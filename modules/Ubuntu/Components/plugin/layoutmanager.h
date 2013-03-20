@@ -52,7 +52,7 @@ public:
     explicit LayoutManager(QQuickItem *parent = 0);
 
     QString layout() const;
-    void setLayout(const QString&);
+    void setLayout(Layout *);
     QQmlListProperty<Layout> layouts();
 
     static LayoutManagerAttached *qmlAttachedProperties(QObject *);

@@ -26,7 +26,7 @@
 
 LayoutManagerPrivate::LayoutManagerPrivate(QObject *parent, LayoutManager *layoutManager)
     : QObject(parent)
-    , currentLayout(QString())
+    , currentLayout(NULL)
     , q(layoutManager)
 {
 }
@@ -39,8 +39,8 @@ bool LayoutManagerPrivate::updateAutoLayout()
             if (layout->isNamed()) {
                 if (layout->when() && layout->when()->evaluate().toBool()) {
                     //qDebug() << "Setting auto state due to:" << layout->when()->expression();
-                    if (currentLayout != layout->name()) {
-                        q->setLayout(layout->name());
+                    if (currentLayout != layout) {
+                        q->setLayout(layout);
                         return true;
                     } else {
                         return false;
@@ -55,28 +55,16 @@ bool LayoutManagerPrivate::updateAutoLayout()
 void LayoutManagerPrivate::performLayoutChange()
 {
     QHash<QString, QQuickItem*> itemParents;
-    Layout *currentLayoutItem = NULL;
 
-    // find the Layout with the correct name
-    for (int i = 0; i < layouts.count(); i++) {
-        if (layouts.at(i)->name() == currentLayout) {
-            currentLayoutItem = layouts.at(i);
-            break;
-        }
-    }
-
-    if (currentLayoutItem == NULL) {
-        qDebug() << "unable to find layout" << currentLayout;
-        return;
-    }
+    // undo all changes previous state made
 
     // reparent children of the layout to the LayoutManager
-    for (int i = 0; i < currentLayoutItem->m_items.count(); i++) {
-        currentLayoutItem->m_items.at(i)->setParentItem(q);
+    for (int i = 0; i < currentLayout->m_items.count(); i++) {
+        currentLayout->m_items.at(i)->setParentItem(q);
     }
 
     // iterate through the Layout definition to find those Items with Layout.item set
-    QList<QQuickItem *> layoutChildren = currentLayoutItem->findChildren<QQuickItem *>();
+    QList<QQuickItem *> layoutChildren = currentLayout->findChildren<QQuickItem *>();
 
     for (int i = 0; i < layoutChildren.count(); i++) {
         QQuickItem* child = static_cast<QQuickItem*>(layoutChildren.at(i));
