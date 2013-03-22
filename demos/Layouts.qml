@@ -44,10 +44,11 @@ Rectangle {
             Layout {
                 name: "two"
                 when: root.width <= 600
-                Item {
+                LayoutItem {
                     anchors.fill: parent
-                    opacity: 0.2
-                    Layout.item: "box"
+                    //opacity: 0.2
+                    itemName: "box"
+                    //Layout.item: "box"
                 }
             }
         ]

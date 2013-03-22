@@ -7,7 +7,7 @@ unix {
 
 TEMPLATE = lib
 TARGET = ../UbuntuComponents
-QT += core-private v8-private qml qml-private quick quick-private dbus
+QT += core-private v8-private qml qml-private quick quick-private dbus gui-private
 CONFIG += qt plugin no_keywords
 
 #comment in the following line to disable traces
@@ -43,7 +43,8 @@ HEADERS += plugin.h \
     layoutmanager.h \
     layout.h \
     layout_p.h \
-    layoutmanager_p.h
+    layoutmanager_p.h \
+    layoutitem.h
 
 SOURCES += plugin.cpp \
     themeengine.cpp \
@@ -66,7 +67,8 @@ SOURCES += plugin.cpp \
     selector.cpp \
     layoutmanager.cpp \
     layout.cpp \
-    layoutmanager_p.cpp
+    layoutmanager_p.cpp \
+    layoutitem.cpp
 
 # deployment rules for the plugin
 installPath = $$[QT_INSTALL_QML]/$$replace(uri, \\., /)

@@ -39,6 +39,7 @@
 #include "bottombarvisibilitycommunicator.h"
 #include "layoutmanager.h"
 #include "layout.h"
+#include "layoutitem.h"
 
 #include <sys/types.h>
 #include <unistd.h>
@@ -68,6 +69,7 @@ void UbuntuComponentsPlugin::registerTypes(const char *uri)
     qmlRegisterType<QQuickMimeData>(uri, 0, 1, "MimeData");
     qmlRegisterType<LayoutManager>(uri, 0, 1, "LayoutManager");
     qmlRegisterType<Layout>(uri, 0, 1, "Layout");
+    qmlRegisterType<LayoutItem>(uri, 0, 1, "LayoutItem");
     qmlRegisterSingletonType<QQuickClipboard>(uri, 0, 1, "Clipboard", registerClipboard);
 }
 
