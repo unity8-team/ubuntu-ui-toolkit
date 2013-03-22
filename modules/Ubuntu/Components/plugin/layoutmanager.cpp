@@ -75,7 +75,16 @@ bool LayoutManager::updateAutoLayout()
     return d->updateAutoLayout();
 }
 
+void LayoutManager::componentComplete()
+{
+    QQuickItem::componentComplete();
+    d->ready = true;
+    d->getItemsToLayout();
+
+}
+
 LayoutManagerAttached *LayoutManager::qmlAttachedProperties(QObject *parent)
 {
     return new LayoutManagerAttached(parent);
 }
+

@@ -24,7 +24,7 @@
 class LayoutManagerAttached : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QString itemName READ itemName WRITE setItemName NOTIFY itemNameChanged)
+    Q_PROPERTY(QString itemName READ itemName WRITE setItemName NOTIFY itemNameChanged FINAL)
 
 public:
     explicit LayoutManagerAttached(QObject *parent = 0);
@@ -59,7 +59,10 @@ public:
     
 Q_SIGNALS:
     void layoutChanged();
-    
+
+protected:
+    virtual void componentComplete();
+
 private:
     friend class Layout;
     friend class LayoutManagerPrivate;

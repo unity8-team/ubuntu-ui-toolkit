@@ -49,6 +49,7 @@ public:
     Layout *currentLayout;
     Layout *oldLayout;
     LayoutManager *q;
+    bool ready;
 };
 
 #endif

@@ -78,6 +78,7 @@ LayoutManagerPrivate::LayoutManagerPrivate(QObject *parent, LayoutManager *layou
     , currentLayout(NULL)
     , oldLayout(NULL)
     , q(layoutManager)
+    , ready(false)
 {
 }
 
@@ -104,6 +105,8 @@ bool LayoutManagerPrivate::updateAutoLayout()
 
 void LayoutManagerPrivate::performLayoutChange()
 {
+    if (!ready) return;
+
     // undo all changes previous property changes
     applyActionsList(actions, true);
 
@@ -121,6 +124,8 @@ void LayoutManagerPrivate::performLayoutChange()
 
 void LayoutManagerPrivate::getItemsToLayout()
 {
+    if (!ready) return;
+
     items.clear();
 
     const QObjectList* children = &(q->children());
@@ -154,19 +159,41 @@ void LayoutManagerPrivate::reparentItems()
     QHash <QString, QQuickItem*> unusedItems = items;
 
     // iterate through the Layout definition to find those Items with Layout.item set
-    QList<QQuickItem *> layoutChildren = currentLayout->findChildren<QQuickItem *>();
+    QList<QObject *> layoutChildren = currentLayout->findChildren<QObject *>();
 
     for (int i = 0; i < layoutChildren.count(); i++) {
-        QQuickItem* child = static_cast<QQuickItem*>(layoutChildren.at(i));
+        QObject *child = static_cast<QObject*>(layoutChildren.at(i));
 
-        // has child the Layout.item attached property set?
-        LayoutAttached *attached =
-                qobject_cast<LayoutAttached*>(qmlAttachedPropertiesObject<Layout>(child, false));
+        if (child->inherits("LayoutItem")) {
+            const QString itemName = child->property("itemName").toString();
 
-        if (attached != 0 && attached->item() != "") {
-            if (unusedItems.contains(attached->item())) {
-                actions << Action(unusedItems.value(attached->item()), "parent", qVariantFromValue(child));
-                unusedItems.remove(attached->item());
+            if (unusedItems.contains(itemName)) {
+                // set all properties of the Item to be those defined on the LayoutItem
+                const QMetaObject *childMoc = child->metaObject();
+                QQuickItem *itemToMove = unusedItems.value(itemName);
+
+                for (int i=0; i<childMoc->propertyCount(); i++) {
+                    QString propertyName = childMoc->property(i).name();
+                    actions << Action(itemToMove,
+                                      propertyName,
+                                      child->property(propertyName.toLatin1().constData()));
+                }
+
+                unusedItems.remove(itemName);
+            } else {
+                qDebug() << "WARNING: LayoutItem with unrecognised itemName" << child->property("itemName");
+            }
+
+        } else {
+            // has child the Layout.item attached property set?
+            LayoutAttached *attached =
+                    qobject_cast<LayoutAttached*>(qmlAttachedPropertiesObject<Layout>(child, false));
+
+            if (attached != 0 && attached->item() != "") {
+                if (unusedItems.contains(attached->item())) {
+                    actions << Action(unusedItems.value(attached->item()), "parent", qVariantFromValue(child));
+                    unusedItems.remove(attached->item());
+                }
             }
         }
     }
