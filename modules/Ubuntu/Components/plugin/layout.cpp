@@ -95,9 +95,68 @@ LayoutManager* Layout::layoutManager() const
 void Layout::setLayoutManager(LayoutManager *layoutManager)
 {
     d->layoutManager = layoutManager;
+
+    Q_EMIT leftChanged();
+    Q_EMIT rightChanged();
+    Q_EMIT horizontalCenterChanged();
+    Q_EMIT topChanged();
+    Q_EMIT bottomChanged();
+    Q_EMIT verticalCenterChanged();
 }
 
+QQuickAnchorLine Layout::left() const
+{
+    if (d->layoutManager) {
+        return d->layoutManager->property("left").value<QQuickAnchorLine>();
+    } else {
+        return QQuickAnchorLine();
+    }
+}
 
+QQuickAnchorLine Layout::right() const
+{
+    if (d->layoutManager) {
+        return d->layoutManager->property("right").value<QQuickAnchorLine>();
+    } else {
+        return QQuickAnchorLine();
+    }
+}
+
+QQuickAnchorLine Layout::horizontalCenter() const
+{
+    if (d->layoutManager) {
+        return d->layoutManager->property("horizontalCenter").value<QQuickAnchorLine>();
+    } else {
+        return QQuickAnchorLine();
+    }
+}
+
+QQuickAnchorLine Layout::top() const
+{
+    if (d->layoutManager) {
+        return d->layoutManager->property("top").value<QQuickAnchorLine>();
+    } else {
+        return QQuickAnchorLine();
+    }
+}
+
+QQuickAnchorLine Layout::bottom() const
+{
+    if (d->layoutManager) {
+        return d->layoutManager->property("bottom").value<QQuickAnchorLine>();
+    } else {
+        return QQuickAnchorLine();
+    }
+}
+
+QQuickAnchorLine Layout::verticalCenter() const
+{
+    if (d->layoutManager) {
+        return d->layoutManager->property("verticalCenter").value<QQuickAnchorLine>();
+    } else {
+        return QQuickAnchorLine();
+    }
+}
 
 
 

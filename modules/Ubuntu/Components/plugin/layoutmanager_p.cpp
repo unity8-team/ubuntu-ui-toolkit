@@ -85,7 +85,6 @@ void Action::execute()
 {
     if (fromProperty.isValid()) {
         toBinding = QQmlPropertyPrivate::binding(fromProperty);
-        qDebug() << toProperty.name() << toValue;
         if (toBinding) {
             QQmlPropertyPrivate::setBinding(toProperty, toBinding, QQmlPropertyPrivate::DontRemoveBinding);
             return;
@@ -137,7 +136,7 @@ bool LayoutManagerPrivate::updateAutoLayout()
 
 void LayoutManagerPrivate::performLayoutChange()
 {
-    //if (!ready) return; //GERRY why is this problematic for setting initial state??
+    if (!ready) return;
 
     // undo all changes previous property changes
     applyActionsList(actions, true);
@@ -146,7 +145,8 @@ void LayoutManagerPrivate::performLayoutChange()
 
     // show new layout
     for (int i = 0; i < currentLayout->m_items.count(); i++) {
-        actions << Action(currentLayout->m_items.at(i), "parent", q);
+        currentLayout->m_items.at(i)->setParentItem(q);
+        //actions << Action(currentLayout->m_items.at(i), "parent", q);
         actions << Action(currentLayout->m_items.at(i), "visible", true);
         actions << Action(currentLayout->m_items.at(i), "enabled", true);
     }
@@ -157,7 +157,7 @@ void LayoutManagerPrivate::performLayoutChange()
 
 void LayoutManagerPrivate::getItemsToLayout()
 {
-    //if (!ready) return;
+    if (!ready) return;
 
     items.clear();
 
@@ -216,7 +216,7 @@ void LayoutManagerPrivate::reparentItems()
 
                     // special case if LayoutItem direct child of Layout, then parent is null
                     // so manually set this
-                    if (propertyName == "parent"/* && child->property("parent").isNull()*/) {
+                    if (propertyName == "parent"/*&& child->property("parent").isNull()*/) {
                         actions << Action(itemToMove,
                                           propertyName,
                                           q);

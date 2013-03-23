@@ -20,6 +20,7 @@
 #define LAYOUT_H
 
 #include <QQuickItem>
+#include <QtQuick/private/qquickanchors_p_p.h>
 
 class LayoutPrivate;
 class LayoutAttachedPrivate;
@@ -57,6 +58,14 @@ class Layout : public QObject
     Q_PROPERTY(QString name READ name WRITE setName)
     Q_PROPERTY(QQmlBinding *when READ when WRITE setWhen)
     Q_PROPERTY(QQmlListProperty<QQuickItem> items READ items)
+
+    Q_PROPERTY(QQuickAnchorLine left READ left NOTIFY leftChanged FINAL)
+    Q_PROPERTY(QQuickAnchorLine right READ right NOTIFY rightChanged FINAL)
+    Q_PROPERTY(QQuickAnchorLine horizontalCenter READ horizontalCenter NOTIFY horizontalCenterChanged FINAL)
+    Q_PROPERTY(QQuickAnchorLine top READ top NOTIFY topChanged FINAL)
+    Q_PROPERTY(QQuickAnchorLine bottom READ bottom NOTIFY bottomChanged FINAL)
+    Q_PROPERTY(QQuickAnchorLine verticalCenter READ verticalCenter NOTIFY verticalCenterChanged FINAL)
+
     Q_CLASSINFO("DefaultProperty", "items")
 
 public:
@@ -75,6 +84,13 @@ public:
 
     QQmlListProperty<QQuickItem> items();
 
+    QQuickAnchorLine left() const;
+    QQuickAnchorLine right() const;
+    QQuickAnchorLine horizontalCenter() const;
+    QQuickAnchorLine top() const;
+    QQuickAnchorLine bottom() const;
+    QQuickAnchorLine verticalCenter() const;
+
     LayoutManager* layoutManager() const;
     void setLayoutManager(LayoutManager *);
     
@@ -82,6 +98,12 @@ public:
 
 Q_SIGNALS:
     void completed();
+    void leftChanged();
+    void rightChanged();
+    void horizontalCenterChanged();
+    void topChanged();
+    void bottomChanged();
+    void verticalCenterChanged();
 
 private:
     friend class LayoutPrivate;
