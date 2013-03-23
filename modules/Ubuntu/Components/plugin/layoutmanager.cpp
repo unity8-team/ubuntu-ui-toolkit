@@ -80,6 +80,7 @@ void LayoutManager::componentComplete()
     QQuickItem::componentComplete();
     d->ready = true;
     d->getItemsToLayout();
+    d->performLayoutChange();
 
 }
 

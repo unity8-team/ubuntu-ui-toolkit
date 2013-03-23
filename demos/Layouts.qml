@@ -34,11 +34,11 @@ Rectangle {
                     opacity: 0.4
                     color: "green"
                 }
-                Item {
+                LayoutItem {
                     anchors { bottom: parent.bottom; right: parent.right }
-                    Layout.item: "rectangle"
-                    width: childrenRect.width
-                    height: childrenRect.height
+                    itemName: "rectangle"
+                    width: 200
+                    height: width
                 }
             },
             Layout {
@@ -46,22 +46,21 @@ Rectangle {
                 when: root.width <= 600
                 LayoutItem {
                     anchors.fill: parent
-                    //opacity: 0.2
+                    opacity: 0.4
                     itemName: "box"
-                    //Layout.item: "box"
                 }
             }
         ]
 
         Rectangle {
             width: 200
-            height: 100
+            height: width
             color: (root.width % 20 <= 10) ? "red" : "yellow"
             LayoutManager.itemName: "rectangle"
         }
 
         Rectangle {
-            x: 100
+            x: root.width > 200 ? 300 : 400
             y: 200
             width: 300
             height: 200
@@ -75,6 +74,7 @@ Rectangle {
             height: 200
             color: "purple"
             LayoutManager.itemName: "box"
+            onParentChanged: print("parent", parent)
         }
     }
 }

@@ -27,47 +27,79 @@
 class Action
 {
 public:
-    Action(QObject *, const QString &, const QVariant &);
+    Action(QQuickItem *, const QString &, const QVariant &);
+    Action(QQuickItem *, const QString &, bool);
+    Action(QQuickItem *, const QString &, QQuickItem *);
     void execute();
     void reverse();
 
-    QQmlProperty property;
-    QVariant fromValue;
-    QVariant toValue;
+    QQmlProperty fromProperty, toProperty;
+    QVariant fromValue, toValue;
 
     QQmlAbstractBinding *fromBinding;
-    QWeakPointer<QQmlAbstractBinding> toBinding;
+    QQmlAbstractBinding *toBinding;
 };
 
-Action::Action(QObject *target, const QString &propertyName, const QVariant &value)
-    : property(target, propertyName, qmlEngine(target))
+Action::Action(QQuickItem *target, const QString &propertyName, const QVariant &value)
+    : toProperty(target, propertyName, QQmlEngine::contextForObject(target))
     , toValue(value)
-    , fromBinding(0)
+    , fromBinding(NULL)
 {
-    if (property.isValid())
-        fromValue = property.read();
+    if (toProperty.isValid()) {
+        fromBinding = QQmlPropertyPrivate::binding(toProperty);
+        if (!fromBinding) {
+            fromValue = toProperty.read();
+        }
+    }
+}
+
+Action::Action(QQuickItem *target, const QString &propertyName, bool value)
+    : toProperty(target, propertyName, QQmlEngine::contextForObject(target))
+    , toValue(value)
+    , fromBinding(NULL)
+{
+    if (toProperty.isValid()) {
+        fromBinding = QQmlPropertyPrivate::binding(toProperty);
+        if (!fromBinding) {
+            fromValue = toProperty.read();
+        }
+    }
+}
+
+Action::Action(QQuickItem *target, const QString &propertyName, QQuickItem *source)
+    : fromProperty(source, propertyName, QQmlEngine::contextForObject(source))
+    , toProperty(target, propertyName, QQmlEngine::contextForObject(target))
+    , toValue(fromProperty.read())
+    , fromBinding(NULL)
+    , toBinding(NULL)
+{
+    if (toProperty.isValid()) {
+        fromBinding = QQmlPropertyPrivate::binding(toProperty);
+        if (!fromBinding) {
+            fromValue = toProperty.read();
+        }
+    }
 }
 
 void Action::execute()
 {
-//    fromBinding = QQmlPropertyPrivate::binding(property);
-//    if (!fromBinding) {
-//        fromValue = property.read();
-//    }
-
-    if (!toBinding.isNull()) {
-        QQmlPropertyPrivate::setBinding(property, toBinding.data(), QQmlPropertyPrivate::DontRemoveBinding);
-    } else {
-        property.write(toValue);
+    if (fromProperty.isValid()) {
+        toBinding = QQmlPropertyPrivate::binding(fromProperty);
+        qDebug() << toProperty.name() << toValue;
+        if (toBinding) {
+            QQmlPropertyPrivate::setBinding(toProperty, toBinding, QQmlPropertyPrivate::DontRemoveBinding);
+            return;
+        }
     }
+    toProperty.write(toValue);
 }
 
 void Action::reverse()
 {
     if (fromBinding) {
-        QQmlPropertyPrivate::setBinding(property, fromBinding, QQmlPropertyPrivate::DontRemoveBinding);
+        QQmlPropertyPrivate::setBinding(toProperty, fromBinding, QQmlPropertyPrivate::DontRemoveBinding);
     } else {
-        property.write(fromValue);
+        toProperty.write(fromValue);
     }
 }
 
@@ -105,7 +137,7 @@ bool LayoutManagerPrivate::updateAutoLayout()
 
 void LayoutManagerPrivate::performLayoutChange()
 {
-    if (!ready) return;
+    //if (!ready) return; //GERRY why is this problematic for setting initial state??
 
     // undo all changes previous property changes
     applyActionsList(actions, true);
@@ -114,8 +146,9 @@ void LayoutManagerPrivate::performLayoutChange()
 
     // show new layout
     for (int i = 0; i < currentLayout->m_items.count(); i++) {
-        actions << Action(currentLayout->m_items.at(i), "parent", qVariantFromValue(q));
+        actions << Action(currentLayout->m_items.at(i), "parent", q);
         actions << Action(currentLayout->m_items.at(i), "visible", true);
+        actions << Action(currentLayout->m_items.at(i), "enabled", true);
     }
 
     reparentItems();
@@ -124,7 +157,7 @@ void LayoutManagerPrivate::performLayoutChange()
 
 void LayoutManagerPrivate::getItemsToLayout()
 {
-    if (!ready) return;
+    //if (!ready) return;
 
     items.clear();
 
@@ -136,7 +169,7 @@ void LayoutManagerPrivate::getItemsToLayout()
         LayoutManagerAttached *attached =
                 qobject_cast<LayoutManagerAttached*>(qmlAttachedPropertiesObject<LayoutManager>(child, false));
 
-        if (attached != 0 && attached->itemName() != "") {
+        if (attached != NULL && attached->itemName() != "") {
             if (!items.contains(attached->itemName())) {
                 items.insert(attached->itemName(), child);
             } else {
@@ -145,9 +178,10 @@ void LayoutManagerPrivate::getItemsToLayout()
         } else {
             // if no itemName set, hide the component
             if (QString(child->metaObject()->className()) != "Layout") {
-                qDebug() << "Child of LayoutManager with no or empty itemName:"
-                         << child->metaObject()->className() << "it will be hidden and not managed by LayoutManager";
+//                qDebug() << "Child of LayoutManager with no or empty itemName:"
+//                         << child->metaObject()->className() << "it will be hidden and not managed by LayoutManager";
                 child->setProperty("visible", false);
+                child->setProperty("enabled", false);
             }
         }
     }
@@ -159,10 +193,15 @@ void LayoutManagerPrivate::reparentItems()
     QHash <QString, QQuickItem*> unusedItems = items;
 
     // iterate through the Layout definition to find those Items with Layout.item set
-    QList<QObject *> layoutChildren = currentLayout->findChildren<QObject *>();
+    QList<QQuickItem *> layoutChildren = currentLayout->findChildren<QQuickItem *>();
+
+    // list of properties we want applied to the Item
+    QString includeList("x, y, z, width, height, anchors, top, bottom, left, right, baseline, "
+                        "baselineOffset, verticalCenter, horizontalCenter, opacity, clip, "
+                        "rotation, scale, transform, transformOrigin, transformOriginPoint");
 
     for (int i = 0; i < layoutChildren.count(); i++) {
-        QObject *child = static_cast<QObject*>(layoutChildren.at(i));
+        QQuickItem *child = static_cast<QQuickItem*>(layoutChildren.at(i));
 
         if (child->inherits("LayoutItem")) {
             const QString itemName = child->property("itemName").toString();
@@ -174,14 +213,24 @@ void LayoutManagerPrivate::reparentItems()
 
                 for (int i=0; i<childMoc->propertyCount(); i++) {
                     QString propertyName = childMoc->property(i).name();
-                    actions << Action(itemToMove,
-                                      propertyName,
-                                      child->property(propertyName.toLatin1().constData()));
+
+                    // special case if LayoutItem direct child of Layout, then parent is null
+                    // so manually set this
+                    if (propertyName == "parent"/* && child->property("parent").isNull()*/) {
+                        actions << Action(itemToMove,
+                                          propertyName,
+                                          q);
+
+                    } else if (includeList.contains(propertyName)) {
+                        actions << Action(itemToMove,
+                                          propertyName,
+                                          child);
+                    }
                 }
 
                 unusedItems.remove(itemName);
             } else {
-                qDebug() << "WARNING: LayoutItem with unrecognised itemName" << child->property("itemName");
+                qDebug() << "WARNING: LayoutItem with unrecognised itemName" << child->property("itemName").toString();
             }
 
         } else {
@@ -191,7 +240,7 @@ void LayoutManagerPrivate::reparentItems()
 
             if (attached != 0 && attached->item() != "") {
                 if (unusedItems.contains(attached->item())) {
-                    actions << Action(unusedItems.value(attached->item()), "parent", qVariantFromValue(child));
+                    actions << Action(unusedItems.value(attached->item()), "parent", child);
                     unusedItems.remove(attached->item());
                 }
             }
@@ -202,6 +251,7 @@ void LayoutManagerPrivate::reparentItems()
     while (i.hasNext()) {
         i.next();
         actions << Action(i.value(), "visible", false);
+        actions << Action(i.value(), "enabled", false);
     }
 }
 
