@@ -107,7 +107,6 @@ void Action::reverse()
 LayoutManagerPrivate::LayoutManagerPrivate(QObject *parent, LayoutManager *layoutManager)
     : QObject(parent)
     , currentLayout(NULL)
-    , oldLayout(NULL)
     , q(layoutManager)
     , ready(false)
 {
@@ -143,13 +142,15 @@ void LayoutManagerPrivate::performLayoutChange()
 
     actions.clear();
 
-    // show new layout
+    // show new layout by iterating through all the direct children of the current layout
+    // and setting them visible and enabled.
     for (int i = 0; i < currentLayout->m_items.count(); i++) {
-        currentLayout->m_items.at(i)->setParentItem(q);
-        //actions << Action(currentLayout->m_items.at(i), "parent", q);
+//        currentLayout->m_items.at(i)->setParentItem(q);
+        actions << Action(currentLayout->m_items.at(i), "parent", q);
         actions << Action(currentLayout->m_items.at(i), "visible", true);
         actions << Action(currentLayout->m_items.at(i), "enabled", true);
     }
+    applyActionsList(actions);
 
     reparentItems();
     applyActionsList(actions);
@@ -161,9 +162,9 @@ void LayoutManagerPrivate::getItemsToLayout()
 
     items.clear();
 
-    const QObjectList* children = &(q->children());
-    for (int i = 0; i < children->count(); i++) {
-        QQuickItem* child = static_cast<QQuickItem*>(children->at(i));
+    const QList<QQuickItem*> children = q->childItems();
+    for (int i = 0; i < children.count(); i++) {
+        QQuickItem* child = static_cast<QQuickItem*>(children.at(i));
 
         // has child the LayoutManager.itemName attached property set?
         LayoutManagerAttached *attached =
@@ -190,13 +191,14 @@ void LayoutManagerPrivate::getItemsToLayout()
 void LayoutManagerPrivate::reparentItems()
 {
     // create copy of items list, to keep track of which ones we change
-    QHash <QString, QQuickItem*> unusedItems = items;
+    QHash<QString, QQuickItem*> unusedItems = items;
 
     // iterate through the Layout definition to find those Items with Layout.item set
-    QList<QQuickItem *> layoutChildren = currentLayout->findChildren<QQuickItem *>();
+    // or inherits LayoutItem
+    QList<QQuickItem*> layoutChildren = currentLayout->findChildren<QQuickItem*>();
 
     // list of properties we want applied to the Item
-    QString includeList("x, y, z, width, height, anchors, top, bottom, left, right, baseline, "
+    QString includeList("parent, x, y, z, width, height, anchors, top, bottom, left, right, baseline, "
                         "baselineOffset, verticalCenter, horizontalCenter, opacity, clip, "
                         "rotation, scale, transform, transformOrigin, transformOriginPoint");
 
@@ -214,14 +216,7 @@ void LayoutManagerPrivate::reparentItems()
                 for (int i=0; i<childMoc->propertyCount(); i++) {
                     QString propertyName = childMoc->property(i).name();
 
-                    // special case if LayoutItem direct child of Layout, then parent is null
-                    // so manually set this
-                    if (propertyName == "parent"/*&& child->property("parent").isNull()*/) {
-                        actions << Action(itemToMove,
-                                          propertyName,
-                                          q);
-
-                    } else if (includeList.contains(propertyName)) {
+                    if (includeList.contains(propertyName)) {
                         actions << Action(itemToMove,
                                           propertyName,
                                           child);
@@ -238,15 +233,18 @@ void LayoutManagerPrivate::reparentItems()
             LayoutAttached *attached =
                     qobject_cast<LayoutAttached*>(qmlAttachedPropertiesObject<Layout>(child, false));
 
-            if (attached != 0 && attached->item() != "") {
+            if (attached != NULL && attached->item() != "") {
                 if (unusedItems.contains(attached->item())) {
-                    actions << Action(unusedItems.value(attached->item()), "parent", child);
+                    actions << Action(unusedItems.value(attached->item()),
+                                      "parent",
+                                      qVariantFromValue(child)); //hack to choose right constructor
                     unusedItems.remove(attached->item());
                 }
             }
         }
     }
 
+    // remove unused layout items from the scene
     QHashIterator<QString, QQuickItem*> i(unusedItems);
     while (i.hasNext()) {
         i.next();

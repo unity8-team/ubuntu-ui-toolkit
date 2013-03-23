@@ -47,7 +47,6 @@ public:
     QHash <QString, QQuickItem*> items;
     ActionsList actions;
     Layout *currentLayout;
-    Layout *oldLayout;
     LayoutManager *q;
     bool ready;
 };
