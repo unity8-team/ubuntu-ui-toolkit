@@ -54,7 +54,7 @@ ActionList {
     /*!
       The toolbar is active
      */
-    property bool active: false
+    property bool active: true
 
     /*!
       The toolbar cannot be made active or inactive by bottom-edge swipes.
