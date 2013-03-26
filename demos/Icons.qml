@@ -32,12 +32,30 @@ Template {
                 name: "call-start"
                 width: 16
                 height: 16
+
+                CodeSnippet {
+                    code:
+"Icon {
+    name: \"call-start\"
+    width: 16
+    height: 16
+}"
+                }
             }
 
             Icon {
                 name: "call-start"
                 width: 48
                 height: 48
+
+                CodeSnippet {
+                    code:
+"Icon {
+    name: \"call-start\"
+    width: 48
+    height: 48
+}"
+                }
             }
         }
 
@@ -49,6 +67,15 @@ Template {
                 name: "computer-symbolic"
                 width: 24
                 height: 24
+
+                CodeSnippet {
+                    code:
+"Icon {
+    name: \"computer-symbolic\"
+    width: 24
+    height: 24
+}"
+                }
             }
 
             Icon {
@@ -56,6 +83,16 @@ Template {
                 color: "red"
                 width: 24
                 height: 24
+
+                CodeSnippet {
+                    code:
+"Icon {
+    name: \"computer-symbolic\"
+    color: \"red\"
+    width: 24
+    height: 24
+}"
+                }
             }
         }
     }
