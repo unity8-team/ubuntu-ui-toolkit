@@ -39,7 +39,6 @@ Template {
 
         TemplateRow {
             title: "Button"
-            height: code1.height
 
             Button {
                 id: button
@@ -49,26 +48,9 @@ Template {
                     property: "color"
                     value: "green"
                 }
-            }
 
-            Label {
-                ItemStyle.class: "row-label"
-                text: " code "
-            }
-
-            Rectangle {
-                id: code1
-                height: codeSnipet1.paintedHeight + units.gu(2)
-                width: codeSnipet1.paintedWidth + units.gu(2)
-                color: "#efefef"
-                radius: units.gu(1)
-                border.color: Qt.darker(color, 1.2)
-                Label {
-                    anchors.margins: units.gu(1)
-                    id: codeSnipet1
-                    ItemStyle.class: "row-label"
-                    anchors.fill: parent
-                    text: "Button {\n"+
+                CodeSnippet {
+                    code: "Button {\n"+
                           "    id: button\n"+
                           "    text: \"Call\"\n"+
                           "    Binding {\n"+
@@ -83,30 +65,13 @@ Template {
 
         TemplateRow {
             title: "Custom style"
-            height: code2.height
 
             Button {
                 ItemStyle.class: "custom-button"
                 text: "Call"
-            }
-            Label {
-                ItemStyle.class: "row-label"
-                text: " code "
-            }
 
-            Rectangle {
-                id: code2
-                height: codeSnipet2.paintedHeight + units.gu(2)
-                width: codeSnipet2.paintedWidth + units.gu(2)
-                color: "#efefef"
-                radius: units.gu(1)
-                border.color: Qt.darker(color, 1.2)
-                Label {
-                    anchors.margins: units.gu(1)
-                    id: codeSnipet2
-                    ItemStyle.class: "row-label"
-                    anchors.fill: parent
-                    text: "Button {\n"+
+                CodeSnippet {
+                    code: "Button {\n"+
                           "    ItemStyle.class: \"custom-button\"\n"+
                           "    text: \"Call\"\n"+
                           "}"
@@ -116,30 +81,13 @@ Template {
 
         TemplateRow {
             title: "Custom style"
-            height: code3.height
 
             Button {
                 ItemStyle.name: "custom-name"
                 text: "Call"
-            }
-            Label {
-                ItemStyle.class: "row-label"
-                text: " code "
-            }
 
-            Rectangle {
-                id: code3
-                height: codeSnipet3.paintedHeight + units.gu(2)
-                width: codeSnipet3.paintedWidth + units.gu(2)
-                color: "#efefef"
-                radius: units.gu(1)
-                border.color: Qt.darker(color, 1.2)
-                Label {
-                    anchors.margins: units.gu(1)
-                    id: codeSnipet3
-                    ItemStyle.class: "row-label"
-                    anchors.fill: parent
-                    text: "Button {\n"+
+                CodeSnippet {
+                    code: "Button {\n"+
                           "    ItemStyle.name: \"custom-name\"\n"+
                           "    text: \"Call\"\n"+
                           "}"
