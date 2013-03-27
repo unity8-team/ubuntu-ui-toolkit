@@ -43,8 +43,11 @@ GenericToolbar {
      */
     property ToolbarActions tools: null
     onToolsChanged: {
-        tools.active = true;
-        tools.lock = true;
+        if(tools.__hasVisibleActions()) {
+            tools.active = true;
+            tools.lock = true;
+        }
+
         if (tools && tools.active && tools.lock) {
             // toolbar is locked in visible state.
             internal.visibleTools = tools;
