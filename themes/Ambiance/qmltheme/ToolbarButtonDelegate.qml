@@ -48,6 +48,8 @@ Item {
             }
             width: paintedWidth
             text: item.text
+            fontSize: "x-small";
+            color: "#888888";
         }
     }
 }
