@@ -103,6 +103,39 @@ PageTreeNode {
     toolbar: toolbarItem
     Toolbar {
         id: toolbarItem
+        Component.onCompleted: toolbarItem.state = "spread"
+    }
+
+    MouseArea {
+        id: toolbarMouseArea
+        anchors.fill: parent
+        enabled: true
+        z: 100000
+
+        Timer {
+            id: delayAfterToolsChange
+            interval: 250
+            onTriggered: toolbarMouseArea.enabled = true
+        }
+        Timer {
+            id: delayAfterClick
+            interval: 250
+            onTriggered: toolbarItem.state = ""
+        }
+
+        onPressed: {
+            mouse.accepted = false;
+            toolbarMouseArea.enabled = false
+            delayAfterClick.restart();
+        }
+        Connections {
+            target: toolbarItem
+            onToolsChanged: {
+                delayAfterClick.stop()
+                toolbarItem.state = "spread"
+                delayAfterToolsChange.restart()
+            }
+        }
     }
 
     /*! \internal */
