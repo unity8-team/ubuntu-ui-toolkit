@@ -51,7 +51,8 @@ GenericToolbar {
             // toolbar is invisible
             internal.visibleTools = tools;
         } else {
-            active = false;
+            //active = false;
+            internal.visibleTools = tools;
             // internal.visibleTools will be updated
             // when the hide animation is finished
         }

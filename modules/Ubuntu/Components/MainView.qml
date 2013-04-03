@@ -120,7 +120,9 @@ PageTreeNode {
         Timer {
             id: delayAfterClick
             interval: 250
-            onTriggered: toolbarItem.state = ""
+            onTriggered: {
+                if (!toolbarItem.lock) toolbarItem.state = ""
+            }
         }
 
         onPressed: {
@@ -132,7 +134,7 @@ PageTreeNode {
             target: toolbarItem
             onToolsChanged: {
                 delayAfterClick.stop()
-                toolbarItem.state = "spread"
+                if (toolbarItem.tools.__hasVisibleActions()) toolbarItem.state = "spread"
                 delayAfterToolsChange.restart()
             }
         }
