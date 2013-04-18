@@ -1,4 +1,4 @@
-ubuntu-ui-toolkit (0.1.43) UNRELEASED; urgency=low
+ubuntu-ui-toolkit (0.1.43) raring; urgency=low
 
   * Fix for text inputs staying disabled after being re-enabled. The previous 
     workaround for removing input panel was blocking re-enabling a 
@@ -10,7 +10,7 @@ ubuntu-ui-toolkit (0.1.43) UNRELEASED; urgency=low
   * Fix for TextArea Enter/Return keys being stolen when embedded in 
     ListItems.Empty. (LP: #1166840)
 
- -- Ken VanDine <ken.vandine@canonical.com>  Thu, 18 Apr 2013 10:01:45 -0400
+ -- Ken VanDine <ken.vandine@canonical.com>  Thu, 18 Apr 2013 10:18:52 -0400
 
 ubuntu-ui-toolkit (0.1.42) raring; urgency=low
 
