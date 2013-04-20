@@ -27,9 +27,28 @@ MouseArea {
     anchors.fill: parent
     hoverEnabled: true
     propagateComposedEvents: true
-    onPressed: {PopupUtils.close(codeSnippet.__popover); mouse.accepted = false}
-    onEntered: codeSnippet.__popover = PopupUtils.open(popoverComponent, codeSnippet)
-    onExited: if (codeSnippet.__popover) PopupUtils.close(codeSnippet.__popover)
+
+    function show() {
+        codeSnippet.__popover = PopupUtils.open(popoverComponent, codeSnippet);
+    }
+
+    function hide() {
+        if (codeSnippet.__popover) {
+            PopupUtils.close(codeSnippet.__popover);
+        }
+    }
+
+    function toggle() {
+        if (codeSnippet.__popover) {
+            hide();
+        } else {
+            show();
+        }
+    }
+
+    onPressed: {toggle(); mouse.accepted = false}
+    onEntered: show()
+    onExited: hide()
 
     Component {
         id: popoverComponent
