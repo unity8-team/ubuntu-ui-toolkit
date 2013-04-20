@@ -81,6 +81,7 @@ Template {
             Icon {
                 name: "computer-symbolic"
                 color: "red"
+                keyColor: "#bebebe"
                 width: 24
                 height: 24
 

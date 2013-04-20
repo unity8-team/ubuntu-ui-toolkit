@@ -150,7 +150,7 @@ Empty {
     Rectangle {
         id: controlHighlight
 
-        visible: control && __controlAreaPressed
+        visible: listItem.swipingState === "" ? control && __controlAreaPressed : false
         anchors {
             top: parent.top
             right: progressionHelper.visible ? progressionHelper.left : parent.right
@@ -163,7 +163,8 @@ Empty {
 
     Rectangle {
         id: progressionHighlight
-        visible: listItem.progression && listItem.pressed && !__controlAreaPressed
+
+        visible: listItem.swipingState === "" ? listItem.progression && listItem.pressed && !__controlAreaPressed : false
         anchors {
             left: progressionHelper.left
             top: parent.top
@@ -248,21 +249,17 @@ Empty {
 
             onClicked: {
                 if (control && __mouseArea.mouseX < progressionHelper.x) {
-                    control.clicked(mouse)
-                    mouse.accepted = true
+                    control.clicked();
                 } else {
-                    listItem.clicked(mouse)
-                    mouse.accepted = true
+                    listItem.clicked();
                 }
             }
 
             onPressAndHold: {
                 if (control && __mouseArea.mouseX < progressionHelper.x) {
-                    control.pressAndHold(mouse)
-                    mouse.accepted = true
+                    control.pressAndHold();
                 } else {
-                    listItem.pressAndHold(mouse)
-                    mouse.accepted = true
+                    listItem.pressAndHold();
                 }
             }
         }
