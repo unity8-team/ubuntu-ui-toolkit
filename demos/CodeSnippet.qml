@@ -46,9 +46,27 @@ MouseArea {
         }
     }
 
-    onPressed: {toggle(); mouse.accepted = false}
-    onEntered: show()
-    onExited: hide()
+    property bool containedMouseBeforePress: false
+
+    onPressed: {
+        hide();
+        mouse.accepted = false;
+        // rejecting the event triggers a bug in Qt:
+        // https://bugreports.qt-project.org/browse/QTBUG-30783
+        containedMouseBeforePress = true;
+    }
+    onReleased: {
+        containedMouseBeforePress = false;
+    }
+
+    onEntered: {
+        if (!containedMouseBeforePress) {
+            show()
+        }
+    }
+    onExited: {
+        hide();
+    }
 
     Component {
         id: popoverComponent
