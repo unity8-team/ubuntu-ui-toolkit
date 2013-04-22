@@ -20,7 +20,7 @@ source export_modules_dir.sh
 if [ "$1" == "--autopilot" ]
 then
     demos/gallery -testability &
-	autopilot vis
+    autopilot vis
 else
 	demos/gallery
 fi
