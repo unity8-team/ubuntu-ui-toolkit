@@ -19,7 +19,7 @@ import Ubuntu.Components 0.1
 
 Template {
     TemplateSection {
-        title: i18n.tr("Progress Bars")
+        title: i18n.tr("Progress Bar")
         className: "ProgressBar"
 
         TemplateRow {
