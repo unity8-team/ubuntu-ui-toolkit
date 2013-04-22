@@ -25,7 +25,7 @@ Item {
 
     default property alias content: layout.children
     property alias spacing: layout.spacing
-    property ToolbarActions tools: ToolbarActions {}
+    property ToolbarActions tools: null
 
     Flickable {
         id: flickable

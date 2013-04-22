@@ -57,7 +57,11 @@ MainView {
             id: contentPage
             visible: false
             property alias source: contentLoader.source
-            tools: contentLoader.item ? contentLoader.item.tools : null
+
+            ToolbarActions {
+                id: noActions
+            }
+            tools: contentLoader.item && contentLoader.item.tools ? contentLoader.item.tools : noActions
 
             Loader {
                 id: contentLoader
