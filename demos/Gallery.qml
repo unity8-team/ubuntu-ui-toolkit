@@ -19,6 +19,8 @@ import Ubuntu.Components 0.1
 import Ubuntu.Components.ListItems 0.1 as ListItem
 
 MainView {
+    id: gallery
+
     width: units.gu(40)
     height: units.gu(75)
     objectName: "gallery"
@@ -31,18 +33,26 @@ MainView {
             id: mainPage
             title: "Ubuntu UI Toolkit"
             visible: false
+            flickable: listView
 
-            ListView {
+            Rectangle {
+                color: "#e0e0e0"
                 anchors.fill: parent
-                model: widgetsModel
-                delegate: ListItem.Standard {
-                    text: model.label
-                    enabled: model.source != ""
-                    progression: true
-                    onClicked: {
-                        contentPage.title = model.label;
-                        contentPage.source = model.source;
-                        pageStack.push(contentPage);
+
+                ListView {
+                    id: listView
+                    anchors.fill: parent
+                    model: widgetsModel
+                    delegate: ListItem.Standard {
+                        text: model.label
+                        enabled: model.source != ""
+                        progression: true
+                        selected: contentPage.source == Qt.resolvedUrl(model.source)
+                        onClicked: {
+                            contentPage.title = model.label;
+                            contentPage.source = model.source;
+                            pageStack.push(contentPage);
+                        }
                     }
                 }
             }
