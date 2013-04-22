@@ -5,7 +5,7 @@
 # under the terms of the GNU Lesser General Public License version 3, as published
 # by the Free Software Foundation.
 
-"""Tests for the Ubuntu UI Toolkit Component Showcase"""
+"""Tests for the Ubuntu UI Toolkit Gallery"""
 
 from autopilot.matchers import Eventually
 from textwrap import dedent
@@ -16,9 +16,9 @@ from UbuntuUiToolkit.tests import UbuntuUiToolkitTestCase
 
 
 class GenericTests(UbuntuUiToolkitTestCase):
-    """Generic tests for the Component Showcase"""
+    """Generic tests for the Gallery"""
 
-    test_qml_file = "%s/%s.qml" % (os.path.dirname(os.path.realpath(__file__)),"../../../../../demos/ComponentShowcase")
+    test_qml_file = "%s/%s.qml" % (os.path.dirname(os.path.realpath(__file__)),"../../../../../demos/Gallery")
 
     def test_0_can_select_mainwindow(self):
         """Must be able to select the main window."""
@@ -27,12 +27,12 @@ class GenericTests(UbuntuUiToolkitTestCase):
         self.assertThat(rootItem, Not(Is(None)))
         self.assertThat(rootItem.visible,Eventually(Equals(True)))
 
-    def test_1_can_select_componentShowcase(self):
-        """Must be able to select the Component Showcase main qml file"""
+    def test_1_can_select_gallery(self):
+        """Must be able to select the Gallery main qml file"""
 
-        componentShowcase = self.app.select_single(objectName="componentShowcase")
-        self.assertThat(componentShowcase, Not(Is(None)))
-        self.assertThat(componentShowcase.visible, Eventually(Equals(True)))
+        gallery = self.app.select_single(objectName="gallery")
+        self.assertThat(gallery, Not(Is(None)))
+        self.assertThat(gallery.visible, Eventually(Equals(True)))
 
     def test_2_can_select_listview(self):
         """Must be able to select the listview from main"""    

@@ -16,46 +16,30 @@
 
 import QtQuick 2.0
 import Ubuntu.Components 0.1
+import Ubuntu.Components.Popups 0.1
 
-Template {
-    TemplateSection {
-        TemplateRow {
-            title: i18n.tr("Standard")
+Item {
+    Component.onCompleted: PopupUtils.open(dialog, null)
+
+    Component {
+        id: dialog
+        Dialog {
+            id: dialogue
+
+            title: "Sample Dialog"
+            text: "Are you sure you want to delete this file?"
 
             Button {
-                text: i18n.tr("Call")
+                text: "Cancel"
+                onClicked: {
+                    PopupUtils.close(dialogue)
+                    gallery.popPage()
+                }
             }
-        }
-
-        TemplateRow {
-            title: i18n.tr("Color")
-
             Button {
-                text: i18n.tr("Call")
-                color: "#5da357"
-            }
-        }
-
-        TemplateRow {
-            title: i18n.tr("Icon")
-
-            Button {
-                iconSource: "call_icon.png"
-            }
-
-            Button {
-                width: units.gu(11)
-                text: i18n.tr("Call")
-                iconSource: "call_icon.png"
-            }
-        }
-
-        TemplateRow {
-            title: i18n.tr("Disabled")
-
-            Button {
-                text: i18n.tr("Call")
-                enabled: false
+                text: "Delete"
+                color: "red"
+                onClicked: PopupUtils.close(dialogue)
             }
         }
     }

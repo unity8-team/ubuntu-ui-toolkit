@@ -17,31 +17,25 @@
 import QtQuick 2.0
 import Ubuntu.Components 0.1
 
-Item {
-    id: templateRow
+TemplateSection {
+    id: section
+    property alias delegate: repeater.delegate
 
-    property string title
-    property real titleWidth: units.gu(10)
-    property alias spacing: contentRow.spacing
-    default property alias content: contentRow.children
-
-    height: Math.max(contentRow.height, label.height)
-    width: parent.width
-
-    Label {
-        id: label
-        text: templateRow.title
-        width: templateRow.titleWidth
-        anchors.verticalCenter: contentRow.verticalCenter
-        elide: Text.ElideRight
-    }
-
-    Row {
-        id: contentRow
-
-        anchors.left: label.right
-        anchors.leftMargin: units.gu(2)
+    Rectangle {
+        color: "#f7f7f7"
+        anchors.left: parent.left
         anchors.right: parent.right
-        spacing: units.gu(2)
+        height: column.height
+
+        Column {
+            id: column
+            anchors.left: parent.left
+            anchors.right: parent.right
+
+            Repeater {
+                id: repeater
+                model: 4
+            }
+        }
     }
 }

@@ -17,31 +17,33 @@
 import QtQuick 2.0
 import Ubuntu.Components 0.1
 
-Item {
-    id: templateRow
-
-    property string title
-    property real titleWidth: units.gu(10)
-    property alias spacing: contentRow.spacing
-    default property alias content: contentRow.children
-
-    height: Math.max(contentRow.height, label.height)
-    width: parent.width
+Column {
+    anchors.fill: parent
+    anchors.margins: units.gu(2)
+    spacing: units.gu(2)
 
     Label {
-        id: label
-        text: templateRow.title
-        width: templateRow.titleWidth
-        anchors.verticalCenter: contentRow.verticalCenter
-        elide: Text.ElideRight
+        fontSize: "xx-small"
+        text: "xx-small"
     }
-
-    Row {
-        id: contentRow
-
-        anchors.left: label.right
-        anchors.leftMargin: units.gu(2)
-        anchors.right: parent.right
-        spacing: units.gu(2)
+    Label {
+        fontSize: "x-small"
+        text: "x-small"
+    }
+    Label {
+        fontSize: "small"
+        text: "small"
+    }
+    Label {
+        fontSize: "medium"
+        text: "medium"
+    }
+    Label {
+        fontSize: "large"
+        text: "large"
+    }
+    Label {
+        fontSize: "x-large"
+        text: "x-large"
     }
 }
