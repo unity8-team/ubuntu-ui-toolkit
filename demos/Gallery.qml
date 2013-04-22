@@ -21,7 +21,7 @@ import Ubuntu.Components.ListItems 0.1 as ListItem
 MainView {
     id: gallery
 
-    width: units.gu(40)
+    width: units.gu(100)
     height: units.gu(75)
     objectName: "gallery"
 
