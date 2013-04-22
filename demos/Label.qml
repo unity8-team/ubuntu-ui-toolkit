@@ -17,7 +17,7 @@
 import QtQuick 2.0
 import Ubuntu.Components 0.1
 
-Column {
+Template {
     anchors.fill: parent
     anchors.margins: units.gu(2)
     spacing: units.gu(2)
