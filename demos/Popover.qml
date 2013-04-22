@@ -19,15 +19,15 @@ import Ubuntu.Components 0.1
 import Ubuntu.Components.Popups 0.1
 
 Template {
-    TemplateRow {
-        title: i18n.tr("Actions")
-
-        Button {
-            id: actionSelectionPopoverButton
-            text: i18n.tr("Open")
-            width: units.gu(16)
-            onClicked: PopupUtils.open(actionSelectionPopover, actionSelectionPopoverButton)
+    tools: ToolbarActions {
+        Action {
+            id: toolbarAction
+            text: "Actions"
+            iconSource: "call_icon.png"
+            onTriggered: PopupUtils.open(actionSelectionPopover, caller)
         }
+        lock: true
+        active: true
     }
 
     TemplateRow {

@@ -57,6 +57,7 @@ MainView {
             id: contentPage
             visible: false
             property alias source: contentLoader.source
+            tools: contentLoader.item ? contentLoader.item.tools : null
 
             Loader {
                 id: contentLoader
