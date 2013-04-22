@@ -35,6 +35,7 @@ Item {
         width: templateFlow.titleWidth
         y: templateFlow.titleOffset
         elide: Text.ElideRight
+        font.weight: Font.Light
     }
 
     Flow {

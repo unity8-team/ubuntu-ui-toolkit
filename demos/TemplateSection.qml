@@ -25,8 +25,10 @@ Column {
     property string title: className
     property string documentation: "qml-ubuntu-components0-%1.html".arg(className.toLowerCase())
 
-    Row {
-        spacing: units.gu(2)
+    Item {
+        anchors.left: parent.left
+        anchors.right: parent.right
+        height: childrenRect.height
 
         Label {
             id: label
@@ -37,6 +39,7 @@ Column {
         WebLink {
             id: docLink
             anchors.verticalCenter: label.verticalCenter
+            anchors.right: parent.right
             property string prefix: "/usr/share/ubuntu-ui-toolkit/doc/html/"
             label: title ? "API Documentation" : "%1 API Documentation".arg(className)
             url: prefix + documentation

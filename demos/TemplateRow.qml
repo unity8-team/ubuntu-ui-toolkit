@@ -34,6 +34,7 @@ Item {
         width: templateRow.titleWidth
         anchors.verticalCenter: contentRow.verticalCenter
         elide: Text.ElideRight
+        font.weight: Font.Light
     }
 
     Row {

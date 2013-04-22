@@ -26,6 +26,7 @@ Template {
               "<br/>- <b>flat</b><br/>- <b>contextual</b><br/>- <b>deep</b>"
         wrapMode: Text.WordWrap
         textFormat: Text.RichText
+        font.weight: Font.Light
     }
 
     TemplateSectionNavigation {
