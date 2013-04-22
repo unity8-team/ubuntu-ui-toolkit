@@ -47,7 +47,7 @@ MainView {
                         text: model.label
                         enabled: model.source != ""
                         progression: true
-                        selected: contentPage.source == Qt.resolvedUrl(model.source)
+                        selected: enabled && contentPage.source == Qt.resolvedUrl(model.source)
                         onClicked: {
                             contentPage.title = model.label;
                             contentPage.source = model.source;
