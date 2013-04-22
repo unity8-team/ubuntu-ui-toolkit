@@ -19,6 +19,11 @@ import QtQuick 2.0
 ListModel {
     // Already in design guidelines
     ListElement {
+        label: "Navigation"
+        source: "Navigation.qml"
+    }
+
+    ListElement {
         label: "Switches"
         source: "Switches.qml"
     }

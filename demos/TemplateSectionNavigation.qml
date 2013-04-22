@@ -25,24 +25,37 @@ Column {
     property string title: className
     property string documentation: "qml-ubuntu-components0-%1.html".arg(className.toLowerCase())
 
-    Row {
-        spacing: units.gu(2)
+    property string description
+    property url designUrl
+    property string screenshot
 
-        Label {
-            id: label
-            text: templateSection.title
-            fontSize: "large"
-        }
+    Label {
+        id: label
+        text: templateSection.title
+        fontSize: "large"
+    }
 
-        WebLink {
-            id: docLink
-            anchors.verticalCenter: label.verticalCenter
-            property string prefix: "/usr/share/ubuntu-ui-toolkit/doc/html/"
-            label: title ? "API Documentation" : "%1 API Documentation".arg(className)
-            url: prefix + documentation
-            visible: documentation != ""
-            fontSize: "small"
-            opacity: 0.3
-        }
+    WebLink {
+        id: docLink
+        property string prefix: "/usr/share/ubuntu-ui-toolkit/doc/html/"
+        label: title ? "API Documentation" : "%1 API Documentation".arg(className)
+        url: prefix + documentation
+        visible: documentation != ""
+        fontSize: "small"
+        opacity: 0.3
+    }
+
+    WebLink {
+        label: "Design guidelines"
+        url: templateSection.designUrl
+        fontSize: "small"
+        opacity: 0.3
+    }
+
+    Image {
+        fillMode: Image.PreserveAspectFit
+        source: templateSection.screenshot
+        anchors.left: parent.left
+        anchors.right: parent.right
     }
 }
