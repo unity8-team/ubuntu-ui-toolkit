@@ -19,6 +19,7 @@ import Ubuntu.Components 0.1
 
 Template {
     TemplateSection {
+        title: "Ubuntu Shape"
         className: "UbuntuShape"
 
         TemplateRow {
