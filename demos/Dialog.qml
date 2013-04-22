@@ -18,28 +18,35 @@ import QtQuick 2.0
 import Ubuntu.Components 0.1
 import Ubuntu.Components.Popups 0.1
 
-Item {
-    Component.onCompleted: PopupUtils.open(dialog, null)
-
-    Component {
-        id: dialog
-        Dialog {
-            id: dialogue
-
-            title: "Sample Dialog"
-            text: "Are you sure you want to delete this file?"
+Template {
+    TemplateSection {
+        TemplateRow {
+            title: i18n.tr("Sample")
 
             Button {
-                text: "Cancel"
-                onClicked: {
-                    PopupUtils.close(dialogue)
-                    gallery.popPage()
-                }
+                text: i18n.tr("Open")
+                width: units.gu(16)
+                onClicked: PopupUtils.open(dialog, null)
             }
-            Button {
-                text: "Delete"
-                color: "red"
-                onClicked: PopupUtils.close(dialogue)
+        }
+
+        Component {
+            id: dialog
+            Dialog {
+                id: dialogue
+
+                title: "Sample Dialog"
+                text: "Are you sure you want to delete this file?"
+
+                Button {
+                    text: "Cancel"
+                    onClicked: PopupUtils.close(dialogue)
+                }
+                Button {
+                    text: "Delete"
+                    color: "red"
+                    onClicked: PopupUtils.close(dialogue)
+                }
             }
         }
     }

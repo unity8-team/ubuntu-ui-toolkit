@@ -19,14 +19,8 @@ import Ubuntu.Components 0.1
 import Ubuntu.Components.ListItems 0.1 as ListItem
 
 MainView {
-    id: gallery
-
     width: units.gu(40)
     height: units.gu(75)
-
-    function popPage() {
-        pageStack.pop();
-    }
 
     PageStack {
         id: pageStack
@@ -57,6 +51,7 @@ MainView {
             id: contentPage
             visible: false
             property alias source: contentLoader.source
+            onActiveChanged: if (!active) source = ""
 
             ToolbarActions {
                 id: noActions
