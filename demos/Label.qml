@@ -19,7 +19,6 @@ import Ubuntu.Components 0.1
 
 Template {
     TemplateSection {
-        documentation: "qml-ubuntu-components0-label.html"
         className: "Label"
 
         Column {
