@@ -21,6 +21,7 @@ import Ubuntu.Components.ListItems 0.1 as ListItem
 MainView {
     width: units.gu(40)
     height: units.gu(75)
+    objectName: "gallery"
 
     PageStack {
         id: pageStack
