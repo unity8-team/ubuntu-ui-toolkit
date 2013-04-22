@@ -26,6 +26,7 @@ Template {
 
             ProgressBar {
                 id: progress
+                width: parent.width
 
                 SequentialAnimation on value {
                     loops: Animation.Infinite
@@ -43,6 +44,7 @@ Template {
             title: i18n.tr("Infinite")
 
             ProgressBar {
+                width: parent.width
                 indeterminate: true
             }
         }
