@@ -19,6 +19,8 @@ import Ubuntu.Components 0.1
 
 Template {
     TemplateSection {
+        className: "Slider"
+
         TemplateFlow {
             title: i18n.tr("Standard")
 

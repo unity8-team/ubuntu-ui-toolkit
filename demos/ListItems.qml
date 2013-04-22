@@ -21,6 +21,7 @@ import Ubuntu.Components.ListItems 0.1 as ListItem
 Template {
     ListItemsSection {
         title: i18n.tr("Standard")
+        className: "Standard"
         delegate: ListItem.Standard {
             text: i18n.tr("Label")
         }
@@ -28,6 +29,7 @@ Template {
 
     ListItemsSection {
         title: i18n.tr("Subtitled")
+        className: "Subtitled"
         delegate: ListItem.Subtitled {
             text: i18n.tr("Label")
             subText: i18n.tr("Secondary label")
@@ -37,6 +39,7 @@ Template {
 
     ListItemsSection {
         title: i18n.tr("Icon")
+        className: "Standard"
         delegate: ListItem.Standard {
             text: i18n.tr("Label")
             icon: Qt.resolvedUrl("avatar_contacts_list.png")
@@ -45,6 +48,7 @@ Template {
 
     ListItemsSection {
         title: i18n.tr("Progression")
+        className: "Standard"
         delegate: ListItem.Standard {
             text: i18n.tr("Label")
             progression: true
@@ -53,6 +57,7 @@ Template {
 
     ListItemsSection {
         title: i18n.tr("Single value")
+        className: "SingleValue"
         delegate: ListItem.SingleValue {
             text: i18n.tr("Label")
             value: i18n.tr("Value")
@@ -61,6 +66,7 @@ Template {
 
     ListItemsSection {
         title: i18n.tr("Single value")
+        className: "MultiValue"
         delegate: ListItem.MultiValue {
             text: i18n.tr("Label")
             values: [i18n.tr("Value 1"),
@@ -72,6 +78,7 @@ Template {
 
     ListItemsSection {
         title: i18n.tr("Control")
+        className: "Standard"
         delegate: ListItem.Standard {
             text: i18n.tr("Label")
             control: Switch {
@@ -82,6 +89,7 @@ Template {
 
     ListItemsSection {
         title: i18n.tr("Removable")
+        className: "Standard"
         delegate: ListItem.Standard {
             text: i18n.tr("Slide to remove")
             removable: true
@@ -94,6 +102,7 @@ Template {
 
     TemplateSection {
         title: i18n.tr("Grouped list")
+        className: "Header"
 
         Rectangle {
             color: "#f7f7f7"

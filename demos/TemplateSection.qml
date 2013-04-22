@@ -21,10 +21,27 @@ Column {
     id: templateSection
     spacing: units.gu(3)
     width: parent.width
-    property string title
+    property string className
+    property string title: className
+    property string documentation: "qml-ubuntu-components0-%1.html".arg(className.toLowerCase())
 
-    Label {
-        text: templateSection.title
-        fontSize: "large"
+    Row {
+        spacing: units.gu(2)
+
+        Label {
+            id: label
+            text: templateSection.title
+            fontSize: "large"
+        }
+
+        WebLink {
+            id: docLink
+            anchors.verticalCenter: label.verticalCenter
+            property string prefix: "/usr/share/ubuntu-ui-toolkit/doc/html/"
+            label: title ? "API Documentation" : "%1 API Documentation".arg(className)
+            url: prefix + documentation
+            fontSize: "small"
+            opacity: 0.3
+        }
     }
 }

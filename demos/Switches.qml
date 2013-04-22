@@ -20,6 +20,7 @@ import Ubuntu.Components 0.1
 Template {
     TemplateSection {
         title: "Checkbox"
+        className: "CheckBox"
 
         TemplateRow {
             title: i18n.tr("Unchecked")
@@ -53,6 +54,7 @@ Template {
 
     TemplateSection {
         title: "Switch"
+        className: "Switch"
 
         TemplateRow {
             title: i18n.tr("Unchecked")

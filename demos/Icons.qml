@@ -19,6 +19,8 @@ import Ubuntu.Components 0.1
 
 Template {
     TemplateSection {
+        className: "Icon"
+
         TemplateRow {
             title: i18n.tr("Scaling")
             spacing: units.gu(2)

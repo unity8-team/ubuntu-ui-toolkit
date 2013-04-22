@@ -20,6 +20,9 @@ import Ubuntu.Components.Popups 0.1
 
 Template {
     TemplateSection {
+        className: "Dialog"
+        documentation: "qml-ubuntu-components-popups0-%1.html".arg(className.toLowerCase())
+
         TemplateRow {
             title: i18n.tr("Sample")
 

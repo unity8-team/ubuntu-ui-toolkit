@@ -18,32 +18,37 @@ import QtQuick 2.0
 import Ubuntu.Components 0.1
 
 Template {
-    anchors.fill: parent
-    anchors.margins: units.gu(2)
-    spacing: units.gu(2)
+    TemplateSection {
+        documentation: "qml-ubuntu-components0-label.html"
+        className: "Label"
 
-    Label {
-        fontSize: "xx-small"
-        text: "xx-small"
-    }
-    Label {
-        fontSize: "x-small"
-        text: "x-small"
-    }
-    Label {
-        fontSize: "small"
-        text: "small"
-    }
-    Label {
-        fontSize: "medium"
-        text: "medium"
-    }
-    Label {
-        fontSize: "large"
-        text: "large"
-    }
-    Label {
-        fontSize: "x-large"
-        text: "x-large"
+        Column {
+            spacing: units.gu(2)
+
+            Label {
+                fontSize: "xx-small"
+                text: "xx-small"
+            }
+            Label {
+                fontSize: "x-small"
+                text: "x-small"
+            }
+            Label {
+                fontSize: "small"
+                text: "small"
+            }
+            Label {
+                fontSize: "medium"
+                text: "medium"
+            }
+            Label {
+                fontSize: "large"
+                text: "large"
+            }
+            Label {
+                fontSize: "x-large"
+                text: "x-large"
+            }
+        }
     }
 }

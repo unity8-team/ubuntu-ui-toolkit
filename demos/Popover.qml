@@ -30,14 +30,19 @@ Template {
         active: true
     }
 
-    TemplateRow {
-        title: i18n.tr("Flickable")
+    TemplateSection {
+        className: "Popover"
+        documentation: "qml-ubuntu-components-popups0-%1.html".arg(className.toLowerCase())
 
-        Button {
-            id: popoverWithFlickableButton
-            text: i18n.tr("Open")
-            width: units.gu(16)
-            onClicked: PopupUtils.open(popoverWithFlickable, popoverWithFlickableButton)
+        TemplateRow {
+            title: i18n.tr("Flickable")
+
+            Button {
+                id: popoverWithFlickableButton
+                text: i18n.tr("Open")
+                width: units.gu(16)
+                onClicked: PopupUtils.open(popoverWithFlickable, popoverWithFlickableButton)
+            }
         }
     }
 

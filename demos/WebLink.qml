@@ -17,26 +17,13 @@
 import QtQuick 2.0
 import Ubuntu.Components 0.1
 
-TemplateSection {
-    id: section
-    property alias delegate: repeater.delegate
-    documentation: "qml-ubuntu-components-listitems0-%1.html".arg(className.toLowerCase())
+Label {
+    id: webLink
 
-    Rectangle {
-        color: "#f7f7f7"
-        anchors.left: parent.left
-        anchors.right: parent.right
-        height: column.height
+    property string label: url
+    property url url
 
-        Column {
-            id: column
-            anchors.left: parent.left
-            anchors.right: parent.right
-
-            Repeater {
-                id: repeater
-                model: 4
-            }
-        }
-    }
+    textFormat: Text.RichText
+    text: "<a href=\"%1\">%2</a>".arg(webLink.url).arg(webLink.label)
+    onLinkActivated: Qt.openUrlExternally(link)
 }

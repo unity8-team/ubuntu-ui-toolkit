@@ -20,6 +20,7 @@ import Ubuntu.Components 0.1
 Template {
     TemplateSection {
         title: i18n.tr("Progress Bars")
+        className: "ProgressBar"
 
         TemplateRow {
             title: i18n.tr("Standard")
@@ -52,6 +53,7 @@ Template {
 
     TemplateSection {
         title: i18n.tr("Activity Indicator")
+        className: "ActivityIndicator"
 
         TemplateRow {
             title: i18n.tr("Standard")

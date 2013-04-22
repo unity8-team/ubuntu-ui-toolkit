@@ -38,6 +38,7 @@ Template {
 
     TemplateSection {
         title: "Single line"
+        className: "TextField"
 
         TemplateRow {
             title: i18n.tr("Standard")
@@ -80,6 +81,7 @@ Template {
 
     TemplateSection {
         title: "Multi-line"
+        className: "TextArea"
 
         TemplateRow {
             title: i18n.tr("Default")

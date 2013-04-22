@@ -19,6 +19,8 @@ import Ubuntu.Components 0.1
 
 Template {
     TemplateSection {
+        className: "UbuntuShape"
+
         TemplateRow {
             title: i18n.tr("Color")
             titleWidth: units.gu(6)
