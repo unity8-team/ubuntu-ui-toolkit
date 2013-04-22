@@ -42,7 +42,7 @@ ListModel {
 
     // Not in design guidelines yet
     ListElement {
-        label: "Progress Bars & Activity Indicator"
+        label: "Progress Bars"
         source: "ProgressBars.qml"
     }
     ListElement {
