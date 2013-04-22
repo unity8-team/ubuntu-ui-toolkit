@@ -25,6 +25,37 @@ MainView {
     height: units.gu(75)
     objectName: "gallery"
 
+    property bool wideAspect: width >= units.gu(80)
+    state: wideAspect ? "wide" : ""
+    states: [
+        State {
+            name: "wide"
+            PropertyChanges {
+                target: pageStack
+                width: units.gu(30)
+                anchors {
+                    fill: null
+                    top: parent.top
+                    bottom: parent.bottom
+                }
+            }
+            PropertyChanges {
+                target: contentPage
+                x: pageStack.width
+                width: gallery.width - x
+                y: gallery.header.height
+                height: gallery.height - y
+                anchors {
+                    left: undefined
+                    right: undefined
+                    bottom: undefined
+                }
+                clip: true
+                visible: true
+            }
+        }
+    ]
+
     PageStack {
         id: pageStack
         Component.onCompleted: push(mainPage)
@@ -51,7 +82,9 @@ MainView {
                         onClicked: {
                             contentPage.title = model.label;
                             contentPage.source = model.source;
-                            pageStack.push(contentPage);
+                            if (!wideAspect) {
+                                pageStack.push(contentPage);
+                            }
                         }
                     }
                 }
@@ -68,7 +101,7 @@ MainView {
                 id: noActions
             }
             tools: contentLoader.item && contentLoader.item.tools ? contentLoader.item.tools : noActions
-            flickable: contentLoader.item ? contentLoader.item.flickable : null
+            flickable: contentLoader.item && !wideAspect ? contentLoader.item.flickable : null
 
             Loader {
                 id: contentLoader
