@@ -3,7 +3,6 @@ Encoding=UTF-8
 Type=Application
 Exec=/usr/lib/ubuntu-ui-toolkit/demos/gallery
 Path=/usr/lib/ubuntu-ui-toolkit/
-Name=Qt Components for Ubuntu - Component Showcase
-GenericName=Qt Components for Ubuntu Component Showcase application
+Name=Ubuntu UI Toolkit Gallery
 Terminal=false
 
