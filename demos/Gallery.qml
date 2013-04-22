@@ -57,6 +57,7 @@ MainView {
                 id: noActions
             }
             tools: contentLoader.item && contentLoader.item.tools ? contentLoader.item.tools : noActions
+            flickable: contentLoader.item ? contentLoader.item.flickable : null
 
             Loader {
                 id: contentLoader
