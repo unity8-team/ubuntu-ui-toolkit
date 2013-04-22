@@ -17,10 +17,6 @@
 import QtQuick 2.0
 
 ListModel {
-    ListElement {
-        label: "Label"
-        source: "Label.qml"
-    }
     // Already in design guidelines
     ListElement {
         label: "Switches"
@@ -51,6 +47,10 @@ ListModel {
     ListElement {
         label: "Icons"
         source: "Icons.qml"
+    }
+    ListElement {
+        label: "Label"
+        source: "Label.qml"
     }
 
     // Already in design guidelines but should be reordered
