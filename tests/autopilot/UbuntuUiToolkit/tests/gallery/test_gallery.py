@@ -36,14 +36,7 @@ class GenericTests(UbuntuUiToolkitTestCase):
         self.assertThat(rootItem, Not(Is(None)))
         self.assertThat(rootItem.visible,Eventually(Equals(True)))
 
-    def test_1_can_select_gallery(self):
-        """Must be able to select the Gallery main qml file"""
-
-        gallery = self.main_window.get_object("QQuickItem", "gallery")
-        self.assertThat(gallery, Not(Is(None)))
-        self.assertThat(gallery.visible, Eventually(Equals(True)))
-
-    def test_2_can_select_listview(self):
+    def test_1_can_select_listview(self):
         """Must be able to select the listview from main"""    
 
         contentLoader,listView = self.getWidgetLoaderAndListView();

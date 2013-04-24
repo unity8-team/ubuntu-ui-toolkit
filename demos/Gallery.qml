@@ -23,7 +23,6 @@ MainView {
 
     width: units.gu(100)
     height: units.gu(75)
-    objectName: "gallery"
 
     property bool wideAspect: width >= units.gu(80)
     state: wideAspect ? "wide" : ""
