@@ -46,7 +46,7 @@ class GenericTests(UbuntuUiToolkitTestCase):
     def test_2_can_select_listview(self):
         """Must be able to select the listview from main"""    
 
-        widgetLoader,listView = self.getWidgetLoaderAndListView();
+        contentLoader,listView = self.getWidgetLoaderAndListView();
 
         # Don't have the first, already selected item as the first item to check
         items = [

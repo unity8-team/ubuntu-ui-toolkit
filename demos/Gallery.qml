@@ -64,14 +64,15 @@ MainView {
             id: mainPage
             title: "Ubuntu UI Toolkit"
             visible: false
-            flickable: listView
+            flickable: widgetList
 
             Rectangle {
                 color: "#e0e0e0"
                 anchors.fill: parent
 
                 ListView {
-                    id: listView
+                    id: widgetList
+                    objectName: "widgetList"
                     anchors.fill: parent
                     model: widgetsModel
                     delegate: ListItem.Standard {
@@ -105,6 +106,7 @@ MainView {
 
             Loader {
                 id: contentLoader
+                objectName: "contentLoader"
                 anchors.fill: parent
             }
         }
