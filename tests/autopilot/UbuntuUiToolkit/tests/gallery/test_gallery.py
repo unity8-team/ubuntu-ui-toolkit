@@ -59,6 +59,7 @@ class GenericTests(UbuntuUiToolkitTestCase):
                         "Icons", 
                         "Label",
                         "List Items", 
+                        "Navigation", 
                     ]                  
 
 
