@@ -68,7 +68,7 @@ class GenericTests(UbuntuUiToolkitTestCase):
 
 
         # scroll view to expose more items
-        self.drag("Label","Tabs")
+        self.drag("Label","Switches")
 
         # now that we have more items, lets continue
         items = [
