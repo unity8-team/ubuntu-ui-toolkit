@@ -50,13 +50,15 @@ class GenericTests(UbuntuUiToolkitTestCase):
 
         # Don't have the first, already selected item as the first item to check
         items = [
-                        "Theming",
-                        "Resolution Independence",
-                        "Ubuntu Shape", 
-                        "Buttons", 
-                        "Tabs", 
-                        "Page Stack",
                         "Switches", 
+                        "Buttons", 
+                        "Slider", 
+                        "Text Field", 
+                        "Progress Bars", 
+                        "Ubuntu Shape", 
+                        "Icons", 
+                        "Label",
+                        "List Items", 
                     ]                  
 
 
@@ -66,16 +68,12 @@ class GenericTests(UbuntuUiToolkitTestCase):
 
 
         # scroll view to expose more items
-        self.drag("Tabs","Theming")
+        self.drag("Label","Tabs")
 
         # now that we have more items, lets continue
         items = [
-                        "Progress", 
-                        "List Items", 
-                        "Slider", 
-                        "Text Input", 
-                        "Scrollbar", 
-                        "Popovers",
+                        "Dialog", 
+                        "Popover",
                 ]
 
         for item in items:
