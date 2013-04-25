@@ -31,6 +31,7 @@ import Ubuntu.Components 0.1
     Examples: See subclasses.
 */
 OrientationHelper {
+//Item {
     id: popupBase
 
     // FIXME: sync with MainView's OrientationHelper
@@ -41,7 +42,7 @@ OrientationHelper {
       mouse and touch events will be grabbed. By default this area is the application's
       main view.
     */
-    property Item dismissArea: QuickUtils.rootObject
+    property Item dismissArea: gallery.__canvas //QuickUtils.rootObject
 
     /*!
       The property specifies whether to forward or not the mouse and touch events
@@ -73,7 +74,7 @@ OrientationHelper {
             dismissArea = QuickUtils.rootObject
 
         // Without setting the parent, mapFromItem() breaks in internalPopupUtils.
-        parent = dismissArea;
+//        parent = dismissArea;
         stateWrapper.state = 'opened';
     }
 

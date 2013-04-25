@@ -19,6 +19,7 @@ import Ubuntu.Components 0.1
 import Ubuntu.Components.Popups 0.1
 
 Template {
+    id: popupTemplate
     tools: ToolbarActions {
         Action {
             id: toolbarAction
@@ -41,7 +42,14 @@ Template {
                 id: popoverWithFlickableButton
                 text: i18n.tr("Open")
                 width: units.gu(16)
-                onClicked: PopupUtils.open(popoverWithFlickable, popoverWithFlickableButton)
+//                onClicked: PopupUtils.open(popoverWithFlickable, popoverWithFlickableButton)
+                onClicked: {
+//                    var popover = popoverWithFlickable.createObject(QuickUtils.rootObject);
+//                    var popover = popoverWithFlickable.createObject(gallery);
+                    var popover = popoverWithFlickable.createObject(gallery);
+                    popover.caller = popoverWithFlickableButton;
+                    popover.show();
+                }
             }
         }
     }

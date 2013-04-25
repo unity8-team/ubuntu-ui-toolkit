@@ -113,6 +113,10 @@ Item {
         ]
     }
 
+//    onRotationChanged: {
+//        QuickUtils.rootObject.rotation = orientationHelper.rotation
+//    }
+
     // FIXME: Orientation debugging to be removed
     /*! \internal */
     function __modulo(x, n) {

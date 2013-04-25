@@ -183,6 +183,7 @@ PageTreeNode {
       Use default property to ensure children added do not draw over the toolbar.
      */
     default property alias contentsItem: contents.data
+    property alias __canvas: canvas
     OrientationHelper {
         id: canvas
 
