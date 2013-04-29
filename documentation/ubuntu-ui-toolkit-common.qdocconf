@@ -1,16 +1,45 @@
-project = Ubuntu User Interface Toolkit
-description = Ubuntu User Interface Toolkit Documentation
-sourcedirs = ../modules/Ubuntu/Components
-headerdirs = ../modules/Ubuntu/Components/plugin
-sources.fileextensions = "*.qml *.qdoc *.cpp"
-headers.fileextensions = "*.h"
-outputdir = html
-outputformats = HTML
-version = 0.1
-syntaxhighlighting = true
-sourceencoding = UTF-8
-outputencoding = UTF-8
+project                     = UbuntuUIToolkit
+description             = Ubuntu User Interface Toolkit  Documentation
+url                              = http://developer.ubuntu.com/api/ubuntu-12.10/qml/mobile/overview-ubuntu-sdk.html
+version                     = 1
+
+# The following parameters are for creating a qhp file, the qhelpgenerator
+# program can convert the qhp file into a qch file which can be opened in
+# Qt Assistant and/or Qt Creator.
+# Defines the name of the project. You cannot use operators (+, =, -) in
+# the name. Properties for this project are set using a qhp.<projectname>.property
+# format.
+
+qhp.projects = UbuntuUIToolkit
+qhp.UbuntuUIToolkit.file = ubuntuuitoolkit.qhp
+qhp.UbuntuUIToolkit.namespace = com.canonical.ubuntuuitoolkit.1
+qhp.UbuntuUIToolkit.indexTitle = Ubuntu SDK
+qhp.UbuntuUIToolkit.virtualFolder  = ubuntu
+
+# For listing child nodes in Qt Creator or Assistant.
+qhp.UbuntuUIToolkit.subprojects = classes qmltypes
+qhp.UbuntuUIToolkit.subprojects.classes.title = C++ Classes
+qhp.UbuntuUIToolkit.subprojects.classes.indexTitle = Ubuntu UI Toolkit C++ Classes
+qhp.UbuntuUIToolkit.subprojects.classes.selectors = class fake:headerfile
+qhp.UbuntuUIToolkit.subprojects.classes.sortPages = true
+qhp.UbuntuUIToolkit.subprojects.qmltypes.title = QML Types
+qhp.UbuntuUIToolkit.subprojects.qmltypes.indexTitle = Ubuntu UI Toolkit Item QML Types
+qhp.UbuntuUIToolkit.subprojects.qmltypes.selectors = fake:qmlclass
+qhp.UbuntuUIToolkit.subprojects.qmltypes.sortPages = true
+
+outputdir += html
+
+outputformats += HTML
+
+sourcedirs +=  ../modules/Ubuntu/Components
+
+sources.fileextensions += "*.cpp  *.qdoc *.mm *.qml"
 
 HTML.templatedir = .
+
 HTML.nobreadcrumbs = "true"
+
 HTML.endheader = "</head>\n"
+
+depends                 += qtcore qtdoc qtquick qtqml qtscript qtgui
+

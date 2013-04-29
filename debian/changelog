@@ -1,3 +1,10 @@
+ubuntu-ui-toolkit (0.1.46ubuntu1) raring; urgency=low
+
+  * documentation/ubuntu-ui-toolkit-common.qdocconf: intergrate qtcreator
+  * documentation/ubuntu-ui-toolkit-offline.qdocconf:set css path
+
+ -- Joseph Mills <josephjamesmills@gmail.com>  Sun, 28 Apr 2013 20:36:01 -0400
+
 ubuntu-ui-toolkit (0.1.46) raring; urgency=low
 
   * New release
