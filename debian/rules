@@ -9,6 +9,9 @@ export DPKG_GENSYMBOLS_CHECK_LEVEL=4
 
 override_dh_install:
 	mkdir -p debian/tmp/`qmake -query QT_INSTALL_DOCS`/qch 
+	cp -a documentation/html/ubuntuuserinterfacetoolkit.qch debian/tmp/usr/share/qt5/doc/qch/
+	mkdir -p debian/tmp/usr/share/ubuntu-ui-toolkit/doc
+	cp -r documentation/html debian/tmp/usr/share/ubuntu-ui-toolkit/doc
 	rm -rf debian/tmp/usr/share/locale
 	dh_install --fail-missing
 
