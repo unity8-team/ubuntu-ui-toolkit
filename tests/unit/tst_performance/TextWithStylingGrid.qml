@@ -15,7 +15,6 @@
  */
 
 import QtQuick 2.0
-import Ubuntu.Components 0.1
 
 Grid {
     width: 800
@@ -24,6 +23,6 @@ Grid {
     columns: 160
     Repeater {
         model: 16*160
-        Label {}
+        TextWithStyling {}
     }
 }

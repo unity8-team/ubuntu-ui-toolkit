@@ -20,9 +20,9 @@ Grid {
     width: 800
     height: 600
     rows: 16
-    columns: 16
+    columns: 160
     Repeater {
-        model: 16*16
+        model: 16*160
         Text {}
     }
 }
