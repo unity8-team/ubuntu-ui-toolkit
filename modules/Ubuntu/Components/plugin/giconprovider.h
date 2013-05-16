@@ -25,7 +25,9 @@ class GIconProvider : public QQuickImageProvider
 {
 public:
     GIconProvider();
+    GIconProvider(const QString &searchPath);
     QImage requestImage(const QString &id, QSize *size, const QSize &requestedSize);
+    void addSearchPath(const QString &searchPath);
 };
 
 #endif

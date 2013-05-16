@@ -57,6 +57,14 @@ GIconProvider::GIconProvider()
     g_type_init();
 }
 
+GIconProvider::GIconProvider(const QString &searchPath)
+    : QQuickImageProvider(QQuickImageProvider::Image)
+{
+    g_type_init();
+    QByteArray path = searchPath.toUtf8();
+    gtk_icon_theme_append_search_path(gtk_icon_theme_get_default(), path.data());    
+}
+
 QImage GIconProvider::requestImage(const QString &id, QSize *size, const QSize &requestedSize)
 {
     QPixmap result;
@@ -99,4 +107,10 @@ QImage GIconProvider::requestImage(const QString &id, QSize *size, const QSize &
     g_object_unref(icon);
     *size = result.size();
     return result.toImage();
+}
+
+
+void GIconProvider::addSearchPath(const QString &searchPath) {
+    QByteArray path = searchPath.toUtf8();
+    gtk_icon_theme_append_search_path(gtk_icon_theme_get_default(), path.data());    
 }
