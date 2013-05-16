@@ -37,6 +37,7 @@ HEADERS += plugin.h \
     giconprovider.h \
     shapeitemtexture.h \
     shapeitem.h \
+    shapeitem2.h \
     inversemouseareatype.h \
     bottombarvisibilitycommunicator.h \
     qquickclipboard.h \
@@ -59,6 +60,7 @@ SOURCES += plugin.cpp \
     quickutils.cpp \
     giconprovider.cpp \
     shapeitem.cpp \
+    shapeitem2.cpp \
     inversemouseareatype.cpp \
     bottombarvisibilitycommunicator.cpp \
     qquickclipboard.cpp \
