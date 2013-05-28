@@ -24,6 +24,7 @@
 
 extern "C" {
 #include <gio/gio.h>
+#include <gtk/gtk.h>
 }
 
 /*
@@ -55,14 +56,7 @@ GIconProvider::GIconProvider()
     : QQuickImageProvider(QQuickImageProvider::Image)
 {
     g_type_init();
-}
-
-GIconProvider::GIconProvider(const QString &searchPath)
-    : QQuickImageProvider(QQuickImageProvider::Image)
-{
-    g_type_init();
-    QByteArray path = searchPath.toUtf8();
-    gtk_icon_theme_append_search_path(gtk_icon_theme_get_default(), path.data());    
+    gtk_icon_theme_append_search_path(gtk_icon_theme_get_default(), "/usr/share/notify-osd/icons");    
 }
 
 QImage GIconProvider::requestImage(const QString &id, QSize *size, const QSize &requestedSize)
@@ -71,6 +65,7 @@ QImage GIconProvider::requestImage(const QString &id, QSize *size, const QSize &
     QByteArray utf8Name = QUrl::fromPercentEncoding(id.toUtf8()).toUtf8();
     GError *error = NULL;
     GIcon *icon = g_icon_new_for_string(utf8Name.data(), &error);
+
     if (error) {
         qWarning() << "Fail to load icon: " << id << error->message;
         g_error_free(error);
@@ -86,6 +81,18 @@ QImage GIconProvider::requestImage(const QString &id, QSize *size, const QSize &
                 result = themedIcon.pixmap(themedIcon.availableSizes().last());
             }
         } else {
+            GtkIconInfo* info = gtk_icon_theme_lookup_by_gicon(gtk_icon_theme_get_default(),
+                                                icon,
+                                                requestedSize.width(),
+                                                GTK_ICON_LOOKUP_FORCE_SIZE);
+            const gchar* iconFilename = gtk_icon_info_get_filename(info);
+            qDebug() << "Found file: " << iconFilename;
+            result = QPixmap(iconFilename);
+            if (requestedSize.isValid()) {
+                result = result.scaled(requestedSize);
+            }
+            gtk_icon_info_free(info);
+
             qDebug() << "Fail to load themed icon for:" << id;
         }
     } else if (G_IS_FILE_ICON(icon)) {
@@ -109,8 +116,3 @@ QImage GIconProvider::requestImage(const QString &id, QSize *size, const QSize &
     return result.toImage();
 }
 
-
-void GIconProvider::addSearchPath(const QString &searchPath) {
-    QByteArray path = searchPath.toUtf8();
-    gtk_icon_theme_append_search_path(gtk_icon_theme_get_default(), path.data());    
-}

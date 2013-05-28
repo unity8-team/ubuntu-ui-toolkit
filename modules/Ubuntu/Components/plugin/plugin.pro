@@ -2,7 +2,7 @@ include( ../../../../common.pri )
 
 unix {
     CONFIG += link_pkgconfig
-    PKGCONFIG += gio-2.0
+    PKGCONFIG += gio-2.0 gtk+-3.0
 }
 
 TEMPLATE = lib
