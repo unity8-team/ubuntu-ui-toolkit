@@ -22,20 +22,27 @@ Template {
         className: "Icon"
 
         TemplateRow {
-            title: i18n.tr("GIcon Test")
+            title: i18n.tr("NotifyOSD")
             spacing: units.gu(2)
 
-            Image {
-                source: "image://gicon/notification-message-im"
+            Icon {
+                name: "notification-message-im"
                 width: 32
                 height: 32
                 anchors.verticalCenter: parent.verticalCenter
             }
 
-            Image {
-                source: "image://gicon/notification-message-email"
-                width: 64
-                height: 64
+            Icon {
+                name: "notification-message-email"
+                width: 96
+                height: 96
+                anchors.verticalCenter: parent.verticalCenter
+            }
+
+            Icon {
+                name: "notification-audio-play"
+                width: 48
+                height: 48
                 anchors.verticalCenter: parent.verticalCenter
             }
         }
