@@ -41,6 +41,9 @@
 #include "bottombarvisibilitycommunicator.h"
 #include "ucstyle.h"
 #include "ucubuntuanimation.h"
+#include "ucfontutils.h"
+#include "ucarguments.h"
+#include "ucargument.h"
 
 #include <sys/types.h>
 #include <unistd.h>
@@ -71,6 +74,9 @@ void UbuntuComponentsPlugin::registerTypes(const char *uri)
     qmlRegisterSingletonType<QQuickClipboard>(uri, 0, 1, "Clipboard", registerClipboard);
     qmlRegisterType<UCStyle>(uri, 0, 1, "Style");
     qmlRegisterSingletonType<UCUbuntuAnimation>(uri, 0, 1, "UbuntuAnimation", registerUCUbuntuAnimation);
+    qmlRegisterType<UCArguments>(uri, 0, 1, "Arguments");
+    qmlRegisterType<UCArgument>(uri, 0, 1, "Argument");
+    qmlRegisterType<QQmlPropertyMap>();
 }
 
 void UbuntuComponentsPlugin::initializeEngine(QQmlEngine *engine, const char *uri)
@@ -96,12 +102,18 @@ void UbuntuComponentsPlugin::initializeEngine(QQmlEngine *engine, const char *ur
     QObject::connect(&UCUnits::instance(), SIGNAL(gridUnitChanged()),
                      &unitsChangeListener, SLOT(updateContextProperty()));
 
+    // register FontUtils
+    context->setContextProperty("FontUtils", &UCFontUtils::instance());
+    static ContextPropertyChangeListener fontUtilsListener(context, "FontUtils");
+    QObject::connect(&UCUnits::instance(), SIGNAL(gridUnitChanged()),
+                     &fontUtilsListener, SLOT(updateContextProperty()));
+
     context->setContextProperty("bottomBarVisibilityCommunicator", &BottomBarVisibilityCommunicator::instance());
 
     engine->addImageProvider(QLatin1String("scaling"), new UCScalingImageProvider);
 
     // register gicon provider
-     engine->addImageProvider(QLatin1String("gicon"), new GIconProvider);
+    engine->addImageProvider(QLatin1String("gicon"), new GIconProvider);
 
     // Necessary for Screen.orientation (from import QtQuick.Window 2.0) to work
     QGuiApplication::primaryScreen()->setOrientationUpdateMask(

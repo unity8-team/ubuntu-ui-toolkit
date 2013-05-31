@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 Canonical Ltd.
+ * Copyright 2013 Canonical Ltd.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,11 +15,32 @@
  */
 
 import QtQuick 2.0
+import Ubuntu.Components 0.1
 
-QtObject {
-    property url backgroundLeft: ""
-    property url backgroundRight: ""
-    property url backgroundMiddle: ""
+Item {
+    id: root
+    objectName: "root"
+    width: units.gu(40)
+    height: units.gu(40)
 
-    Component.onCompleted: print("TabButtonStyle deprecated")
+    property string log: ""
+
+    MouseArea {
+        anchors.fill: parent
+
+        onClicked: root.log = "MA"
+    }
+
+    Rectangle {
+        width: units.gu(10)
+        height: units.gu(10)
+        anchors.centerIn: parent
+        color: "red"
+
+        InverseMouseArea {
+            anchors.fill: parent
+            sensingArea: root
+            onClicked: root.log = "IMA"
+        }
+    }
 }

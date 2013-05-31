@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 Canonical Ltd.
+ * Copyright 2013 Canonical Ltd.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -12,15 +12,29 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
-import QtQuick 2.0
+#ifndef UCFONTUTILS_H
+#define UCFONTUTILS_H
 
-QtObject {
-    property color color: "transparent"
+#include <QtCore/QObject>
 
-    property url shape: ""
-    property url borderSource: ""
+class UCFontUtils : public QObject
+{
+    Q_OBJECT
+public:
 
-    Component.onCompleted: print("ButtonStyle is deprecated")
-}
+    static UCFontUtils& instance()
+    {
+        static UCFontUtils instance;
+        return instance;
+    }
+
+    explicit UCFontUtils(QObject *parent = 0) : QObject(parent) {}
+
+    Q_INVOKABLE qreal sizeToPixels(const QString &size);
+    Q_INVOKABLE qreal modularScale(const QString &size);
+};
+
+#endif // UCFONTUTILS_H

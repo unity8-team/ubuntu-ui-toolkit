@@ -14,18 +14,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-function sizeToPixels(size) {
-    var baseSize = units.dp(14)
-    return Math.round(modularScale(size) * baseSize)
-}
+import QtQuick 2.0
 
-function modularScale(size) {
-    switch (size) {
-        case "xx-small": return 0.606
-        case "x-small": return 0.707
-        case "small": return 0.857
-        case "medium": return 1.0
-        case "large": return 1.414
-        case "x-large": return 2.423
+Grid {
+    width: 800
+    height: 600
+    rows: 16
+    columns: 160
+    Repeater {
+        model: 16*160
+        TextWithImportPopups {}
     }
 }

@@ -31,6 +31,8 @@ import Ubuntu.Components 0.1 as Theming
         A popover has a fixed width and automatic height, depending on is contents.
         It can be closed by clicking anywhere outside of the popover area.
 
+    \l {http://design.ubuntu.com/apps/building-blocks/popover}{See also the Design Guidelines on Popovers}.
+
     Example:
     \qml
         import QtQuick 2.0
@@ -95,6 +97,7 @@ PopupBase {
     id: popover
 
     /*!
+      \qmlproperty list<Object> container
       Content will be put inside the foreround of the Popover.
     */
     default property alias container: containerItem.data
@@ -152,7 +155,7 @@ PopupBase {
 
         // private
         function updatePosition() {
-            var pos = new InternalPopupUtils.CallerPositioning(foreground, pointer, dismissArea, caller, pointerTarget, edgeMargins, callerMargin);
+            var pos = new InternalPopupUtils.CallerPositioning(foreground, pointer, dismissArea, caller, pointerTarget, edgeMargins, callerMargin, units.dp(2));
             pos.auto();
         }
     }
