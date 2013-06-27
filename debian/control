@@ -1,0 +1,22 @@
+Source: qtfeedback-mir
+Section: libs
+Priority: extra
+Maintainer: Christian Dywan <christian.dywan@canonical.com>
+Build-Depends: debhelper (>= 8.0.0),
+               qtfeedback5-dev,
+               qtfeedback5-private-dev,
+               libdeclarative-feedback,
+               libqt5feedback5
+Standards-Version: 3.9.4
+Homepage: https://launchpad.net/ubuntu-ui-toolkit
+Vcs-Bzr: https://code.launchpad.net/~kalikiana/ubuntu-ui-toolkit/qtfeedback-mir
+
+Package: libqt5feedback5-plugin-mir
+Architecture: any
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+         libdeclarative-feedback,
+         libqt5feedback5
+Description: Haptic feedback through vibration
+ Plugin for QtFeedback to implement haptic feedback in Mir systems
+

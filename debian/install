@@ -1,0 +1,2 @@
+plugins/feedback/libqtfeedback_mir.so usr/lib/*/qt5/plugins/feedback
+rumble.qml usr/share/qtfeedback-mir

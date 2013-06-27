@@ -3,3 +3,5 @@
 .pch
 Makefile
 plugins
+debian/files
+debian/libqt5feedback5-plugin-mir*
