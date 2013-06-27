@@ -3,6 +3,7 @@ Section: libs
 Priority: extra
 Maintainer: Christian Dywan <christian.dywan@canonical.com>
 Build-Depends: debhelper (>= 8.0.0),
+               qt5-default,
                qtfeedback5-dev,
                qtfeedback5-private-dev,
                libdeclarative-feedback,
