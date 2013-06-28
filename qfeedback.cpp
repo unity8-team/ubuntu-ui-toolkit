@@ -142,10 +142,18 @@ void QFeedbackMir::updateEffectProperty(const QFeedbackHapticsEffect *effect, Ef
 
 void QFeedbackMir::vibrateOnce(const QFeedbackEffect* effect)
 {
-    qWarning() << "vibrateOnce" << effect;
+    int effectiveDuration;
+    switch (effect->duration())
+    {
+        case QFeedbackEffect::Infinite:
+        case 0:
+            effectiveDuration = 150;
+    }
+    qWarning() << QString("vibrateOnce effect for %1ms").arg(effectiveDuration);
+
     QProcess gzip;
     gzip.setStandardOutputFile("/sys/class/timed_output/vibrator/enable");
-    gzip.start("echo", QStringList() << "150");
+    gzip.start("echo", QStringList() << QString("%1").arg(effectiveDuration));
     if (!gzip.waitForStarted())
         qWarning("!started");
 
