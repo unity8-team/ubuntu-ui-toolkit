@@ -18,19 +18,20 @@ import QtQuick 2.0
 import Ubuntu.Components 0.1
 import Ubuntu.Components.ListItems 0.1 as ListItem
 
-Rectangle {
-    color: "white"
-    width: units.gu(50)
-    height: units.gu(70)
+//Rectangle {
+//    color: "white"
+//    width: units.gu(50)
+//    height: units.gu(70)
 
 MainView {
     id: mainView
     width: units.gu(38)
     height: units.gu(50)
-    anchors.centerIn: parent
+//    anchors.centerIn: parent
 
     PageStack {
         id: pageStack
+        anchors.fill: parent
         Component.onCompleted: push(page0)
 
         Page {
@@ -42,12 +43,12 @@ MainView {
                 anchors.fill: parent
                 ListItem.Standard {
                     text: i18n.tr("Page one")
-                    onClicked: pageStack.push(page1)
+                    onClicked: pageStack.pushOrReplace(page0, page1)
                     progression: true
                 }
                 ListItem.Standard {
                     text: i18n.tr("External page")
-                    onClicked: pageStack.push(Qt.resolvedUrl("MyCustomPage.qml"))
+                    onClicked: pageStack.pushOrReplace(page0, Qt.resolvedUrl("MyCustomPage.qml"))
                     progression: true
                 }
             }
@@ -62,18 +63,18 @@ MainView {
                 anchors.fill: parent
                 ListItem.Standard {
                     text: i18n.tr("Root page (again)")
-                    onClicked: pageStack.push(page0)
+                    onClicked: pageStack.pushOrReplace(page1, page0)
                     progression: true
                 }
                 ListItem.Standard {
                     text: i18n.tr("Red rectangle")
-                    onClicked: pageStack.push(page2, {color: "red"})
+                    onClicked: pageStack.pushOrReplace(page1, page2, {color: "red"})
                     progression: true
                 }
             }
 
-            tools: ToolbarActions {
-                Action {
+            tools: ToolbarItems {
+                ToolbarButton {
                     text: "oh"
                 }
             }
@@ -94,4 +95,4 @@ MainView {
         }
     }
 }
-}
+//}

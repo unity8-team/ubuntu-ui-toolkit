@@ -16,6 +16,7 @@
 
 import QtQuick 2.0
 import "stack.js" as Stack
+import Ubuntu.Layouts 0.1
 
 /*!
     \qmltype PageStack
@@ -137,10 +138,23 @@ PageTreeNode {
       The pushed page may be an Item, Component or URL.
      */
     function push(page, properties) {
-        if (internal.stack.size() > 0) internal.stack.top().active = false;
-        internal.stack.push(internal.createWrapper(page, properties));
-        internal.stack.top().active = true;
-        internal.stackUpdated();
+        internal.pushPage(page, properties, body);
+    }
+
+    /*!
+      The function pushes a page or replaces the topmost page in a pagestack depending
+      whether the page stack is in two-column or single column mode. In two column mode
+      if the sourcePage is the currentPage, the operation will result as a push, moving
+      the current page to the left pane and placing the new one into the right pane. If
+      the sourcePage is the page from the left pane, the operation will result in replacing
+      the currentPage from the stack with the new page given.
+      */
+    function pushOrReplace(sourcePage, page, properties) {
+        if (internal.wideAspect) {
+            internal.pushPage(page, properties, body);
+        } else {
+            internal.pushPage(page, properties, body);
+        }
     }
 
     /*!
@@ -182,19 +196,93 @@ PageTreeNode {
          */
         property var stack: new Stack.Stack()
 
-        function createWrapper(page, properties) {
+        /*!
+          Wide aspect
+         */
+        property bool wideAspect: (layout.currentLayout === "wideAspect")
+        property Item contentPane: null
+
+        function createWrapper(page, properties, parent) {
             var wrapperComponent = Qt.createComponent("PageWrapper.qml");
-            var wrapperObject = wrapperComponent.createObject(pageStack);
+            var wrapperObject = wrapperComponent.createObject(parent);
             wrapperObject.reference = page;
             wrapperObject.pageStack = pageStack;
             wrapperObject.properties = properties;
             return wrapperObject;
         }
 
+        function pushPage(page, properties, parent) {
+            if (internal.stack.size() > 0) internal.stack.top().active = false;
+            internal.stack.push(internal.createWrapper(page, properties, parent));
+            internal.stack.top().active = true;
+            internal.stackUpdated();
+        }
+
         function stackUpdated() {
             pageStack.depth =+ stack.size();
             if (pageStack.depth > 0) currentPage = stack.top().object;
             else currentPage = null;
+        }
+    }
+
+    /*!
+      \internal
+      Pages redirected into default layout
+      */
+    default property alias pages: body.data
+    Layouts {
+        id: layout
+        anchors.fill: parent
+        layouts: [
+            ConditionalLayout {
+                name: "wideAspect"
+                when: (pageStack.width > units.gu(40) && pageStack.height > units.gu(71)) ||
+                      (pageStack.height < pageStack.width)
+                Item {
+                    anchors.fill: parent
+                    ItemLayout {
+                        id: leftPane
+                        item: "body"
+                        anchors {
+                            left: parent.left
+                            top: parent.top
+                            bottom: parent.bottom
+                        }
+                        width: units.gu(40)
+                    }
+                    Item {
+                        id: rightPane
+                        anchors {
+                            left: leftPane.right
+                            top: parent.top
+                            bottom: parent.bottom
+                            right: parent.right
+                        }
+                    }
+                    Component.onCompleted: {
+                        internal.contentPane = rightPane;
+                        if (internal.stack.size() >= 2 && pageStack.currentPage != null) {
+                            // move the last page (current page) into the content page
+                            pageStack.currentPage.parent = rightPane;
+                        }
+                    }
+                    Component.onDestruction: {
+                        internal.contentPane = null;
+                        // move the current page back to the body
+                        if (pageStack.currentPage != null) {
+                            pageStack.currentPage.parent = body;
+                        }
+                    }
+                }
+            }
+
+        ]
+
+        // default layout
+        Item {
+            id: body
+            anchors.fill: parent
+            Layouts.item: "body"
         }
     }
 }
