@@ -16,6 +16,11 @@
  * Author: Loïc Molinari <loic.molinari@canonical.com>
  */
 
+// FIXME(loicm) Add support for corner squareness.
+// FIXME(loicm) Add support for inner shadow.
+// FIXME(loicm) Current outer shadow doesn't look good when adjacent radii difference is big.
+// FIXME(loicm) Overlay glitches.
+
 #include "shapeitem2.h"
 #include "ucunits.h"
 #include <QtQuick/QQuickWindow>
@@ -39,61 +44,50 @@ static const char* const shapeVertexShader =
     "    gl_Position = matrix * positionAttrib; \n"
     "}";
 
-// static const char* const shapeFragmentShader =
-//     "uniform highp float opacity;                                                    \n"
-//     "uniform highp vec4 baseColor;                                                    \n"
-//     // "uniform highp vec4 overlayColor;                                                 \n"
-//     // "uniform highp vec4 shadowColorIn;                                                 \n"
-//     "uniform highp vec4 shadowColorOut;                                                 \n"
-//     // "uniform highp vec4 overlayGeometry;                                                 \n"
-//     // "uniform highp vec4 shadowRadiusIn;                                                 \n"
-//     "uniform highp vec4 shadowRadiusOut;                                                 \n"
-//     "uniform highp float squirclePow;                                                 \n"
-//     "uniform sampler2D sourceTexture;                                                \n"
-//     "varying highp vec4 shapeCoord;                                                  \n"
-//     "varying highp vec2 sourceCoord;                                                \n"
-//     "void main()                                                                    \n"
-//     "{                                                                              \n"
-//     "    highp vec4 source = texture2D(sourceTexture, sourceCoord); \n"
-//     "    highp vec4 coord = vec4(shapeCoord);\n"
-//     "    highp vec2 cornerCoord = coord.xy / coord.zw; \n"
-//     "    highp float tmp0 = dot(vec2(0.0, 1.0), normalize(cornerCoord)); \n"
-//     "    highp float tmp1 = mix(coord.z, coord.w, tmp0 * tmp0);  \n"
-//     "    highp float tmp2 = min(1.0, (length(coord.xy) - tmp1) / (1.0 - tmp1)); \n"
-//     "    highp float tmp3 = 1.0 - ((2.0 * tmp2) - (tmp2 * tmp2)); \n"
-//     "    highp vec4 blend = source + vec4(1.0 - source.a) * baseColor; \n"
-//     "    blend *= vec4(smoothstep(1.0+1.0/200.0, 1.0-1.0/200.0, length(cornerCoord))); \n"
-//     "    blend += vec4(1.0 - blend.a) * shadowColorOut.rgba * vec4(tmp3);  \n"
-//     "    gl_FragColor = blend * vec4(opacity);      \n"
-//     "}";
-
+// FIXME(loicm) Detail the algorithm.
 static const char* const shapeFragmentShader =
-    "uniform highp float opacity;                                                    \n"
-    "uniform highp vec4 baseColor;                                                    \n"
-    // "uniform highp vec4 overlayColor;                                                 \n"
-    // "uniform highp vec4 shadowColorIn;                                                 \n"
-    "uniform highp vec4 shadowColorOut;                                                 \n"
-    // "uniform highp vec4 overlayGeometry;                                                 \n"
-    // "uniform highp vec4 shadowRadiusIn;                                                 \n"
-    "uniform highp vec4 shadowRadiusOut;                                                 \n"
-    "uniform highp float squirclePow;                                                 \n"
-    "uniform sampler2D sourceTexture;                                                \n"
-    "varying highp vec4 shapeCoord;                                                  \n"
-    "varying highp vec2 sourceCoord;                                                \n"
-    "void main()                                                                    \n"
-    "{                                                                              \n"
-    "    highp vec4 source = texture2D(sourceTexture, sourceCoord); \n"
-    "    highp vec4 coord = vec4(shapeCoord);\n"
-    "    highp vec2 cornerCoord = coord.xy / coord.zw; \n"
-    "    highp float tmp0 = dot(vec2(0.0, 1.0), normalize(cornerCoord)); \n"
-    "    highp float tmp1 = mix(coord.z, coord.w, tmp0 * tmp0);  \n"
-    "    highp float tmp2 = min(1.0, (length(coord.xy) - tmp1) / (1.0 - tmp1)); \n"
-    "    highp float tmp3 = 1.0 - ((2.0 * tmp2) - (tmp2 * tmp2)); \n"
-    "    highp vec4 blend = source + vec4(1.0 - source.a) * baseColor; \n"
-    "    //blend *= (1.0 - min(1.0, max(0.0, (length(coord.xy) - tmp1) * tmp1)) * 175.0); \n"
-    "    blend *= vec4(smoothstep(1.0+1.0/200.0, 1.0-1.0/200.0, length(cornerCoord))); \n"
-    "    blend += vec4(1.0 - blend.a) * shadowColorOut.rgba * vec4(tmp3);  \n"
-    "    gl_FragColor = blend * vec4(opacity);      \n"
+    "uniform highp float opacity;                                                                \n"
+    "uniform highp vec4 bgColor;                                                                 \n"
+    "uniform highp vec4 secondaryBgColor;                                                        \n"
+    "uniform highp int gradientDirection;                                                        \n"
+    "uniform highp vec4 overlayColor;                                                            \n"
+    // "uniform highp vec4 shadowColorIn;                                                           \n"
+    "uniform highp vec4 shadowColorOut;                                                          \n"
+    "uniform highp vec4 overlaySteps;                                                         \n"
+    // "uniform highp vec4 shadowRadiusIn;                                                          \n"
+    // "uniform highp vec4 shadowRadiusOut;                                                         \n"
+    // "uniform highp float cornerSquareness;                                                       \n"
+    "uniform highp float cornerRadius;                                                           \n"
+    "uniform sampler2D sourceTexture;                                                            \n"
+    "varying highp vec4 shapeCoord;                                                              \n"
+    "varying highp vec2 sourceCoord;                                                             \n"
+    "void main()                                                                                 \n"
+    "{                                                                                           \n"
+    //   Early texture fetch to cover latency.
+    "    highp vec4 source = texture2D(sourceTexture, sourceCoord);                              \n"
+    //   Store data that's reused more than once.
+    "    highp float coordLength = length(shapeCoord.xy) - 1.0;                                  \n"
+    "    highp float halfPix = 0.5 / cornerRadius;                                               \n"
+    //   Compute outer shadow.
+    "    highp float angle = dot(vec2(0.0, 1.0), normalize(shapeCoord.xy / shapeCoord.zw));      \n"
+    "    highp float gradientLength = mix(shapeCoord.z, shapeCoord.w, angle * angle) - 1.0;      \n"
+    "    highp float gradient = min(1.0, (coordLength + halfPix) / (gradientLength + halfPix));  \n"
+    "    highp float improvedGradient = (gradient * (gradient - 2.0)) + 1.0;                     \n"
+    "    highp vec4 shadow = vec4(improvedGradient) * shadowColorOut;                            \n"
+    //   Compute background.
+    "    highp vec4 bgGradient = mix(bgColor, secondaryBgColor, sourceCoord[gradientDirection]); \n"
+    //   Compute overlay.
+    "    highp vec4 steps = step(overlaySteps, sourceCoord.xyxy);                                \n"
+    "    steps.xy = steps.xy * (vec2(1.0) - steps.zw);                                           \n"
+    "    highp vec4 overlay = vec4(steps.x * steps.y) * overlayColor;                            \n"
+    //   Bend overlay over sources over background and shape the result.
+    "    highp vec4 shape = source + vec4(1.0 - source.a) * bgGradient;                          \n"
+    "    shape = overlay + vec4(1.0 - overlay.a) * shape;                                        \n"
+    "    shape *= vec4(max(0.0, min(1.0, (coordLength - halfPix) * -cornerRadius)));             \n"
+    //   Blend resulting shape over shadow.
+    "    highp vec4 blend = shape + vec4(1.0 - shape.a) * shadow;                                \n"
+    //   Store final fragment color taking care of scenegraph node opacity.
+    "    gl_FragColor = blend * vec4(opacity);                                                   \n"
     "}";
 
 static const unsigned short shapeMeshIndices[] __attribute__((aligned(16))) = {
@@ -150,14 +144,17 @@ static int sizeOfType(GLenum type)
 
 MaterialData::MaterialData()
     : sourceTextureProvider(NULL)
-    , baseColorPremultiplied(1.0f, 1.0f, 1.0f, 1.0f)
-    , overlayColorPremultiplied(0.0f, 0.0f, 0.0f, 1.0f)
+    , backgroundColorPremultiplied(1.0f, 1.0f, 1.0f, 1.0f)
+    , secondaryBackgroundColorPremultiplied(1.0f, 1.0f, 1.0f, 1.0f)
+    , overlayColorPremultiplied(0.0f, 0.0f, 0.0f, 0.75f)
     , shadowColorInPremultiplied(0.0f, 0.0f, 0.0f, 1.0f)
     , shadowColorOutPremultiplied(0.0f, 0.0f, 0.0f, 1.0f)
-    , overlayGeometry(0.0f, 0.0f, 0.0f, 0.0f)
+    , overlaySteps(0.0f, 0.0f, 0.0f, 0.0f)
     , shadowRadiusOut(0.0f, 0.0f, 0.0f, 0.0f)
     , shadowRadiusIn(0.0f, 0.0f, 0.0f, 0.0f)
-    , squirclePow(1.0f)
+    , cornerSquareness(0.0f)
+    , adjustedCornerRadius(0.0f)
+    , backgroundFillMode(ShapeItem2::BackgroundColor)
 {
 }
 
@@ -165,14 +162,16 @@ ShapeItem2::ShapeItem2(QQuickItem* parent)
     : QQuickItem(parent)
     , source_(NULL)
     , geometry_()
-    , baseColor_(1.0f, 1.0f, 1.0f, 1.0f)
-    , overlayColor_(0.0f, 0.0f, 0.0f, 1.0f)
+    , cornerRadius_(25.0f)
+    , backgroundColor_(1.0f, 1.0f, 1.0f, 1.0f)
+    , secondaryBackgroundColor_(1.0f, 1.0f, 1.0f, 1.0f)
+    , overlayColor_(0.0f, 0.0f, 0.0f, 0.75f)
+    , overlayGeometry_(0.0f, 0.0f, 0.0f, 0.0f)
     , shadowColorIn_(0.0f, 0.0f, 0.0f, 1.0f)
     , shadowColorOut_(0.0f, 0.0f, 0.0f, 1.0f)
     , fillMode_(ShapeItem2::PreserveAspectCrop)
     , horizontalAlignment_(ShapeItem2::AlignHCenter)
     , verticalAlignment_(ShapeItem2::AlignVCenter)
-    , cornerRadius_(25.0f)
     , materialData_()
 {
     setFlag(ItemHasContents);
@@ -184,54 +183,69 @@ ShapeItem2::~ShapeItem2()
     // FIXME(loicm) Should unparent the source item here?
 }
 
-void ShapeItem2::setSquirclePow(float squirclePow)
+void ShapeItem2::setCornerSquareness(float cornerSquareness)
 {
-    if (materialData_.squirclePow != squirclePow) {
-        materialData_.squirclePow = squirclePow;
+    if (materialData_.cornerSquareness != cornerSquareness) {
+        materialData_.cornerSquareness = cornerSquareness;
         update();
-        Q_EMIT squirclePowChanged();
+        Q_EMIT cornerSquarenessChanged();
     }
 }
 
 void ShapeItem2::setCornerRadius(float cornerRadius)
 {
-    cornerRadius = qMax(0.0f, cornerRadius);
+    cornerRadius = qMax(1.0f, cornerRadius);
     if (cornerRadius_ != cornerRadius) {
+        // The adjusted corner radius is computed in updatePaintNode().
         cornerRadius_ = cornerRadius;
         update();
         Q_EMIT cornerRadiusChanged();
     }
 }
 
-void ShapeItem2::setBaseColor(const QColor& color)
+void ShapeItem2::setBackgroundColor(const QColor& color)
 {
-    if (baseColor_ != color) {
-        const float alpha = color.alphaF();
-        materialData_.baseColorPremultiplied = QVector4D(
+    if (backgroundColor_ != color) {
+        const float alpha = 1.0f; // FIXME(loicm) Add support for translucent background.
+        materialData_.backgroundColorPremultiplied = QVector4D(
             color.redF() * alpha, color.greenF() * alpha, color.blueF() * alpha, alpha);
-        baseColor_ = color;
+        backgroundColor_ = color;
         update();
-        Q_EMIT baseColorChanged();
+        Q_EMIT backgroundColorChanged();
+    }
+}
+
+void ShapeItem2::setSecondaryBackgroundColor(const QColor& color)
+{
+    if (secondaryBackgroundColor_ != color) {
+        const float alpha = 1.0f;  // FIXME(loicm) Add support for translucent background.
+        materialData_.secondaryBackgroundColorPremultiplied = QVector4D(
+            color.redF() * alpha, color.greenF() * alpha, color.blueF() * alpha, alpha);
+        secondaryBackgroundColor_ = color;
+        update();
+        Q_EMIT secondaryBackgroundColorChanged();
+    }
+}
+
+void ShapeItem2::setBackgroundFillMode(BackgroundFillMode backgroundFillMode)
+{
+    if (materialData_.backgroundFillMode != backgroundFillMode) {
+        materialData_.backgroundFillMode = backgroundFillMode;
+        update();
+        Q_EMIT backgroundFillModeChanged();
     }
 }
 
 void ShapeItem2::setOverlayGeometry(const QRectF& overlayGeometry)
 {
-    QVector4D overlayGeometryVector(overlayGeometry.x(), overlayGeometry.y(),
-                                    overlayGeometry.width(), overlayGeometry.height());
-    if (materialData_.overlayGeometry != overlayGeometryVector) {
-        materialData_.overlayGeometry = overlayGeometryVector;
+    if (overlayGeometry_ != overlayGeometry) {
+        materialData_.overlaySteps = QVector4D(
+            overlayGeometry.x(), overlayGeometry.y(), overlayGeometry.x() + overlayGeometry.width(),
+            overlayGeometry.height() + overlayGeometry.y());
+        overlayGeometry_ = overlayGeometry;
         update();
         Q_EMIT overlayGeometryChanged();
     }
-}
-
-QRectF ShapeItem2::overlayGeometry() const
-{
-    return QRectF(materialData_.overlayGeometry.x(),
-                  materialData_.overlayGeometry.y(),
-                  materialData_.overlayGeometry.z(),
-                  materialData_.overlayGeometry.w());
 }
 
 void ShapeItem2::setOverlayColor(const QColor& color)
@@ -347,16 +361,13 @@ QSGNode* ShapeItem2::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData* data
 {
     Q_UNUSED(data);
 
-    fprintf(stdout, "ShapeItem2::updatePaintNode {\n");
-
     // Get dimensions without shadows.
-    const float noShadowWidth = geometry_.width() - materialData_.shadowRadiusOut.x()
-            - materialData_.shadowRadiusOut.y();
-    const float noShadowHeight = geometry_.height() - materialData_.shadowRadiusOut.z()
-            - materialData_.shadowRadiusOut.w();
-    fprintf(stdout, "real size: %.2f x %.2f\n", noShadowWidth, noShadowHeight);
-    if (noShadowWidth <= 0.0f || noShadowHeight <= 0.0f) {
-        fprintf(stdout, "size less than zero, not rendering item\n");
+    const float width = geometry_.width()
+            - materialData_.shadowRadiusOut.x() - materialData_.shadowRadiusOut.y();
+    const float height = geometry_.height()
+            - materialData_.shadowRadiusOut.z() - materialData_.shadowRadiusOut.w();
+    if (width <= 0.0f || height <= 0.0f) {
+        delete oldNode;
         return NULL;
     }
 
@@ -364,7 +375,6 @@ QSGNode* ShapeItem2::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData* data
     // it deals with the scene.
     QSGTexture* sourceTexture;
     materialData_.sourceTextureProvider = source_ ? source_->textureProvider() : NULL;
-    fprintf(stdout, "DBG\n");
     if (materialData_.sourceTextureProvider) {
         sourceTexture = materialData_.sourceTextureProvider->texture();
         // The image item sets its texture in its updatePaintNode() method when QtQuick iterates
@@ -376,32 +386,25 @@ QSGNode* ShapeItem2::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData* data
         // frame and we tell QtQuick not to render the item for the current frame.
         if (!sourceTexture) {
             // FIXME(loicm) Reached when image hasn't been loaded correctly, it shouldn't.
-            fprintf(stdout, "DBG out\n");
             update();
+            delete oldNode;
             return NULL;
         }
     } else {
         sourceTexture = NULL;
     }
 
-    // Adjust corner radius if dimensions are too low.
-    float adjustedCornerRadius;
-    const float noCornerMinimalSide = qMin(noShadowWidth, noShadowHeight) - (2.0f * cornerRadius_);
-    if (noCornerMinimalSide >= 0.0f) {
-        adjustedCornerRadius = cornerRadius_;
-    } else {
-        adjustedCornerRadius = (cornerRadius_ - noCornerMinimalSide) * 0.5f;
-    }
-    fprintf(stdout, "adjusted corner radius: %.2f\n", adjustedCornerRadius);
+    // Adjust corner radius taking care of radii bigger than item dimensions.
+    const float size = qMin(0.0f, qMin(width, height) - (2.0f * cornerRadius_));
+    materialData_.adjustedCornerRadius = cornerRadius_ + size * 0.5;
 
     // .
     ShapeNode2* node = oldNode ? static_cast<ShapeNode2*>(oldNode) : new ShapeNode2(this);
     node->material()->setData(&materialData_);
-    node->setVertices(geometry_, noShadowWidth, noShadowHeight, adjustedCornerRadius,
+    node->setVertices(geometry_, width, height, materialData_.adjustedCornerRadius,
                       materialData_.shadowRadiusOut, materialData_.shadowRadiusIn, sourceTexture,
                       fillMode_, horizontalAlignment_, verticalAlignment_);
 
-    fprintf(stdout, "} ShapeItem2::updatePaintNode\n\n");
     return node;
 }
 
@@ -480,148 +483,148 @@ void ShapeNode2::setVertices(const QRectF& geometry, float noShadowWidth, float 
     const float normShadowRadiusTop = shadowRadiusOut.z() / noShadowHeight;
     const float normShadowRadiusBottom = shadowRadiusOut.w() / noShadowHeight;
     // FIXME(loicm) Handle divisions by 0.
-    const float radiusOffsetLeft = cornerRadius / (shadowRadiusOut.x() + cornerRadius);
-    const float radiusOffsetRight = cornerRadius / (shadowRadiusOut.y() + cornerRadius);
-    const float radiusOffsetTop = cornerRadius / (shadowRadiusOut.z() + cornerRadius);
-    const float radiusOffsetBottom = cornerRadius / (shadowRadiusOut.w() + cornerRadius);
-
-    fprintf(stdout, "%.2f %.2f %.2f %.2f %.2f %.2f\n",
-            normCornerRadiusWidth, normCornerRadiusHeight, normShadowRadiusLeft, normShadowRadiusRight,
-            normShadowRadiusTop, normShadowRadiusBottom);
+    const float shapeCoordinateLeft = (shadowRadiusOut.x() + cornerRadius) / cornerRadius;
+    const float shapeCoordinateRight = (shadowRadiusOut.y() + cornerRadius) / cornerRadius;
+    const float shapeCoordinateTop = (shadowRadiusOut.z() + cornerRadius) / cornerRadius;
+    const float shapeCoordinateBottom = (shadowRadiusOut.w() + cornerRadius) / cornerRadius;
+    const float shapeCoordinateFactorLeft = shapeCoordinateLeft;
+    const float shapeCoordinateFactorRight = shapeCoordinateRight;
+    const float shapeCoordinateFactorTop = shapeCoordinateTop;
+    const float shapeCoordinateFactorBottom = shapeCoordinateBottom;
 
     // Set top row of 4 vertices.
     vertices[0].position[0] = 0.0f;
     vertices[0].position[1] = 0.0f;
-    vertices[0].shapeCoordinate[0] = 1.0f;
-    vertices[0].shapeCoordinate[1] = 1.0f;
-    vertices[0].shapeCoordinate[2] = radiusOffsetLeft;
-    vertices[0].shapeCoordinate[3] = radiusOffsetTop;
+    vertices[0].shapeCoordinate[0] = shapeCoordinateLeft;
+    vertices[0].shapeCoordinate[1] = shapeCoordinateTop;
+    vertices[0].shapeCoordinate[2] = shapeCoordinateFactorLeft;
+    vertices[0].shapeCoordinate[3] = shapeCoordinateFactorTop;
     vertices[0].sourceCoordinate[0] = -normShadowRadiusLeft;
     vertices[0].sourceCoordinate[1] = -normShadowRadiusTop;
     vertices[1].position[0] = cornerRadius + shadowRadiusOut.x();
     vertices[1].position[1] = 0.0f;
-    vertices[1].shapeCoordinate[0] = 0.0f;
-    vertices[1].shapeCoordinate[1] = 1.0f;
-    vertices[1].shapeCoordinate[2] = radiusOffsetLeft;
-    vertices[1].shapeCoordinate[3] = radiusOffsetTop;
+    vertices[1].shapeCoordinate[0] = FLT_EPSILON;
+    vertices[1].shapeCoordinate[1] = shapeCoordinateTop;
+    vertices[1].shapeCoordinate[2] = shapeCoordinateFactorLeft;
+    vertices[1].shapeCoordinate[3] = shapeCoordinateFactorTop;
     vertices[1].sourceCoordinate[0] = normCornerRadiusWidth;
     vertices[1].sourceCoordinate[1] = -normShadowRadiusTop;
     vertices[2].position[0] = width - cornerRadius - shadowRadiusOut.y();
     vertices[2].position[1] = 0.0f;
-    vertices[2].shapeCoordinate[0] = 0.0f;
-    vertices[2].shapeCoordinate[1] = 1.0f;
-    vertices[2].shapeCoordinate[2] = radiusOffsetRight;
-    vertices[2].shapeCoordinate[3] = radiusOffsetTop;
+    vertices[2].shapeCoordinate[0] = FLT_EPSILON;
+    vertices[2].shapeCoordinate[1] = shapeCoordinateTop;
+    vertices[2].shapeCoordinate[2] = shapeCoordinateFactorRight;
+    vertices[2].shapeCoordinate[3] = shapeCoordinateFactorTop;
     vertices[2].sourceCoordinate[0] = 1.0f - normCornerRadiusWidth;
     vertices[2].sourceCoordinate[1] = -normShadowRadiusTop;
     vertices[3].position[0] = width;
     vertices[3].position[1] = 0.0f;
-    vertices[3].shapeCoordinate[0] = 1.0f;
-    vertices[3].shapeCoordinate[1] = 1.0f;
-    vertices[3].shapeCoordinate[2] = radiusOffsetRight;
-    vertices[3].shapeCoordinate[3] = radiusOffsetTop;
+    vertices[3].shapeCoordinate[0] = shapeCoordinateRight;
+    vertices[3].shapeCoordinate[1] = shapeCoordinateTop;
+    vertices[3].shapeCoordinate[2] = shapeCoordinateFactorRight;
+    vertices[3].shapeCoordinate[3] = shapeCoordinateFactorTop;
     vertices[3].sourceCoordinate[0] = 1.0f + normShadowRadiusRight;
     vertices[3].sourceCoordinate[1] = -normShadowRadiusTop;
 
     // Set middle-top row of 4 vertices.
     vertices[4].position[0] = 0.0f;
     vertices[4].position[1] = cornerRadius + shadowRadiusOut.z();
-    vertices[4].shapeCoordinate[0] = 1.0f;
-    vertices[4].shapeCoordinate[1] = 0.0f;
-    vertices[4].shapeCoordinate[2] = radiusOffsetLeft;
-    vertices[4].shapeCoordinate[3] = radiusOffsetTop;
+    vertices[4].shapeCoordinate[0] = shapeCoordinateLeft;
+    vertices[4].shapeCoordinate[1] = FLT_EPSILON;
+    vertices[4].shapeCoordinate[2] = shapeCoordinateFactorLeft;
+    vertices[4].shapeCoordinate[3] = shapeCoordinateFactorTop;
     vertices[4].sourceCoordinate[0] = -normShadowRadiusLeft;
     vertices[4].sourceCoordinate[1] = normCornerRadiusHeight;
     vertices[5].position[0] = cornerRadius + shadowRadiusOut.x();
     vertices[5].position[1] = cornerRadius + shadowRadiusOut.z();
-    vertices[5].shapeCoordinate[0] = 0.0f;
-    vertices[5].shapeCoordinate[1] = 0.0f;
-    vertices[5].shapeCoordinate[2] = radiusOffsetLeft;
-    vertices[5].shapeCoordinate[3] = radiusOffsetTop;
+    vertices[5].shapeCoordinate[0] = FLT_EPSILON;
+    vertices[5].shapeCoordinate[1] = FLT_EPSILON;
+    vertices[5].shapeCoordinate[2] = shapeCoordinateFactorLeft;
+    vertices[5].shapeCoordinate[3] = shapeCoordinateFactorTop;
     vertices[5].sourceCoordinate[0] = normCornerRadiusWidth;
     vertices[5].sourceCoordinate[1] = normCornerRadiusHeight;
     vertices[6].position[0] = width - cornerRadius - shadowRadiusOut.y();
     vertices[6].position[1] = cornerRadius + shadowRadiusOut.z();
-    vertices[6].shapeCoordinate[0] = 0.0f;
-    vertices[6].shapeCoordinate[1] = 0.0f;
-    vertices[6].shapeCoordinate[2] = radiusOffsetRight;
-    vertices[6].shapeCoordinate[3] = radiusOffsetTop;
+    vertices[6].shapeCoordinate[0] = FLT_EPSILON;
+    vertices[6].shapeCoordinate[1] = FLT_EPSILON;
+    vertices[6].shapeCoordinate[2] = shapeCoordinateFactorRight;
+    vertices[6].shapeCoordinate[3] = shapeCoordinateFactorTop;
     vertices[6].sourceCoordinate[0] = 1.0f - normCornerRadiusWidth;
     vertices[6].sourceCoordinate[1] = normCornerRadiusHeight;
     vertices[7].position[0] = width;
     vertices[7].position[1] = cornerRadius + shadowRadiusOut.z();
-    vertices[7].shapeCoordinate[0] = 1.0f;
-    vertices[7].shapeCoordinate[1] = 0.0f;
-    vertices[7].shapeCoordinate[2] = radiusOffsetRight;
-    vertices[7].shapeCoordinate[3] = radiusOffsetTop;
+    vertices[7].shapeCoordinate[0] = shapeCoordinateRight;
+    vertices[7].shapeCoordinate[1] = FLT_EPSILON;
+    vertices[7].shapeCoordinate[2] = shapeCoordinateFactorRight;
+    vertices[7].shapeCoordinate[3] = shapeCoordinateFactorTop;
     vertices[7].sourceCoordinate[0] = 1.0f + normShadowRadiusRight;
     vertices[7].sourceCoordinate[1] = normCornerRadiusHeight;
 
     // Set middle-bottom row of 4 vertices.
     vertices[8].position[0] = 0.0f;
     vertices[8].position[1] = height - cornerRadius - shadowRadiusOut.w();
-    vertices[8].shapeCoordinate[0] = 1.0f;
-    vertices[8].shapeCoordinate[1] = 0.0f;
-    vertices[8].shapeCoordinate[2] = radiusOffsetLeft;
-    vertices[8].shapeCoordinate[3] = radiusOffsetBottom;
+    vertices[8].shapeCoordinate[0] = shapeCoordinateLeft;
+    vertices[8].shapeCoordinate[1] = FLT_EPSILON;
+    vertices[8].shapeCoordinate[2] = shapeCoordinateFactorLeft;
+    vertices[8].shapeCoordinate[3] = shapeCoordinateFactorBottom;
     vertices[8].sourceCoordinate[0] = -normShadowRadiusLeft;
     vertices[8].sourceCoordinate[1] = 1.0f - normCornerRadiusHeight;
     vertices[9].position[0] = cornerRadius + shadowRadiusOut.x();
     vertices[9].position[1] = height - cornerRadius - shadowRadiusOut.w();
-    vertices[9].shapeCoordinate[0] = 0.0f;
-    vertices[9].shapeCoordinate[1] = 0.0f;
-    vertices[9].shapeCoordinate[2] = radiusOffsetLeft;
-    vertices[9].shapeCoordinate[3] = radiusOffsetBottom;
+    vertices[9].shapeCoordinate[0] = FLT_EPSILON;
+    vertices[9].shapeCoordinate[1] = FLT_EPSILON;
+    vertices[9].shapeCoordinate[2] = shapeCoordinateFactorLeft;
+    vertices[9].shapeCoordinate[3] = shapeCoordinateFactorBottom;
     vertices[9].sourceCoordinate[0] = normCornerRadiusWidth;
     vertices[9].sourceCoordinate[1] = 1.0f - normCornerRadiusHeight;
     vertices[10].position[0] = width - cornerRadius - shadowRadiusOut.y();
     vertices[10].position[1] = height - cornerRadius - shadowRadiusOut.w();
-    vertices[10].shapeCoordinate[0] = 0.0f;
-    vertices[10].shapeCoordinate[1] = 0.0f;
-    vertices[10].shapeCoordinate[2] = radiusOffsetRight;
-    vertices[10].shapeCoordinate[3] = radiusOffsetBottom;
+    vertices[10].shapeCoordinate[0] = FLT_EPSILON;
+    vertices[10].shapeCoordinate[1] = FLT_EPSILON;
+    vertices[10].shapeCoordinate[2] = shapeCoordinateFactorRight;
+    vertices[10].shapeCoordinate[3] = shapeCoordinateFactorBottom;
     vertices[10].sourceCoordinate[0] = 1.0f - normCornerRadiusWidth;
     vertices[10].sourceCoordinate[1] = 1.0f - normCornerRadiusHeight;
     vertices[11].position[0] = width;
     vertices[11].position[1] = height - cornerRadius - shadowRadiusOut.w();
-    vertices[11].shapeCoordinate[0] = 1.0f;
-    vertices[11].shapeCoordinate[1] = 0.0f;
-    vertices[11].shapeCoordinate[2] = radiusOffsetRight;
-    vertices[11].shapeCoordinate[3] = radiusOffsetBottom;
+    vertices[11].shapeCoordinate[0] = shapeCoordinateRight;
+    vertices[11].shapeCoordinate[1] = FLT_EPSILON;
+    vertices[11].shapeCoordinate[2] = shapeCoordinateFactorRight;
+    vertices[11].shapeCoordinate[3] = shapeCoordinateFactorBottom;
     vertices[11].sourceCoordinate[0] = 1.0f + normShadowRadiusRight;
     vertices[11].sourceCoordinate[1] = 1.0f - normCornerRadiusHeight;
 
     // Set bottom row of 4 vertices.
     vertices[12].position[0] = 0.0f;
     vertices[12].position[1] = height;
-    vertices[12].shapeCoordinate[0] = 1.0f;
-    vertices[12].shapeCoordinate[1] = 1.0f;
-    vertices[12].shapeCoordinate[2] = radiusOffsetLeft;
-    vertices[12].shapeCoordinate[3] = radiusOffsetBottom;
+    vertices[12].shapeCoordinate[0] = shapeCoordinateLeft;
+    vertices[12].shapeCoordinate[1] = shapeCoordinateBottom;
+    vertices[12].shapeCoordinate[2] = shapeCoordinateFactorLeft;
+    vertices[12].shapeCoordinate[3] = shapeCoordinateFactorBottom;
     vertices[12].sourceCoordinate[0] = -normShadowRadiusLeft;
     vertices[12].sourceCoordinate[1] = 1.0f + normShadowRadiusBottom;
     vertices[13].position[0] = cornerRadius + shadowRadiusOut.x();
     vertices[13].position[1] = height;
-    vertices[13].shapeCoordinate[0] = 0.0f;
-    vertices[13].shapeCoordinate[1] = 1.0f;
-    vertices[13].shapeCoordinate[2] = radiusOffsetLeft;
-    vertices[13].shapeCoordinate[3] = radiusOffsetBottom;
+    vertices[13].shapeCoordinate[0] = FLT_EPSILON;
+    vertices[13].shapeCoordinate[1] = shapeCoordinateBottom;
+    vertices[13].shapeCoordinate[2] = shapeCoordinateFactorLeft;
+    vertices[13].shapeCoordinate[3] = shapeCoordinateFactorBottom;
     vertices[13].sourceCoordinate[0] = normCornerRadiusWidth;
     vertices[13].sourceCoordinate[1] = 1.0f + normShadowRadiusBottom;
     vertices[14].position[0] = width - cornerRadius - shadowRadiusOut.y();
     vertices[14].position[1] = height;
-    vertices[14].shapeCoordinate[0] = 0.0f;
-    vertices[14].shapeCoordinate[1] = 1.0f;
-    vertices[14].shapeCoordinate[2] = radiusOffsetRight;
-    vertices[14].shapeCoordinate[3] = radiusOffsetBottom;
+    vertices[14].shapeCoordinate[0] = FLT_EPSILON;
+    vertices[14].shapeCoordinate[1] = shapeCoordinateBottom;
+    vertices[14].shapeCoordinate[2] = shapeCoordinateFactorRight;
+    vertices[14].shapeCoordinate[3] = shapeCoordinateFactorBottom;
     vertices[14].sourceCoordinate[0] = 1.0f - normCornerRadiusWidth;
     vertices[14].sourceCoordinate[1] = 1.0f + normShadowRadiusBottom;
     vertices[15].position[0] = width;
     vertices[15].position[1] = height;
-    vertices[15].shapeCoordinate[0] = 1.0f;
-    vertices[15].shapeCoordinate[1] = 1.0f;
-    vertices[15].shapeCoordinate[2] = radiusOffsetRight;
-    vertices[15].shapeCoordinate[3] = radiusOffsetBottom;
+    vertices[15].shapeCoordinate[0] = shapeCoordinateRight;
+    vertices[15].shapeCoordinate[1] = shapeCoordinateBottom;
+    vertices[15].shapeCoordinate[2] = shapeCoordinateFactorRight;
+    vertices[15].shapeCoordinate[3] = shapeCoordinateFactorBottom;
     vertices[15].sourceCoordinate[0] = 1.0f + normShadowRadiusRight;
     vertices[15].sourceCoordinate[1] = 1.0f + normShadowRadiusBottom;
 
@@ -679,20 +682,25 @@ void ShapeShader2::initialize()
     program()->setUniformValue("sourceTexture", 0);
     matrixId_ = program()->uniformLocation("matrix");
     opacityId_ = program()->uniformLocation("opacity");
-    baseColorId_ = program()->uniformLocation("baseColor");
-    // overlayColorId_ = program()->uniformLocation("overlayColor");
+    backgroundColorId_ = program()->uniformLocation("bgColor");
+    secondaryBackgroundColorId_ = program()->uniformLocation("secondaryBgColor");
+    overlayColorId_ = program()->uniformLocation("overlayColor");
     // shadowColorInId_ = program()->uniformLocation("shadowColorIn");
     shadowColorOutId_ = program()->uniformLocation("shadowColorOut");
-    // overlayGeometryId_ = program()->uniformLocation("overlayGeometry");
+    overlayStepsId_ = program()->uniformLocation("overlaySteps");
     // shadowRadiusInId_ = program()->uniformLocation("shadowRadiusIn");
-    shadowRadiusOutId_ = program()->uniformLocation("shadowRadiusOut");
-    squirclePowId_ = program()->uniformLocation("squirclePow");
+    // shadowRadiusOutId_ = program()->uniformLocation("shadowRadiusOut");
+    // cornerSquarenessId_ = program()->uniformLocation("cornerSquareness");
+    cornerRadiusId_ = program()->uniformLocation("cornerRadius");
+    gradientDirectionId_ = program()->uniformLocation("gradientDirection");
 }
 
 void ShapeShader2::updateState(const RenderState& state, QSGMaterial* newEffect,
                                QSGMaterial* oldEffect)
 {
     Q_UNUSED(oldEffect);
+    const int gradientTable[] = { 0, 0, 1 };
+
     MaterialData* data = static_cast<ShapeMaterial2*>(newEffect)->data();
 
     QSGTextureProvider* textureProvider = data->sourceTextureProvider;
@@ -706,12 +714,17 @@ void ShapeShader2::updateState(const RenderState& state, QSGMaterial* newEffect,
         program()->setUniformValue(matrixId_, state.combinedMatrix());
     if (state.isOpacityDirty())
         program()->setUniformValue(opacityId_, state.opacity());
-    program()->setUniformValue(baseColorId_, data->baseColorPremultiplied);
-    // program()->setUniformValue(overlayColorId_, data->overlayColorPremultiplied);
+    program()->setUniformValue(backgroundColorId_, data->backgroundColorPremultiplied);
+    program()->setUniformValue(
+        secondaryBackgroundColorId_, data->backgroundFillMode == ShapeItem2::BackgroundColor ?
+        data->backgroundColorPremultiplied : data->secondaryBackgroundColorPremultiplied);
+    program()->setUniformValue(overlayColorId_, data->overlayColorPremultiplied);
     // program()->setUniformValue(shadowColorInId_, data->shadowColorInPremultiplied);
     program()->setUniformValue(shadowColorOutId_, data->shadowColorOutPremultiplied);
-    // program()->setUniformValue(overlayGeometryId_, data->overlayGeometry);
+    program()->setUniformValue(overlayStepsId_, data->overlaySteps);
     // program()->setUniformValue(shadowRadiusInId_, data->shadowRadiusIn);
-    program()->setUniformValue(shadowRadiusOutId_, data->shadowRadiusOut);
-    program()->setUniformValue(squirclePowId_, data->squirclePow);
+    // program()->setUniformValue(shadowRadiusOutId_, data->shadowRadiusOut);
+    // program()->setUniformValue(cornerSquarenessId_, data->cornerSquareness);
+    program()->setUniformValue(cornerRadiusId_, data->adjustedCornerRadius);
+    program()->setUniformValue(gradientDirectionId_, gradientTable[data->backgroundFillMode]);
 }

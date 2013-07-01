@@ -31,30 +31,45 @@ struct MaterialData
 {
     MaterialData();
     QSGTextureProvider* sourceTextureProvider;
-    QVector4D baseColorPremultiplied;
+    QVector4D backgroundColorPremultiplied;
+    QVector4D secondaryBackgroundColorPremultiplied;
     QVector4D overlayColorPremultiplied;
     QVector4D shadowColorInPremultiplied;
     QVector4D shadowColorOutPremultiplied;
-    QVector4D overlayGeometry;
+    QVector4D overlaySteps;
     QVector4D shadowRadiusOut;
     QVector4D shadowRadiusIn;
-    float squirclePow;
+    float cornerSquareness;
+    float adjustedCornerRadius;
+    int backgroundFillMode;
 };
 
 class ShapeItem2 : public QQuickItem
 {
     Q_OBJECT
-    Q_ENUMS(FillMode)
-    Q_ENUMS(HAlignment)
-    Q_ENUMS(VAlignment)
-    Q_PROPERTY(float squirclePow READ squirclePow WRITE setSquirclePow NOTIFY squirclePowChanged)
+
+    // Corner properties.
+    Q_PROPERTY(float cornerSquareness READ cornerSquareness WRITE setCornerSquareness
+               NOTIFY cornerSquarenessChanged)
     Q_PROPERTY(float cornerRadius READ cornerRadius WRITE setCornerRadius
                NOTIFY cornerRadiusChanged)
-    Q_PROPERTY(QColor baseColor READ baseColor WRITE setBaseColor NOTIFY baseColorChanged)
+
+    // Background properties.
+    Q_ENUMS(BackgroundFillMode)
+    Q_PROPERTY(QColor backgroundColor READ backgroundColor WRITE setBackgroundColor
+               NOTIFY backgroundColorChanged)
+    Q_PROPERTY(QColor secondaryBackgroundColor READ secondaryBackgroundColor
+               WRITE setSecondaryBackgroundColor NOTIFY secondaryBackgroundColorChanged)
+    Q_PROPERTY(BackgroundFillMode backgroundFillMode READ backgroundFillMode
+               WRITE setBackgroundFillMode NOTIFY backgroundFillModeChanged)
+
+    // Overlay properties.
     Q_PROPERTY(QRectF overlayGeometry READ overlayGeometry WRITE setOverlayGeometry
                NOTIFY overlayGeometryChanged)
     Q_PROPERTY(QColor overlayColor READ overlayColor WRITE setOverlayColor
                NOTIFY overlayColorChanged)
+
+    // Shadow properties.
     Q_PROPERTY(QVector4D shadowRadiusIn READ shadowRadiusIn WRITE setShadowRadiusIn
                NOTIFY shadowRadiusInChanged)
     Q_PROPERTY(QColor shadowColorIn READ shadowColorIn WRITE setShadowColorIn
@@ -63,6 +78,11 @@ class ShapeItem2 : public QQuickItem
                NOTIFY shadowRadiusOutChanged)
     Q_PROPERTY(QColor shadowColorOut READ shadowColorOut WRITE setShadowColorOut
                NOTIFY shadowColorOutChanged)
+
+    // Source properties.
+    Q_ENUMS(FillMode)
+    Q_ENUMS(HAlignment)
+    Q_ENUMS(VAlignment)
     Q_PROPERTY(QVariant source READ source WRITE setSource NOTIFY sourceChanged)
     Q_PROPERTY(FillMode fillMode READ fillMode WRITE setFillMode NOTIFY fillModeChanged)
     Q_PROPERTY(HAlignment horizontalAlignment READ horizontalAlignment WRITE setHorizontalAlignment
@@ -71,6 +91,7 @@ class ShapeItem2 : public QQuickItem
                NOTIFY verticalAlignmentChanged)
 
 public:
+    enum BackgroundFillMode { BackgroundColor, HorizontalGradient, VerticalGradient };
     enum HAlignment { AlignLeft = Qt::AlignLeft, AlignRight = Qt::AlignRight,
                       AlignHCenter = Qt::AlignHCenter };
     enum VAlignment { AlignTop = Qt::AlignTop, AlignBottom = Qt::AlignBottom,
@@ -80,13 +101,18 @@ public:
 
     ShapeItem2(QQuickItem* parent=0);
     ~ShapeItem2();
-    float squirclePow() const { return materialData_.squirclePow; }
-    void setSquirclePow(float squirclePow);
+    float cornerSquareness() const { return materialData_.cornerSquareness; }
+    void setCornerSquareness(float cornerSquareness);
     float cornerRadius() const { return cornerRadius_; }
     void setCornerRadius(float cornerRadius);
-    QColor baseColor() const { return baseColor_; }
-    void setBaseColor(const QColor& baseColor);
-    QRectF overlayGeometry() const;
+    QColor backgroundColor() const { return backgroundColor_; }
+    void setBackgroundColor(const QColor& backgroundColor);
+    QColor secondaryBackgroundColor() const { return secondaryBackgroundColor_; }
+    void setSecondaryBackgroundColor(const QColor& secondaryBackgroundColor);
+    BackgroundFillMode backgroundFillMode() const
+        { return static_cast<BackgroundFillMode>(materialData_.backgroundFillMode); }
+    void setBackgroundFillMode(BackgroundFillMode backgroundFillMode);
+    QRectF overlayGeometry() const { return overlayGeometry_; }
     void setOverlayGeometry(const QRectF& overlayGeometry);
     QColor overlayColor() const { return overlayColor_; }
     void setOverlayColor(const QColor& overlayColor);
@@ -108,9 +134,11 @@ public:
     void setVerticalAlignment(VAlignment verticalAlignment);
 
 Q_SIGNALS:
-    void squirclePowChanged();
+    void cornerSquarenessChanged();
     void cornerRadiusChanged();
-    void baseColorChanged();
+    void backgroundColorChanged();
+    void secondaryBackgroundColorChanged();
+    void backgroundFillModeChanged();
     void overlayGeometryChanged();
     void overlayColorChanged();
     void shadowRadiusInChanged();
@@ -129,14 +157,16 @@ protected:
 private:
     QQuickItem* source_;
     QRectF geometry_;
-    QColor baseColor_;
+    float cornerRadius_;
+    QColor backgroundColor_;
+    QColor secondaryBackgroundColor_;
     QColor overlayColor_;
+    QRectF overlayGeometry_;
     QColor shadowColorIn_;
     QColor shadowColorOut_;
     FillMode fillMode_;
     HAlignment horizontalAlignment_;
     VAlignment verticalAlignment_;
-    float cornerRadius_;
     MaterialData materialData_;
 
     Q_DISABLE_COPY(ShapeItem2)
@@ -173,14 +203,17 @@ private:
 
     int matrixId_;
     int opacityId_;
-    int baseColorId_;
-    // int overlayColorId_;
+    int backgroundColorId_;
+    int secondaryBackgroundColorId_;
+    int overlayColorId_;
     // int shadowColorInId_;
     int shadowColorOutId_;
-    // int overlayGeometryId_;
+    int overlayStepsId_;
     // int shadowRadiusInId_;
-    int shadowRadiusOutId_;
-    int squirclePowId_;
+    // int shadowRadiusOutId_;
+    // int cornerSquarenessId_;
+    int cornerRadiusId_;
+    int gradientDirectionId_;
 };
 
 // Scene graph node.
