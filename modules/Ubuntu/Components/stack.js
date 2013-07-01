@@ -41,9 +41,4 @@ function Stack() {
         if (this.size() < 1) return undefined;
         return elements[elements.length-1];
     }
-
-    this.at = function(index) {
-        if (index < 0 && index >= elements.length) return undefined;
-        return elements[index];
-    }
 }

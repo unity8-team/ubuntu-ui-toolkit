@@ -88,6 +88,82 @@ import Ubuntu.Layouts 0.1
         }
     \endqml
     As shown in the example above, the push() function can take an Item, Component or URL as input.
+
+    The PageStack supports a two-pane layout that can be used in wide screen devices to optimize
+    the viewport usage. This results that there can be two pages visible at the same time, however
+    only one of them is active. In order to use this feature the \l automaticWideAspect property
+    must be set, and \l pushOrReplace() instead of \l push() should be used when pushing pages.
+
+    When switched from one-pane to two-pane modes, the current page will be reparented to the
+    right pane and the previous page will be placed into the left pane. When pages are pushed
+    from the current page (right pane) the current page will be moved into the left pane and the
+    new one will be placed into the right one. This results in a push operation. When a page is
+    pushed from a left pane page, the current page (from the right pane) will be replaced with the
+    page that is just pushed.
+
+    \image two-pane-layout.png
+
+    Popping pages from the stack results in moving pages from left pane into the right pane till
+    there will be only one page left in the stack. This page will stay in the left pane and will
+    be activated there.
+
+    A page stack supporting two-pane layout would look as follows:
+    \qml
+        import QtQuick 2.0
+        import Ubuntu.Components 0.1
+        import Ubuntu.Components.ListItems 0.1 as ListItem
+
+        MainView {
+            width: units.gu(48)
+            height: units.gu(60)
+
+            PageStack {
+                id: pageStack
+                automaticWideAspect: true
+                // the first push can be a simple push
+                Component.onCompleted: push(page0)
+
+                Page {
+                    id: page0
+                    title: i18n.tr("Root page")
+                    visible: false
+
+                    Column {
+                        anchors.fill: parent
+                        ListItem.Standard {
+                            text: i18n.tr("Page one")
+                            onClicked: pageStack.pushOrReplace(page0, page1, {color: "red"})
+                            progression: true
+                        }
+                        ListItem.Standard {
+                            text: i18n.tr("External page")
+                            onClicked: pageStack.pushOrReplace(page0, Qt.resolvedUrl("MyCustomPage.qml"))
+                            progression: true
+                        }
+                    }
+                }
+
+                Page {
+                    title: "Rectangle"
+                    id: page1
+                    visible: false
+                    property alias color: rectangle.color
+                    Rectangle {
+                        id: rectangle
+                        anchors {
+                            fill: parent
+                            margins: units.gu(5)
+                        }
+                    }
+                }
+            }
+        }
+    \endqml
+
+    When the PageStack is used in single-pane mode, the same page can be pushed several times in the stack.
+    In two-pane mode this may cause the page to be hidden as PageStack cannot decide whether to show it or
+    not. If such a functionality is required, it is recommended to create the pages each time the page is
+    pushed onto the stack.
 */
 
 PageTreeNode {
@@ -133,17 +209,37 @@ PageTreeNode {
     property Item currentPage: null
 
     /*!
+      The property drives the use of automatic wide aspect mode of the viewport. When set
+      to true, the PageStack will automatically switch to two-pane mode when the width and
+      height of the PageStack exceets 40x71 GU. When false, the PageStack will act as a
+      single-pane stack.
+
+      The default value is false.
+      */
+    property bool automaticWideAspect: false
+
+    /*!
+      The property defines the condition to turn the wide aspect mode on. By default the condition
+      is set to turn wide aspect mode on when the PageStack size exceeds 40x71 GUs.
+      */
+    property bool wideAspectCondition: ((pageStack.width > units.gu(40)) && (pageStack.height > units.gu(71)))
+
+    /*!
       \preliminary
       Push a page to the stack, and apply the given (optional) properties to the page.
       The pushed page may be an Item, Component or URL.
      */
     function push(page, properties) {
-        internal.pushPage(page, properties, body);
+        // make sure the topmost page is parented to "body"
+        if (internal.stack.size() > 0) {
+            internal.stack.top().parent = body;
+        }
+        internal.pushPage(page, properties);
     }
 
     /*!
       The function pushes a page or replaces the topmost page in a pagestack depending
-      whether the page stack is in two-column or single column mode. In two column mode
+      whether the page stack is in two-pane or single pane mode. In two pane mode
       if the sourcePage is the currentPage, the operation will result as a push, moving
       the current page to the left pane and placing the new one into the right pane. If
       the sourcePage is the page from the left pane, the operation will result in replacing
@@ -151,9 +247,19 @@ PageTreeNode {
       */
     function pushOrReplace(sourcePage, page, properties) {
         if (internal.wideAspect) {
-            internal.pushPage(page, properties, body);
+            if (internal.stack.size() < 2) {
+                // we have only one page, so we push and add the next page to the righ pane
+                internal.pushPage(page, properties);
+            } else if (sourcePage === pageStack.currentPage){
+                // normal push
+                push(page, properties);
+            } else {
+                // we replace the topmost page
+                pop();
+                internal.pushPage(page, properties);
+            }
         } else {
-            internal.pushPage(page, properties, body);
+            push(page, properties);
         }
     }
 
@@ -169,10 +275,17 @@ PageTreeNode {
         }
         internal.stack.top().active = false;
         if (internal.stack.top().canDestroy) internal.stack.top().destroyObject();
+        else internal.stack.top().object.visible = false;
         internal.stack.pop();
         internal.stackUpdated();
 
-        if (internal.stack.size() > 0) internal.stack.top().active = true;
+        if (internal.stack.size() > 0) {
+            internal.stack.top().active = true;
+            if (internal.wideAspect && (pageStack.depth >= 2)) {
+                // move the topmost element to contentPane
+                internal.stack.top().parent = internal.contentPane;
+            }
+        }
     }
 
     /*!
@@ -200,26 +313,43 @@ PageTreeNode {
           Wide aspect
          */
         property bool wideAspect: (layout.currentLayout === "wideAspect")
-        property Item contentPane: null
+        property Item contentPane: body
 
-        function createWrapper(page, properties, parent) {
+        function createWrapper(page, properties) {
             var wrapperComponent = Qt.createComponent("PageWrapper.qml");
-            var wrapperObject = wrapperComponent.createObject(parent);
+            var wrapperObject = wrapperComponent.createObject(body);
+            wrapperObject.parent = contentPane;
+            wrapperObject.depth = pageStack.depth + 1;
+            wrapperObject.visible = Qt.binding(function () {
+                if (!wideAspect) {
+                    // not in wide aspect, only active pages are visible
+                    return this.active;
+                } else if (pageStack.depth <= internal.stack.size()) {
+                    // the last two pages in the stack are visible
+                    if (pageStack.depth >=2) {
+                        return (this.depth >= (pageStack.depth - 1));
+                    } else if (pageStack.depth > 0) {
+                        return true;
+                    }
+                }
+
+                return false;
+            });
             wrapperObject.reference = page;
             wrapperObject.pageStack = pageStack;
             wrapperObject.properties = properties;
             return wrapperObject;
         }
 
-        function pushPage(page, properties, parent) {
+        function pushPage(page, properties) {
             if (internal.stack.size() > 0) internal.stack.top().active = false;
-            internal.stack.push(internal.createWrapper(page, properties, parent));
+            internal.stack.push(internal.createWrapper(page, properties));
             internal.stack.top().active = true;
             internal.stackUpdated();
         }
 
         function stackUpdated() {
-            pageStack.depth =+ stack.size();
+            pageStack.depth = stack.size();
             if (pageStack.depth > 0) currentPage = stack.top().object;
             else currentPage = null;
         }
@@ -227,7 +357,7 @@ PageTreeNode {
 
     /*!
       \internal
-      Pages redirected into default layout
+      Pages redirected into default layout.
       */
     default property alias pages: body.data
     Layouts {
@@ -236,13 +366,12 @@ PageTreeNode {
         layouts: [
             ConditionalLayout {
                 name: "wideAspect"
-                when: (pageStack.width > units.gu(40) && pageStack.height > units.gu(71)) ||
-                      (pageStack.height < pageStack.width)
+                when: pageStack.wideAspectCondition && pageStack.automaticWideAspect
                 Item {
                     anchors.fill: parent
                     ItemLayout {
                         id: leftPane
-                        item: "body"
+                        item: "stack"
                         anchors {
                             left: parent.left
                             top: parent.top
@@ -250,10 +379,25 @@ PageTreeNode {
                         }
                         width: units.gu(40)
                     }
+                    // pane-separator
+                    Rectangle {
+                        id: separator
+                        width: units.dp(1)
+                        anchors {
+                            left: leftPane.right
+                            top: parent.top
+                            bottom: parent.bottom
+                            margins: units.gu(0.5)
+                        }
+
+                        color: "darkgray"
+                    }
+                    // right pane
                     Item {
                         id: rightPane
                         anchors {
-                            left: leftPane.right
+                            left: separator.right
+                            leftMargin: units.gu(0.5)
                             top: parent.top
                             bottom: parent.bottom
                             right: parent.right
@@ -262,15 +406,15 @@ PageTreeNode {
                     Component.onCompleted: {
                         internal.contentPane = rightPane;
                         if (internal.stack.size() >= 2 && pageStack.currentPage != null) {
-                            // move the last page (current page) into the content page
-                            pageStack.currentPage.parent = rightPane;
+                            // mowhichve the last page (current page) into the content page
+                            internal.stack.top().parent = rightPane;
                         }
                     }
                     Component.onDestruction: {
-                        internal.contentPane = null;
+                        internal.contentPane = body;
                         // move the current page back to the body
                         if (pageStack.currentPage != null) {
-                            pageStack.currentPage.parent = body;
+                            internal.stack.top().parent = body;
                         }
                     }
                 }
@@ -282,7 +426,7 @@ PageTreeNode {
         Item {
             id: body
             anchors.fill: parent
-            Layouts.item: "body"
+            Layouts.item: "stack"
         }
     }
 }

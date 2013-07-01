@@ -25,16 +25,20 @@ import Ubuntu.Components.ListItems 0.1 as ListItem
 
 MainView {
     id: mainView
+    objectName: "APP"
     width: units.gu(38)
     height: units.gu(50)
 //    anchors.centerIn: parent
 
     PageStack {
+        objectName: "PS"
         id: pageStack
+        automaticWideAspect: true
         anchors.fill: parent
         Component.onCompleted: push(page0)
 
         Page {
+            objectName: "P0"
             id: page0
             title: i18n.tr("Root page")
             visible: false
@@ -55,6 +59,7 @@ MainView {
         }
 
         Page {
+            objectName: "P1"
             id: page1
             title: i18n.tr("First page")
             visible: false
@@ -81,6 +86,7 @@ MainView {
         }
 
         Page {
+            objectName: "P2"
             title: "Rectangle"
             id: page2
             visible: false

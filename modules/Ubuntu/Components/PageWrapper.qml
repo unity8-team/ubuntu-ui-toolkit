@@ -56,6 +56,18 @@ PageTreeNode {
     active: false
 
     /*!
+      Preserves the previous parent object of the page object to be set back
+      once the page gets deactivated.
+      */
+    property Item pageParent: null
+
+    /*!
+      Preserves the page depth in the stack. Used in two-pane mode to detect whether the
+      page should be visible or not.
+      */
+    property int depth: 0
+
+    /*!
       \internal
      */
     onActiveChanged: {
@@ -90,7 +102,9 @@ PageTreeNode {
      */
     Component.onDestruction: {
         Utils.deactivate(pageWrapper);
+        if (pageParent) object.parent = pageParent;
         if (pageWrapper.canDestroy) Utils.destroyObject(pageWrapper);
+        else object.visible = false;
     }
 
     /*!

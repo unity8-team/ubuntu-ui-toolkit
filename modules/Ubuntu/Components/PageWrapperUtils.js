@@ -50,9 +50,11 @@ function __initPage(pageWrapper) {
             }
             pageWrapper.canDestroy = true;
         }
+        pageWrapper.pageParent = null;
     } else {
         // page reference is an object
         pageObject = pageWrapper.reference;
+        pageWrapper.pageParent = pageObject.parent;
         pageObject.parent = pageWrapper;
         pageWrapper.canDestroy = false;
 
