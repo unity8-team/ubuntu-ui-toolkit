@@ -188,7 +188,11 @@ PageTreeNode {
                 top: headerItem.bottom
                 bottom: parent.bottom
             }
-            clip: true
+            // only clip when necessary
+            clip: headerItem.bottomY > 0 && activePage && activePage.flickable
+                  && -activePage.flickable.contentY < headerItem.bottomY
+
+            property Page activePage: mainView.activeLeafNode
 
             Item {
                 id: contents
@@ -206,6 +210,7 @@ PageTreeNode {
          */
         Header {
             id: headerItem
+            property real bottomY: headerItem.y + headerItem.height
         }
 
         Toolbar {
