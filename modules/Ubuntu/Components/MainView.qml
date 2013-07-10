@@ -179,9 +179,25 @@ PageTreeNode {
 
         automaticOrientation: false
 
+        // clip the contents so that it does not overlap the header
         Item {
-            id: contents
-            anchors.fill: parent
+            id: contentsClipper
+            anchors {
+                left: parent.left
+                right: parent.right
+                top: headerItem.bottom
+                bottom: parent.bottom
+            }
+            clip: true
+
+            Item {
+                id: contents
+                anchors {
+                    fill: parent
+                    // compensate so that the actual y is always 0
+                    topMargin: -parent.y
+                }
+            }
         }
 
         /*!
