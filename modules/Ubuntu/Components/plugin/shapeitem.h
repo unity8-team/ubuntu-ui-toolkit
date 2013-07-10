@@ -91,6 +91,7 @@ private:
 
 private Q_SLOTS:
     void onImagePropertiesChanged();
+    void markDirtyTexture();
 
 private:
     enum DirtyFlags {
@@ -110,6 +111,7 @@ private:
                               | DirtyGridUnit | DirtyGeometry)
     };
 
+    QSGTextureProvider* textureProvider_;
     QColor color_;
     QColor gradientColor_;
     bool gradientColorSet_;
@@ -230,9 +232,9 @@ public:
     ShapeNode(ShapeItem* item);
     ShapeTexturedMaterial* texturedMaterial() { return &texturedMaterial_; }
     ShapeColoredMaterial* coloredMaterial() { return &coloredMaterial_; }
-    void setVertices(const QRectF& geometry, float radius, QQuickItem* image, bool stretched,
-                     ShapeItem::HAlignment hAlignment, ShapeItem::VAlignment vAlignment,
-                     float shapeCoordinate[][2]);
+    void setVertices(const QRectF& geometry, float radius, const QSGTexture* texture,
+                     bool stretched, ShapeItem::HAlignment hAlignment,
+                     ShapeItem::VAlignment vAlignment, float shapeCoordinate[][2]);
     void setMaterialType(MaterialType material);
 
 private:

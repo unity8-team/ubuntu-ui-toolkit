@@ -128,6 +128,7 @@ static int sizeOfType(GLenum type)
 
 ShapeItem::ShapeItem(QQuickItem* parent)
     : QQuickItem(parent)
+    , textureProvider_(NULL)
     , color_(0.0, 0.0, 0.0, 0.0)
     , gradientColor_(0.0, 0.0, 0.0, 0.0)
     , gradientColorSet_(false)
@@ -148,6 +149,11 @@ ShapeItem::ShapeItem(QQuickItem* parent)
                      SLOT(gridUnitChanged()));
     setImplicitWidth(8 * gridUnit_);
     setImplicitHeight(8 * gridUnit_);
+    update();
+}
+
+void ShapeItem::markDirtyTexture()
+{
     update();
 }
 
@@ -339,20 +345,6 @@ QSGNode* ShapeItem::updatePaintNode(QSGNode* old_node, UpdatePaintNodeData* data
         once = true;
     }
 
-    // The image item sets its texture in its updatePaintNode() method when QtQuick iterates through
-    // the list of dirty items. When we're notified the image item has been changed through
-    // setImage(), we mark the shape item as dirty by requesting an update. But sometimes it leads
-    // to have the shape item being queued in the dirty list before the image item. That case can be
-    // detected when the texture provider exists but not the texture itself. When that's the case we
-    // push the shape item in the dirty list to be handled next frame and we tell QtQuick not to
-    // render the item for the current frame.
-    const QSGTextureProvider* provider = image_ ? image_->textureProvider() : NULL;
-    const QSGTexture* texture = provider ? provider->texture() : NULL;
-    if (provider && !texture) {
-        update();
-        return NULL;
-    }
-
     ShapeNode* node = static_cast<ShapeNode*>(old_node);
     if (!node) {
         node = new ShapeNode(this);
@@ -387,14 +379,29 @@ QSGNode* ShapeItem::updatePaintNode(QSGNode* old_node, UpdatePaintNodeData* data
     coloredMaterial->setGradientColor(gradientColor_);
     texturedMaterial->setImage(image_);
 
+    // Listen for texture updates and store the current texture.
+    QSGTextureProvider* textureProvider = image_ ? image_->textureProvider() : NULL;
+    if (textureProvider_ != textureProvider) {
+        if (textureProvider_ != NULL) {
+            QObject::disconnect(textureProvider_, SIGNAL(textureChanged()),
+                                this, SLOT(markDirtyTexture()));
+        }
+        if (textureProvider != NULL) {
+            QObject::connect(textureProvider, SIGNAL(textureChanged()),
+                             this, SLOT(markDirtyTexture()));
+        }
+        textureProvider_ = textureProvider;
+    }
+    const QSGTexture* texture = textureProvider ? textureProvider->texture() : NULL;
+
     // Update node vertices and type.
     int index = (border_ == ShapeItem::RawBorder) ?
         0 : (border_ == ShapeItem::IdleBorder) ? 1 : 2;
     if (radius_ == ShapeItem::SmallRadius)
         index += 3;
-    node->setVertices(geometry_, radius, image_, stretched_, hAlignment_, vAlignment_,
+    node->setVertices(geometry_, radius, texture, stretched_, hAlignment_, vAlignment_,
                       textureData->coordinate[index]);
-    node->setMaterialType(image_ ? ShapeNode::TexturedMaterial : ShapeNode::ColoredMaterial);
+    node->setMaterialType(texture ? ShapeNode::TexturedMaterial : ShapeNode::ColoredMaterial);
 
     return node;
 }
@@ -417,13 +424,11 @@ ShapeNode::ShapeNode(ShapeItem* item)
     setFlag(UsePreprocess, false);
 }
 
-void ShapeNode::setVertices(const QRectF& geometry, float radius, QQuickItem* image, bool stretched,
-                            ShapeItem::HAlignment hAlignment, ShapeItem::VAlignment vAlignment,
-                            float shapeCoordinate[][2])
+void ShapeNode::setVertices(const QRectF& geometry, float radius, const QSGTexture* texture,
+                            bool stretched, ShapeItem::HAlignment hAlignment,
+                            ShapeItem::VAlignment vAlignment, float shapeCoordinate[][2])
 {
     ShapeNode::Vertex* vertices = reinterpret_cast<ShapeNode::Vertex*>(geometry_.vertexData());
-    const QSGTextureProvider* provider = image ? image->textureProvider() : NULL;
-    const QSGTexture* texture = provider ? provider->texture() : NULL;
     const float width = geometry.width();
     const float height = geometry.height();
     float topCoordinate;
