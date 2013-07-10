@@ -97,6 +97,10 @@ Item
 modules/Ubuntu/Components/Page.qml
 PageTreeNode
     property string title
+    property string searchLabel
+    signal queryUpdated(string keywords)
+    signal querySubmitted(string keywords)
+    signal queryReset
     property Flickable flickable
 modules/Ubuntu/Components/PageStack.qml
 PageTreeNode
@@ -145,6 +149,13 @@ StyledItem
     property int align
     property bool __interactive
     property alias __private
+modules/Ubuntu/Components/Search.qml
+TextField
+    property Popover visiblePopover
+    function showSuggestions(searchField)
+    function hideSuggestions()
+    function searchWhileTyping(searchField)
+    function submitSearch(keywords)
 modules/Ubuntu/Components/Slider.qml
 AbstractButton
     property real minimumValue

@@ -84,6 +84,39 @@ PageTreeNode {
     property Item tools: ToolbarItems { }
 
     /*!
+      If a label is defined, the page will display a search field in the header
+      and you need to handle querySubmitted to implement display of search results.
+     */
+    property string searchLabel: ""
+    /*!
+      The user is typing in the search field
+     */
+    signal queryUpdated(string keywords)
+    /*!
+      The user pressed Enter or selected a suggestion
+     */
+    signal querySubmitted(string keywords)
+    /*!
+      An active search was cancelled, usually using the clear button
+     */
+    signal queryReset
+    /*!
+      The model stores a search history with items of the form "query": "foobar"
+      and can be used to add or remove items or provide custom suggestions
+     */
+    property ListModel recentSearches: ListModel { }
+    onQueryReset: {
+        active = false
+    }
+
+    Component {
+        id: searchComponent
+        Search {
+            placeholderText: tabSearch.searchLabel
+        }
+    }
+
+    /*!
       Optional flickable that controls the header. This property
       is automatically set to the first child of the page that is Flickable
       and anchors to the top of the page or fills the page. For example:
@@ -142,6 +175,10 @@ PageTreeNode {
                 if (internal.header) {
                     internal.header.title = page.title;
                     internal.header.flickable = page.flickable;
+                    if (searchLabel != "")
+                        internal.header.contents = searchComponent
+                    else
+                        internal.header.contents = null
                 }
                 if (tools) {
                     // TODO: remove __pageStack when ToolbarActions becomes deprecated
