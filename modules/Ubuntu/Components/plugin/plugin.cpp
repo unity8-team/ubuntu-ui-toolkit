@@ -47,8 +47,9 @@
 #include <unistd.h>
 
 /*
- * Registration function for the Clipboard type
+ * Type registration functions.
  */
+
 static QObject *registerClipboard(QQmlEngine *engine, QJSEngine *scriptEngine)
 {
     Q_UNUSED(engine)
@@ -56,6 +57,15 @@ static QObject *registerClipboard(QQmlEngine *engine, QJSEngine *scriptEngine)
 
     QQuickClipboard *clipboard = new QQuickClipboard;
     return clipboard;
+}
+
+static QObject *registerUCUbuntuAnimation(QQmlEngine *engine, QJSEngine *scriptEngine)
+{
+    Q_UNUSED(engine)
+    Q_UNUSED(scriptEngine)
+
+    UCUbuntuAnimation *animation = new UCUbuntuAnimation();
+    return animation;
 }
 
 
@@ -97,9 +107,7 @@ void UbuntuComponentsPlugin::registerTypes(const char *uri)
     qmlRegisterUncreatableType<UbuntuI18n>(uri, 0, 1, "i18n", "Singleton object");
     qmlRegisterExtendedType<QQuickImageBase, UCQQuickImageExtension>(uri, 0, 1, "QQuickImageBase");
     qmlRegisterUncreatableType<UCUnits>(uri, 0, 1, "UCUnits", "Not instantiable");
-    // FIXME/DEPRECATED: Shape is exported for backwards compatibity only
     qmlRegisterType<ShapeItem>(uri, 0, 1, "Shape");
-    qmlRegisterType<ShapeItem>(uri, 0, 1, "UbuntuShape");
     qmlRegisterType<InverseMouseAreaType>(uri, 0, 1, "InverseMouseArea");
     qmlRegisterType<QQuickMimeData>(uri, 0, 1, "MimeData");
     qmlRegisterSingletonType<QQuickClipboard>(uri, 0, 1, "Clipboard", registerClipboard);
@@ -113,6 +121,8 @@ void UbuntuComponentsPlugin::initializeEngine(QQmlEngine *engine, const char *ur
 {
     QQmlExtensionPlugin::initializeEngine(engine, uri);
     QQmlContext* context = engine->rootContext();
+
+    QuickUtils::instance().setImportPathList(engine->importPathList());
 
     // register root object watcher that sets a global property with the root object
     // that can be accessed from any object
