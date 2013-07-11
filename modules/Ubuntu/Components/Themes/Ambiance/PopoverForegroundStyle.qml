@@ -31,6 +31,8 @@ Item {
     Item {
         id: content
         anchors.fill: parent
+        anchors.margins: units.dp(4)
+
         Item {
             id: body
             anchors.fill: parent
