@@ -16,7 +16,6 @@
 
 import QtQuick 2.0
 import Ubuntu.Components 0.1
-import "internalPopupUtils.js" as InternalPopupUtils
 
 /*!
     \qmltype Dialog
@@ -132,20 +131,6 @@ PopupBase {
       The default value is true.
       */
     property bool modal: true
-
-    /*
-    QtObject {
-        id: internal
-
-        function updatePosition() {
-            var pos = new InternalPopupUtils.CallerPositioning(foreground, pointer, dialog, caller, pointerTarget, edgeMargins, callerMargin);
-            pos.auto();
-
-        }
-    }
-
-    Pointer { id: pointer }
-    */
 
     __foreground: foreground
     __eventGrabber.enabled: modal

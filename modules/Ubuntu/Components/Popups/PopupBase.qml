@@ -66,7 +66,7 @@ OrientationHelper {
         if (!dismissArea)
             dismissArea = stateWrapper.rootItem
 
-        // Without setting the parent, mapFromItem() breaks in internalPopupUtils.
+        // Without setting the parent, mapFromItem() breaks
         parent = stateWrapper.rootItem;
         stateWrapper.state = 'opened';
     }
