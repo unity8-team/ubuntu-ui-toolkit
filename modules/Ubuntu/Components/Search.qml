@@ -98,7 +98,7 @@ TextField {
         onClicked: submitSearch(text)
         color: 'transparent'
         Icon {
-            name: "edit-find-symbolic"
+            name: "search"
             width: parent.width
             height: parent.height
         }

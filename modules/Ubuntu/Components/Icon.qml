@@ -35,7 +35,7 @@ import QtQuick 2.0
     Icon {
         width: 64
         height: 64
-        name: "edit-find-symbolic"
+        name: "search"
     }
     \endqml
 
@@ -44,7 +44,7 @@ import QtQuick 2.0
     Icon {
         width: 64
         height: 64
-        name: "edit-find-symbolic"
+        name: "search"
         color: UbuntuColors.warmGrey
     }
     \endqml

@@ -33,7 +33,7 @@ Rectangle {
             text: subject + " <em>" + when + "</em>"
             subText: preview
             icon: Icon {
-                name: "starred-symbolic"
+                name: "search"
                 width: units.gu(3)
                 height: units.gu(5)
                 visible: starred
