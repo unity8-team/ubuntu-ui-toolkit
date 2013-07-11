@@ -37,6 +37,17 @@ MainView {
     Tab { title: tabInbox.title; Page {
         id: tabInbox
         title: i18n.tr("Inbox")
+        tools: ToolbarActions {
+            Action {
+                objectName: "action"
+                iconSource: Qt.resolvedUrl("image://gicon/search")
+                text: i18n.tr("Search")
+                onTriggered: {
+                    tabs.selectedTabIndex = 1 // Search
+                }
+            }
+        }
+
         MessageList {
             id: messagesInbox
             model: emails

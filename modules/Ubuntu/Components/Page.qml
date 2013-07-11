@@ -105,10 +105,6 @@ PageTreeNode {
       and can be used to add or remove items or provide custom suggestions
      */
     property ListModel recentSearches: ListModel { }
-    /*! \internal */
-    onQueryReset: {
-        active = false
-    }
 
     Component {
         id: searchComponent
