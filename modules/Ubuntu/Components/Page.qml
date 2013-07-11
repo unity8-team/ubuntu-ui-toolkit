@@ -100,6 +100,10 @@ PageTreeNode {
       An active search was cancelled, usually using the clear button
      */
     signal queryReset
+    /*! \internal */
+    onQueryReset: {
+        internal.header.contents = internal.originalHeaderContents
+    }
     /*!
       The model stores a search history with items of the form "query": "foobar"
       and can be used to add or remove items or provide custom suggestions
@@ -163,6 +167,7 @@ PageTreeNode {
         id: internal
         property Header header: page.__propagated && page.__propagated.header ? page.__propagated.header : null
         property Toolbar toolbar: page.__propagated && page.__propagated.toolbar ? page.__propagated.toolbar : null
+        property Component originalHeaderContents: null
 
         onHeaderChanged: internal.updateHeaderAndToolbar()
         onToolbarChanged: internal.updateHeaderAndToolbar()
@@ -172,10 +177,10 @@ PageTreeNode {
                 if (internal.header) {
                     internal.header.title = page.title;
                     internal.header.flickable = page.flickable;
-                    if (searchLabel != "")
+                    if (searchLabel != "") {
+                        internal.originalHeaderContents = internal.header.contents
                         internal.header.contents = searchComponent
-                    else
-                        internal.header.contents = null
+                    }
                 }
                 if (tools) {
                     // TODO: remove __pageStack when ToolbarActions becomes deprecated
