@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=search
+Comment=My searchable app
+Exec=/usr/bin/qmlscene $@ /usr/lib/ubuntu-ui-toolkit/examples/search/search.qml
+Icon=edit-find-symbolic
+Terminal=false
+Type=Application
+X-Ubuntu-Touch=true

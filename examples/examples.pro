@@ -5,6 +5,7 @@ SUBDIRS += \
     jokes \
     locale \
     unit-converter \
+    search \
     calculator
 
 
