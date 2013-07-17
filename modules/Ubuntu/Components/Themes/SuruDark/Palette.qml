@@ -15,22 +15,27 @@
  */
 
 import QtQuick 2.0
-import Ubuntu.Components 0.1
+import Ubuntu.Components.Themes 0.1
 
-Item {
-    id: pointer
-
-    // up, down, left or right, or none to hide the pointer
-    property string direction
-
-    Loader {
-        visible: (direction !== "none")
-
-        x: (direction === "up" || direction === "down") ? -width/2.0 :
-           (direction === "right") ? -width : 0
-        y: (direction === "left" || direction === "right") ? -height/2.0 :
-           (direction === "down") ? -height : 0
-        property Item styledItem: pointer
-        sourceComponent: Theme.createStyleComponent("PointerStyle.qml", pointer)
+Palette {
+    normal: PaletteValues {
+        background: "#221E1C"
+        backgroundText: "#33F3F3E7"
+        base: "#19000000"
+        baseText: "#F3F3E7"
+        foreground: "#888888"
+        foregroundText: "#F3F3E7"
+        overlay: "#F2F2F2"
+        overlayText: "#888888"
+        field: "#19000000"
+        fieldText: "#7F7F7F7F"
+    }
+    selected: PaletteValues {
+        background: "#88D6D6D6" // FIXME: not from design
+        backgroundText: "#F3F3E7"
+        foreground: "#DD4814"
+        foregroundText: "#F3F3E7"
+        field: "#FFFFFF"
+        fieldText: "#888888"
     }
 }

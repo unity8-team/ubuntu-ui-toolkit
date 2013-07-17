@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 Canonical Ltd.
+ * Copyright 2012-2013 Canonical Ltd.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,6 +15,7 @@
  */
 
 import QtQuick 2.0
+import Ubuntu.Unity.Action 1.0 as UnityActions
 
 /*!
     \qmltype MainView
@@ -102,16 +103,16 @@ import QtQuick 2.0
                     color: UbuntuColors.coolGrey
                 }
 
-                tools: ToolbarActions {
+                tools: ToolbarItems {
                     ToolbarButton {
                         action: Action {
-                            text: "red"
+                            text: "orange"
                             onTriggered: rectangle.color = UbuntuColors.orange
                         }
                     }
                     ToolbarButton {
                         action: Action {
-                            text: "green"
+                            text: "purple"
                             onTriggered: rectangle.color = UbuntuColors.lightAubergine
                         }
                     }
@@ -133,7 +134,57 @@ PageTreeNode {
       The property holds the application's name, which must be the same as the
       desktop file's name.
       */
-    property string applicationName
+    property string applicationName: ""
+
+    /*!
+      \preliminary
+      The property holds if the application should automatically resize the
+      contents when the input method appears
+
+      The default value is false.
+      */
+    property bool anchorToKeyboard: false
+
+    /*!
+      \qmlproperty color headerColor
+      Color of the header's background.
+
+      \sa backgroundColor, footerColor
+     */
+    property alias headerColor: background.headerColor
+    /*!
+      \qmlproperty color backgroundColor
+      Color of the background.
+
+      The background is usually a single color. However if \l headerColor
+      or \l footerColor are set then a gradient of colors will be drawn.
+
+      For example, in order for the MainView to draw a color gradient beneath
+      the content:
+      \qml
+          import QtQuick 2.0
+          import Ubuntu.Components 0.1
+
+          MainView {
+              width: units.gu(40)
+              height: units.gu(60)
+
+              headerColor: "#343C60"
+              backgroundColor: "#6A69A2"
+              footerColor: "#8896D5"
+          }
+      \endqml
+
+      \sa footerColor, headerColor
+     */
+    property alias backgroundColor: background.backgroundColor
+    /*!
+      \qmlproperty color footerColor
+      Color of the footer's background.
+
+      \sa backgroundColor, headerColor
+     */
+    property alias footerColor: background.footerColor
 
     // FIXME: Make sure that the theming is only in the background, and the style
     //  should not occlude contents of the MainView. When making changes here, make
@@ -142,6 +193,10 @@ PageTreeNode {
         id: background
         anchors.fill: parent
         style: Theme.createStyleComponent("MainViewStyle.qml", background)
+
+        property color headerColor: backgroundColor
+        property color backgroundColor: Theme.palette.normal.background
+        property color footerColor: backgroundColor
     }
 
     /*!
@@ -169,10 +224,42 @@ PageTreeNode {
         id: canvas
 
         automaticOrientation: false
+        // this will make sure that the keyboard does not obscure the contents
+        anchors {
+            bottomMargin: Qt.inputMethod.visible && anchorToKeyboard ? Qt.inputMethod.keyboardRectangle.height : 0
+            //this is an attempt to keep the keyboard animation in sync with the content resize
+            //but this does not work very well because the keyboard animation has different steps
+            Behavior on bottomMargin {
+                NumberAnimation { easing.type: Easing.InOutQuad }
+            }
+        }
 
+        // clip the contents so that it does not overlap the header
         Item {
-            id: contents
-            anchors.fill: parent
+            id: contentsClipper
+            anchors {
+                left: parent.left
+                right: parent.right
+                top: headerItem.bottom
+                bottom: parent.bottom
+            }
+            // only clip when necessary
+            clip: headerItem.bottomY > 0 && activePage && activePage.flickable
+                  && -activePage.flickable.contentY < headerItem.bottomY
+
+            property Page activePage: mainView.activeLeafNode
+
+            Item {
+                id: contents
+                anchors {
+                    fill: parent
+                    
+                    // move the whole contents up if the toolbar is locked and opened otherwise the toolbar will obscure part of the contents
+                    bottomMargin: toolbarItem.locked && toolbarItem.opened ? toolbarItem.height + toolbarItem.triggerSize : 0
+                    // compensate so that the actual y is always 0
+                    topMargin: -parent.y
+                }
+            }
         }
 
         /*!
@@ -181,10 +268,27 @@ PageTreeNode {
          */
         Header {
             id: headerItem
+            property real bottomY: headerItem.y + headerItem.height
         }
 
         Toolbar {
             id: toolbarItem
+        }
+    }
+
+    /*!
+      A global list of actions that will be available to the system (including HUD)
+      as long as the application is running. For actions that are not always available to the
+      system, but only when a certain \l Page is active, see the actions property of \l Page.
+
+      \qmlproperty list<Action> actions
+     */
+    property alias actions: unityActionManager.actions
+
+    Object {
+        id: internal
+        UnityActions.ActionManager {
+            id: unityActionManager
         }
     }
 
@@ -202,6 +306,13 @@ PageTreeNode {
           It will be used by the active \l Page to set the toolbar actions.
          */
         property Toolbar toolbar: toolbarItem
+
+        /*!
+          \internal
+          The action manager that has the global context for the MainView's actions,
+          and to which a local context can be added for each Page that has actions.actions.
+         */
+        property var actionManager: unityActionManager
     }
 
     /*!

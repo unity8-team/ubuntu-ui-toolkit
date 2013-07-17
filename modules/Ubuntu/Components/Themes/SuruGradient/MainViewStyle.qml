@@ -15,22 +15,8 @@
  */
 
 import QtQuick 2.0
-import Ubuntu.Components 0.1
+import Ubuntu.Components.Themes.Ambiance 0.1
 
-Item {
-    id: pointer
-
-    // up, down, left or right, or none to hide the pointer
-    property string direction
-
-    Loader {
-        visible: (direction !== "none")
-
-        x: (direction === "up" || direction === "down") ? -width/2.0 :
-           (direction === "right") ? -width : 0
-        y: (direction === "left" || direction === "right") ? -height/2.0 :
-           (direction === "down") ? -height : 0
-        property Item styledItem: pointer
-        sourceComponent: Theme.createStyleComponent("PointerStyle.qml", pointer)
-    }
+MainViewStyle {
+    backgroundSource: ""
 }
