@@ -31,22 +31,32 @@ MainView {
     width: units.gu(40)
     height: units.gu(70)
 
+    Action {
+        id: searchAction
+        iconSource: Qt.resolvedUrl("image://gicon/search")
+        text: i18n.tr("Search")
+        keywords: i18n.tr("Find")
+        onTriggered: {
+            tabs.selectedTabIndex = 1 // Search
+        }
+    }
+    Action {
+        id: quitAction
+        text: i18n.tr("Quit")
+        keywords: i18n.tr("Close")
+        onTriggered: {
+            Qt.quit()
+        }
+    }
+    actions: [ quitAction ]
+
     Tabs {
         id: tabs
 
     Tab { title: tabInbox.title; Page {
         id: tabInbox
         title: i18n.tr("Inbox")
-        tools: ToolbarActions {
-            Action {
-                objectName: "action"
-                iconSource: Qt.resolvedUrl("image://gicon/search")
-                text: i18n.tr("Search")
-                onTriggered: {
-                    tabs.selectedTabIndex = 1 // Search
-                }
-            }
-        }
+        actions: [ searchAction ]
 
         MessageList {
             id: messagesInbox
