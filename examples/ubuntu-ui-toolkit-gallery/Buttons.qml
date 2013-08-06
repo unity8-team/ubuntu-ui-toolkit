@@ -16,6 +16,7 @@
 
 import QtQuick 2.0
 import Ubuntu.Components 0.1
+import Ubuntu.Components.ListItems 0.1 as ListItem
 
 Template {
     TemplateSection {
@@ -71,6 +72,46 @@ Template {
                 objectName: "button_text_disabled"
                 text: i18n.tr("Call")
                 enabled: false
+            }
+        }
+
+        TemplateRow {
+            title: i18n.tr("Standard ComboButton")
+
+            ComboButton {
+                objectName: "combo_button_standard"
+                text: i18n.tr("Buy this App")
+                secondaryActions: [
+                    i18n.tr("Add to Wishlist"),
+                    i18n.tr("Remind me later"),
+                    i18n.tr("Play the demo"),
+                ]
+                width: units.gu(30)
+            }
+        }
+
+        TemplateRow {
+            title: i18n.tr("ComboButton with bells and whistles")
+
+            ComboButton {
+                objectName: "combo_button_custom"
+                id: comboButtonCustom
+                text: i18n.tr("Decline")
+                secondaryActions: [
+                    i18n.tr("Sorry, I missed your call, try now"),
+                    i18n.tr("I'm running late, I'm on my way"),
+                    i18n.tr("Custom…")
+                ]
+                delegate: Button {
+                // delegate: ListItem.Standard {
+                    text: modelData
+                    iconSource: Qt.resolvedUrl("call.png")
+                    // icon: Qt.resolvedUrl("call.png")
+                    gradient: UbuntuColors.greyGradient
+                    onClicked: comboButtonCustom.clicked(modelData)
+                    width: comboButtonCustom.width
+                }
+                width: units.gu(30)
             }
         }
     }

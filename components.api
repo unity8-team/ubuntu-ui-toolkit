@@ -35,6 +35,14 @@ AbstractButton
 modules/Ubuntu/Components/CheckBox.qml
 AbstractButton
     property bool checked
+modules/Ubuntu/Components/ComboButton.qml
+StyledItem
+    property string text
+    property color color
+    property Gradient gradient
+    property var secondaryActions
+    property Component delegate
+    signal clicked(var value)
 modules/Ubuntu/Components/CrossFadeImage.qml
 Item
     property url source

@@ -1,5 +1,6 @@
 module Ubuntu.Components.Themes.Ambiance
 internal ActivityIndicatorStyle ActivityIndicatorStyle.qml
+internal ComboButtonStyle ComboButtonStyle.qml
 internal ButtonStyle ButtonStyle.qml
 internal CheckBoxStyle CheckBoxStyle.qml
 internal DialogForegroundStyle DialogForegroundStyle.qml

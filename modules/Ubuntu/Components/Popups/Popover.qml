@@ -178,6 +178,12 @@ PopupBase {
         visible = false;
     }
 
+    /*!
+        \internal
+        If not empty, the name of a position function in InternalPopupUtils
+    */
+    property string __preferredAlignment: ""
+
     QtObject {
         id: internal
         property bool portrait: width < height
@@ -185,7 +191,10 @@ PopupBase {
         // private
         function updatePosition() {
             var pos = new InternalPopupUtils.CallerPositioning(foreground, pointer, dismissArea, caller, pointerTarget, edgeMargins, callerMargin);
-            pos.auto();
+            if (__preferredAlignment != "")
+                pos[__preferredAlignment]()
+            else
+                pos.auto()
         }
     }
 
