@@ -103,7 +103,7 @@ PageTreeNode {
     toolbar: toolbarItem
     Toolbar {
         id: toolbarItem
-        Component.onCompleted: toolbarItem.state = "spread"
+        Component.onCompleted: if (toolbarItem.tools.__hasVisibleActions()) toolbarItem.state = "spread"
     }
 
     MouseArea {
@@ -134,7 +134,11 @@ PageTreeNode {
             target: toolbarItem
             onToolsChanged: {
                 delayAfterClick.stop()
-                if (toolbarItem.tools.__hasVisibleActions()) toolbarItem.state = "spread"
+                if (toolbarItem.tools.__hasVisibleActions()) {
+                    toolbarItem.state = "spread"
+                } else {
+                    toolbarItem.state = ""
+                }
                 delayAfterToolsChange.restart()
             }
         }
