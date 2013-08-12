@@ -36,7 +36,16 @@ TestCase {
         compare(checkbox.pressed,false,"Pressed is boolean and false by default")
      }
 
+     function test_toggled() {
+        signalSpy.signalName = "toggled";
+        compare(signalSpy.valid,true,"toggled signal exists")
+     }
+
      CheckBox {
          id: checkbox
+         SignalSpy {
+            id: signalSpy
+            target: parent
+         }
      }
 }
