@@ -35,6 +35,7 @@ AbstractButton
 modules/Ubuntu/Components/CheckBox.qml
 AbstractButton
     property bool checked
+    signal toggled(bool checked)
 modules/Ubuntu/Components/CrossFadeImage.qml
 Item
     property url source

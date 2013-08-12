@@ -48,9 +48,19 @@ AbstractButton {
     property bool checked: false
 
     /*!
+      \preliminary
+       This handler is called when user interaction changes the check
+       state of the control (user click).
+    */
+    signal toggled(bool checked)
+
+    /*!
       \internal
      */
-    onClicked: checked = !checked
+    onClicked: {
+        checked = !checked;
+        toggled(checked);
+    }
 
     style: Theme.createStyleComponent("CheckBoxStyle.qml", checkBox)
 }
