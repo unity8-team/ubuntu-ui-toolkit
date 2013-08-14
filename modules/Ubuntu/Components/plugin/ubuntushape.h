@@ -26,8 +26,8 @@
 #include <QtGui/QOpenGLFunctions>
 
 // Remove once QtDeclarative patches are merged.
-#define HAS_QTDECLARATIVE_UPDATECLIPRECT
-#define HAS_QTDECLARATIVE_CLAMPTOBORDER
+// #define HAS_QTDECLARATIVE_UPDATECLIPRECT
+// #define HAS_QTDECLARATIVE_CLAMPTOBORDER
 
 // QtQuick item.
 
