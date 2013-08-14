@@ -98,7 +98,7 @@ static const char* const kFragmentShader =
     "            }                                                                               \n"
 #endif
     "        } else {                                                                            \n"
-    "            texture[0] = vec4(0.0);                                                         \n"
+    "            texture[i] = vec4(0.0);                                                         \n"
     "        }                                                                                   \n"
     "    }                                                                                       \n"
 
