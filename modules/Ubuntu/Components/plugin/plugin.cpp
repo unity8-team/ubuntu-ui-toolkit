@@ -33,7 +33,7 @@
 #include "ucqquickimageextension.h"
 #include "quickutils.h"
 #include "giconprovider.h"
-#include "shapeitem.h"
+#include "ubuntushape.h"
 #include "inversemouseareatype.h"
 #include "qquickclipboard.h"
 #include "qquickmimedata.h"
@@ -132,7 +132,7 @@ void UbuntuComponentsPlugin::registerTypes(const char *uri)
     qmlRegisterUncreatableType<UbuntuI18n>(uri, 0, 1, "i18n", "Singleton object");
     qmlRegisterExtendedType<QQuickImageBase, UCQQuickImageExtension>(uri, 0, 1, "QQuickImageBase");
     qmlRegisterUncreatableType<UCUnits>(uri, 0, 1, "UCUnits", "Not instantiable");
-    qmlRegisterType<ShapeItem>(uri, 0, 1, "Shape");
+    qmlRegisterType<UbuntuShape>(uri, 0, 1, "UbuntuShape");
     qmlRegisterType<InverseMouseAreaType>(uri, 0, 1, "InverseMouseArea");
     qmlRegisterType<QQuickMimeData>(uri, 0, 1, "MimeData");
     qmlRegisterSingletonType<QQuickClipboard>(uri, 0, 1, "Clipboard", registerClipboard);

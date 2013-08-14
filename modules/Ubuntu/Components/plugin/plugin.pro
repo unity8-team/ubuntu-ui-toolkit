@@ -18,6 +18,10 @@ QT += qml-private core-private v8-private
 #comment in the following line to disable traces
 #DEFINES += QT_NO_DEBUG_OUTPUT
 
+contains(QT_CONFIG, opengles2) {
+  DEFINES += QT_OPENGL_ES_2
+}
+
 TARGET = $$qtLibraryTarget($$TARGET)
 uri = Ubuntu.Components
 
@@ -31,8 +35,7 @@ HEADERS += plugin.h \
     ucqquickimageextension.h \
     quickutils.h \
     giconprovider.h \
-    shapeitemtexture.h \
-    shapeitem.h \
+    ubuntushape.h \
     inversemouseareatype.h \
     bottombarvisibilitycommunicator.h \
     qquickclipboard.h \
@@ -53,7 +56,7 @@ SOURCES += plugin.cpp \
     ucqquickimageextension.cpp \
     quickutils.cpp \
     giconprovider.cpp \
-    shapeitem.cpp \
+    ubuntushape.cpp \
     inversemouseareatype.cpp \
     bottombarvisibilitycommunicator.cpp \
     qquickclipboard.cpp \
