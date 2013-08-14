@@ -30,9 +30,9 @@
 
 #include "ubuntushape.h"
 #include "ucunits.h"
-#include <QtCore/QtMath>
 #include <QtQuick/QQuickWindow>
 #include <QtQuick/QSGTextureProvider>
+#include <math.h>
 
 // Retrieves the size of an array at compile time.
 #define ARRAY_SIZE(a) \
@@ -198,6 +198,12 @@ static int sizeOfType(GLenum type)
 static float roundTextureCoord(float coord, float size)
 {
     return roundf(coord * size) / size;
+}
+
+// Gets an angle in radians.
+static float degreesToRadians(float degrees)
+{
+    return (degrees / 180.0f) * M_PI;
 }
 
 MaterialData::MaterialData()
@@ -722,7 +728,7 @@ void UbuntuShape::setShadowAngleIn(float shadowAngleIn)
 void UbuntuShape::updateShadowLayout()
 {
     float sine, cosine;
-    sincosf(qDegreesToRadians(shadowAngle_[1]), &sine, &cosine);
+    sincosf(degreesToRadians(shadowAngle_[1]), &sine, &cosine);
     const float offset[2] = { cosine * shadowDistance_[1], -sine * shadowDistance_[1] };
     materialData_.shadowOffset[1] = QVector2D(
         offset[0] / geometry_.width(), offset[1] / geometry_.height());
