@@ -875,7 +875,7 @@ void UbuntuShape::updateWrapMode(int index, int direction, UbuntuShape::WrapMode
     Q_ASSERT(direction < 2);
 
     sourceWrapMode_[index][direction] = wrapMode;
-#if !defined(QT_OPENGL_ES_2) || !defined(HAS_QTDECLARATIVE_CLAMPTOBORDER)
+#if !defined(QT_OPENGL_ES_2) && defined(HAS_QTDECLARATIVE_CLAMPTOBORDER)
     const QSGTexture::WrapMode wrapTable[3] =
         { QSGTexture::Repeat, QSGTexture::ClampToEdge, QSGTexture::ClampToBorder };
 #else
