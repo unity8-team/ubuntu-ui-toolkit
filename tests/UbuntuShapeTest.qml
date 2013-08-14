@@ -37,7 +37,7 @@ Item {
     property real scale: 1.0
 
     // Shape properties.
-    property real cornerRadius: 50.0
+    property real cornerRadius: 20.0
     property color backgroundColor: Qt.rgba(0.6, 0.6, 1.0, 1.0)
     property color secondaryBackgroundColor: Qt.rgba(0.3, 0.3, 0.5, 1.0)
     property variant backgroundMode: UbuntuShape.BackgroundColor
