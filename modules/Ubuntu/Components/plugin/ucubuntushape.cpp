@@ -1360,6 +1360,7 @@ void UCUbuntuShapeShader::updateState(
             texture->bind();
             features[i*2] = 1;
 #if defined(QT_OPENGL_ES_2) || !defined(HAS_QTDECLARATIVE_CLAMPTOBORDER)
+            features[i*2+1] = 0;
             features[i*2+1] |= data->hasSoftwareClampToBorder[i][0] ? 1 : 0;
             features[i*2+1] |= data->hasSoftwareClampToBorder[i][1] ? 1 : 0;
             border[i*2] = data->hasSoftwareClampToBorder[i][0] ? 0.0f : 1.0f;

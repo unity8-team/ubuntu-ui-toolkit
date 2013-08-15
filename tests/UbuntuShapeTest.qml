@@ -3,8 +3,8 @@ import Ubuntu.Components 0.1
 
 Item {
     id: root
-    width: 700
-    height: 700
+    width: 900
+    height: 600
     focus: true
 
     // Enum to string tables.
@@ -37,35 +37,49 @@ Item {
     property real scale: 1.0
 
     // Shape properties.
-    property real cornerRadius: 20.0
-    property color backgroundColor: Qt.rgba(0.6, 0.6, 1.0, 1.0)
-    property color secondaryBackgroundColor: Qt.rgba(0.3, 0.3, 0.5, 1.0)
-    property variant backgroundMode: UbuntuShape.BackgroundColor
-    property variant overlayGeometry: Qt.rect(0.0, 0.0, 0.0, 0.0)
-    property color overlayColor: Qt.rgba(0.0, 0.0, 0.0, 0.75)
-    property variant overlayBlending: UbuntuShape.SourceOver
-    property color shadowColorIn: Qt.rgba(0.0, 0.0, 0.0, 1.0)
-    property real shadowSizeIn: 25.0
-    property real shadowAngleIn: 0.0
-    property real shadowDistanceIn: 0.0
-    property color shadowColorOut: Qt.rgba(0.0, 0.0, 0.0, 0.9)
-    property real shadowSizeOut: 50.0
-    property real shadowAngleOut: 0.0
-    property real shadowDistanceOut: 0.0
-    property real sourceOpacity: 1.0
-    property variant sourceFillMode: UbuntuShape.PreserveAspectCrop
-    property variant sourceHorizontalWrapMode: UbuntuShape.ClampToEdge
-    property variant sourceVerticalWrapMode: UbuntuShape.ClampToEdge
-    property variant sourceHorizontalAlignment: UbuntuShape.AlignHCenter
-    property variant sourceVerticalAlignment: UbuntuShape.AlignVCenter
-    property real secondarySourceOpacity: 1.0
-    property variant secondarySourceFillMode: UbuntuShape.Pad
-    property variant secondarySourceHorizontalWrapMode: UbuntuShape.Repeat
-    property variant secondarySourceVerticalWrapMode: UbuntuShape.Repeat
-    property variant secondarySourceHorizontalAlignment: UbuntuShape.AlignHCenter
-    property variant secondarySourceVerticalAlignment: UbuntuShape.AlignVCenter
-    property Image defaultImage: Image { source: "ubuntu.jpg" }
-    property Image image: defaultImage
+    property Image image: Image { source: "ubuntu.jpg" }
+    property Image secondaryImage: Image { source: "texture.jpg" }
+
+    // Overlay text properties.
+    property int optionPage: 1
+    property string textOverlayString1:
+        "Zoom            (scroll):   x " + root.scaleFactor.toFixed(1) + "\n\n" +
+        "Option page          (a):   " + root.optionPage + "\n\n" +
+        "Corner radius        (z):   " + shape.cornerRadius + "\n\n" +
+        "Background colors    (e/r): " + shape.backgroundColor + ", " + shape.secondaryBackgroundColor + "\n" +
+        "Background mode      (t):   " + root.backgroundModeTable[shape.backgroundMode] + "\n\n" +
+        "Overlay color        (y):   " + shape.overlayColor + "\n" +
+        "Overlay geometry (u/i/o/p): " + shape.overlayGeometry.x.toFixed(2) + ", " + shape.overlayGeometry.y.toFixed(2) + ", " + shape.overlayGeometry.width.toFixed(2) + ", " + shape.overlayGeometry.height.toFixed(2) + "\n" +
+        "Overlay blending     (q):   " + root.blendingTable[shape.overlayBlending] + "\n\n" +
+        "Shadow color in      (s):   " + shape.shadowColorIn + "\n" +
+        "Shadow size in       (d):   " + shape.shadowSizeIn.toFixed(1) + "\n" +
+        "Shadow angle in      (f):   " + shape.shadowAngleIn.toFixed(1) + "°\n" +
+        "Shadow distance in   (g):   " + shape.shadowDistanceIn.toFixed(1) + "\n\n" +
+        "Shadow color out     (h):   " + shape.shadowColorOut + "\n" +
+        "Shadow size out      (j):   " + shape.shadowSizeOut.toFixed(1) + "\n" +
+        "Shadow angle out     (k):   " + shape.shadowAngleOut.toFixed(1) + "°\n" +
+        "Shadow distance out  (l):   " + shape.shadowDistanceOut.toFixed(1)
+    property string textOverlayString2:
+        "Zoom            (scroll):   x " + root.scaleFactor.toFixed(1) + "\n\n" +
+        "Option page          (a):   " + root.optionPage + "\n\n" +
+        "Source 1             (z):   " + shape.source + "\n" +
+        "Source 1 opacity     (e):   " + shape.sourceOpacity.toFixed(2) + "\n" +
+        "Source 1 fill        (r):   " + root.fillModeTable[shape.sourceFillMode] + "\n" +
+        "Source 1 hwrap       (t):   " + root.wrapModeTable[shape.sourceHorizontalWrapMode] + "\n" +
+        "Source 1 vwrap       (y):   " + root.wrapModeTable[shape.sourceVerticalWrapMode] + "\n" +
+        "Source 1 halign      (u):   " + root.hAlignmentTable[shape.sourceHorizontalAlignment] + "\n" +
+        "Source 1 valign      (i):   " + root.vAlignmentTable[shape.sourceVerticalAlignment] + "\n" +
+        "Source 1 translation (o/p): " + shape.sourceTranslation.x.toFixed(2) + ", " + shape.sourceTranslation.y.toFixed(2) + "\n" +
+        "Source 1 scale       (q/s): " + shape.sourceScale.x.toFixed(2) + ", " + shape.sourceScale.y.toFixed(2) + "\n\n" +
+        "Source 2             (d):   " + shape.secondarySource + "\n" +
+        "Source 2 opacity     (f):   " + shape.secondarySourceOpacity.toFixed(2) + "\n" +
+        "Source 2 fill        (g):   " + root.fillModeTable[shape.secondarySourceFillMode] + "\n" +
+        "Source 2 hwrap       (h):   " + root.wrapModeTable[shape.secondarySourceHorizontalWrapMode] + "\n" +
+        "Source 2 vwrap       (j):   " + root.wrapModeTable[shape.secondarySourceVerticalWrapMode] + "\n" +
+        "Source 2 halign      (k):   " + root.hAlignmentTable[shape.secondarySourceHorizontalAlignment] + "\n" +
+        "Source 2 valign      (l):   " + root.vAlignmentTable[shape.secondarySourceVerticalAlignment] + "\n" +
+        "Source 2 translation (m/w): " + shape.secondarySourceTranslation.x.toFixed(2) + ", " + shape.secondarySourceTranslation.y.toFixed(2) + "\n" +
+        "Source 2 scale       (x/c): " + shape.secondarySourceScale.x.toFixed(2) + ", " + shape.secondarySourceScale.y.toFixed(2)
 
     // Main scene.
     Item {
@@ -76,39 +90,23 @@ Item {
             anchors.fill: parent
             color: "#7f7f7f"
         }
+
         UbuntuShape {
             id: shape
             anchors.fill: parent
-            anchors.margins: 200
-            cornerRadius: root.cornerRadius
-            backgroundColor: root.backgroundColor
-            secondaryBackgroundColor: root.secondaryBackgroundColor
-            backgroundMode: root.backgroundMode
-            overlayGeometry: root.overlayGeometry
-            overlayColor: root.overlayColor
-            overlayBlending: root.overlayBlending
-            shadowColorIn: root.shadowColorIn
-            shadowSizeIn: root.shadowSizeIn
-            shadowAngleIn: root.shadowAngleIn
-            shadowDistanceIn: root.shadowDistanceIn
-            shadowColorOut: root.shadowColorOut
-            shadowSizeOut: root.shadowSizeOut
-            shadowAngleOut: root.shadowAngleOut
-            shadowDistanceOut: root.shadowDistanceOut
+            anchors.leftMargin: 400
+            anchors.rightMargin: 200
+            anchors.topMargin: 200
+            anchors.bottomMargin: 200
+            cornerRadius: 20.0
+            backgroundColor: Qt.rgba(0.6, 0.6, 1.0, 1.0)
+            secondaryBackgroundColor: Qt.rgba(0.3, 0.3, 0.5, 1.0)
+            shadowSizeOut: 50.0
             source: root.image
-            sourceOpacity: root.sourceOpacity
-            sourceFillMode: root.sourceFillMode
-            sourceHorizontalWrapMode: root.sourceHorizontalWrapMode
-            sourceVerticalWrapMode: root.sourceVerticalWrapMode
-            sourceHorizontalAlignment: root.sourceHorizontalAlignment
-            sourceVerticalAlignment: root.sourceVerticalAlignment
-            secondarySource: Image { source: "paper.jpg" }
-            secondarySourceOpacity: root.secondarySourceOpacity
-            secondarySourceFillMode: root.secondarySourceFillMode
-            secondarySourceHorizontalWrapMode: root.secondarySourceHorizontalWrapMode
-            secondarySourceVerticalWrapMode: root.secondarySourceVerticalWrapMode
-            secondarySourceHorizontalAlignment: root.secondarySourceHorizontalAlignment
-            secondarySourceVerticalAlignment: root.secondarySourceVerticalAlignment
+            secondarySource: root.secondaryImage
+            secondarySourceFillMode: UbuntuShape.Pad
+            secondarySourceHorizontalWrapMode: UbuntuShape.Repeat
+            secondarySourceVerticalWrapMode: UbuntuShape.Repeat
         }
     }
 
@@ -160,29 +158,7 @@ Item {
         //style: Text.Outline
         //styleColor: "black"
         color: "black"
-        text: "Zoom:                x " + root.scaleFactor.toFixed(1) + "\n\n" +
-              "Corner radius:       " + root.cornerRadius + "\n\n" +
-              "Background colors:   " + root.backgroundColor + ", " + root.secondaryBackgroundColor + "\n" +
-              "Background mode:     " + root.backgroundModeTable[root.backgroundMode] + "\n\n" +
-              "Overlay color:       " + root.overlayColor + "\n" +
-              "Overlay geometry:    " + root.overlayGeometry.x.toFixed(2) + ", " + root.overlayGeometry.y.toFixed(2) + ", " + root.overlayGeometry.width.toFixed(2) + ", " + root.overlayGeometry.height.toFixed(2) + "\n" +
-              "Overlay blending:    " + root.blendingTable[root.overlayBlending] + "\n\n" +
-              "Shadow color in:     " + root.shadowColorIn + "\n" +
-              "Shadow size in:      " + root.shadowSizeIn.toFixed(1) + "\n" +
-              "Shadow angle in:     " + root.shadowAngleIn.toFixed(1) + "°\n" +
-              "Shadow distance in:  " + root.shadowDistanceIn.toFixed(1) + "\n" +
-              "Shadow color out:    " + root.shadowColorOut + "\n" +
-              "Shadow size out:     " + root.shadowSizeOut.toFixed(1) + "\n" +
-              "Shadow angle out:    " + root.shadowAngleOut.toFixed(1) + "°\n" +
-              "Shadow distance out: " + root.shadowDistanceOut.toFixed(1) + "\n\n" +
-              "Source 1:            " + root.image + "\n" +
-              "Source 1 opacity:    " + root.sourceOpacity.toFixed(2) + "\n" +
-              "Source 1 fill:       " + root.fillModeTable[root.sourceFillMode] + "\n" +
-              "Source 1 hwrap:      " + root.wrapModeTable[root.sourceHorizontalWrapMode] + "\n" +
-              "Source 1 vwrap:      " + root.wrapModeTable[root.sourceVerticalWrapMode] + "\n" +
-              "Source 1 halign:     " + root.hAlignmentTable[root.sourceHorizontalAlignment] + "\n" +
-              "Source 1 valign:     " + root.vAlignmentTable[root.sourceVerticalAlignment] + "\n" +
-              ""
+        text: optionPage == 1 ? textOverlayString1 : textOverlayString2
     }
 
     // Mouse handling.
@@ -235,133 +211,154 @@ Item {
     Keys.onPressed: {
         var shift = Qt.ShiftModifier;
 
-        // Corner.
         if (event.key == Qt.Key_A) {
-            // FIXME(loicm) Assign feature here.
-        } else if (event.key == Qt.Key_Z) {
-            root.cornerRadius = Math.max(0.0, Math.min(
-                500.0, root.cornerRadius + ((event.modifiers & shift) ? 1.0 : -1.0)));
+            root.optionPage = (root.optionPage == 1) ? 2 : 1;
 
-        // Background.
-        } else if (event.key == Qt.Key_E) {
-            root.backgroundColor = Qt.rgba(Math.random(), Math.random(), Math.random(), 1.0);
-        } else if (event.key == Qt.Key_R) {
-            root.secondaryBackgroundColor =
-                Qt.rgba(Math.random(), Math.random(), Math.random(), 1.0);
-        } else if (event.key == Qt.Key_T) {
-            root.backgroundMode = (root.backgroundMode + 1) % 3;
+        } else {
+            if (root.optionPage == 1) {
+                // Corner.
+                if (event.key == Qt.Key_Z) {
+                    shape.cornerRadius = Math.max(0.0, Math.min(
+                    500.0, shape.cornerRadius + ((event.modifiers & shift) ? 1.0 : -1.0)));
 
-        // Overlay.
-        } else if (event.key == Qt.Key_Y) {
-            root.overlayColor = Qt.rgba(Math.random(), Math.random(), Math.random(), Math.random());
-        } else if (event.key == Qt.Key_U) {
-            var x = Math.max(0.0, Math.min(1.0,
-                root.overlayGeometry.x + ((event.modifiers & shift) ? 0.01 : -0.01)));
-            root.overlayGeometry = Qt.rect(
-                x, root.overlayGeometry.y, root.overlayGeometry.width, root.overlayGeometry.height);
-        } else if (event.key == Qt.Key_I) {
-            var y = Math.max(0.0, Math.min(1.0,
-                root.overlayGeometry.y + ((event.modifiers & shift) ? 0.01 : -0.01)));
-            root.overlayGeometry = Qt.rect(
-                root.overlayGeometry.x, y, root.overlayGeometry.width, root.overlayGeometry.height);
-        } else if (event.key == Qt.Key_O) {
-            var width = Math.max(0.0, Math.min(1.0,
-                root.overlayGeometry.width + ((event.modifiers & shift) ? 0.01 : -0.01)));
-            root.overlayGeometry = Qt.rect(
-                root.overlayGeometry.x, root.overlayGeometry.y, width, root.overlayGeometry.height);
-        } else if (event.key == Qt.Key_P) {
-            var height = Math.max(0.0, Math.min(1.0,
-                root.overlayGeometry.height + ((event.modifiers & shift) ? 0.01 : -0.01)));
-            root.overlayGeometry = Qt.rect(
-                root.overlayGeometry.x, root.overlayGeometry.y, root.overlayGeometry.width, height);
-        } else if (event.key == Qt.Key_Q) {
-            root.overlayBlending = (root.overlayBlending + 1) % 2;
+                // Background.
+                } else if (event.key == Qt.Key_E) {
+                    shape.backgroundColor = Qt.rgba(Math.random(), Math.random(), Math.random(), 1.0);
+                } else if (event.key == Qt.Key_R) {
+                    shape.secondaryBackgroundColor =
+                    Qt.rgba(Math.random(), Math.random(), Math.random(), 1.0);
+                } else if (event.key == Qt.Key_T) {
+                    shape.backgroundMode = (shape.backgroundMode + 1) % 3;
 
-        // Shadows.
-        } else if (event.key == Qt.Key_S) {
-            root.shadowColorIn = Qt.rgba(Math.random(), Math.random(), Math.random(), 0.9);
-        } else if (event.key == Qt.Key_D) {
-            root.shadowSizeIn = Math.max(0.0, Math.min(400.0,
-                root.shadowSizeIn + ((event.modifiers & shift) ? 1.0 : -1.0)));
-        } else if (event.key == Qt.Key_F) {
-            if (!(event.modifiers & Qt.ShiftModifier)) {
-                root.shadowAngleIn = (root.shadowAngleIn > 0.1) ?
-                    (root.shadowAngleIn - 2.5) : 360.0 - 2.5;
-            } else {
-                root.shadowAngleIn = (root.shadowAngleIn < 359.9) ?
-                    (root.shadowAngleIn + 2.5) : 2.5;
+                // Overlay.
+                } else if (event.key == Qt.Key_Y) {
+                    shape.overlayColor = Qt.rgba(Math.random(), Math.random(), Math.random(), Math.random());
+                } else if (event.key == Qt.Key_U) {
+                    var x = Math.max(0.0, Math.min(1.0,
+                    shape.overlayGeometry.x + ((event.modifiers & shift) ? 0.01 : -0.01)));
+                    shape.overlayGeometry = Qt.rect(
+                        x, shape.overlayGeometry.y, shape.overlayGeometry.width, shape.overlayGeometry.height);
+                } else if (event.key == Qt.Key_I) {
+                    var y = Math.max(0.0, Math.min(1.0,
+                    shape.overlayGeometry.y + ((event.modifiers & shift) ? 0.01 : -0.01)));
+                    shape.overlayGeometry = Qt.rect(
+                        shape.overlayGeometry.x, y, shape.overlayGeometry.width, shape.overlayGeometry.height);
+                } else if (event.key == Qt.Key_O) {
+                    var width = Math.max(0.0, Math.min(1.0,
+                    shape.overlayGeometry.width + ((event.modifiers & shift) ? 0.01 : -0.01)));
+                    shape.overlayGeometry = Qt.rect(
+                        shape.overlayGeometry.x, shape.overlayGeometry.y, width, shape.overlayGeometry.height);
+                } else if (event.key == Qt.Key_P) {
+                    var height = Math.max(0.0, Math.min(1.0,
+                    shape.overlayGeometry.height + ((event.modifiers & shift) ? 0.01 : -0.01)));
+                    shape.overlayGeometry = Qt.rect(
+                        shape.overlayGeometry.x, shape.overlayGeometry.y, shape.overlayGeometry.width, height);
+                } else if (event.key == Qt.Key_Q) {
+                    shape.overlayBlending = (shape.overlayBlending + 1) % 2;
+
+                // Shadows.
+                } else if (event.key == Qt.Key_S) {
+                    shape.shadowColorIn = Qt.rgba(Math.random(), Math.random(), Math.random(), 0.9);
+                } else if (event.key == Qt.Key_D) {
+                    shape.shadowSizeIn = Math.max(0.0, Math.min(400.0,
+                        shape.shadowSizeIn + ((event.modifiers & shift) ? 1.0 : -1.0)));
+                } else if (event.key == Qt.Key_F) {
+                    if (!(event.modifiers & Qt.ShiftModifier)) {
+                        shape.shadowAngleIn = (shape.shadowAngleIn > 0.1) ?
+                            (shape.shadowAngleIn - 2.5) : 360.0 - 2.5;
+                    } else {
+                        shape.shadowAngleIn = (shape.shadowAngleIn < 359.9) ?
+                            (shape.shadowAngleIn + 2.5) : 2.5;
+                    }
+                } else if (event.key == Qt.Key_G) {
+                    shape.shadowDistanceIn = Math.max(0.0, Math.min(200.0,
+                        shape.shadowDistanceIn + ((event.modifiers & shift) ? 1.0 : -1.0)));
+                } else if (event.key == Qt.Key_H) {
+                    shape.shadowColorOut = Qt.rgba(Math.random(), Math.random(), Math.random(), 0.9);
+                } else if (event.key == Qt.Key_J) {
+                    shape.shadowSizeOut = Math.max(0.0, Math.min(400.0,
+                        shape.shadowSizeOut + ((event.modifiers & shift) ? 1.0 : -1.0)));
+                } else if (event.key == Qt.Key_K) {
+                    if (!(event.modifiers & Qt.ShiftModifier)) {
+                        shape.shadowAngleOut = (shape.shadowAngleOut > 0.1) ?
+                            (shape.shadowAngleOut - 2.5) : 360.0 - 2.5;
+                    } else {
+                        shape.shadowAngleOut = (shape.shadowAngleOut < 359.9) ?
+                            (shape.shadowAngleOut + 2.5) : 2.5;
+                    }
+                } else if (event.key == Qt.Key_L) {
+                    shape.shadowDistanceOut = Math.max(0.0, Math.min(200.0,
+                        shape.shadowDistanceOut + ((event.modifiers & shift) ? 1.0 : -1.0)));
+                }
+
+            } else if (optionPage == 2) {
+                // Primary source.
+                if (event.key == Qt.Key_Z) {
+                    if (shape.source == null) {
+                        shape.source = root.image;
+                    } else {
+                        shape.source = null;
+                    }
+                } else if (event.key == Qt.Key_E) {
+                    shape.sourceOpacity = Math.max(0.0, Math.min(1.0,
+                    shape.sourceOpacity + ((event.modifiers & shift) ? 0.01 : -0.01)));
+                } else if (event.key == Qt.Key_R) {
+                    shape.sourceFillMode = (shape.sourceFillMode + 1) % 4;
+                } else if (event.key == Qt.Key_T) {
+                    shape.sourceHorizontalWrapMode = (shape.sourceHorizontalWrapMode + 1) % 3;
+                } else if (event.key == Qt.Key_Y) {
+                    shape.sourceVerticalWrapMode = (shape.sourceVerticalWrapMode + 1) % 3;
+                } else if (event.key == Qt.Key_U) {
+                    shape.sourceHorizontalAlignment = (shape.sourceHorizontalAlignment + 1) % 3;
+                } else if (event.key == Qt.Key_I) {
+                    shape.sourceVerticalAlignment = (shape.sourceVerticalAlignment + 1) % 3;
+                } else if (event.key == Qt.Key_O) {
+                    shape.sourceTranslation = Qt.vector2d(
+                        shape.sourceTranslation.x + ((event.modifiers & shift) ? 1.0 : -1.0), shape.sourceTranslation.y);
+                } else if (event.key == Qt.Key_P) {
+                    shape.sourceTranslation = Qt.vector2d(
+                        shape.sourceTranslation.x, shape.sourceTranslation.y + ((event.modifiers & shift) ? 1.0 : -1.0));
+                } else if (event.key == Qt.Key_Q) {
+                    shape.sourceScale = Qt.vector2d(
+                        shape.sourceScale.x + ((event.modifiers & shift) ? 0.05 : -0.05), shape.sourceScale.y);
+                } else if (event.key == Qt.Key_S) {
+                    shape.sourceScale = Qt.vector2d(
+                        shape.sourceScale.x, shape.sourceScale.y + ((event.modifiers & shift) ? 0.05 : -0.05));
+
+                // Secondary source.
+                } else if (event.key == Qt.Key_D) {
+                    if (shape.secondarySource == null) {
+                        shape.secondarySource = root.secondaryImage;
+                    } else {
+                        shape.secondarySource = null;
+                    }
+                } else if (event.key == Qt.Key_F) {
+                    shape.secondarySourceOpacity = Math.max(0.0, Math.min(1.0,
+                    shape.secondarySourceOpacity + ((event.modifiers & shift) ? 0.01 : -0.01)));
+                } else if (event.key == Qt.Key_G) {
+                    shape.secondarySourceFillMode = (shape.secondarySourceFillMode + 1) % 4;
+                } else if (event.key == Qt.Key_H) {
+                    shape.secondarySourceHorizontalWrapMode = (shape.secondarySourceHorizontalWrapMode + 1) % 3;
+                } else if (event.key == Qt.Key_J) {
+                    shape.secondarySourceVerticalWrapMode = (shape.secondarySourceVerticalWrapMode + 1) % 3;
+                } else if (event.key == Qt.Key_K) {
+                    shape.secondarySourceHorizontalAlignment = (shape.secondarySourceHorizontalAlignment + 1) % 3;
+                } else if (event.key == Qt.Key_L) {
+                    shape.secondarySourceVerticalAlignment = (shape.secondarySourceVerticalAlignment + 1) % 3;
+                } else if (event.key == Qt.Key_M) {
+                    shape.secondarySourceTranslation = Qt.vector2d(
+                        shape.secondarySourceTranslation.x + ((event.modifiers & shift) ? 1.0 : -1.0), shape.secondarySourceTranslation.y);
+                } else if (event.key == Qt.Key_W) {
+                    shape.secondarySourceTranslation = Qt.vector2d(
+                        shape.secondarySourceTranslation.x, shape.secondarySourceTranslation.y + ((event.modifiers & shift) ? 1.0 : -1.0));
+                } else if (event.key == Qt.Key_X) {
+                    shape.secondarySourceScale = Qt.vector2d(
+                        shape.secondarySourceScale.x + ((event.modifiers & shift) ? 0.05 : -0.05), shape.secondarySourceScale.y);
+                } else if (event.key == Qt.Key_C) {
+                    shape.secondarySourceScale = Qt.vector2d(
+                        shape.secondarySourceScale.x, shape.secondarySourceScale.y + ((event.modifiers & shift) ? 0.05 : -0.05));
+                }
             }
-        } else if (event.key == Qt.Key_G) {
-            root.shadowDistanceIn = Math.max(0.0, Math.min(200.0,
-                root.shadowDistanceIn + ((event.modifiers & shift) ? 1.0 : -1.0)));
-        } else if (event.key == Qt.Key_H) {
-            root.shadowColorOut = Qt.rgba(Math.random(), Math.random(), Math.random(), 0.9);
-        } else if (event.key == Qt.Key_J) {
-            root.shadowSizeOut = Math.max(0.0, Math.min(400.0,
-                root.shadowSizeOut + ((event.modifiers & shift) ? 1.0 : -1.0)));
-        } else if (event.key == Qt.Key_K) {
-            if (!(event.modifiers & Qt.ShiftModifier)) {
-                root.shadowAngleOut = (root.shadowAngleOut > 0.1) ?
-                    (root.shadowAngleOut - 2.5) : 360.0 - 2.5;
-            } else {
-                root.shadowAngleOut = (root.shadowAngleOut < 359.9) ?
-                    (root.shadowAngleOut + 2.5) : 2.5;
-            }
-            // shape.sourceScale = Qt.vector2d(shape.sourceScale.x,
-            //     shape.sourceScale.y + ((event.modifiers & shift) ? 0.05 : -0.05));
-            // print (shape.sourceScale);
-        } else if (event.key == Qt.Key_L) {
-            root.shadowDistanceOut = Math.max(0.0, Math.min(200.0,
-                root.shadowDistanceOut + ((event.modifiers & shift) ? 1.0 : -1.0)));
-            // shape.sourceTranslation = Qt.vector2d(shape.sourceTranslation.x,
-            //     shape.sourceTranslation.y + ((event.modifiers & shift) ? 0.05 : -0.05));
-            // print (shape.sourceTranslation);
-
-        // Source.
-        } else if (event.key == Qt.Key_M) {
-            if (root.image == null) {
-                root.image = root.defaultImage;
-            } else {
-                root.image = null;
-            }
-            // shape.sourceScale = Qt.vector2d(
-            //     shape.sourceScale.x + ((event.modifiers & shift) ? 1.0 : -1.0), shape.sourceScale.y);
-            // print (shape.sourceScale);
-        } else if (event.key == Qt.Key_W) {
-            // shape.sourceTranslation = Qt.vector2d(
-            //     shape.sourceTranslation.x + ((event.modifiers & shift) ? 0.283 : -0.283), shape.sourceTranslation.y);
-            // print (shape.sourceTranslation);
-            root.sourceOpacity = Math.max(0.0, Math.min(1.0,
-                root.sourceOpacity + ((event.modifiers & shift) ? 0.01 : -0.01)));
-        } else if (event.key == Qt.Key_X) {
-            root.sourceFillMode = (root.sourceFillMode + 1) % 4;
-        } else if (event.key == Qt.Key_C) {
-            root.sourceHorizontalWrapMode = (root.sourceHorizontalWrapMode + 1) % 3;
-        } else if (event.key == Qt.Key_V) {
-            root.sourceVerticalWrapMode = (root.sourceVerticalWrapMode + 1) % 3;
-        } else if (event.key == Qt.Key_B) {
-            root.sourceHorizontalAlignment = (root.sourceHorizontalAlignment + 1) % 3;
-        } else if (event.key == Qt.Key_N) {
-            root.sourceVerticalAlignment = (root.sourceVerticalAlignment + 1) % 3;
-
-        // Secondary source.
-        // } else if (event.key == Qt.Key_M) {
-        //     if (root.image == null) {
-        //         root.image = root.defaultImage;
-        //     } else {
-        //         root.image = null;
-        //     }
-        } else if (event.key == Qt.Key_1) {
-            root.secondarySourceOpacity = Math.max(0.0, Math.min(1.0,
-                root.secondarySourceOpacity + ((event.modifiers & shift) ? 0.01 : -0.01)));
-        // } else if (event.key == Qt.Key_X) {
-        //     root.sourceFillMode = (root.sourceFillMode + 1) % 4;
-        // } else if (event.key == Qt.Key_C) {
-        //     root.sourceWrapMode = (root.sourceWrapMode + 1) % 4;
-        // } else if (event.key == Qt.Key_V) {
-        //     root.sourceHorizontalAlignment = (root.sourceHorizontalAlignment + 1) % 3;
-        // } else if (event.key == Qt.Key_B) {
-        //     root.sourceVerticalAlignment = (root.sourceVerticalAlignment + 1) % 3;
         }
     }
 }
