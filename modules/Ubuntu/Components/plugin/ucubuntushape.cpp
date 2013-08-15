@@ -338,7 +338,7 @@ UCUbuntuShape::~UCUbuntuShape()
 
 /*!
  * \qmlproperty color UbuntuShape::color
- * \obsolete
+ * \deprecated
  *
  * Use \l backgroundColor instead.
  */
@@ -351,7 +351,7 @@ void UCUbuntuShape::setColor(const QColor& color)
 
 /*!
  * \qmlproperty color UbuntuShape::gradientColor
- * \obsolete
+ * \deprecated
  *
  * Use \l secondaryBackgroundColor instead.
  */
@@ -366,7 +366,7 @@ void UCUbuntuShape::setGradientColor(const QColor& gradientColor)
 
 /*!
  * \qmlproperty string UbuntuShape::radius
- * \obsolete
+ * \deprecated
  *
  * Use \l cornerRadius instead.
  */
@@ -386,7 +386,7 @@ void UCUbuntuShape::setRadius(const QString& radius)
 
 /*!
  * \qmlproperty string UbuntuShape::borderSource
- * \obsolete
+ * \deprecated
  *
  * Use \l customShape instead.
  */
@@ -400,7 +400,7 @@ void UCUbuntuShape::setBorderSource(const QString& borderSource)
 
 /*!
  * \qmlproperty variant UbuntuShape::image
- * \obsolete
+ * \deprecated
  *
  * Use \l source instead.
  */
