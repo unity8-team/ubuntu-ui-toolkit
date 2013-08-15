@@ -167,7 +167,7 @@ static const struct {
     int indexType;         // OpenGL type of the indices.
 } kMesh = {
     kMeshIndices, ARRAY_SIZE(kMeshIndices),
-    4, 3, sizeof(UbuntuShapeNode::Vertex), 2, GL_FLOAT, 2, GL_FLOAT, GL_UNSIGNED_SHORT
+    4, 3, sizeof(UCUbuntuShapeNode::Vertex), 2, GL_FLOAT, 2, GL_FLOAT, GL_UNSIGNED_SHORT
 };
 
 static const QSGGeometry::AttributeSet& getAttributes()
@@ -247,6 +247,7 @@ MaterialData::MaterialData()
  * \qmltype UbuntuShape
  * \inqmlmodule Ubuntu.Components 0.1
  * \ingroup ubuntu
+ * \instantiates UCUbuntuShape
  * \brief Base graphical component of the Ubuntu UI Toolkit.
  *
  * UbuntuShape could be compared to a QML \c Image, on steroids. It allows to shape a set of layers
@@ -278,14 +279,14 @@ MaterialData::MaterialData()
  * \endqml
  */
 
-UbuntuShape::UbuntuShape(QQuickItem* parent)
+UCUbuntuShape::UCUbuntuShape(QQuickItem* parent)
     : QQuickItem(parent)
     , radius_(QString("small"))
     , geometry_()
     , overlayGeometry_(0.0f, 0.0, 0.0f, 0.0f)
     , overlayColor_(0.0f, 0.0f, 0.0f, 0.0f)
-    , backgroundMode_(UbuntuShape::BackgroundColor)
-    , overlayBlending_(UbuntuShape::SourceOver)
+    , backgroundMode_(UCUbuntuShape::BackgroundColor)
+    , overlayBlending_(UCUbuntuShape::SourceOver)
     , cornerRadius_(0.0f)
     , shadowBorder_(0.0f, 0.0f, 0.0f, 0.0f)
     , gridUnit_(UCUnits::instance().gridUnit())
@@ -302,16 +303,16 @@ UbuntuShape::UbuntuShape(QQuickItem* parent)
     sourceTranslation_[1] = QVector2D(0.0f, 0.0f);
     sourceScale_[0] = QVector2D(1.0f, 1.0f);
     sourceScale_[1] = QVector2D(1.0f, 1.0f);
-    sourceFillMode_[0] = UbuntuShape::PreserveAspectCrop;
-    sourceFillMode_[1] = UbuntuShape::PreserveAspectCrop;
-    sourceWrapMode_[0][0] = UbuntuShape::ClampToEdge;
-    sourceWrapMode_[0][1] = UbuntuShape::ClampToEdge;
-    sourceWrapMode_[1][0] = UbuntuShape::ClampToEdge;
-    sourceWrapMode_[1][1] = UbuntuShape::ClampToEdge;
-    sourceHorizontalAlignment_[0] = UbuntuShape::AlignLeft;
-    sourceHorizontalAlignment_[1] = UbuntuShape::AlignLeft;
-    sourceVerticalAlignment_[0] = UbuntuShape::AlignTop;
-    sourceVerticalAlignment_[1] = UbuntuShape::AlignTop;
+    sourceFillMode_[0] = UCUbuntuShape::PreserveAspectCrop;
+    sourceFillMode_[1] = UCUbuntuShape::PreserveAspectCrop;
+    sourceWrapMode_[0][0] = UCUbuntuShape::ClampToEdge;
+    sourceWrapMode_[0][1] = UCUbuntuShape::ClampToEdge;
+    sourceWrapMode_[1][0] = UCUbuntuShape::ClampToEdge;
+    sourceWrapMode_[1][1] = UCUbuntuShape::ClampToEdge;
+    sourceHorizontalAlignment_[0] = UCUbuntuShape::AlignLeft;
+    sourceHorizontalAlignment_[1] = UCUbuntuShape::AlignLeft;
+    sourceVerticalAlignment_[0] = UCUbuntuShape::AlignTop;
+    sourceVerticalAlignment_[1] = UCUbuntuShape::AlignTop;
     shadowSize_[0] = 0.0f;
     shadowSize_[1] = 0.0f;
     shadowDistance_[0] = 0.0f;
@@ -328,7 +329,7 @@ UbuntuShape::UbuntuShape(QQuickItem* parent)
     setImplicitHeight(kImplicitGridUnitHeight * gridUnit_);
 }
 
-UbuntuShape::~UbuntuShape()
+UCUbuntuShape::~UCUbuntuShape()
 {
     // FIXME(loicm) Should unparent the source items here?
 }
@@ -339,7 +340,7 @@ UbuntuShape::~UbuntuShape()
  *
  * Use \l backgroundColor instead.
  */
-void UbuntuShape::setColor(const QColor& color)
+void UCUbuntuShape::setColor(const QColor& color)
 {
     qWarning() << "UbuntuShape: 'color' is deprecated, use 'backgroundColor' instead.";
     setBackgroundColor(color);
@@ -352,11 +353,11 @@ void UbuntuShape::setColor(const QColor& color)
  *
  * Use \l secondaryBackgroundColor instead.
  */
-void UbuntuShape::setGradientColor(const QColor& gradientColor)
+void UCUbuntuShape::setGradientColor(const QColor& gradientColor)
 {
     qWarning() << "UbuntuShape: 'gradientColor' is deprecated, use 'secondaryBackgroundColor' "
         "instead.";
-    setBackgroundMode(UbuntuShape::VerticalGradient);
+    setBackgroundMode(UCUbuntuShape::VerticalGradient);
     setSecondaryBackgroundColor(gradientColor);
     Q_EMIT gradientColorChanged();
 }
@@ -367,7 +368,7 @@ void UbuntuShape::setGradientColor(const QColor& gradientColor)
  *
  * Use \l cornerRadius instead.
  */
-void UbuntuShape::setRadius(const QString& radius)
+void UCUbuntuShape::setRadius(const QString& radius)
 {
     qWarning() << "UbuntuShape: 'radius' is deprecated, use 'cornerRadius' instead.";
     if (radius == "small") {
@@ -387,7 +388,7 @@ void UbuntuShape::setRadius(const QString& radius)
  *
  * Use \l customShape instead.
  */
-void UbuntuShape::setBorderSource(const QString& borderSource)
+void UCUbuntuShape::setBorderSource(const QString& borderSource)
 {
     Q_UNUSED(borderSource);
 
@@ -401,7 +402,7 @@ void UbuntuShape::setBorderSource(const QString& borderSource)
  *
  * Use \l source instead.
  */
-void UbuntuShape::setImage(QVariant image)
+void UCUbuntuShape::setImage(QVariant image)
 {
     qWarning() << "UbuntuShape: 'image' is deprecated, use 'source' instead.";
     setSource(image);
@@ -419,7 +420,7 @@ void UbuntuShape::setImage(QVariant image)
  * \li UbuntuShape.Custom - custom corners defined with \l customShape
  * \endlist
  */
-void UbuntuShape::setShapeMode(UbuntuShape::ShapeMode shapeMode)
+void UCUbuntuShape::setShapeMode(UCUbuntuShape::ShapeMode shapeMode)
 {
     if (shapeMode_ != shapeMode) {
         shapeMode_ = shapeMode;
@@ -447,7 +448,7 @@ void UbuntuShape::setShapeMode(UbuntuShape::ShapeMode shapeMode)
  *     }
  * \endqml
  */
-void UbuntuShape::setCustomShape(QVariant customShape)
+void UCUbuntuShape::setCustomShape(QVariant customShape)
 {
     QQuickItem* item = qobject_cast<QQuickItem*>(qvariant_cast<QObject*>(customShape));
     if (item_[2] != item) {
@@ -467,7 +468,7 @@ void UbuntuShape::setCustomShape(QVariant customShape)
  *
  * This property defines the radius of the corners in pixels. Default value is \c 0.0.
  */
-void UbuntuShape::setCornerRadius(float cornerRadius)
+void UCUbuntuShape::setCornerRadius(float cornerRadius)
 {
     cornerRadius = qMax(0.0f, cornerRadius);
     if (cornerRadius_ != cornerRadius) {
@@ -486,14 +487,14 @@ void UbuntuShape::setCornerRadius(float cornerRadius)
  * only used when \l backgroundMode is set to \c HorizontalGradient or \c VerticalGradient. Default
  * value is transparent black for both.
  */
-void UbuntuShape::setBackgroundColor(const QColor& color)
+void UCUbuntuShape::setBackgroundColor(const QColor& color)
 {
     if (backgroundColor_[0] != color) {
         backgroundColor_[0] = color;
         const float alpha = color.alphaF();
         materialData_.backgroundColorPremultiplied[0] = QVector4D(
             color.redF() * alpha, color.greenF() * alpha, color.blueF() * alpha, alpha);
-        if (backgroundMode_ == UbuntuShape::BackgroundColor) {
+        if (backgroundMode_ == UCUbuntuShape::BackgroundColor) {
             materialData_.backgroundColorPremultiplied[1] =
                 materialData_.backgroundColorPremultiplied[0];
         }
@@ -502,11 +503,11 @@ void UbuntuShape::setBackgroundColor(const QColor& color)
     }
 }
 
-void UbuntuShape::setSecondaryBackgroundColor(const QColor& color)
+void UCUbuntuShape::setSecondaryBackgroundColor(const QColor& color)
 {
     if (backgroundColor_[1] != color) {
         backgroundColor_[1] = color;
-        if (backgroundMode_ != UbuntuShape::BackgroundColor) {
+        if (backgroundMode_ != UCUbuntuShape::BackgroundColor) {
             const float alpha = color.alphaF();
             materialData_.backgroundColorPremultiplied[1] = QVector4D(
                 color.redF() * alpha, color.greenF() * alpha, color.blueF() * alpha, alpha);
@@ -530,11 +531,11 @@ void UbuntuShape::setSecondaryBackgroundColor(const QColor& color)
  *     \l backgroundColor to \l secondaryBackgroundColor
  * \endlist
  */
-void UbuntuShape::setBackgroundMode(BackgroundMode backgroundMode)
+void UCUbuntuShape::setBackgroundMode(BackgroundMode backgroundMode)
 {
     if (backgroundMode_ != backgroundMode) {
         backgroundMode_ = backgroundMode;
-        if (backgroundMode != UbuntuShape::BackgroundColor) {
+        if (backgroundMode != UCUbuntuShape::BackgroundColor) {
             const float alpha = backgroundColor_[1].alphaF();
             materialData_.backgroundColorPremultiplied[1] = QVector4D(
                 backgroundColor_[1].redF() * alpha, backgroundColor_[1].greenF() * alpha,
@@ -568,7 +569,7 @@ void UbuntuShape::setBackgroundMode(BackgroundMode backgroundMode)
  *
  * \note The area potentially exceeding the UbuntuShape is cropped.
  */
-void UbuntuShape::setOverlayGeometry(const QRectF& overlayGeometry)
+void UCUbuntuShape::setOverlayGeometry(const QRectF& overlayGeometry)
 {
     QRectF rect(qMax(0.0, qMin(1.0, overlayGeometry.x())),
                 qMax(0.0, qMin(1.0, overlayGeometry.y())),
@@ -594,13 +595,13 @@ void UbuntuShape::setOverlayGeometry(const QRectF& overlayGeometry)
  * This property defines the color of the rectangle overlaying the UbuntuShape. The meaning of that
  * property depends on the \l overlayBlending that is defined. Default value is transparent black.
  */
-void UbuntuShape::setOverlayColor(const QColor& color)
+void UCUbuntuShape::setOverlayColor(const QColor& color)
 {
     // FIXME(loicm) Disable overlay when alpha is 0 in SourceOver mode and when all the components
     //     are 1 in Multiply mode.
     if (overlayColor_ != color) {
         overlayColor_ = color;
-        if (overlayBlending_ == UbuntuShape::SourceOver) {
+        if (overlayBlending_ == UCUbuntuShape::SourceOver) {
             const float alpha = color.alphaF();
             materialData_.overlayColorPremultiplied = QVector4D(
                 color.redF() * alpha, color.greenF() * alpha, color.blueF() * alpha, alpha);
@@ -627,11 +628,11 @@ void UbuntuShape::setOverlayColor(const QColor& color)
  *     useful to mask out parts of the UbuntuShape
  * \endlist
  */
-void UbuntuShape::setOverlayBlending(Blending overlayBlending)
+void UCUbuntuShape::setOverlayBlending(Blending overlayBlending)
 {
     if (overlayBlending_ != overlayBlending) {
         overlayBlending_ = overlayBlending;
-        if (overlayBlending_ == UbuntuShape::SourceOver) {
+        if (overlayBlending_ == UCUbuntuShape::SourceOver) {
             const float alpha = overlayColor_.alphaF();
             materialData_.overlayColorPremultiplied = QVector4D(
                 overlayColor_.redF() * alpha, overlayColor_.greenF() * alpha,
@@ -656,7 +657,7 @@ void UbuntuShape::setOverlayBlending(Blending overlayBlending)
  * These properties define the sizes of the shadows dropped inside and outside the UbuntuShape in
  * pixels. Default value is \c 0.0 for both.
  */
-void UbuntuShape::setShadowSizeIn(float shadowSizeIn)
+void UCUbuntuShape::setShadowSizeIn(float shadowSizeIn)
 {
     shadowSizeIn = qMax(0.0f, shadowSizeIn);
     if (shadowSize_[0] != shadowSizeIn) {
@@ -674,7 +675,7 @@ void UbuntuShape::setShadowSizeIn(float shadowSizeIn)
  * Default value is 75% translucent black for the shadow inside and 75% translucent white for the
  * shadow outside.
  */
-void UbuntuShape::setShadowColorIn(const QColor& color)
+void UCUbuntuShape::setShadowColorIn(const QColor& color)
 {
     if (shadowColor_[0] != color) {
         shadowColor_[0] = color;
@@ -694,7 +695,7 @@ void UbuntuShape::setShadowColorIn(const QColor& color)
  * UbuntuShape along the direction defined by \l shadowAngleIn and \l shadowAngleOut. Default
  * value is \c 0.0 for both.
  */
-void UbuntuShape::setShadowDistanceIn(float shadowDistanceIn)
+void UCUbuntuShape::setShadowDistanceIn(float shadowDistanceIn)
 {
     shadowDistanceIn = qMax(0.0f, shadowDistanceIn);
     if (shadowDistance_[0] != shadowDistanceIn) {
@@ -711,7 +712,7 @@ void UbuntuShape::setShadowDistanceIn(float shadowDistanceIn)
  * These properties define the angles in degrees used to drop the shadow inside and outside the
  * UbuntuShape. Default value is \c 0.0 for both.
  */
-void UbuntuShape::setShadowAngleIn(float shadowAngleIn)
+void UCUbuntuShape::setShadowAngleIn(float shadowAngleIn)
 {
     shadowAngleIn = qMax(0.0f, qMin(360.0f, shadowAngleIn));
     if (shadowAngle_[0] != shadowAngleIn) {
@@ -721,7 +722,7 @@ void UbuntuShape::setShadowAngleIn(float shadowAngleIn)
     }
 }
 
-void UbuntuShape::updateShadowLayout()
+void UCUbuntuShape::updateShadowLayout()
 {
     float sine, cosine;
     sincosf(degreesToRadians(shadowAngle_[1]), &sine, &cosine);
@@ -736,7 +737,7 @@ void UbuntuShape::updateShadowLayout()
 #endif
 }
 
-void UbuntuShape::setShadowSizeOut(float shadowSizeOut)
+void UCUbuntuShape::setShadowSizeOut(float shadowSizeOut)
 {
     shadowSizeOut = qMax(0.0f, shadowSizeOut);
     if (shadowSize_[1] != shadowSizeOut) {
@@ -752,7 +753,7 @@ void UbuntuShape::setShadowSizeOut(float shadowSizeOut)
     }
 }
 
-void UbuntuShape::setShadowColorOut(const QColor& color)
+void UCUbuntuShape::setShadowColorOut(const QColor& color)
 {
     if (shadowColor_[1] != color) {
         shadowColor_[1] = color;
@@ -764,7 +765,7 @@ void UbuntuShape::setShadowColorOut(const QColor& color)
     }
 }
 
-void UbuntuShape::setShadowDistanceOut(float shadowDistanceOut)
+void UCUbuntuShape::setShadowDistanceOut(float shadowDistanceOut)
 {
     shadowDistanceOut = qMax(0.0f, shadowDistanceOut);
     if (shadowDistance_[1] != shadowDistanceOut) {
@@ -780,7 +781,7 @@ void UbuntuShape::setShadowDistanceOut(float shadowDistanceOut)
     }
 }
 
-void UbuntuShape::setShadowAngleOut(float shadowAngleOut)
+void UCUbuntuShape::setShadowAngleOut(float shadowAngleOut)
 {
     shadowAngleOut = qMax(0.0f, qMin(360.0f, shadowAngleOut));
     if (shadowAngle_[1] != shadowAngleOut) {
@@ -809,7 +810,7 @@ void UbuntuShape::setShadowAngleOut(float shadowAngleOut)
  *     }
  * \endqml
  */
-void UbuntuShape::setSource(QVariant source)
+void UCUbuntuShape::setSource(QVariant source)
 {
     QQuickItem* item = qobject_cast<QQuickItem*>(qvariant_cast<QObject*>(source));
     if (item_[0] != item) {
@@ -831,7 +832,7 @@ void UbuntuShape::setSource(QVariant source)
  * These properties define the opacities of the primary and secondary sources in the range
  * [0.0, 1.0]. Default value is \c 1.0 for both.
  */
-void UbuntuShape::setSourceOpacity(float sourceOpacity)
+void UCUbuntuShape::setSourceOpacity(float sourceOpacity)
 {
     sourceOpacity = qMax(0.0f, qMin(1.0f, sourceOpacity));
     if (sourceOpacity_[0] != sourceOpacity) {
@@ -856,7 +857,7 @@ void UbuntuShape::setSourceOpacity(float sourceOpacity)
  * \li UbuntuShape.Pad - the source is not scaled
  * \endlist
  */
-void UbuntuShape::setSourceFillMode(UbuntuShape::FillMode sourceFillMode)
+void UCUbuntuShape::setSourceFillMode(UCUbuntuShape::FillMode sourceFillMode)
 {
     if (sourceFillMode_[0] != sourceFillMode) {
         sourceFillMode_[0] = sourceFillMode;
@@ -865,7 +866,7 @@ void UbuntuShape::setSourceFillMode(UbuntuShape::FillMode sourceFillMode)
     }
 }
 
-void UbuntuShape::updateWrapMode(int index, int direction, UbuntuShape::WrapMode wrapMode)
+void UCUbuntuShape::updateWrapMode(int index, int direction, UCUbuntuShape::WrapMode wrapMode)
 {
     Q_ASSERT(index < 2);
     Q_ASSERT(direction < 2);
@@ -906,7 +907,7 @@ void UbuntuShape::updateWrapMode(int index, int direction, UbuntuShape::WrapMode
  * the UbuntuShape and it might be a bit slower than the other clamping modes. It is recommended to
  * use \c ClampToEdge and sources with transparent borders in order to workaround that limitation.
  */
-void UbuntuShape::setSourceHorizontalWrapMode(UbuntuShape::WrapMode sourceHorizontalWrapMode)
+void UCUbuntuShape::setSourceHorizontalWrapMode(UCUbuntuShape::WrapMode sourceHorizontalWrapMode)
 {
     if (sourceWrapMode_[0][0] != sourceHorizontalWrapMode) {
         updateWrapMode(0, 0, sourceHorizontalWrapMode);
@@ -915,7 +916,7 @@ void UbuntuShape::setSourceHorizontalWrapMode(UbuntuShape::WrapMode sourceHorizo
     }
 }
 
-void UbuntuShape::setSourceVerticalWrapMode(UbuntuShape::WrapMode sourceVerticalWrapMode)
+void UCUbuntuShape::setSourceVerticalWrapMode(UCUbuntuShape::WrapMode sourceVerticalWrapMode)
 {
     if (sourceWrapMode_[0][1] != sourceVerticalWrapMode) {
         updateWrapMode(0, 1, sourceVerticalWrapMode);
@@ -937,7 +938,8 @@ void UbuntuShape::setSourceVerticalWrapMode(UbuntuShape::WrapMode sourceVertical
  * \li UbuntuShape.AlignRight - the source is aligned to the right
  * \endlist
  */
-void UbuntuShape::setSourceHorizontalAlignment(UbuntuShape::HAlignment sourceHorizontalAlignment)
+void UCUbuntuShape::setSourceHorizontalAlignment(
+    UCUbuntuShape::HAlignment sourceHorizontalAlignment)
 {
     if (sourceHorizontalAlignment_[0] != sourceHorizontalAlignment) {
         sourceHorizontalAlignment_[0] = sourceHorizontalAlignment;
@@ -959,7 +961,7 @@ void UbuntuShape::setSourceHorizontalAlignment(UbuntuShape::HAlignment sourceHor
  * \li UbuntuShape.AlignBottom - the source is aligned to the bottom
  * \endlist
  */
-void UbuntuShape::setSourceVerticalAlignment(UbuntuShape::VAlignment sourceVerticalAlignment)
+void UCUbuntuShape::setSourceVerticalAlignment(UCUbuntuShape::VAlignment sourceVerticalAlignment)
 {
     if (sourceVerticalAlignment_[0] != sourceVerticalAlignment) {
         sourceVerticalAlignment_[0] = sourceVerticalAlignment;
@@ -978,7 +980,7 @@ void UbuntuShape::setSourceVerticalAlignment(UbuntuShape::VAlignment sourceVerti
  * It can be used to animate the source. Interesting animations can be achieved using \c Repeat wrap
  * modes on seamless images like infinite scrolling background, progress bar, etc.
  */
-void UbuntuShape::setSourceTranslation(const QVector2D& sourceTranslation)
+void UCUbuntuShape::setSourceTranslation(const QVector2D& sourceTranslation)
 {
     if (sourceTranslation_[0] != sourceTranslation) {
         sourceTranslation_[0] = sourceTranslation;
@@ -997,7 +999,7 @@ void UbuntuShape::setSourceTranslation(const QVector2D& sourceTranslation)
  * It can be used to flip the source horizontally and/or vertically with -1.0, to achieve pulse
  * effects, etc.
  */
-void UbuntuShape::setSourceScale(const QVector2D& sourceScale)
+void UCUbuntuShape::setSourceScale(const QVector2D& sourceScale)
 {
     if (sourceScale_[0] != sourceScale) {
         sourceScale_[0] = sourceScale;
@@ -1006,7 +1008,7 @@ void UbuntuShape::setSourceScale(const QVector2D& sourceScale)
     }
 }
 
-void UbuntuShape::setSecondarySource(QVariant secondarySource)
+void UCUbuntuShape::setSecondarySource(QVariant secondarySource)
 {
     QQuickItem* item = qobject_cast<QQuickItem*>(qvariant_cast<QObject*>(secondarySource));
     if (item_[1] != item) {
@@ -1021,7 +1023,7 @@ void UbuntuShape::setSecondarySource(QVariant secondarySource)
     }
 }
 
-void UbuntuShape::setSecondarySourceOpacity(float secondarySourceOpacity)
+void UCUbuntuShape::setSecondarySourceOpacity(float secondarySourceOpacity)
 {
     secondarySourceOpacity = qMax(0.0f, qMin(1.0f, secondarySourceOpacity));
     if (sourceOpacity_[1] != secondarySourceOpacity) {
@@ -1032,7 +1034,7 @@ void UbuntuShape::setSecondarySourceOpacity(float secondarySourceOpacity)
     }
 }
 
-void UbuntuShape::setSecondarySourceFillMode(UbuntuShape::FillMode secondarySourceFillMode)
+void UCUbuntuShape::setSecondarySourceFillMode(UCUbuntuShape::FillMode secondarySourceFillMode)
 {
     if (sourceFillMode_[1] != secondarySourceFillMode) {
         sourceFillMode_[1] = secondarySourceFillMode;
@@ -1041,8 +1043,8 @@ void UbuntuShape::setSecondarySourceFillMode(UbuntuShape::FillMode secondarySour
     }
 }
 
-void UbuntuShape::setSecondarySourceHorizontalWrapMode(
-    UbuntuShape::WrapMode secondarySourceHorizontalWrapMode)
+void UCUbuntuShape::setSecondarySourceHorizontalWrapMode(
+    UCUbuntuShape::WrapMode secondarySourceHorizontalWrapMode)
 {
     if (sourceWrapMode_[1][0] != secondarySourceHorizontalWrapMode) {
         updateWrapMode(1, 0, secondarySourceHorizontalWrapMode);
@@ -1051,8 +1053,8 @@ void UbuntuShape::setSecondarySourceHorizontalWrapMode(
     }
 }
 
-void UbuntuShape::setSecondarySourceVerticalWrapMode(
-    UbuntuShape::WrapMode secondarySourceVerticalWrapMode)
+void UCUbuntuShape::setSecondarySourceVerticalWrapMode(
+    UCUbuntuShape::WrapMode secondarySourceVerticalWrapMode)
 {
     if (sourceWrapMode_[1][1] != secondarySourceVerticalWrapMode) {
         updateWrapMode(1, 1, secondarySourceVerticalWrapMode);
@@ -1061,8 +1063,8 @@ void UbuntuShape::setSecondarySourceVerticalWrapMode(
     }
 }
 
-void UbuntuShape::setSecondarySourceHorizontalAlignment(
-    UbuntuShape::HAlignment secondarySourceHorizontalAlignment)
+void UCUbuntuShape::setSecondarySourceHorizontalAlignment(
+    UCUbuntuShape::HAlignment secondarySourceHorizontalAlignment)
 {
     if (sourceHorizontalAlignment_[1] != secondarySourceHorizontalAlignment) {
         sourceHorizontalAlignment_[1] = secondarySourceHorizontalAlignment;
@@ -1071,8 +1073,8 @@ void UbuntuShape::setSecondarySourceHorizontalAlignment(
     }
 }
 
-void UbuntuShape::setSecondarySourceVerticalAlignment(
-    UbuntuShape::VAlignment secondarySourceVerticalAlignment)
+void UCUbuntuShape::setSecondarySourceVerticalAlignment(
+    UCUbuntuShape::VAlignment secondarySourceVerticalAlignment)
 {
     if (sourceVerticalAlignment_[1] != secondarySourceVerticalAlignment) {
         sourceVerticalAlignment_[1] = secondarySourceVerticalAlignment;
@@ -1081,7 +1083,7 @@ void UbuntuShape::setSecondarySourceVerticalAlignment(
     }
 }
 
-void UbuntuShape::setSecondarySourceTranslation(const QVector2D& secondarySourceTranslation)
+void UCUbuntuShape::setSecondarySourceTranslation(const QVector2D& secondarySourceTranslation)
 {
     if (sourceTranslation_[1] != secondarySourceTranslation) {
         sourceTranslation_[1] = secondarySourceTranslation;
@@ -1090,7 +1092,7 @@ void UbuntuShape::setSecondarySourceTranslation(const QVector2D& secondarySource
     }
 }
 
-void UbuntuShape::setSecondarySourceScale(const QVector2D& secondarySourceScale)
+void UCUbuntuShape::setSecondarySourceScale(const QVector2D& secondarySourceScale)
 {
     if (sourceScale_[1] != secondarySourceScale) {
         sourceScale_[1] = secondarySourceScale;
@@ -1099,7 +1101,7 @@ void UbuntuShape::setSecondarySourceScale(const QVector2D& secondarySourceScale)
     }
 }
 
-QRectF UbuntuShape::clipRect() const
+QRectF UCUbuntuShape::clipRect() const
 {
     return QRectF(
         -shadowBorder_.left, -shadowBorder_.top,
@@ -1107,7 +1109,7 @@ QRectF UbuntuShape::clipRect() const
         shadowBorder_.top + geometry_.height() + shadowBorder_.bottom);
 }
 
-void UbuntuShape::gridUnitChanged()
+void UCUbuntuShape::gridUnitChanged()
 {
     gridUnit_ = UCUnits::instance().gridUnit();
     setImplicitWidth(kImplicitGridUnitWidth * gridUnit_);
@@ -1115,14 +1117,14 @@ void UbuntuShape::gridUnitChanged()
     update();
 }
 
-void UbuntuShape::geometryChanged(const QRectF& newGeometry, const QRectF& oldGeometry)
+void UCUbuntuShape::geometryChanged(const QRectF& newGeometry, const QRectF& oldGeometry)
 {
     QQuickItem::geometryChanged(newGeometry, oldGeometry);
     geometry_ = newGeometry;
     update();
 }
 
-void UbuntuShape::updateFillMode(int index, QSGTexture* texture)
+void UCUbuntuShape::updateFillMode(int index, QSGTexture* texture)
 {
     Q_ASSERT(index <= 2);
     Q_ASSERT(texture != NULL);
@@ -1163,7 +1165,7 @@ void UbuntuShape::updateFillMode(int index, QSGTexture* texture)
         roundTextureCoord(vFactor * (1.0f - sy) - sourceTy, textureSize.height()));
 }
 
-QSGNode* UbuntuShape::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData* data)
+QSGNode* UCUbuntuShape::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData* data)
 {
     Q_UNUSED(data);
 
@@ -1211,8 +1213,8 @@ QSGNode* UbuntuShape::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData* dat
     materialData_.shadowSize = QVector2D(0.0f, -materialData_.adjustedCornerRadius / shadowSizeOut);
 
     // Update node.
-    UbuntuShapeNode* node = oldNode ?
-        static_cast<UbuntuShapeNode*>(oldNode) : new UbuntuShapeNode(this);
+    UCUbuntuShapeNode* node = oldNode ?
+        static_cast<UCUbuntuShapeNode*>(oldNode) : new UCUbuntuShapeNode(this);
     node->material()->setData(&materialData_);
     node->setVertices(geometry_, shadowBorder_);
 
@@ -1221,7 +1223,7 @@ QSGNode* UbuntuShape::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData* dat
 
 // --- Scene graph geometry node ---
 
-UbuntuShapeNode::UbuntuShapeNode(UbuntuShape* item)
+UCUbuntuShapeNode::UCUbuntuShapeNode(UCUbuntuShape* item)
     : QSGGeometryNode()
     , item_(item)
     , geometry_(getAttributes(), kMesh.vertexCount, kMesh.indexCount, kMesh.indexType)
@@ -1234,14 +1236,14 @@ UbuntuShapeNode::UbuntuShapeNode(UbuntuShape* item)
     setFlag(UsePreprocess, false);
 }
 
-void UbuntuShapeNode::setVertices(const QRectF& geometry, const ShadowBorder& shadowBorder)
+void UCUbuntuShapeNode::setVertices(const QRectF& geometry, const ShadowBorder& shadowBorder)
 {
     // 0-----1
     // |   / |
     // | /   |
     // 2-----3
-    UbuntuShapeNode::Vertex* vertices =
-        reinterpret_cast<UbuntuShapeNode::Vertex*>(geometry_.vertexData());
+    UCUbuntuShapeNode::Vertex* vertices =
+        reinterpret_cast<UCUbuntuShapeNode::Vertex*>(geometry_.vertexData());
     vertices[0].position[0] = -shadowBorder.left;
     vertices[0].position[1] = -shadowBorder.top;
     vertices[0].textureCoord[0] = -shadowBorder.left / geometry.width();
@@ -1263,47 +1265,47 @@ void UbuntuShapeNode::setVertices(const QRectF& geometry, const ShadowBorder& sh
 
 // --- Scene graph material ---
 
-UbuntuShapeMaterial::UbuntuShapeMaterial()
+UCUbuntuShapeMaterial::UCUbuntuShapeMaterial()
     : data_()
 {
     setFlag(Blending);
 }
 
-QSGMaterialType* UbuntuShapeMaterial::type() const
+QSGMaterialType* UCUbuntuShapeMaterial::type() const
 {
     static QSGMaterialType type;
     return &type;
 }
 
-QSGMaterialShader* UbuntuShapeMaterial::createShader() const
+QSGMaterialShader* UCUbuntuShapeMaterial::createShader() const
 {
-    return new UbuntuShapeShader();
+    return new UCUbuntuShapeShader();
 }
 
-void UbuntuShapeMaterial::setData(MaterialData* data)
+void UCUbuntuShapeMaterial::setData(MaterialData* data)
 {
     memcpy(&data_, data, sizeof(MaterialData));
 }
 
 // -- Scene graph material shader ---
 
-const char *UbuntuShapeShader::vertexShader() const
+const char *UCUbuntuShapeShader::vertexShader() const
 {
     return kVertexShader;
 }
 
-const char* UbuntuShapeShader::fragmentShader() const
+const char* UCUbuntuShapeShader::fragmentShader() const
 {
     return kFragmentShader;
 }
 
-char const* const* UbuntuShapeShader::attributeNames() const
+char const* const* UCUbuntuShapeShader::attributeNames() const
 {
     static char const* const attributes[] = { "positionAttrib", "textureCoordAttrib", 0 };
     return attributes;
 }
 
-void UbuntuShapeShader::initialize()
+void UCUbuntuShapeShader::initialize()
 {
     QSGMaterialShader::initialize();
     program()->bind();
@@ -1331,12 +1333,12 @@ void UbuntuShapeShader::initialize()
 
 // FIXME(loicm) Minimize uniform updates by checking against previous values.
 // FIXME(loicm) Clean up.
-void UbuntuShapeShader::updateState(
+void UCUbuntuShapeShader::updateState(
     const RenderState& state, QSGMaterial* newEffect, QSGMaterial* oldEffect)
 {
     Q_UNUSED(oldEffect);
 
-    MaterialData* data = static_cast<UbuntuShapeMaterial*>(newEffect)->data();
+    MaterialData* data = static_cast<UCUbuntuShapeMaterial*>(newEffect)->data();
     int features[7];
 #if defined(QT_OPENGL_ES_2) || !defined(HAS_QTDECLARATIVE_CLAMPTOBORDER)
     float border[4];
