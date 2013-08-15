@@ -38,8 +38,8 @@
 #define ARRAY_SIZE(a) \
     ((sizeof(a) / sizeof(*(a))) / static_cast<size_t>(!(sizeof(a) % sizeof(*(a)))))
 
-const int kImplicitGridUnitWidth = 8.0f;
-const int kImplicitGridUnitHeight = 8.0f;
+const float kImplicitGridUnitWidth = 8.0f;
+const float kImplicitGridUnitHeight = 8.0f;
 
 // FIXME(loicm) Not sure if graphics drivers can discard sourceCoord varying interpolation through
 //     static flow control. Profiling needs to be done to check if we might better switch to a
