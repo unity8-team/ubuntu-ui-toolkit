@@ -1171,7 +1171,7 @@ QSGNode* UCUbuntuShape::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData* d
 {
     Q_UNUSED(data);
 
-    if (geometry_.width() <= 0.0f || geometry_.height() <= 0.0f) {
+    if (geometry_.isEmpty()) {
         delete oldNode;
         return NULL;
     }
