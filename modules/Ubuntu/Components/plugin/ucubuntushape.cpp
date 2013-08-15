@@ -33,6 +33,8 @@
 #include <math.h>
 
 // Retrieves the size of an array at compile time.
+// FIXME(loicm) C+11 has a safer way to do that.
+// template<typename T, size_t N> Q_DECL_CONSTEXPR size_t ARRAY_SIZE(T (&)[N]) { return N; }
 #define ARRAY_SIZE(a) \
     ((sizeof(a) / sizeof(*(a))) / static_cast<size_t>(!(sizeof(a) % sizeof(*(a)))))
 
@@ -193,13 +195,14 @@ static int sizeOfType(GLenum type)
 }
 
 // Gets the nearest boundary to coord in the texel grid of the given size.
-static float roundTextureCoord(float coord, float size)
+static Q_DECL_CONSTEXPR float roundTextureCoord(float coord, float size)
 {
     return roundf(coord * size) / size;
 }
 
 // Gets an angle in radians.
-static float degreesToRadians(float degrees)
+// FIXME(loicm) Recent Qt builds have qDegreesToRadians() in <QtCore/QtMath>.
+static Q_DECL_CONSTEXPR float degreesToRadians(float degrees)
 {
     return (degrees / 180.0f) * M_PI;
 }
