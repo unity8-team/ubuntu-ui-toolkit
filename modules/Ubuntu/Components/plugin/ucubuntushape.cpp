@@ -1346,7 +1346,7 @@ void UCUbuntuShapeShader::updateState(
     float border[4];
 #endif
 
-    for (int i = 0; i < 2; i++) {
+    for (int i = 1; i >= 0; i--) {
         QSGTextureProvider* provider = data->provider[i];
         QSGTexture* texture = provider ? provider->texture() : NULL;
         openglFunctions_->glActiveTexture(GL_TEXTURE0 + i);
