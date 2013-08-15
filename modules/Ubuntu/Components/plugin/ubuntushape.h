@@ -16,8 +16,8 @@
  * Author: Loïc Molinari <loic.molinari@canonical.com>
  */
 
-#ifndef UBUNTU_COMPONENTS_SHAPE_H
-#define UBUNTU_COMPONENTS_SHAPE_H
+#ifndef UC_UBUNTU_SHAPE_H_
+#define UC_UBUNTU_SHAPE_H_
 
 #include <QtQuick/QQuickItem>
 #include <QtQuick/QSGNode>
@@ -61,7 +61,7 @@ struct ShadowBorder
     float left, right, top, bottom;
 };
 
-class UbuntuShape : public QQuickItem
+class UCUbuntuShape : public QQuickItem
 {
     Q_OBJECT
 
@@ -171,10 +171,10 @@ public:
     enum FillMode { Stretch, PreserveAspectFit, PreserveAspectCrop, Pad };
     enum WrapMode { Repeat = 0, ClampToEdge = 1, ClampToBorder = 2 };
 
-    UbuntuShape(QQuickItem* parent=0);
-    ~UbuntuShape();
+    UCUbuntuShape(QQuickItem* parent=0);
+    ~UCUbuntuShape();
 
-    // UbuntuShape methods.
+    // UCUbuntuShape methods.
     QColor color() const { return backgroundColor_[0]; }              // Deprecated
     void setColor(const QColor& color);                               // Deprecated
     QColor gradientColor() const { return backgroundColor_[1]; }      // Deprecated
@@ -336,15 +336,15 @@ private:
     float gridUnit_;
     MaterialData materialData_;
 
-    Q_DISABLE_COPY(UbuntuShape)
+    Q_DISABLE_COPY(UCUbuntuShape)
 };
 
 // Scene graph textured material.
 
-class UbuntuShapeMaterial : public QSGMaterial
+class UCUbuntuShapeMaterial : public QSGMaterial
 {
 public:
-    UbuntuShapeMaterial();
+    UCUbuntuShapeMaterial();
     virtual QSGMaterialType* type() const;
     virtual QSGMaterialShader* createShader() const;
     MaterialData* data() { return &data_; }
@@ -356,7 +356,7 @@ private:
 
 // Scene graph textured material shader.
 
-class UbuntuShapeShader : public QSGMaterialShader
+class UCUbuntuShapeShader : public QSGMaterialShader
 {
 public:
     virtual char const* const* attributeNames() const;
@@ -390,23 +390,23 @@ private:
 
 // Scene graph node.
 
-class UbuntuShapeNode : public QObject, public QSGGeometryNode
+class UCUbuntuShapeNode : public QObject, public QSGGeometryNode
 {
     Q_OBJECT
 
 public:
     struct Vertex { float position[2]; float textureCoord[2]; };
 
-    UbuntuShapeNode(UbuntuShape* item);
-    UbuntuShapeMaterial* material() { return &material_; }
+    UCUbuntuShapeNode(UCUbuntuShape* item);
+    UCUbuntuShapeMaterial* material() { return &material_; }
     void setVertices(const QRectF& geometry, const ShadowBorder& shadowBorder);
 
 private:
-    UbuntuShape* item_;
+    UCUbuntuShape* item_;
     QSGGeometry geometry_;
-    UbuntuShapeMaterial material_;
+    UCUbuntuShapeMaterial material_;
 };
 
-QML_DECLARE_TYPE(UbuntuShape)
+QML_DECLARE_TYPE(UCUbuntuShape)
 
-#endif // UBUNTU_COMPONENTS_SHAPE_H
+#endif // UC_UBUNTU_SHAPE_H_
