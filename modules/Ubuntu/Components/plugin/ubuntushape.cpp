@@ -17,12 +17,11 @@
  */
 
 // TODO
-//  - High priority:
 //   - Add support for cutting sides (for aligned buttons).
 //   - Add support inner shadows.
 //   - Add support for custom shape mode.
 //   - Make good use of precision modifiers.
-//  - Low priority:
+//   - "make docs" emits warning for all (purposely) undocumented C++ methods.
 //   - Add support for pointers.
 //   - Make the feature support in the shader more clear.
 //   - Use http://www.khronos.org/registry/gles/extensions/NV/NV_texture_border_clamp.txt with
