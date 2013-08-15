@@ -1346,6 +1346,8 @@ void UCUbuntuShapeShader::updateState(
     float border[4];
 #endif
 
+    // It is mandatory to let the active texture to 0 when leaving updateState() because most
+    // components consider it to be the default.
     for (int i = 1; i >= 0; i--) {
         QSGTextureProvider* provider = data->provider[i];
         QSGTexture* texture = provider ? provider->texture() : NULL;
