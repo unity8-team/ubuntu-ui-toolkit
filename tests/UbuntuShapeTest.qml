@@ -300,39 +300,39 @@ Item {
             root.shadowSizeOut = Math.max(0.0, Math.min(400.0,
                 root.shadowSizeOut + ((event.modifiers & shift) ? 1.0 : -1.0)));
         } else if (event.key == Qt.Key_K) {
-            // if (!(event.modifiers & Qt.ShiftModifier)) {
-            //     root.shadowAngleOut = (root.shadowAngleOut > 0.1) ?
-            //         (root.shadowAngleOut - 2.5) : 360.0 - 2.5;
-            // } else {
-            //     root.shadowAngleOut = (root.shadowAngleOut < 359.9) ?
-            //         (root.shadowAngleOut + 2.5) : 2.5;
-            // }
-            shape.sourceScale = Qt.vector2d(shape.sourceScale.x,
-                shape.sourceScale.y + ((event.modifiers & shift) ? 0.05 : -0.05));
-            print (shape.sourceScale);
+            if (!(event.modifiers & Qt.ShiftModifier)) {
+                root.shadowAngleOut = (root.shadowAngleOut > 0.1) ?
+                    (root.shadowAngleOut - 2.5) : 360.0 - 2.5;
+            } else {
+                root.shadowAngleOut = (root.shadowAngleOut < 359.9) ?
+                    (root.shadowAngleOut + 2.5) : 2.5;
+            }
+            // shape.sourceScale = Qt.vector2d(shape.sourceScale.x,
+            //     shape.sourceScale.y + ((event.modifiers & shift) ? 0.05 : -0.05));
+            // print (shape.sourceScale);
         } else if (event.key == Qt.Key_L) {
-            // root.shadowDistanceOut = Math.max(0.0, Math.min(200.0,
-            //     root.shadowDistanceOut + ((event.modifiers & shift) ? 1.0 : -1.0)));
-            shape.sourceTranslation = Qt.vector2d(shape.sourceTranslation.x,
-                shape.sourceTranslation.y + ((event.modifiers & shift) ? 0.05 : -0.05));
-            print (shape.sourceTranslation);
+            root.shadowDistanceOut = Math.max(0.0, Math.min(200.0,
+                root.shadowDistanceOut + ((event.modifiers & shift) ? 1.0 : -1.0)));
+            // shape.sourceTranslation = Qt.vector2d(shape.sourceTranslation.x,
+            //     shape.sourceTranslation.y + ((event.modifiers & shift) ? 0.05 : -0.05));
+            // print (shape.sourceTranslation);
 
         // Source.
         } else if (event.key == Qt.Key_M) {
-            // if (root.image == null) {
-            //     root.image = root.defaultImage;
-            // } else {
-            //     root.image = null;
-            // }
-            shape.sourceScale = Qt.vector2d(
-                shape.sourceScale.x + ((event.modifiers & shift) ? 1.0 : -1.0), shape.sourceScale.y);
-            print (shape.sourceScale);
+            if (root.image == null) {
+                root.image = root.defaultImage;
+            } else {
+                root.image = null;
+            }
+            // shape.sourceScale = Qt.vector2d(
+            //     shape.sourceScale.x + ((event.modifiers & shift) ? 1.0 : -1.0), shape.sourceScale.y);
+            // print (shape.sourceScale);
         } else if (event.key == Qt.Key_W) {
-            shape.sourceTranslation = Qt.vector2d(
-                shape.sourceTranslation.x + ((event.modifiers & shift) ? 0.283 : -0.283), shape.sourceTranslation.y);
-            print (shape.sourceTranslation);
-            // root.sourceOpacity = Math.max(0.0, Math.min(1.0,
-            //     root.sourceOpacity + ((event.modifiers & shift) ? 0.01 : -0.01)));
+            // shape.sourceTranslation = Qt.vector2d(
+            //     shape.sourceTranslation.x + ((event.modifiers & shift) ? 0.283 : -0.283), shape.sourceTranslation.y);
+            // print (shape.sourceTranslation);
+            root.sourceOpacity = Math.max(0.0, Math.min(1.0,
+                root.sourceOpacity + ((event.modifiers & shift) ? 0.01 : -0.01)));
         } else if (event.key == Qt.Key_X) {
             root.sourceFillMode = (root.sourceFillMode + 1) % 4;
         } else if (event.key == Qt.Key_C) {

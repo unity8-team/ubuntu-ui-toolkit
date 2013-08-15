@@ -211,21 +211,21 @@ MaterialData::MaterialData()
     : overlayColorPremultiplied(0.0f, 0.0f, 0.0f, 0.0f)
     , overlaySteps(0.0f, 0.0f, 0.0f, 0.0f)
     , cornerTransform(0.0f, 0.0f, 0.0f, 0.0f)
-    , shadowSize(0.0f, 0.0f)
+    , shadowSize(2.0f, 2.0f)
     , sourceOpacity(1.0f, 1.0f)
     , adjustedCornerRadius(0.0f)
     , backgroundGradientIndex(0)
     , hasOverlay(false)
     , hasOverlayBlendingSourceOver(true)
-    , hasShadowOut(false)
+    , hasShadowOut(true)
 {
     provider[0] = NULL;
     provider[1] = NULL;
     provider[2] = NULL;
     backgroundColorPremultiplied[0] = QVector4D(0.0f, 0.0f, 0.0f, 0.0f);
     backgroundColorPremultiplied[1] = QVector4D(0.0f, 0.0f, 0.0f, 0.0f);
-    shadowColorPremultiplied[0] = QVector4D(0.0f, 0.0f, 0.0f, 0.75f);
-    shadowColorPremultiplied[1] = QVector4D(0.75f, 0.75f, 0.75f, 0.75f);
+    shadowColorPremultiplied[0] = QVector4D(0.75f, 0.75f, 0.75f, 0.75f);
+    shadowColorPremultiplied[1] = QVector4D(0.0f, 0.0f, 0.0f, 0.75f);
     shadowOffset[0] = QVector2D(0.0f, 0.0f);
     shadowOffset[1] = QVector2D(0.0f, 0.0f);
     sourceFill[0] = QVector4D(1.0f, 1.0f, 0.0f, 0.0f);
@@ -289,7 +289,7 @@ UCUbuntuShape::UCUbuntuShape(QQuickItem* parent)
     , overlayColor_(0.0f, 0.0f, 0.0f, 0.0f)
     , backgroundMode_(UCUbuntuShape::BackgroundColor)
     , overlayBlending_(UCUbuntuShape::SourceOver)
-    , cornerRadius_(0.0f)
+    , cornerRadius_(8.0f)  // FIXME(loicm) Default value to be validated
     , shadowBorder_(0.0f, 0.0f, 0.0f, 0.0f)
     , gridUnit_(UCUnits::instance().gridUnit())
     , materialData_()
@@ -299,8 +299,8 @@ UCUbuntuShape::UCUbuntuShape(QQuickItem* parent)
     item_[2] = NULL;
     backgroundColor_[0] = QColor(0.0f, 0.0f, 0.0f, 0.0f);
     backgroundColor_[1] = QColor(0.0f, 0.0f, 0.0f, 0.0f);
-    shadowColor_[0] = QColor(0.0f, 0.0f, 0.0f, 0.75f);
-    shadowColor_[1] = QColor(1.0f, 1.0f, 1.0f, 0.75f);
+    shadowColor_[0] = QColor(1.0f, 1.0f, 1.0f, 0.75f);
+    shadowColor_[1] = QColor(0.0f, 0.0f, 0.0f, 0.75f);
     sourceTranslation_[0] = QVector2D(0.0f, 0.0f);
     sourceTranslation_[1] = QVector2D(0.0f, 0.0f);
     sourceScale_[0] = QVector2D(1.0f, 1.0f);
@@ -311,16 +311,16 @@ UCUbuntuShape::UCUbuntuShape(QQuickItem* parent)
     sourceWrapMode_[0][1] = UCUbuntuShape::ClampToEdge;
     sourceWrapMode_[1][0] = UCUbuntuShape::ClampToEdge;
     sourceWrapMode_[1][1] = UCUbuntuShape::ClampToEdge;
-    sourceHorizontalAlignment_[0] = UCUbuntuShape::AlignLeft;
-    sourceHorizontalAlignment_[1] = UCUbuntuShape::AlignLeft;
-    sourceVerticalAlignment_[0] = UCUbuntuShape::AlignTop;
-    sourceVerticalAlignment_[1] = UCUbuntuShape::AlignTop;
-    shadowSize_[0] = 0.0f;
-    shadowSize_[1] = 0.0f;
-    shadowDistance_[0] = 0.0f;
-    shadowDistance_[1] = 0.0f;
-    shadowAngle_[0] = 0.0f;
-    shadowAngle_[1] = 0.0f;
+    sourceHorizontalAlignment_[0] = UCUbuntuShape::AlignHCenter;
+    sourceHorizontalAlignment_[1] = UCUbuntuShape::AlignHCenter;
+    sourceVerticalAlignment_[0] = UCUbuntuShape::AlignVCenter;
+    sourceVerticalAlignment_[1] = UCUbuntuShape::AlignVCenter;
+    shadowSize_[0] = 2.0f;
+    shadowSize_[1] = 2.0f;
+    shadowDistance_[0] = 1.0f;
+    shadowDistance_[1] = 1.0f;
+    shadowAngle_[0] = 90.0f;
+    shadowAngle_[1] = 90.0f;
     sourceOpacity_[0] = 1.0f;
     sourceOpacity_[1] = 1.0f;
 
