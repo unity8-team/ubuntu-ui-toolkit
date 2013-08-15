@@ -33,7 +33,7 @@
 #include "ucqquickimageextension.h"
 #include "quickutils.h"
 #include "giconprovider.h"
-#include "ubuntushape.h"
+#include "ucubuntushape.h"
 #include "inversemouseareatype.h"
 #include "qquickclipboard.h"
 #include "qquickmimedata.h"

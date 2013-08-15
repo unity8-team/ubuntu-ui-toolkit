@@ -21,24 +21,25 @@
 //   - Add support inner shadows.
 //   - Add support for custom shape mode.
 //   - Make good use of precision modifiers.
-//   - "make docs" emits warning for all (purposely) undocumented C++ methods.
 //   - Add support for pointers.
 //   - Make the feature support in the shader more clear.
 //   - Use http://www.khronos.org/registry/gles/extensions/NV/NV_texture_border_clamp.txt with
 //     OpenGL ES 2 when available (need to patch QtDeclarative).
 
-#include "ubuntushape.h"
+#include "ucubuntushape.h"
 #include "ucunits.h"
 #include <QtQuick/QQuickWindow>
 #include <QtQuick/QSGTextureProvider>
 #include <math.h>
 
 // Retrieves the size of an array at compile time.
+// FIXME(loicm) C+11 has a safer way to do that.
+// template<typename T, size_t N> Q_DECL_CONSTEXPR size_t ARRAY_SIZE(T (&)[N]) { return N; }
 #define ARRAY_SIZE(a) \
     ((sizeof(a) / sizeof(*(a))) / static_cast<size_t>(!(sizeof(a) % sizeof(*(a)))))
 
-const int kImplicitGridUnitWidth = 8.0f;
-const int kImplicitGridUnitHeight = 8.0f;
+const float kImplicitGridUnitWidth = 8.0f;
+const float kImplicitGridUnitHeight = 8.0f;
 
 // FIXME(loicm) Not sure if graphics drivers can discard sourceCoord varying interpolation through
 //     static flow control. Profiling needs to be done to check if we might better switch to a
@@ -194,13 +195,14 @@ static int sizeOfType(GLenum type)
 }
 
 // Gets the nearest boundary to coord in the texel grid of the given size.
-static float roundTextureCoord(float coord, float size)
+static Q_DECL_CONSTEXPR float roundTextureCoord(float coord, float size)
 {
     return roundf(coord * size) / size;
 }
 
 // Gets an angle in radians.
-static float degreesToRadians(float degrees)
+// FIXME(loicm) Recent Qt builds have qDegreesToRadians() in <QtCore/QtMath>.
+static Q_DECL_CONSTEXPR float degreesToRadians(float degrees)
 {
     return (degrees / 180.0f) * M_PI;
 }
@@ -336,7 +338,7 @@ UCUbuntuShape::~UCUbuntuShape()
 
 /*!
  * \qmlproperty color UbuntuShape::color
- * \obsolete
+ * \deprecated
  *
  * Use \l backgroundColor instead.
  */
@@ -349,7 +351,7 @@ void UCUbuntuShape::setColor(const QColor& color)
 
 /*!
  * \qmlproperty color UbuntuShape::gradientColor
- * \obsolete
+ * \deprecated
  *
  * Use \l secondaryBackgroundColor instead.
  */
@@ -364,7 +366,7 @@ void UCUbuntuShape::setGradientColor(const QColor& gradientColor)
 
 /*!
  * \qmlproperty string UbuntuShape::radius
- * \obsolete
+ * \deprecated
  *
  * Use \l cornerRadius instead.
  */
@@ -384,7 +386,7 @@ void UCUbuntuShape::setRadius(const QString& radius)
 
 /*!
  * \qmlproperty string UbuntuShape::borderSource
- * \obsolete
+ * \deprecated
  *
  * Use \l customShape instead.
  */
@@ -398,7 +400,7 @@ void UCUbuntuShape::setBorderSource(const QString& borderSource)
 
 /*!
  * \qmlproperty variant UbuntuShape::image
- * \obsolete
+ * \deprecated
  *
  * Use \l source instead.
  */
@@ -1169,7 +1171,7 @@ QSGNode* UCUbuntuShape::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData* d
 {
     Q_UNUSED(data);
 
-    if (geometry_.width() <= 0.0f || geometry_.height() <= 0.0f) {
+    if (geometry_.isEmpty()) {
         delete oldNode;
         return NULL;
     }
