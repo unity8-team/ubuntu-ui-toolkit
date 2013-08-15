@@ -92,7 +92,7 @@ static const char* const kFragmentShader =
     "            texture[i] = texture2D(sampler[i], sourceCoord[i]);                             \n"
 #if defined(QT_OPENGL_ES_2) || !defined(HAS_QTDECLARATIVE_CLAMPTOBORDER)
     "            if (features[i*2+1] != 0) {                                                     \n"
-    "                highp vec2 a = clamp(floor(abs(sourceCoord[0] * -2.0 + 1.0)), 0.0, 1.0);    \n"
+    "                highp vec2 a = clamp(floor(abs(sourceCoord[i] * -2.0 + 1.0)), 0.0, 1.0);    \n"
     "                highp vec2 b = 1.0 - a;                                                     \n"
     "                opacity[i] *= (a.x * border[i*2] + b.x) * (a.y * border[i*2+1] + b.y);      \n"
     "            }                                                                               \n"
@@ -881,9 +881,7 @@ void UCUbuntuShape::updateWrapMode(int index, int direction, UCUbuntuShape::Wrap
     // On OpenGL ES 2, fall back to edge clamping with software border clamping in the shader.
     const QSGTexture::WrapMode wrapTable[3] =
         { QSGTexture::Repeat, QSGTexture::ClampToEdge, QSGTexture::ClampToEdge };
-    const bool softwareClampToBorderTable[3] = { false, false, true };
-    materialData_.hasSoftwareClampToBorder[index][direction] =
-        softwareClampToBorderTable[static_cast<int>(wrapMode)];
+    materialData_.hasSoftwareClampToBorder[index][direction] = (wrapMode == ClampToBorder);
 #endif
     materialData_.wrap[index][direction] = wrapTable[static_cast<int>(wrapMode)];
 }
@@ -1360,8 +1358,7 @@ void UCUbuntuShapeShader::updateState(
             texture->bind();
             features[i*2] = 1;
 #if defined(QT_OPENGL_ES_2) || !defined(HAS_QTDECLARATIVE_CLAMPTOBORDER)
-            features[i*2+1] = 0;
-            features[i*2+1] |= data->hasSoftwareClampToBorder[i][0] ? 1 : 0;
+            features[i*2+1] = data->hasSoftwareClampToBorder[i][0] ? 1 : 0;
             features[i*2+1] |= data->hasSoftwareClampToBorder[i][1] ? 1 : 0;
             border[i*2] = data->hasSoftwareClampToBorder[i][0] ? 0.0f : 1.0f;
             border[i*2+1] = data->hasSoftwareClampToBorder[i][1] ? 0.0f : 1.0f;

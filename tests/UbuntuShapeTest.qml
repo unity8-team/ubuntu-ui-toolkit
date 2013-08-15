@@ -102,6 +102,7 @@ Item {
             backgroundColor: Qt.rgba(0.6, 0.6, 1.0, 1.0)
             secondaryBackgroundColor: Qt.rgba(0.3, 0.3, 0.5, 1.0)
             shadowSizeOut: 50.0
+            shadowDistanceOut: 0.0
             source: root.image
             secondarySource: root.secondaryImage
             secondarySourceFillMode: UbuntuShape.Pad
