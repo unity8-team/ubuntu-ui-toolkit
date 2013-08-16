@@ -91,7 +91,7 @@ Item {
             color: "#7f7f7f"
         }
 
-        UbuntuShape {
+        UbuntuShape2 {
             id: shape
             anchors.fill: parent
             anchors.leftMargin: 400
@@ -105,9 +105,9 @@ Item {
             shadowDistanceOut: 0.0
             source: root.image
             secondarySource: root.secondaryImage
-            secondarySourceFillMode: UbuntuShape.Pad
-            secondarySourceHorizontalWrapMode: UbuntuShape.Repeat
-            secondarySourceVerticalWrapMode: UbuntuShape.Repeat
+            secondarySourceFillMode: UbuntuShape2.Pad
+            secondarySourceHorizontalWrapMode: UbuntuShape2.Repeat
+            secondarySourceVerticalWrapMode: UbuntuShape2.Repeat
         }
     }
 

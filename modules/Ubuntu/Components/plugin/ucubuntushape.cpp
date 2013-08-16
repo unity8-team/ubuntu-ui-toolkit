@@ -67,6 +67,7 @@ static const char* const kFragmentShader =
     "uniform highp vec4 bgColor[2];                                                              \n"
     "uniform highp int bgGradientIndex;                                                          \n"
     "uniform highp vec4 cornerTransform;                                                         \n"
+    "uniform highp vec4 noCornerTransform;                                                       \n"
     "uniform highp vec4 overlayColor;                                                            \n"
     "uniform highp vec4 overlaySteps;                                                            \n"
     "uniform highp vec4 shadowColor[2];                                                          \n"
@@ -211,6 +212,7 @@ MaterialData::MaterialData()
     : overlayColorPremultiplied(0.0f, 0.0f, 0.0f, 0.0f)
     , overlaySteps(0.0f, 0.0f, 0.0f, 0.0f)
     , cornerTransform(0.0f, 0.0f, 0.0f, 0.0f)
+    , noCornerTransform(0.0f, 0.0f, 0.0f, 0.0f)
     , shadowSize(2.0f, 2.0f)
     , sourceOpacity(1.0f, 1.0f)
     , adjustedCornerRadius(0.0f)
@@ -246,36 +248,38 @@ MaterialData::MaterialData()
 
 // FIXME(loicm) Add a schema describing the supported layers.
 /*!
- * \qmltype UbuntuShape
+ * \qmltype UbuntuShape2
  * \inqmlmodule Ubuntu.Components 0.1
  * \ingroup ubuntu
  * \instantiates UCUbuntuShape
- * \brief Base graphical component of the Ubuntu UI Toolkit.
+ * \brief The base graphical component of the Ubuntu UI Toolkit.
  *
- * UbuntuShape could be compared to a QML \c Image, on steroids. It allows to shape a set of layers
+ * UbuntuShape2 could be compared to a QML \c Image, on steroids. It allows to shape a set of layers
  * composed by an overlay, a primary source, a secondary source and a background. It also provides
  * support for casting shadows inside and outside of the shape. The default shape mode features
- * rounded corners but other shapes are supported through the use of custom shapes. UbuntuShape's
+ * rounded corners but other shapes are supported through the use of custom shapes. UbuntuShape2's
  * rendering is entirely procedural, resolution independent, alias free and supports interactive
  * framerates.
  *
- * UbuntuShape proposes an API that allows to drop a shadow around the item. That shadow is entirely
- * independent of the item size, it is rendered outside of the item and one can manipulate the item
- * position and size without having to consider the shadow. That implies one change compared to
- * standard items, the clipping rectangle is bigger than the item and fits both the shape and the
- * shadow.
+ * UbuntuShape2 proposes an API that allows to drop a shadow around the item. That shadow is
+ * entirely independent of the item size, it is rendered outside of the item and one can manipulate
+ * the item position and size without having to consider the shadow. That implies one change
+ * compared to standard items, the clipping rectangle is bigger than the item and fits both the
+ * shape and the shadow.
  *
- * Here is an UbuntuShape with a rounded corner, a drop shadow and a centered Ubuntu logo rendered
+ * Here is an UbuntuShape2 with a rounded corner, a drop shadow and a centered Ubuntu logo rendered
  * on top of a grey background:
  *
  * \qml
- *     UbuntuShape {
+ *     import Ubuntu.Components 0.1
+ *
+ *     UbuntuShape2 {
  *         id: shape
  *         cornerRadius: 20.0
  *         shadowSizeOut: 50.0
  *         source: Image { source: "ubuntu_logo.png" }
- *         sourceHorizontalAlignment: UbuntuShape.AlignHCenter
- *         sourceVerticalAlignment: UbuntuShape.AlignVCenter
+ *         sourceHorizontalAlignment: UbuntuShape2.AlignHCenter
+ *         sourceVerticalAlignment: UbuntuShape2.AlignVCenter
  *         backgroundColor: "grey"
  *     }
  * \endqml
@@ -337,27 +341,27 @@ UCUbuntuShape::~UCUbuntuShape()
 }
 
 /*!
- * \qmlproperty color UbuntuShape::color
+ * \qmlproperty color UbuntuShape2::color
  * \deprecated
  *
  * Use \l backgroundColor instead.
  */
 void UCUbuntuShape::setColor(const QColor& color)
 {
-    qWarning() << "UbuntuShape: 'color' is deprecated, use 'backgroundColor' instead.";
+    qWarning() << "UbuntuShape2: 'color' is deprecated, use 'backgroundColor' instead.";
     setBackgroundColor(color);
     Q_EMIT colorChanged();
 }
 
 /*!
- * \qmlproperty color UbuntuShape::gradientColor
+ * \qmlproperty color UbuntuShape2::gradientColor
  * \deprecated
  *
  * Use \l secondaryBackgroundColor instead.
  */
 void UCUbuntuShape::setGradientColor(const QColor& gradientColor)
 {
-    qWarning() << "UbuntuShape: 'gradientColor' is deprecated, use 'secondaryBackgroundColor' "
+    qWarning() << "UbuntuShape2: 'gradientColor' is deprecated, use 'secondaryBackgroundColor' "
         "instead.";
     setBackgroundMode(UCUbuntuShape::VerticalGradient);
     setSecondaryBackgroundColor(gradientColor);
@@ -365,14 +369,14 @@ void UCUbuntuShape::setGradientColor(const QColor& gradientColor)
 }
 
 /*!
- * \qmlproperty string UbuntuShape::radius
+ * \qmlproperty string UbuntuShape2::radius
  * \deprecated
  *
  * Use \l cornerRadius instead.
  */
 void UCUbuntuShape::setRadius(const QString& radius)
 {
-    qWarning() << "UbuntuShape: 'radius' is deprecated, use 'cornerRadius' instead.";
+    qWarning() << "UbuntuShape2: 'radius' is deprecated, use 'cornerRadius' instead.";
     if (radius == "small") {
         radius_ = "small";
         setCornerRadius(8.0f);  // FIXME(loicm) Default value to be validated.
@@ -385,7 +389,7 @@ void UCUbuntuShape::setRadius(const QString& radius)
 }
 
 /*!
- * \qmlproperty string UbuntuShape::borderSource
+ * \qmlproperty string UbuntuShape2::borderSource
  * \deprecated
  *
  * Use \l customShape instead.
@@ -394,32 +398,32 @@ void UCUbuntuShape::setBorderSource(const QString& borderSource)
 {
     Q_UNUSED(borderSource);
 
-    qWarning() << "UbuntuShape: 'borderSource' is deprecated, use 'customShape' instead.";
+    qWarning() << "UbuntuShape2: 'borderSource' is deprecated, use 'customShape' instead.";
     Q_EMIT borderSourceChanged();
 }
 
 /*!
- * \qmlproperty variant UbuntuShape::image
+ * \qmlproperty variant UbuntuShape2::image
  * \deprecated
  *
  * Use \l source instead.
  */
 void UCUbuntuShape::setImage(QVariant image)
 {
-    qWarning() << "UbuntuShape: 'image' is deprecated, use 'source' instead.";
+    qWarning() << "UbuntuShape2: 'image' is deprecated, use 'source' instead.";
     setSource(image);
     Q_EMIT imageChanged();
 }
 
 /*!
- * \qmlproperty enumeration UbuntuShape::shapeMode
+ * \qmlproperty enumeration UbuntuShape2::shapeMode
  *
- * This property defines the rendering mode used by the UbuntuShape to render its corners. Default
+ * This property defines the rendering mode used by the UbuntuShape2 to render its corners. Default
  * value is \c Rounded.
  *
  * \list
- * \li UbuntuShape.Rounded - circle based corners
- * \li UbuntuShape.Custom - custom corners defined with \l customShape
+ * \li UbuntuShape2.Rounded - circle based corners
+ * \li UbuntuShape2.Custom - custom corners defined with \l customShape
  * \endlist
  */
 void UCUbuntuShape::setShapeMode(UCUbuntuShape::ShapeMode shapeMode)
@@ -433,19 +437,19 @@ void UCUbuntuShape::setShapeMode(UCUbuntuShape::ShapeMode shapeMode)
 
 // FIXME(loicm) Document dedicated tool.
 /*!
- * \qmlproperty variant UbuntuShape::customShape
+ * \qmlproperty variant UbuntuShape2::customShape
  *
- * This property holds the custom shape used by the UbuntuShape to render its corners when
+ * This property holds the custom shape used by the UbuntuShape2 to render its corners when
  * \l shapeMode is set to \c Custom. Default value is \c null.
  *
- * UbuntuShape implements that feature using
+ * UbuntuShape2 implements that feature using
  * \l {http://www.valvesoftware.com/publications/2007/SIGGRAPH2007_AlphaTestedMagnification.pdf}
  * {distance fields}. This technique allows to efficiently render custom corners at different sizes
  * without losing quality. \c customShape is defined as an image generated with a dedicated tool.
  *
  * \qml
- *     UbuntuShape {
- *         shapeMode: UbuntuShape.Custom
+ *     UbuntuShape2 {
+ *         shapeMode: UbuntuShape2.Custom
  *         customShape: Image { source: "custom_shape.png" }
  *     }
  * \endqml
@@ -466,7 +470,7 @@ void UCUbuntuShape::setCustomShape(QVariant customShape)
 }
 
 /*!
- * \qmlproperty real UbuntuShape::cornerRadius
+ * \qmlproperty real UbuntuShape2::cornerRadius
  *
  * This property defines the radius of the corners in pixels. Default value is \c 0.0.
  */
@@ -482,10 +486,10 @@ void UCUbuntuShape::setCornerRadius(float cornerRadius)
 }
 
 /*!
- * \qmlproperty color UbuntuShape::backgroundColor
- * \qmlproperty color UbuntuShape::secondaryBackgroundColor
+ * \qmlproperty color UbuntuShape2::backgroundColor
+ * \qmlproperty color UbuntuShape2::secondaryBackgroundColor
  *
- * These properties define the background colors of the UbuntuShape. \c secondaryBackgroundColor is
+ * These properties define the background colors of the UbuntuShape2. \c secondaryBackgroundColor is
  * only used when \l backgroundMode is set to \c HorizontalGradient or \c VerticalGradient. Default
  * value is transparent black for both.
  */
@@ -520,16 +524,16 @@ void UCUbuntuShape::setSecondaryBackgroundColor(const QColor& color)
 }
 
 /*!
- * \qmlproperty enumeration UbuntuShape::backgroundMode
+ * \qmlproperty enumeration UbuntuShape2::backgroundMode
  *
- * This property defines the mode used by the UbuntuShape to render its background. Default value
+ * This property defines the mode used by the UbuntuShape2 to render its background. Default value
  * is \c BackgroundColor.
  *
  * \list
- * \li UbuntuShape.BackgroundColor - background color is \l backgroundColor
- * \li UbuntuShape.HorizontalGradient - background color is an horizontal gradient from
+ * \li UbuntuShape2.BackgroundColor - background color is \l backgroundColor
+ * \li UbuntuShape2.HorizontalGradient - background color is an horizontal gradient from
  *     \l backgroundColor to \l secondaryBackgroundColor
- * \li UbuntuShape.VerticalGradient - background color is a vertical gradient from
+ * \li UbuntuShape2.VerticalGradient - background color is a vertical gradient from
  *     \l backgroundColor to \l secondaryBackgroundColor
  * \endlist
  */
@@ -554,22 +558,22 @@ void UCUbuntuShape::setBackgroundMode(BackgroundMode backgroundMode)
 }
 
 /*!
- * \qmlproperty rect UbuntuShape::overlayGeometry
+ * \qmlproperty rect UbuntuShape2::overlayGeometry
  *
- * This property defines the rectangle geometry overlaying the UbuntuShape. Default value is an
+ * This property defines the rectangle geometry overlaying the UbuntuShape2. Default value is an
  * empty rectangle.
  *
  * It is defined by a position and a size in normalized coordinates (in the range [0.0, 1.0]). An
- * overlay covering all the bottom part and starting from the middle of the UbuntuShape can be done
+ * overlay covering all the bottom part and starting from the middle of the UbuntuShape2 can be done
  * like this:
  *
  * \qml
- *     UbuntuShape {
+ *     UbuntuShape2 {
  *         overlayGeometry: Qt.rect(0.0, 0.5, 1.0, 0.5)
  *     }
  * \endqml
  *
- * \note The area potentially exceeding the UbuntuShape is cropped.
+ * \note The area potentially exceeding the UbuntuShape2 is cropped.
  */
 void UCUbuntuShape::setOverlayGeometry(const QRectF& overlayGeometry)
 {
@@ -592,9 +596,9 @@ void UCUbuntuShape::setOverlayGeometry(const QRectF& overlayGeometry)
 }
 
 /*!
- * \qmlproperty color UbuntuShape::overlayColor
+ * \qmlproperty color UbuntuShape2::overlayColor
  *
- * This property defines the color of the rectangle overlaying the UbuntuShape. The meaning of that
+ * This property defines the color of the rectangle overlaying the UbuntuShape2. The meaning of that
  * property depends on the \l overlayBlending that is defined. Default value is transparent black.
  */
 void UCUbuntuShape::setOverlayColor(const QColor& color)
@@ -619,15 +623,15 @@ void UCUbuntuShape::setOverlayColor(const QColor& color)
 }
 
 /*!
- * \qmlproperty enumeration UbuntuShape::overlayBlending
+ * \qmlproperty enumeration UbuntuShape2::overlayBlending
  *
- * This property defines the blending used to composite the rectangle overlaying the UbuntuShape.
+ * This property defines the blending used to composite the rectangle overlaying the UbuntuShape2.
  * Default value is \c SourceOver.
  *
  * \list
- * \li UbuntuShape.SourceOver - classical "source over" Porter/Duff blending
- * \li UbuntuShape.Multiply - multiply \l overlayColor with color values underlying the overlay,
- *     useful to mask out parts of the UbuntuShape
+ * \li UbuntuShape2.SourceOver - classical "source over" Porter/Duff blending
+ * \li UbuntuShape2.Multiply - multiply \l overlayColor with color values underlying the overlay,
+ *     useful to mask out parts of the UbuntuShape2
  * \endlist
  */
 void UCUbuntuShape::setOverlayBlending(Blending overlayBlending)
@@ -653,10 +657,10 @@ void UCUbuntuShape::setOverlayBlending(Blending overlayBlending)
 }
 
 /*!
- * \qmlproperty real UbuntuShape::shadowSizeIn
- * \qmlproperty real UbuntuShape::shadowSizeOut
+ * \qmlproperty real UbuntuShape2::shadowSizeIn
+ * \qmlproperty real UbuntuShape2::shadowSizeOut
  *
- * These properties define the sizes of the shadows dropped inside and outside the UbuntuShape in
+ * These properties define the sizes of the shadows dropped inside and outside the UbuntuShape2 in
  * pixels. Default value is \c 0.0 for both.
  */
 void UCUbuntuShape::setShadowSizeIn(float shadowSizeIn)
@@ -670,10 +674,10 @@ void UCUbuntuShape::setShadowSizeIn(float shadowSizeIn)
 }
 
 /*!
- * \qmlproperty Item UbuntuShape::shadowColorIn
- * \qmlproperty Item UbuntuShape::shadowColorOut
+ * \qmlproperty Item UbuntuShape2::shadowColorIn
+ * \qmlproperty Item UbuntuShape2::shadowColorOut
  *
- * These properties define the colors of the shadows dropped inside and outside the UbuntuShape.
+ * These properties define the colors of the shadows dropped inside and outside the UbuntuShape2.
  * Default value is 75% translucent black for the shadow inside and 75% translucent white for the
  * shadow outside.
  */
@@ -690,11 +694,11 @@ void UCUbuntuShape::setShadowColorIn(const QColor& color)
 }
 
 /*!
- * \qmlproperty real UbuntuShape::shadowDistanceIn
- * \qmlproperty real UbuntuShape::shadowDistanceOut
+ * \qmlproperty real UbuntuShape2::shadowDistanceIn
+ * \qmlproperty real UbuntuShape2::shadowDistanceOut
  *
  * These properties define the distances in pixels used to drop the shadows inside and outdide the
- * UbuntuShape along the direction defined by \l shadowAngleIn and \l shadowAngleOut. Default
+ * UbuntuShape2 along the direction defined by \l shadowAngleIn and \l shadowAngleOut. Default
  * value is \c 0.0 for both.
  */
 void UCUbuntuShape::setShadowDistanceIn(float shadowDistanceIn)
@@ -708,11 +712,11 @@ void UCUbuntuShape::setShadowDistanceIn(float shadowDistanceIn)
 }
 
 /*!
- * \qmlproperty real UbuntuShape::shadowAngleIn
- * \qmlproperty real UbuntuShape::shadowAngleOut
+ * \qmlproperty real UbuntuShape2::shadowAngleIn
+ * \qmlproperty real UbuntuShape2::shadowAngleOut
  *
  * These properties define the angles in degrees used to drop the shadow inside and outside the
- * UbuntuShape. Default value is \c 0.0 for both.
+ * UbuntuShape2. Default value is \c 0.0 for both.
  */
 void UCUbuntuShape::setShadowAngleIn(float shadowAngleIn)
 {
@@ -795,18 +799,18 @@ void UCUbuntuShape::setShadowAngleOut(float shadowAngleOut)
 }
 
 /*!
- * \qmlproperty variant UbuntuShape::source
- * \qmlproperty variant UbuntuShape::secondarySource
+ * \qmlproperty variant UbuntuShape2::source
+ * \qmlproperty variant UbuntuShape2::secondarySource
  *
  * These properties hold the primary and secondary source \c Image or \c ShaderEffectSource used by
- * the UbuntuShape. Default value is \c null for both.
+ * the UbuntuShape2. Default value is \c null for both.
  *
  * In the case of an \c {Image}-based \c source, the fill modes and alignments set on the \c Image
- * are not monitored, use the corresponding properties of the UbuntuShape instead. The only property
- * that is monitored on both \c Image and \c ShaderEffectSource sources is \c smooth.
+ * are not monitored, use the corresponding properties of the UbuntuShape2 instead. The only
+ * property that is monitored on both \c Image and \c ShaderEffectSource sources is \c smooth.
  *
  * \qml
- *     UbuntuShape {
+ *     UbuntuShape2 {
  *         source: Image { source: "ubuntu.png"; smooth: true }
  *         secondarySource: Image { source: "background.png"; smooth: true }
  *     }
@@ -828,8 +832,8 @@ void UCUbuntuShape::setSource(QVariant source)
 }
 
 /*!
- * \qmlproperty real UbuntuShape::sourceOpacity
- * \qmlproperty real UbuntuShape::secondarySourceOpacity
+ * \qmlproperty real UbuntuShape2::sourceOpacity
+ * \qmlproperty real UbuntuShape2::secondarySourceOpacity
  *
  * These properties define the opacities of the primary and secondary sources in the range
  * [0.0, 1.0]. Default value is \c 1.0 for both.
@@ -846,17 +850,17 @@ void UCUbuntuShape::setSourceOpacity(float sourceOpacity)
 }
 
 /*!
- * \qmlproperty enumeration UbuntuShape::sourceFillMode
- * \qmlproperty enumeration UbuntuShape::secondarySourceFillMode
+ * \qmlproperty enumeration UbuntuShape2::sourceFillMode
+ * \qmlproperty enumeration UbuntuShape2::secondarySourceFillMode
  *
- * These properties define the fill modes used by the UbuntuShape to render the primary and
+ * These properties define the fill modes used by the UbuntuShape2 to render the primary and
  * secondary sources. Default value is \c PreserveAspectCrop for both.
  *
  * \list
- * \li UbuntuShape.Stretch - the source is scaled non-uniformly to fit
- * \li UbuntuShape.PreserveAspectFit - the source is scaled uniformly to fit without cropping
- * \li UbuntuShape.PreserveAspectCrop - the source is scaled uniformly to fit with cropping
- * \li UbuntuShape.Pad - the source is not scaled
+ * \li UbuntuShape2.Stretch - the source is scaled non-uniformly to fit
+ * \li UbuntuShape2.PreserveAspectFit - the source is scaled uniformly to fit without cropping
+ * \li UbuntuShape2.PreserveAspectCrop - the source is scaled uniformly to fit with cropping
+ * \li UbuntuShape2.Pad - the source is not scaled
  * \endlist
  */
 void UCUbuntuShape::setSourceFillMode(UCUbuntuShape::FillMode sourceFillMode)
@@ -887,24 +891,24 @@ void UCUbuntuShape::updateWrapMode(int index, int direction, UCUbuntuShape::Wrap
 }
 
 /*!
- * \qmlproperty enumeration UbuntuShape::sourceHorizontalWrapMode
- * \qmlproperty enumeration UbuntuShape::sourceVerticalWrapMode
- * \qmlproperty enumeration UbuntuShape::secondarySourceHorizontalWrapMode
- * \qmlproperty enumeration UbuntuShape::secondarySourceVerticalWrapMode
+ * \qmlproperty enumeration UbuntuShape2::sourceHorizontalWrapMode
+ * \qmlproperty enumeration UbuntuShape2::sourceVerticalWrapMode
+ * \qmlproperty enumeration UbuntuShape2::secondarySourceHorizontalWrapMode
+ * \qmlproperty enumeration UbuntuShape2::secondarySourceVerticalWrapMode
  *
- * These properties define the wrap modes used by the UbuntuShape to render the primary and
+ * These properties define the wrap modes used by the UbuntuShape2 to render the primary and
  * secondary sources outside of their horizontal and vertical areas. Default value is
  * \c ClampToEdge for the four of them.
  *
  * \list
- * \li UbuntuShape.Repeat - the source is duplicated
- * \li UbuntuShape.ClampToEdge - the source is clamped to the last pixel color
- * \li UbuntuShape.ClampToBorder - the source is clamped to transparent black
+ * \li UbuntuShape2.Repeat - the source is duplicated
+ * \li UbuntuShape2.ClampToEdge - the source is clamped to the last pixel color
+ * \li UbuntuShape2.ClampToBorder - the source is clamped to transparent black
  * \endlist
  *
  * \note \c Some OpenGL ES 2 implementations do not support \c Repeat with non-power-of-two sized
  * sources. OpenGL ES 2 doesn't support \c ClampToBorder, it is implemented in a fragment shader for
- * the UbuntuShape and it might be a bit slower than the other clamping modes. It is recommended to
+ * the UbuntuShape2 and it might be a bit slower than the other clamping modes. It is recommended to
  * use \c ClampToEdge and sources with transparent borders in order to workaround that limitation.
  */
 void UCUbuntuShape::setSourceHorizontalWrapMode(UCUbuntuShape::WrapMode sourceHorizontalWrapMode)
@@ -926,16 +930,16 @@ void UCUbuntuShape::setSourceVerticalWrapMode(UCUbuntuShape::WrapMode sourceVert
 }
 
 /*!
- * \qmlproperty enumeration UbuntuShape::sourceHorizontalAlignment
- * \qmlproperty enumeration UbuntuShape::secondarySourceHorizontalAlignment
+ * \qmlproperty enumeration UbuntuShape2::sourceHorizontalAlignment
+ * \qmlproperty enumeration UbuntuShape2::secondarySourceHorizontalAlignment
  *
- * These properties define the horizontal alignments used by the UbuntuShape to render the primary
+ * These properties define the horizontal alignments used by the UbuntuShape2 to render the primary
  * and secondary sources. Default value is \c AlignLeft for both.
  *
  * \list
- * \li UbuntuShape.AlignLeft - the source is aligned to the left
- * \li UbuntuShape.AlignHCenter - the source is aligned to the horizontal center
- * \li UbuntuShape.AlignRight - the source is aligned to the right
+ * \li UbuntuShape2.AlignLeft - the source is aligned to the left
+ * \li UbuntuShape2.AlignHCenter - the source is aligned to the horizontal center
+ * \li UbuntuShape2.AlignRight - the source is aligned to the right
  * \endlist
  */
 void UCUbuntuShape::setSourceHorizontalAlignment(
@@ -949,16 +953,16 @@ void UCUbuntuShape::setSourceHorizontalAlignment(
 }
 
 /*!
- * \qmlproperty HAlignment UbuntuShape::sourceVerticalAlignment
- * \qmlproperty HAlignment UbuntuShape::secondarySourceVerticalAlignment
+ * \qmlproperty HAlignment UbuntuShape2::sourceVerticalAlignment
+ * \qmlproperty HAlignment UbuntuShape2::secondarySourceVerticalAlignment
  *
- * These properties define the vertical alignments used by the UbuntuShape to render the primary
+ * These properties define the vertical alignments used by the UbuntuShape2 to render the primary
  * and secondary sources. Default value is \c AlignTop for both.
  *
  * \list
- * \li UbuntuShape.AlignTop - the source is aligned to the top
- * \li UbuntuShape.AlignVCenter - the source is aligned to the vertical center
- * \li UbuntuShape.AlignBottom - the source is aligned to the bottom
+ * \li UbuntuShape2.AlignTop - the source is aligned to the top
+ * \li UbuntuShape2.AlignVCenter - the source is aligned to the vertical center
+ * \li UbuntuShape2.AlignBottom - the source is aligned to the bottom
  * \endlist
  */
 void UCUbuntuShape::setSourceVerticalAlignment(UCUbuntuShape::VAlignment sourceVerticalAlignment)
@@ -971,11 +975,11 @@ void UCUbuntuShape::setSourceVerticalAlignment(UCUbuntuShape::VAlignment sourceV
 }
 
 /*!
- * \qmlproperty vector2d UbuntuShape::sourceTranslation
- * \qmlproperty vector2d UbuntuShape::secondarySourceTranslation
+ * \qmlproperty vector2d UbuntuShape2::sourceTranslation
+ * \qmlproperty vector2d UbuntuShape2::secondarySourceTranslation
  *
- * This property holds the 2D translation in pixels used by the UbuntuShape to render the primary
- * source. Default value is \c {(0.0, 0.0)} for both.
+ * This property holds the 2D translation in pixels used by the UbuntuShape2 to render the primary
+ * source. Default value is \c {Qt.vector2d(0.0, 0.0)} for both.
  *
  * It can be used to animate the source. Interesting animations can be achieved using \c Repeat wrap
  * modes on seamless images like infinite scrolling background, progress bar, etc.
@@ -990,11 +994,11 @@ void UCUbuntuShape::setSourceTranslation(const QVector2D& sourceTranslation)
 }
 
 /*!
- * \qmlproperty vector2d UbuntuShape::sourceScale
- * \qmlproperty vector2d UbuntuShape::secondarySourceScale
+ * \qmlproperty vector2d UbuntuShape2::sourceScale
+ * \qmlproperty vector2d UbuntuShape2::secondarySourceScale
  *
- * This property holds the 2D scaling used by the UbuntuShape to render the primary source. Default
- * value is \c {(1.0, 1.0)} for both.
+ * This property holds the 2D scaling used by the UbuntuShape2 to render the primary source. Default
+ * value is \c {Qt.vector2d(1.0, 1.0)} for both.
  *
  * It can be used to flip the source horizontally and/or vertically with -1.0, to achieve pulse
  * effects, etc.
@@ -1190,11 +1194,9 @@ QSGNode* UCUbuntuShape::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData* d
     }
 
     // Store the source and secondary source texture coordinate scale and translate transformations.
-    for (int i = 0; i < 2; i++) {
-        if (texture[i]) {
+    for (int i = 0; i < 2; i++)
+        if (texture[i])
             updateFillMode(i, texture[i]);
-        }
-    }
 
     // Adjust corner radius to item size. The corner radius first needs to be clamped to 0.5 in
     // order to prevent rendering issues.
@@ -1204,13 +1206,17 @@ QSGNode* UCUbuntuShape::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData* d
     materialData_.adjustedCornerRadius = cornerRadius - overlapSize;
 
     // Store the corner scale and translate transformation.
-    const float sx = (geometry_.width() * 0.5f) / materialData_.adjustedCornerRadius;
-    const float sy = (geometry_.height() * 0.5f) / materialData_.adjustedCornerRadius;
+    const float width = geometry_.width();
+    const float height = geometry_.height();
+    const float sx = width / (2.0f * materialData_.adjustedCornerRadius);
+    const float sy = height / (2.0f * materialData_.adjustedCornerRadius);
     materialData_.cornerTransform = QVector4D(sx, sy, 1.0f - sx, 1.0f - sy);
+    materialData_.noCornerTransform = QVector4D(width, height, 1.0f - width, 1.0f - height);
 
     // Store shadow sizes.
-    const float shadowSizeOut = shadowSize_[1] > 1.0f ? shadowSize_[1] : 1.0f;
+    const float shadowSizeOut = qMax(1.0f, shadowSize_[1]);
     materialData_.shadowSize = QVector2D(0.0f, -materialData_.adjustedCornerRadius / shadowSizeOut);
+    // materialData_.shadowSize = QVector2D(0.0f, -0.5f / shadowSizeOut);
 
     // Update node.
     UCUbuntuShapeNode* node = oldNode ?
@@ -1320,6 +1326,7 @@ void UCUbuntuShapeShader::initialize()
     shadowColorId_ = program()->uniformLocation("shadowColor");
     radiusId_ = program()->uniformLocation("radius");
     cornerTransformId_ = program()->uniformLocation("cornerTransform");
+    noCornerTransformId_ = program()->uniformLocation("noCornerTransform");
     shadowSizeId_ = program()->uniformLocation("shadowSize");
     shadowOffsetId_ = program()->uniformLocation("shadowOffset");
     bgGradientIndexId_ = program()->uniformLocation("bgGradientIndex");
@@ -1392,6 +1399,7 @@ void UCUbuntuShapeShader::updateState(
     program()->setUniformValue(shadowSizeId_, data->shadowSize);
     program()->setUniformValueArray(shadowOffsetId_, data->shadowOffset, 2);
     program()->setUniformValue(cornerTransformId_, data->cornerTransform);
+    program()->setUniformValue(noCornerTransformId_, data->noCornerTransform);
     program()->setUniformValue(bgGradientIndexId_, data->backgroundGradientIndex);
     program()->setUniformValue(sourceOpacityId_, data->sourceOpacity);
     program()->setUniformValueArray(sourceFillId_, data->sourceFill, 2);

@@ -35,6 +35,8 @@ HEADERS += plugin.h \
     ucqquickimageextension.h \
     quickutils.h \
     giconprovider.h \
+    shapeitem.h \
+    shapeitemtexture.h \
     ucubuntushape.h \
     inversemouseareatype.h \
     bottombarvisibilitycommunicator.h \
@@ -56,6 +58,7 @@ SOURCES += plugin.cpp \
     ucqquickimageextension.cpp \
     quickutils.cpp \
     giconprovider.cpp \
+    shapeitem.cpp \
     ucubuntushape.cpp \
     inversemouseareatype.cpp \
     bottombarvisibilitycommunicator.cpp \

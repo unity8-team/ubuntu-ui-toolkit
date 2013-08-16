@@ -40,6 +40,7 @@ struct MaterialData
     QVector4D shadowColorPremultiplied[2];
     QVector4D overlaySteps;
     QVector4D cornerTransform;
+    QVector4D noCornerTransform;
     QVector2D shadowSize;
     QVector2D shadowOffset[2];
     QVector2D sourceOpacity;
@@ -78,6 +79,7 @@ class UCUbuntuShape : public QQuickItem
     Q_PROPERTY(ShapeMode shapeMode READ shapeMode WRITE setShapeMode NOTIFY shapeModeChanged)
     Q_PROPERTY(float cornerRadius READ cornerRadius WRITE setCornerRadius
                NOTIFY cornerRadiusChanged)
+            //Q_PROPERTY(Corner disabledCorners READ disabledCorners WRITE setDisabledCorners)
     Q_PROPERTY(QVariant customShape READ customShape WRITE setCustomShape NOTIFY customShapeChanged)
 
     // Background properties.
@@ -377,6 +379,7 @@ private:
     int shadowColorId_;
     int radiusId_;
     int cornerTransformId_;
+    int noCornerTransformId_;
     int shadowSizeId_;
     int shadowOffsetId_;
     int bgGradientIndexId_;
