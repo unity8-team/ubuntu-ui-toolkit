@@ -225,7 +225,7 @@ MaterialData::MaterialData()
     backgroundColorPremultiplied[0] = QVector4D(0.0f, 0.0f, 0.0f, 0.0f);
     backgroundColorPremultiplied[1] = QVector4D(0.0f, 0.0f, 0.0f, 0.0f);
     shadowColorPremultiplied[0] = QVector4D(0.75f, 0.75f, 0.75f, 0.75f);
-    shadowColorPremultiplied[1] = QVector4D(0.0f, 0.0f, 0.0f, 0.75f);
+    shadowColorPremultiplied[1] = QVector4D(0.0f, 0.0f, 0.0f, 0.5f);
     shadowOffset[0] = QVector2D(0.0f, 0.0f);
     shadowOffset[1] = QVector2D(0.0f, 0.0f);
     sourceFill[0] = QVector4D(1.0f, 1.0f, 0.0f, 0.0f);
@@ -300,7 +300,7 @@ UCUbuntuShape::UCUbuntuShape(QQuickItem* parent)
     backgroundColor_[0] = QColor(0.0f, 0.0f, 0.0f, 0.0f);
     backgroundColor_[1] = QColor(0.0f, 0.0f, 0.0f, 0.0f);
     shadowColor_[0] = QColor(1.0f, 1.0f, 1.0f, 0.75f);
-    shadowColor_[1] = QColor(0.0f, 0.0f, 0.0f, 0.75f);
+    shadowColor_[1] = QColor(0.0f, 0.0f, 0.0f, 0.5f);
     sourceTranslation_[0] = QVector2D(0.0f, 0.0f);
     sourceTranslation_[1] = QVector2D(0.0f, 0.0f);
     sourceScale_[0] = QVector2D(1.0f, 1.0f);
