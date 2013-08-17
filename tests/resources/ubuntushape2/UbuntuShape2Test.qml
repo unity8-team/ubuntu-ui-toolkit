@@ -3,7 +3,7 @@ import Ubuntu.Components 0.1
 
 Item {
     id: root
-    width: 900
+    width: 1000
     height: 600
     focus: true
 
@@ -37,8 +37,8 @@ Item {
     property real scale: 1.0
 
     // Shape properties.
-    property Image image: Image { source: "ubuntu.jpg" }
-    property Image secondaryImage: Image { source: "texture.jpg" }
+    property Image image: Image { source: "logo.svg"; sourceSize.width: shape.width - 100 }
+    property Image secondaryImage: Image { source: "" }
 
     // Overlay text properties.
     property int optionPage: 1
@@ -85,29 +85,32 @@ Item {
     Item {
         id: scene
         anchors.fill: parent
-        Rectangle {
+        Image {
             id: background
             anchors.fill: parent
-            color: "#7f7f7f"
+            source: "background.jpg"
+            fillMode: Image.Tile
         }
 
-        UbuntuShape {
+        UbuntuShape2 {
             id: shape
             anchors.fill: parent
             anchors.leftMargin: 400
             anchors.rightMargin: 200
             anchors.topMargin: 200
             anchors.bottomMargin: 200
-            cornerRadius: 20.0
-            backgroundColor: Qt.rgba(0.6, 0.6, 1.0, 1.0)
-            secondaryBackgroundColor: Qt.rgba(0.3, 0.3, 0.5, 1.0)
+            cornerRadius: 16.0
+            backgroundColor: Qt.rgba(1.0, 1.0, 1.0, 0.4)
             shadowSizeOut: 50.0
             shadowDistanceOut: 0.0
             source: root.image
+            sourceFillMode: UbuntuShape2.Pad
+            sourceHorizontalWrapMode: UbuntuShape2.ClampToBorder
+            sourceVerticalWrapMode: UbuntuShape2.ClampToBorder
             secondarySource: root.secondaryImage
-            secondarySourceFillMode: UbuntuShape.Pad
-            secondarySourceHorizontalWrapMode: UbuntuShape.Repeat
-            secondarySourceVerticalWrapMode: UbuntuShape.Repeat
+            secondarySourceFillMode: UbuntuShape2.Pad
+            secondarySourceHorizontalWrapMode: UbuntuShape2.Repeat
+            secondarySourceVerticalWrapMode: UbuntuShape2.Repeat
         }
     }
 
@@ -224,10 +227,10 @@ Item {
 
                 // Background.
                 } else if (event.key == Qt.Key_E) {
-                    shape.backgroundColor = Qt.rgba(Math.random(), Math.random(), Math.random(), 1.0);
+                    shape.backgroundColor = Qt.rgba(Math.random(), Math.random(), Math.random(), Math.random());
                 } else if (event.key == Qt.Key_R) {
                     shape.secondaryBackgroundColor =
-                    Qt.rgba(Math.random(), Math.random(), Math.random(), 1.0);
+                    Qt.rgba(Math.random(), Math.random(), Math.random(), Math.random());
                 } else if (event.key == Qt.Key_T) {
                     shape.backgroundMode = (shape.backgroundMode + 1) % 3;
 
