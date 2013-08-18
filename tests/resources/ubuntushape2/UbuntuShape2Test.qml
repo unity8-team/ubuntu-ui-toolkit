@@ -38,7 +38,7 @@ Item {
 
     // Shape properties.
     property Image image: Image { source: "logo.svg"; sourceSize.width: shape.width - 100 }
-    property Image secondaryImage: Image { source: "" }
+    property Image secondaryImage: Image { source: "grid.jpg" }
 
     // Overlay text properties.
     property int optionPage: 1
@@ -107,7 +107,7 @@ Item {
             sourceFillMode: UbuntuShape2.Pad
             sourceHorizontalWrapMode: UbuntuShape2.ClampToBorder
             sourceVerticalWrapMode: UbuntuShape2.ClampToBorder
-            secondarySource: root.secondaryImage
+            secondarySourceOpacity: 0.4
             secondarySourceFillMode: UbuntuShape2.Pad
             secondarySourceHorizontalWrapMode: UbuntuShape2.Repeat
             secondarySourceVerticalWrapMode: UbuntuShape2.Repeat

@@ -85,7 +85,7 @@ static const char* const kFragmentShader =
     "void main()                                                                                 \n"
     "{                                                                                           \n"
     //   Early texture fetches to cover latency. Since OpenGL ES 2 doesn't have support for border
-    //   clamping in texture samplers, we have to do it in the fragment shader.
+    //   clamping in texture samplers, we have to emulate it in the fragment shader.
     "    highp vec4 texture[2];                                                                  \n"
     "    highp vec2 opacity = sourceOpacity;                                                     \n"
     "    for (int i = 0; i < 2; i++) {                                                           \n"
