@@ -32,6 +32,10 @@ ListModel {
         source: "Buttons.qml"
     }
     ListElement {
+        label: "Settings"
+        source: "AppSettings.qml"
+    }
+    ListElement {
         label: "Slider"
         source: "Sliders.qml"
     }

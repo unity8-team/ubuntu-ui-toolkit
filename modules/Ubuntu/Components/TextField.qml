@@ -71,7 +71,7 @@ import QtQuick 2.0
     \endqml
 */
 
-StyledItem {
+ActionItem {
     id: control
 
     implicitWidth: units.gu(25)
@@ -580,6 +580,28 @@ StyledItem {
     */
     signal accepted()
 
+    /*!
+      \internal
+      If used with an action or Option accepting propagates the new text.
+    */
+    onAccepted: {
+        control.triggered(control.text)
+    }
+
+    /*!
+      \internal
+      Use the action parameter type for a default input method hint.
+    */
+    property int __type: action ? action.parameterType : 0
+    on__TypeChanged: {
+        // Don't undo explicitly specified hints
+        if (inputMethodHints != Qt.ImhNone)
+            return
+
+        /* FIXME: can we use UnityActions.Action.Type here? */
+        if (__type == 2 || __type == 4)
+            inputMethodHints = Qt.ImhDigitsOnly
+    }
 
     /*!
       Copies the currently selected text to the system clipboard.

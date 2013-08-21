@@ -8,6 +8,8 @@ ToolbarItems 0.1 ToolbarItems.qml
 ToolbarButton 0.1 ToolbarButton.qml
 MainView 0.1 MainView.qml
 Button 0.1 Button.qml
+Settings 0.1 Settings.qml
+Option 0.1 Option.qml
 Panel 0.1 Panel.qml
 internal DraggingArea DraggingArea.qml
 Tab 0.1 Tab.qml
