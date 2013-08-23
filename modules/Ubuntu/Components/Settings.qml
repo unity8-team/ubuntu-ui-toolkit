@@ -64,8 +64,29 @@ Item {
       */
     property bool persistent: true
 
-    U1db.Database {
-        id: __database
-        path: persistent ? "settings.db" : null
+    Component.onCompleted: {
+        var defaultValues = {}
+        for(var item in resources) {
+            var child = resources[item]
+            if (child.hasOwnProperty("name")
+             && child.hasOwnProperty("defaultValue")) {
+                if (child.name != null && child.defaultValue != null)
+                    defaultValues[child.name] = child.defaultValue
+                else
+                    console.log("Ignoring incomplete Option declaration %1 in %2"
+                        .arg(child.name ? child.name : child.objectName).arg(group))
+            }
+        }
+        __doc.defaults = defaultValues;
+        __doc.create = true
+    }
+
+    U1db.Document {
+        id: __doc
+        docId: group
+        create: false
+        database: U1db.Database {
+            path: persistent ? "settings.db" : ":memory:"
+        }
     }
 }
