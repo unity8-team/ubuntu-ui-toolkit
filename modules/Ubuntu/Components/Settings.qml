@@ -48,6 +48,7 @@ import U1db 1.0 as U1db
     \endqml
 */
 Item {
+    id: settings
     /*!
       An optional group for these settings.
       */
@@ -65,13 +66,19 @@ Item {
     property bool persistent: true
 
     Component.onCompleted: {
+        if (!SettingsStorage.addGroup(group, settings)) {
+            console.log("Non-unique Settings declared with the group '%1'".arg(group))
+            return
+        }
         var defaultValues = {}
         for(var item in resources) {
             var child = resources[item]
             if (child.hasOwnProperty("name")
              && child.hasOwnProperty("defaultValue")) {
-                if (child.name != null && child.defaultValue != null)
+                if (child.name != null && child.defaultValue != null) {
                     defaultValues[child.name] = child.defaultValue
+                    child.__doc = __doc
+                }
                 else
                     console.log("Ignoring incomplete Option declaration %1 in %2"
                         .arg(child.name ? child.name : child.objectName).arg(group))
@@ -85,6 +92,17 @@ Item {
         id: __doc
         docId: group
         create: false
+        onContentsChanged: {
+            if (!__doc.contents)
+                return
+            for(var item in resources) {
+                var child = resources[item]
+                if (child.hasOwnProperty("name")
+                 && child.hasOwnProperty("defaultValue")) {
+                    child.value = __doc.contents[child.name]
+                }
+            }
+        }
         database: U1db.Database {
             path: persistent ? "settings.db" : ":memory:"
         }

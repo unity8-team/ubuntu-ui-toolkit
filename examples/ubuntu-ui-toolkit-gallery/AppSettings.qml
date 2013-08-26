@@ -25,7 +25,7 @@ Template {
             title: i18n.tr("Boolean")
 
             Settings {
-                objectName: "setting_boolean"
+                group: "setting_boolean"
                 Option {
                     id: optionVibrate
                     name: "vibrate"
@@ -46,7 +46,7 @@ Template {
         TemplateRow {
             title: i18n.tr("String")
             Settings {
-                objectName: "settings_string"
+                group: "settings_string"
                 Option {
                     id: optionHomepage
                     name: "homepage"
@@ -67,7 +67,7 @@ Template {
         TemplateRow {
             title: i18n.tr("Integer")
             Settings {
-                objectName: "settings_int"
+                group: "settings_int"
                 Option {
                     id: optionYearOfBirth
                     name: "yeahOfBirth"

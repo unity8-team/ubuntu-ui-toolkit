@@ -15,6 +15,7 @@
  */
 
 import QtQuick 2.0
+import U1db 1.0 as U1db
 
 /*!
     \qmltype Option
@@ -59,6 +60,18 @@ Action {
       The current value, either a default, locally saved state or synchronized.
       */
     property var value: defaultValue
+    onValueChanged: {
+        if (__doc) {
+            var ct = __doc.contents
+            ct[name] = value
+            __doc.contents = ct
+        }
+    }
+    /*!
+      \internal
+      The document to propagate changes to.
+      */
+    property var __doc: null
 
     onDefaultValueChanged: {
         /* FIXME: UnityActions.Action.Type.String doesn't work */

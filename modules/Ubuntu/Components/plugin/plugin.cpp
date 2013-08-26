@@ -181,6 +181,8 @@ void UbuntuComponentsPlugin::initializeEngine(QQmlEngine *engine, const char *ur
 
     // register UbuntuColors
     registerQmlSingletonType(engine, uri, "UbuntuColors", "Colors/UbuntuColors.qml");
+    // register Settings
+    registerQmlSingletonType(engine, uri, "SettingsStorage", "SettingsStorage.qml");
 
     engine->addImageProvider(QLatin1String("scaling"), new UCScalingImageProvider);
 
