@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Canonical Ltd.
+ * Copyright 2012 Canonical Ltd.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,14 +14,5 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
-import QtQuick 2.0
-import Ubuntu.Components.Themes.Ambiance 0.1
-
-OptionSelectorStyle {
-    id: suruGradientStyle
-
-    chevron: "artwork/chevron_down@30.png"
-    tick: "artwork/tick@30.png"
-    colourComponent: false
-}
+#include <QtQuickTest/quicktest.h>
+QUICK_TEST_MAIN(theme)

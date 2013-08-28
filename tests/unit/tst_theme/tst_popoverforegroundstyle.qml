@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Canonical Ltd.
+ * Copyright 2012 Canonical Ltd.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -12,12 +12,32 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
  */
-
 import QtQuick 2.0
+import QtTest 1.0
+import Ubuntu.Components 0.1
 import Ubuntu.Components.Themes.Ambiance 0.1
+import Ubuntu.Components.Popups 0.1
 
-OptionSelectorStyle {
-    id: suruDarkStyle
+TestCase {
+    name: "PopupsPopoverAPI"
+
+    function test_show() {
+        popOver.show()
+    }
+
+    Popover {
+        id: popOver
+
+        foregroundStyle: testForegroundStyle
+        Text {
+            text: "Hello Popover!"
+        }
+    }
+
+    Component {
+        id: testForegroundStyle
+        PopoverForegroundStyle {
+        }
+    }
 }

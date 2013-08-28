@@ -56,6 +56,7 @@ class GenericTests(GalleryTestCase):
         self.assertThat(rootItem, Not(Is(None)))
         self.assertThat(rootItem.visible, Eventually(Equals(True)))
 
+<<<<<<< TREE
     #def test_can_select_listview(self):
     #    """Must be able to select the listview from main"""
 
@@ -102,6 +103,53 @@ class GenericTests(GalleryTestCase):
     #        self.checkListItem(item)
     #        self.loadItem(item)
     #        self.checkPageHeader(item)
+=======
+    def test_can_select_listview(self):
+        """Must be able to select the listview from main"""
+
+        contentLoader, listView = self.getWidgetLoaderAndListView()
+
+        # Don't have the first, already selected item as the first item to
+        # check.
+        items = [
+            "Navigation",
+            "Toggles",
+            "Buttons",
+            "Slider",
+            "Text Field",
+            "Progress and activity",
+            "Ubuntu Shape",
+            "Icons",
+            "Label",
+            "List Items",
+        ]
+
+        for item in items:
+            self.checkListItem(item)
+            self.loadItem(item)
+            self.checkPageHeader(item)
+
+        # scroll view to expose more items
+        self.drag("Icons", "Text Field")
+
+        # Wait for the scrolling to finish, the next click fails on the
+        # slower Intel machine but succeeds on AMD and NVIDIA.
+        # (LP: #1180226)
+        time.sleep(1)
+
+        # now that we have more items, lets continue
+        items = [
+            "Dialog",
+            "Popover",
+            "Sheet",
+            "Animations"
+        ]
+
+        for item in items:
+            self.checkListItem(item)
+            self.loadItem(item)
+            self.checkPageHeader(item)
+>>>>>>> MERGE-SOURCE
 
     def test_navigation(self):
         item = "Navigation"
