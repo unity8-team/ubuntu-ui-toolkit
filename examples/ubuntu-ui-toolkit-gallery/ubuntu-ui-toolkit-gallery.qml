@@ -35,7 +35,7 @@ MainView {
      This property enables the application to change orientation
      when the device is rotated. The default is false.
     */
-    automaticOrientation: true
+    automaticOrientation: false
 
     state: wideAspect ? "wide" : ""
     states: [
