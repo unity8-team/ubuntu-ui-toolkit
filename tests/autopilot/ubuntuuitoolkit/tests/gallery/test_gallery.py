@@ -199,40 +199,40 @@ class GenericTests(GalleryTestCase):
 
             # self.assertThat(obj.text,Equals("Hello World!"))
 
-    def test_textfield(self):
-        item = "Text Field"
-        self.loadItem(item)
-        self.checkPageHeader(item)
+    #def test_textfield(self):
+    #    item = "Text Field"
+    #    self.loadItem(item)
+    #    self.checkPageHeader(item)
 
-        self.getObject("textinputs")
+    #    self.getObject("textinputs")
 
-        item_data = [
-            ["textfield_standard", True, 0, "", None],
-            ["textfield_password", True, 2, "password", None],
-            ["textfield_numbers", True, 0, "123", True],
-            ["textfield_disabled", False, 0, "", None],
-        ]
+    #    item_data = [
+    #        ["textfield_standard", True, 0, "", None],
+    #        ["textfield_password", True, 2, "password", None],
+    #        ["textfield_numbers", True, 0, "123", True],
+    #        ["textfield_disabled", False, 0, "", None],
+    #    ]
 
-        for data in item_data:
-            objName = data[0]
-            objEnabled = data[1]
-            objEchoMode = data[2]
-            objText = data[3]
-            objNumbersOnly = data[4]
+    #    for data in item_data:
+    #        objName = data[0]
+    #        objEnabled = data[1]
+    #        objEchoMode = data[2]
+    #        objText = data[3]
+    #        objNumbersOnly = data[4]
 
-            obj = self.getObject(objName)
-            self.tap(objName)
+    #        obj = self.getObject(objName)
+    #        self.tap(objName)
 
-            self.assertThat(obj.enabled, Equals(objEnabled))
-            self.assertThat(obj.focus, Equals(obj.enabled))
-            self.assertThat(obj.highlighted, Equals(obj.focus))
-            self.assertThat(obj.errorHighlight, Equals(False))
-            self.assertThat(obj.acceptableInput, Equals(True))
-            self.assertThat(obj.hasClearButton, Equals(True))
-            self.assertThat(obj.text, Equals(objText))
+    #        self.assertThat(obj.enabled, Equals(objEnabled))
+    #        self.assertThat(obj.focus, Equals(obj.enabled))
+    #        self.assertThat(obj.highlighted, Equals(obj.focus))
+    #        self.assertThat(obj.errorHighlight, Equals(False))
+    #        self.assertThat(obj.acceptableInput, Equals(True))
+    #        self.assertThat(obj.hasClearButton, Equals(True))
+    #        self.assertThat(obj.text, Equals(objText))
 
-            if (objEchoMode != -1):
-                self.assertThat(obj.echoMode, Equals(objEchoMode))
+    #        if (objEchoMode != -1):
+    #            self.assertThat(obj.echoMode, Equals(objEchoMode))
 
             #if (objNumbersOnly):
             #    self.type_string("abc")
