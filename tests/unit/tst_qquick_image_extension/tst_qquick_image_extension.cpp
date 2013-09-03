@@ -55,7 +55,7 @@ private Q_SLOTS:
     void scaledBorderDouble() {
         UCQQuickImageExtension image;
         QString border = "border: 13";
-        QString expected = "border: 26";
+        QString expected = "border: 13";
         QString result = image.scaledBorder(border, "2");
         QCOMPARE(result, expected);
     }

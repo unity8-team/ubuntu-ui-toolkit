@@ -50,6 +50,7 @@ Item {
             left: parent.left
             right: parent.right
         }
+        height: units.dp(15)
         source: headerStyle.separatorSource
     }
     Image {

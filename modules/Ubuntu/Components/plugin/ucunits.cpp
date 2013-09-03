@@ -24,9 +24,9 @@
 #include <QtCore/QDir>
 #include <QtCore/QRegularExpression>
 #include <QtCore/qmath.h>
+#include <QtCore/QDebug>
 
 #define ENV_GRID_UNIT_PX "GRID_UNIT_PX"
-#define DEFAULT_GRID_UNIT_PX 8
 
 static float getenvFloat(const char* name, float defaultValue)
 {
@@ -80,6 +80,12 @@ float UCUnits::gridUnit()
 
 void UCUnits::setGridUnit(float gridUnit)
 {
+    /* Implementation of resolution independence is spread accross
+       the toolkit and qtubuntu. The number of pixels for a grid unit
+       is read by both from the environment variable GRID_UNIT_PX.
+       Setting the 'gridUnit' property here has no effect.
+    */
+    qWarning() << "UCUnits::setGridUnit is deprecated.";
     m_gridUnit = gridUnit;
     Q_EMIT gridUnitChanged();
 }
@@ -91,13 +97,7 @@ void UCUnits::setGridUnit(float gridUnit)
 */
 float UCUnits::dp(float value)
 {
-    const float ratio = m_gridUnit / DEFAULT_GRID_UNIT_PX;
-    if (value <= 2.0) {
-        // for values under 2dp, return only multiples of the value
-        return qRound(value * qFloor(ratio));
-    } else {
-        return qRound(value * ratio);
-    }
+    return qRound(value);
 }
 
 /*!
@@ -107,7 +107,7 @@ float UCUnits::dp(float value)
 */
 float UCUnits::gu(float value)
 {
-    return qRound(value * m_gridUnit);
+    return qRound(value * DEFAULT_GRID_UNIT_PX);
 }
 
 QString UCUnits::resolveResource(const QUrl& url)

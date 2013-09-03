@@ -85,72 +85,72 @@ private Q_SLOTS:
         QCOMPARE(units.dp(0.23), 0.0f);
         QCOMPARE(units.dp(0.51), 1.0f);
         QCOMPARE(units.dp(0.9999), 1.0f);
-        QCOMPARE(units.dp(1000.01), 1250.0f);
+        QCOMPARE(units.dp(1000.01), 1000.0f);
     }
 
     void guGridUnitTen() {
         UCUnits units;
         units.setGridUnit(10);
 
-        QCOMPARE(units.gu(0.5), 5.0f);
-        QCOMPARE(units.gu(1), 10.0f);
-        QCOMPARE(units.gu(1.5), 15.0f);
-        QCOMPARE(units.gu(2), 20.0f);
-        QCOMPARE(units.gu(4), 40.0f);
-        QCOMPARE(units.gu(100000), 1000000.0f);
-        QCOMPARE(units.gu(150.51983), 1505.0f);
+        QCOMPARE(units.gu(0.5), 4.0f);
+        QCOMPARE(units.gu(1), 8.0f);
+        QCOMPARE(units.gu(1.5), 12.0f);
+        QCOMPARE(units.gu(2), 16.0f);
+        QCOMPARE(units.gu(4), 32.0f);
+        QCOMPARE(units.gu(100000), 800000.0f);
+        QCOMPARE(units.gu(150.51983), 1204.0f);
     }
 
     void dpGridUnitSixteen() {
         UCUnits units;
         units.setGridUnit(16);
 
-        QCOMPARE(units.dp(1.0), 2.0f);
-        QCOMPARE(units.dp(1.32), 3.0f);
-        QCOMPARE(units.dp(1.72), 3.0f);
+        QCOMPARE(units.dp(1.0), 1.0f);
+        QCOMPARE(units.dp(1.32), 1.0f);
+        QCOMPARE(units.dp(1.72), 2.0f);
         QCOMPARE(units.dp(0.23), 0.0f);
         QCOMPARE(units.dp(0.51), 1.0f);
-        QCOMPARE(units.dp(0.9999), 2.0f);
-        QCOMPARE(units.dp(1000.01), 2000.0f);
+        QCOMPARE(units.dp(0.9999), 1.0f);
+        QCOMPARE(units.dp(1000.01), 1000.0f);
     }
 
     void guGridUnitSixteen() {
         UCUnits units;
         units.setGridUnit(16);
 
-        QCOMPARE(units.gu(0.5), 8.0f);
-        QCOMPARE(units.gu(1), 16.0f);
-        QCOMPARE(units.gu(1.5), 24.0f);
-        QCOMPARE(units.gu(2), 32.0f);
-        QCOMPARE(units.gu(4), 64.0f);
-        QCOMPARE(units.gu(100000), 1600000.0f);
-        QCOMPARE(units.gu(150.51983), 2408.0f);
+        QCOMPARE(units.gu(0.5), 4.0f);
+        QCOMPARE(units.gu(1), 8.0f);
+        QCOMPARE(units.gu(1.5), 12.0f);
+        QCOMPARE(units.gu(2), 16.0f);
+        QCOMPARE(units.gu(4), 32.0f);
+        QCOMPARE(units.gu(100000), 800000.0f);
+        QCOMPARE(units.gu(150.51983), 1204.0f);
     }
 
     void dpGridUnitEighteen() {
         UCUnits units;
         units.setGridUnit(18);
 
-        QCOMPARE(units.dp(1.0), 2.0f);
-        QCOMPARE(units.dp(1.32), 3.0f);
-        QCOMPARE(units.dp(1.72), 3.0f);
+        QCOMPARE(units.dp(1.0), 1.0f);
+        QCOMPARE(units.dp(1.32), 1.0f);
+        QCOMPARE(units.dp(1.72), 2.0f);
         QCOMPARE(units.dp(0.23), 0.0f);
         QCOMPARE(units.dp(0.51), 1.0f);
-        QCOMPARE(units.dp(0.9999), 2.0f);
-        QCOMPARE(units.dp(1000.01), 2250.0f);
+        QCOMPARE(units.dp(0.9999), 1.0f);
+        QCOMPARE(units.dp(1000.01), 1000.0f);
     }
 
     void dpGridUnitTwenty() {
         UCUnits units;
         units.setGridUnit(20);
 
-        QCOMPARE(units.dp(1.0), 2.0f);
-        QCOMPARE(units.dp(1.32), 3.0f);
-        QCOMPARE(units.dp(1.72), 3.0f);
+        QCOMPARE(units.dp(1.0), 1.0f);
+        QCOMPARE(units.dp(1.32), 1.0f);
+        QCOMPARE(units.dp(1.72), 2.0f);
         QCOMPARE(units.dp(0.23), 0.0f);
         QCOMPARE(units.dp(0.51), 1.0f);
-        QCOMPARE(units.dp(0.9999), 2.0f);
-        QCOMPARE(units.dp(1000.01), 2500.0f);
+        QCOMPARE(units.dp(0.9999), 1.0f);
+        QCOMPARE(units.dp(1000.01), 1000.0f);
     }
 
     void resolveEmpty() {

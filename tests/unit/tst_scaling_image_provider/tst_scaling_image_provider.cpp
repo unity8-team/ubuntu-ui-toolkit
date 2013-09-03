@@ -67,10 +67,10 @@ private Q_SLOTS:
         QTest::newRow("downscaling, smaller width")          << inputFile << "0.5" << QSize(50, 1000) << QSize(64, 128) << QSize(50, 100);
         QTest::newRow("downscaling, smaller height")         << inputFile << "0.5" << QSize(1000, 50) << QSize(64, 128) << QSize(25, 50);
         QTest::newRow("downscaling, smaller width and height")<< inputFile << "0.5" << QSize(50, 50) << QSize(64, 128) << QSize(25, 50);
-        QTest::newRow("upscaling, bigger width and height")  << inputFile << "2.0" << QSize(1000, 1000) << QSize(256, 512) << QSize(256, 512);
-        QTest::newRow("upscaling, smaller width")            << inputFile << "2.0" << QSize(50, 1000) << QSize(256, 512) << QSize(50, 100);
-        QTest::newRow("upscaling, smaller height")           << inputFile << "2.0" << QSize(1000, 50) << QSize(256, 512) << QSize(25, 50);
-        QTest::newRow("upscaling, smaller width and height") << inputFile << "2.0" << QSize(50, 50) << QSize(256, 512) << QSize(25, 50);
+        QTest::newRow("upscaling, bigger width and height")  << inputFile << "2.0" << QSize(1000, 1000) << QSize(128, 256) << QSize(128, 256);
+        QTest::newRow("upscaling, smaller width")            << inputFile << "2.0" << QSize(50, 1000) << QSize(128, 256) << QSize(50, 100);
+        QTest::newRow("upscaling, smaller height")           << inputFile << "2.0" << QSize(1000, 50) << QSize(128, 256) << QSize(25, 50);
+        QTest::newRow("upscaling, smaller width and height") << inputFile << "2.0" << QSize(50, 50) << QSize(128, 256) << QSize(25, 50);
     }
 
     void respectRequestedSize() {

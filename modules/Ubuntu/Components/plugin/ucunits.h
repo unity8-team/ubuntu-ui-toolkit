@@ -23,6 +23,8 @@
 #include <QtCore/QHash>
 #include <QtCore/QUrl>
 
+#define DEFAULT_GRID_UNIT_PX 8
+
 class UCUnits : public QObject
 {
     Q_OBJECT
