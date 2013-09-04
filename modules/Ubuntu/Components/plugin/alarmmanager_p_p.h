@@ -19,41 +19,30 @@
 #ifndef ALARMMANAGER_P_H
 #define ALARMMANAGER_P_H
 
+#include "ucalarm.h"
 #include "alarmmanager_p.h"
 #include <QtCore/QUrl>
 
-class AlarmManagerPrivate : public QObject
+class AlarmManagerPrivate
 {
-    Q_OBJECT
     Q_DECLARE_PUBLIC(AlarmManager)
 public:
     AlarmManagerPrivate(AlarmManager *qq);
     virtual ~AlarmManagerPrivate();
 
+    static AlarmManagerPrivate *get(AlarmManager *instance = 0) {
+        if (!instance) {
+            return AlarmManager::instance().d_func();
+        } else {
+            return instance->d_func();
+        }
+    }
+
+    AlarmManager *q_ptr;
     QList<AlarmData> alarmList;
     bool completed:1;
 
-    // utility functions
-    static UCAlarm::DayOfWeek dayOfWeek(const QDateTime &dt);
-    static int firstDayOfWeek(UCAlarm::DaysOfWeek days);
-    static int nextDayOfWeek(UCAlarm::DaysOfWeek days, int fromDay);
-    static bool multipleDaysSet(UCAlarm::DaysOfWeek days);
-
-    // adaptation methods
-    virtual int addAlarm(AlarmData &alarm) = 0;
-    virtual int updateAlarm(AlarmData &alarm) = 0;
-    virtual int removeAlarm(AlarmData &alarm) = 0;
-protected Q_SLOTS:
-    virtual void fetchAlarms() = 0;
-
-protected:
-    AlarmManager *q_ptr;
-
-private:
-    UCAlarm::Error checkAlarm(AlarmData &alarm, int &changes);
-    UCAlarm::Error checkDow(AlarmData &alarm, int &changes);
-    UCAlarm::Error checkOneTime(AlarmData &alarm, int &changes);
-    UCAlarm::Error checkRepeatingWeekly(AlarmData &alarm, int &changes);
+    virtual bool fetchAlarms() = 0;
 };
 
 AlarmManagerPrivate * createAlarmsAdapter(AlarmManager *alarms);

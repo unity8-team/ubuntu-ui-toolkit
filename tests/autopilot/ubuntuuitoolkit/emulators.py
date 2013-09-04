@@ -31,7 +31,7 @@ def get_pointing_device():
     If not, the pointing device will be `Touch`.
 
     """
-    if platform.model == 'Desktop':
+    if platform.model() == 'Desktop':
         input_device_class = input.Mouse
     else:
         input_device_class = input.Touch
@@ -241,6 +241,9 @@ class TabBar(UbuntuUIToolkitEmulatorBase):
         """Open the next tab."""
         # Click the tab bar to switch to selection mode.
         self.pointing_device.click_object(self)
+        if not self.selectionMode:
+            # in case someone stole the click, like the open toolbar
+            self.pointing_device.click_object(self)
         self.pointing_device.click_object(self._get_next_tab_button())
 
     def _get_next_tab_button(self):
