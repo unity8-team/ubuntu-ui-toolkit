@@ -51,6 +51,13 @@ AbstractButton {
       \internal
      */
     onClicked: checked = !checked
+    /*!
+      Overriding trigger() of ActionItem to pass the boolean value
+     */
+    function trigger(value) {
+        // Note: The checked value is reversed here!
+        if (enabled) triggered(!checked)
+    }
 
     style: Theme.createStyleComponent("CheckBoxStyle.qml", checkBox)
 }

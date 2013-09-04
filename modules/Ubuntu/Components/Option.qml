@@ -86,10 +86,6 @@ Action {
     }
 
     onTriggered: {
-        // AbstractButton passes the caller instead of a value
-        if (typeof value == "string" || typeof value == "number")
-            option.value = value
-        else
-            option.value = !option.value
+        option.value = value
     }
 }
