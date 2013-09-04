@@ -48,6 +48,7 @@ Template {
                 objectName: "textfield_standard"
                 placeholderText: i18n.tr("Type me in...")
                 width: parent.width
+                StateSaver.properties: ["text"]
             }
         }
 

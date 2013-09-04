@@ -29,6 +29,7 @@ MainView {
 
     width: units.gu(120)
     height: units.gu(75)
+    StateSaver.properties: ["width", "height"]
 
     property bool wideAspect: width >= units.gu(80)
     /*
@@ -71,7 +72,17 @@ MainView {
 
         Page {
             id: mainPage
-            title: "Ubuntu UI Toolkit"
+            StateSaver.properties: ["testStateSaver"]
+            property int testStateSaver
+            testStateSaver: 10
+            Timer {
+                interval: 100
+                onTriggered: mainPage.testStateSaver += 1
+                repeat: true
+                running: true
+            }
+
+            title: testStateSaver//"Ubuntu UI Toolkit"
             visible: false
             flickable: widgetList
 
@@ -106,6 +117,7 @@ MainView {
             visible: false
             property alias source: contentLoader.source
             onActiveChanged: if (!active) source = ""
+            StateSaver.properties: ["source"]
 
             tools: contentLoader.item && contentLoader.item.tools ? contentLoader.item.tools : null
             flickable: contentLoader.item && !wideAspect ? contentLoader.item.flickable : null

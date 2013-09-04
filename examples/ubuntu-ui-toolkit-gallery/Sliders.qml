@@ -18,17 +18,23 @@ import QtQuick 2.0
 import Ubuntu.Components 0.1
 
 Template {
+    id: templateSlider
     TemplateSection {
+        id: templateSection1
         className: "Slider"
         spacing: units.gu(5)
 
         TemplateFlow {
+            id: templateFlow1
             title: i18n.tr("Standard")
 
             Slider {
                 id: defaultSlider
                 objectName: "slider_standard"
                 width: parent.width
+                Component.onCompleted: print("SLIDER defaultSlider COMPLETED", value)
+                onValueChanged: print("SLIDER  defaultSlider VALUE CHANGED", value)
+                value: 10
             }
             Label {
                 text: i18n.tr("Actual value: %1").arg(defaultSlider.value)
@@ -37,6 +43,7 @@ Template {
         }
 
         TemplateFlow {
+            id: templateFlow2
             title: i18n.tr("Live Update")
 
             Slider {
@@ -44,13 +51,16 @@ Template {
                 objectName: "slider_live"
                 width: parent.width
                 live: true
+                Component.onCompleted: print("SLIDER liveSlider COMPLETED", value)
+                onValueChanged: print("SLIDER  liveSlider VALUE CHANGED", value)
+                StateSaver.enabled: true
             }
             Label {
                 text: i18n.tr("Actual value: %1").arg(liveSlider.value)
                 font.weight: Font.Light
             }
         }
-
+/*
         TemplateFlow {
             title: i18n.tr("Range")
 
@@ -66,6 +76,6 @@ Template {
                 text: i18n.tr("Actual value: %1").arg(rangeSlider.value)
                 font.weight: Font.Light
             }
-        }
+        }*/
     }
 }
