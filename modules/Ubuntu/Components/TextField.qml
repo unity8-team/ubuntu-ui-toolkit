@@ -1001,6 +1001,8 @@ ActionItem {
         }
         // get the control's style
         clip: true
+        // If action is an Option we want to prefill the text from its value
+        text: action && action.hasOwnProperty("value") ? action.value : ""
         onTextChanged: internal.textChanged = true
         cursorDelegate: cursor
         color: control.__styleInstance.color

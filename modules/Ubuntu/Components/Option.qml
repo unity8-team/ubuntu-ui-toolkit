@@ -47,7 +47,6 @@ import U1db 1.0 as U1db
             }
             Switch {
                 action: optionVibrate
-                text: optionVibrate.value
             }
         }
         Row {
@@ -56,7 +55,6 @@ import U1db 1.0 as U1db
             }
             TextField {
                 action: optionNickname
-                text: optionNickname.value
             }
         }
     }

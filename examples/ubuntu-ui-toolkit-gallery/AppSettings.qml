@@ -40,7 +40,6 @@ Template {
 
             Switch {
                 action: optionVibrate
-                checked: optionVibrate.value
             }
         }
 
@@ -62,7 +61,6 @@ Template {
 
             TextField {
                 action: optionHomepage
-                text: optionHomepage.value
             }
         }
 
@@ -84,7 +82,6 @@ Template {
 
             TextField {
                 action: optionYearOfBirth
-                text: optionYearOfBirth.value
             }
         }
     }
