@@ -18,6 +18,8 @@
 
 #include "downloadmanager.h"
 
+#include <QtCore/QList>
+
 class DownloadManagerPrivate {
     Q_DECLARE_PUBLIC(DownloadManager)
 
@@ -26,18 +28,21 @@ public:
     ~DownloadManagerPrivate() {}
 
     DownloadManager* q_ptr;
+
+    QList<DownloadRequest*> requests;
 };
 
 DownloadManager::DownloadManager(QObject* parent)
     : QAbstractListModel(parent)
     , d_ptr(new DownloadManagerPrivate(this))
 {
-    // TODO
 }
 
 DownloadManager::~DownloadManager()
 {
-    // TODO
+    Q_D(DownloadManager);
+    qDeleteAll(d->requests);
+    d->requests.clear();
 }
 
 QHash<int, QByteArray> DownloadManager::roleNames() const
@@ -64,11 +69,87 @@ QHash<int, QByteArray> DownloadManager::roleNames() const
 int DownloadManager::rowCount(const QModelIndex& parent) const
 {
     Q_UNUSED(parent);
-    return 0; // TODO: implement me
+    Q_D(const DownloadManager);
+    return d->requests.count();
 }
 
 QVariant DownloadManager::data(const QModelIndex& index, int role) const
 {
-    // TODO: implement me
-    return QVariant();
+    if (!index.isValid()) {
+        return QVariant();
+    }
+    Q_D(const DownloadManager);
+    DownloadRequest* request = d->requests.at(index.row());
+    switch (role) {
+    case DownloadId:
+        return request->downloadId();
+    case Method:
+        return request->method();
+    case Checksum:
+        return request->checksum();
+    case Algorithm:
+        return request->algorithm();
+    case AllowedOverData:
+        return request->allowedOverData();
+    case AllowedOverWifi:
+        return request->allowedOverWifi();
+    case AdditionalHeaders:
+        return request->additionalHeaders();
+    case Uri:
+        return request->uri();
+    case FileName:
+        return request->fileName();
+    case DownloadedFilePath:
+        return request->downloadedFilePath();
+    case MimeType:
+        return request->mimeType();
+    case Status:
+        return request->status();
+    case Progress:
+        return request->progress();
+    default:
+        return QVariant();
+    }
+}
+
+DownloadRequest* DownloadManager::requestDownload(const QUrl& uri)
+{
+    Q_D(DownloadManager);
+    DownloadRequest* request = new DownloadRequest;
+    request->setUri(uri);
+    beginInsertRows(QModelIndex(), 0, 0);
+    d->requests.prepend(request);
+    endInsertRows();
+    return request;
+}
+
+DownloadRequest* DownloadManager::getDownloadRequest(const int id) const
+{
+    Q_D(const DownloadManager);
+    Q_FOREACH(DownloadRequest* request, d->requests) {
+        if (request->downloadId() == id) {
+            return request;
+        }
+    }
+    return 0;
+}
+
+void DownloadManager::start(const int id)
+{
+    // TODO
+}
+
+void DownloadManager::pause(const int id)
+{
+    // TODO
+}
+
+void DownloadManager::resume(const int id)
+{
+    // TODO
+}
+
+void DownloadManager::cancel(const int id)
+{
+    // TODO
 }

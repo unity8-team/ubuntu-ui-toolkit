@@ -57,8 +57,8 @@ public:
     int rowCount(const QModelIndex& parent=QModelIndex()) const;
     QVariant data(const QModelIndex& index, int role) const;
 
-    const DownloadRequest& requestDownload(const QUrl& uri);
-    const DownloadRequest& getDownloadRequest(const int id) const;
+    DownloadRequest* requestDownload(const QUrl& uri);
+    DownloadRequest* getDownloadRequest(const int id) const;
     void start(const int id);
     void pause(const int id);
     void resume(const int id);
