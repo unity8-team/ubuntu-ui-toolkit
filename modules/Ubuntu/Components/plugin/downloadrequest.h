@@ -33,7 +33,7 @@ class DownloadRequest : public QObject
 {
     Q_OBJECT
 
-    Q_ENUMS(Method Algorithm DownloadStatus)
+    Q_ENUMS(Method Algorithm Status)
 
     Q_PROPERTY(int downloadId READ downloadId)
     Q_PROPERTY(Method method READ method WRITE setMethod NOTIFY methodChanged)
