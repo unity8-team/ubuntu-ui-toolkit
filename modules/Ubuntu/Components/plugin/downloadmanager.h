@@ -57,12 +57,12 @@ public:
     int rowCount(const QModelIndex& parent=QModelIndex()) const;
     QVariant data(const QModelIndex& index, int role) const;
 
-    DownloadRequest* requestDownload(const QUrl& uri);
-    DownloadRequest* getDownloadRequest(const int id) const;
-    void start(const int id);
-    void pause(const int id);
-    void resume(const int id);
-    void cancel(const int id);
+    Q_INVOKABLE DownloadRequest* requestDownload(const QUrl& uri);
+    Q_INVOKABLE DownloadRequest* getDownloadRequest(const int id) const;
+    Q_INVOKABLE void start(const int id);
+    Q_INVOKABLE void pause(const int id);
+    Q_INVOKABLE void resume(const int id);
+    Q_INVOKABLE void cancel(const int id);
 
 Q_SIGNALS:
     void finished(const int id, DownloadRequest::Status status);
