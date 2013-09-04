@@ -114,6 +114,10 @@ ListItem.Empty {
       Called when delegate is clicked.
      */
     signal delegateClicked(int index)
+    onDelegateClicked: {
+        if (action)
+            action.triggered(index)
+    }
 
     showDivider: false
 
@@ -193,7 +197,7 @@ ListItem.Empty {
                 boundsBehavior: Flickable.StopAtBounds
                 interactive: listContainer.height !== list.contentHeight && listContainer.isExpanded ? true : false
                 clip: true
-                currentIndex: 0
+                currentIndex: action && action.hasOwnProperty("value") ? action.value : 0
                 model: optionSelector.model
                 anchors.fill: parent
 

@@ -84,5 +84,27 @@ Template {
                 action: optionYearOfBirth
             }
         }
+
+        TemplateRow {
+            title: i18n.tr("Choices")
+            Settings {
+                group: "settings_choices"
+                Option {
+                    id: optionHairColor
+                    name: "hairColor"
+                    defaultValue: 0
+                    text: i18n.tr("Hair Color")
+                }
+            }
+
+            Label {
+                text: optionHairColor.value
+            }
+
+            OptionSelector {
+                action: optionHairColor
+                model: [ "Black", "Ginger", "Peroxided", "White" ]
+            }
+        }
     }
 }
