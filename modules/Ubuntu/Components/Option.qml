@@ -32,11 +32,31 @@ import U1db 1.0 as U1db
             defaultValue: false
         }
         Option {
+            id: optionNickname
             name: "nomDePlum"
             defaultValue: "A. Nonymous"
-            action: {
-                text: i18n.tr("Pseudonym")
-                visible: proFeaturesUnlocked // variable defined in the application
+            text: i18n.tr("Pseudonym")
+            visible: proFeaturesUnlocked // variable defined in the application
+        }
+    }
+
+    Column {
+        Row {
+            Label {
+                text: optionVibrate.text
+            }
+            Switch {
+                action: optionVibrate
+                text: optionVibrate.value
+            }
+        }
+        Row {
+            Label {
+                text: optionNickname.text
+            }
+            TextField {
+                action: optionNickname
+                text: optionNickname.value
             }
         }
     }
