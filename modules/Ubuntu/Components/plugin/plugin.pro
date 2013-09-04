@@ -49,7 +49,9 @@ HEADERS += plugin.h \
     ucalarmmodel.h \
     unitythemeiconprovider.h \
     alarmrequest_p.h \
-    alarmrequest_p_p.h
+    alarmrequest_p_p.h \
+    downloadrequest.h \
+    downloadmanager.h
 
 SOURCES += plugin.cpp \
     uctheme.cpp \
@@ -74,7 +76,9 @@ SOURCES += plugin.cpp \
     alarmmanager_p.cpp \
     ucalarmmodel.cpp \
     unitythemeiconprovider.cpp \
-    alarmrequest_p.cpp
+    alarmrequest_p.cpp \
+    downloadrequest.cpp \
+    downloadmanager.cpp
 
 # adapters
 SOURCES += adapters/alarmsadapter_organizer.cpp

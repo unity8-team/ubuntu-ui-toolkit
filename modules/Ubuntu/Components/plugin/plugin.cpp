@@ -45,6 +45,8 @@
 #include "ucalarm.h"
 #include "ucalarmmodel.h"
 #include "unitythemeiconprovider.h"
+#include "downloadrequest.h"
+#include "downloadmanager.h"
 
 #include <sys/types.h>
 #include <unistd.h>
@@ -145,6 +147,8 @@ void UbuntuComponentsPlugin::registerTypes(const char *uri)
     qmlRegisterType<QQmlPropertyMap>();
     qmlRegisterType<UCAlarm>(uri, 0, 1, "Alarm");
     qmlRegisterType<UCAlarmModel>(uri, 0, 1, "AlarmModel");
+    qmlRegisterUncreatableType<DownloadRequest>(uri, 0, 1, "DownloadRequest", "Not instantiable");
+    qmlRegisterType<DownloadManager>(uri, 0, 1, "DownloadManager");
 }
 
 void UbuntuComponentsPlugin::initializeEngine(QQmlEngine *engine, const char *uri)
