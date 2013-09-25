@@ -28,8 +28,8 @@
 #include <QtCore/QDir>
 
 #include "ucunits.h"
-#include <QtQuick/private/qquickanchors_p.h>
-#include <QtQuick/private/qquickanchors_p_p.h>
+//#include <QtQuick/private/qquickanchors_p.h>
+//#include <QtQuick/private/qquickanchors_p_p.h>
 
 class tst_Settings : public QObject
 {
