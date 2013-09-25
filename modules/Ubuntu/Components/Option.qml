@@ -25,36 +25,42 @@ import U1db 1.0 as U1db
 
     Example:
     \qml
-    Settings {
-        group "sound
-        Option {
-            name: "vibrate"
-            defaultValue: false
-        }
-        Option {
-            id: optionNickname
-            name: "nomDePlum"
-            defaultValue: "A. Nonymous"
-            text: i18n.tr("Pseudonym")
-            visible: proFeaturesUnlocked // variable defined in the application
-        }
-    }
+    import QtQuick 2.0
+    import Ubuntu.Components 0.1
 
-    Column {
-        Row {
-            Label {
-                text: optionVibrate.text
+    MainView {
+        applicationName: "example"
+        Settings {
+            group: "sound"
+            Option {
+                name: "vibrate"
+                defaultValue: false
             }
-            Switch {
-                action: optionVibrate
+            Option {
+                id: optionNickname
+                name: "nomDePlum"
+                defaultValue: "A. Nonymous"
+                text: i18n.tr("Pseudonym")
+                visible: proFeaturesUnlocked // variable defined in the application
             }
         }
-        Row {
-            Label {
-                text: optionNickname.text
+
+        Column {
+            Row {
+                Label {
+                    text: optionVibrate.text
+                }
+                Switch {
+                    action: optionVibrate
+                }
             }
-            TextField {
-                action: optionNickname
+            Row {
+                Label {
+                    text: optionNickname.text
+                }
+                TextField {
+                    action: optionNickname
+                }
             }
         }
     }
@@ -78,6 +84,9 @@ Action {
       The current value, either a default, locally saved state or synchronized.
       */
     property var value: defaultValue
+    /*!
+      Store the value in the document.
+      */
     onValueChanged: {
         if (__doc) {
             var ct = __doc.contents
@@ -91,6 +100,10 @@ Action {
       */
     property var __doc: null
 
+    /*!
+      \internal
+      The default value changed. From this we assume the value type.
+      */
     onDefaultValueChanged: {
         /* FIXME: UnityActions.Action.Type.String doesn't work */
         if (typeof defaultValue == "string")
@@ -103,6 +116,10 @@ Action {
             parameterType = 0
     }
 
+    /*!
+      \internal
+      Store the new value when the action is triggered.
+      */
     onTriggered: {
         option.value = value
     }

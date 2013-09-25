@@ -114,6 +114,10 @@ ListItem.Empty {
       Called when delegate is clicked.
      */
     signal delegateClicked(int index)
+    /*!
+      \internal
+      Trigger the action, passing the current index.
+     */
     onDelegateClicked: {
         if (action)
             action.triggered(index)

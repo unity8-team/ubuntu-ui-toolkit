@@ -29,20 +29,26 @@ import U1db 1.0 as U1db
 
     Example:
     \qml
-    Settings {
-        group "sound
-        Option {
-            name: "vibrate"
-            defaultValue: false
+    import QtQuick 2.0
+    import Ubuntu.Components 0.1
+
+    MainView {
+        applicationName: "example"
+        Settings {
+            group: "sound"
+            Option {
+                name: "vibrate"
+                defaultValue: false
+            }
         }
-    }
-    Settings {
-        group "tablet"
-        sync: false
-        persistent: !isPrivateMode // variable defined in the application
-        Option {
-            name "bigLayout"
-            defaultValue: false
+        Settings {
+            group: "tablet"
+            sync: false
+            persistent: !isPrivateMode // variable defined in the application
+            Option {
+                name: "bigLayout"
+                defaultValue: false
+            }
         }
     }
     \endqml

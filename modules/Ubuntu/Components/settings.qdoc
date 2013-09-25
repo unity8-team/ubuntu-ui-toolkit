@@ -1,0 +1,172 @@
+/*
+ * Copyright 2013 Canonical Ltd.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; version 3.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/*!
+  \page ubuntu-settings.html
+  \title Application Settings
+
+  Typically applications have a few user-facing options that customize the UI or
+  change behavior for different use cases. Let's start with a simple example:
+
+  \qml
+    import QtQuick 2.0
+    import Ubuntu.Components 0.1
+
+    MainView {
+        applicationName: "example"
+
+        Settings {
+            Option {
+                id: optionVibrate
+                name: "vibrate"
+                defaultValue: false
+            }
+        }
+
+        Switch {
+            action: optionVibrate
+        }
+    }
+  \endqml
+
+  In a new application, we may initially just have one option which allows the
+  user to enable vibrations, and is off by default. That's all that is needed
+  for it to work, the API knows enough to load and save the value behind the scenes.
+
+  In the next iteration we may need a user name and age to be entered.
+
+  \qml
+    import QtQuick 2.0
+    import Ubuntu.Components 0.1
+
+    MainView {
+        applicationName: "example"
+
+        Settings {
+            Option {
+                id: optionName
+                name: "name"
+                defaultValue: "Jane Doe"
+            }
+            Option {
+                id: optionAge
+                name: "age"
+                defaultValue: 99
+            }
+        }
+
+        TextField {
+            action: optionName
+        }
+        TextField {
+            action: optionAge
+        }
+    }
+  \endqml
+
+  Again all we need to define is a name and a default value. The id is used to
+  be able to bind the options to UI components.
+
+  How about using those values in the app code?
+
+  \qml
+    import QtQuick 2.0
+    import Ubuntu.Components 0.1
+
+    Column {
+        Label {
+            text: i18n.tr("Name: %1").arg(optionName.value)
+        }
+        Label {
+            text: i18n.tr("Age: %1").arg(optionAge.value)
+        }
+        Button {
+            text: i18n.tr("Start playing")
+            onClicked: {
+                if (optionAge.value < 18)
+                    console.log("Sorry but this game is for adults.")
+                else
+                    console.log("Game started by the looks of it")
+            }
+        }
+    }
+  \endqml
+
+  Note that there's no need to worry about the default values in most cases - the
+  value reflects the saved or default automatically. If you need to ensure that
+  a value was given by the user you can however check it easily.
+
+  Let's try choosing a value from several choices where the user must choose one.
+
+  \qml
+    import QtQuick 2.0
+    import Ubuntu.Components 0.1
+
+    Column {
+        Settings {
+            Option {
+                name: "plan"
+                defaultValue: 0
+            }
+            OptionSelector {
+                action: optionPlan
+                model: [ "Undecided", "Phone only", "500G", "1G is enough" ]
+            }
+        }
+        Button {
+            text: i18n.tr("Start playing")
+            onClicked: {
+                if (optionPlan.value == 0)
+                    console.log("You must pick a data plan to continue.")
+                else
+                    console.log("Good choice, sir")
+            }
+        }
+    }
+  \endqml
+
+  As our app is starting to get really big let's use some grouping.
+
+  \qml
+    import QtQuick 2.0
+    import Ubuntu.Components 0.1
+
+    MainView {
+        applicationName: "example"
+
+        Settings {
+            group: "browser"
+            persistent: false
+            Option {
+                id: optionUrl
+                name: "homepage"
+                defaultValue: "http://www.duckduckgo.com"
+            }
+        }
+
+        TextField {
+            action: optionUrl
+        }
+    }
+  \endqml
+
+  Grouping of settings is entirely optional. Without a group name all options
+  are considered part of the "default" group.
+
+  We also just unset the persistant property, which means nothing will be saved
+  until the property is set to true.
+*/
+
