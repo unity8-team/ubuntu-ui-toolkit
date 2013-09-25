@@ -36,6 +36,7 @@ AbstractButton
 modules/Ubuntu/Components/CheckBox.qml
 AbstractButton
     property bool checked
+    function trigger(value)
 modules/Ubuntu/Components/CrossFadeImage.qml
 Item
     property url source
@@ -97,6 +98,12 @@ Object
 modules/Ubuntu/Components/Object.qml
 QtObject
     default property internal children
+modules/Ubuntu/Components/Option.qml
+Action
+    property string name
+    property var defaultValue
+    property var value
+    property var __doc
 modules/Ubuntu/Components/OptionSelector.qml
 ListItem.Empty
     property var model
@@ -174,6 +181,15 @@ StyledItem
     property int align
     property bool __interactive
     property internal __private
+modules/Ubuntu/Components/Settings.qml
+Item
+    property string group
+    property bool sync
+    property bool persistent
+modules/Ubuntu/Components/SettingsStorage.qml
+QtObject
+    property var groups
+    function addGroup(group, settings)
 modules/Ubuntu/Components/Slider.qml
 StyledItem
     property real minimumValue
@@ -279,7 +295,7 @@ StyledItem
     property var popover
     function openPopover()
 modules/Ubuntu/Components/TextField.qml
-StyledItem
+ActionItem
     property bool highlighted
     property string placeholderText
     property bool hasClearButton
@@ -326,6 +342,7 @@ StyledItem
     property color selectionColor
     property color selectedTextColor
     signal accepted()
+    property int __type
     function copy()
     function cut()
     function paste(data)
@@ -416,6 +433,129 @@ plugins.qmltypes
     Property { name: "borderSource"; type: "string" }
     Signal { name: "borderChanged" }
     Method { name: "gridUnitChanged" }
+    name: "U1db::Database"
+    prototype: "QAbstractListModel"
+    exports: ["U1db/Database 1.0"]
+    Property { name: "path"; type: "string" }
+    Property { name: "error"; type: "string"; isReadonly: true }
+    Signal {
+    name: "pathChanged"
+    Parameter { name: "path"; type: "string" }
+    Signal {
+    name: "errorChanged"
+    Parameter { name: "error"; type: "string" }
+    Signal {
+    name: "docChanged"
+    Parameter { name: "docId"; type: "string" }
+    Parameter { name: "content"; type: "QVariant" }
+    Signal {
+    name: "docLoaded"
+    Parameter { name: "docId"; type: "string" }
+    Parameter { name: "content"; type: "QVariant" }
+    Method {
+    name: "getDoc"
+    Parameter { name: "docId"; type: "string" }
+    Method {
+    name: "putDoc"
+    Parameter { name: "newDoc"; type: "QVariant" }
+    Parameter { name: "docID"; type: "string" }
+    Method {
+    name: "putDoc"
+    Parameter { name: "newDoc"; type: "QVariant" }
+    Method { name: "listDocs"; type: "QList<QString>" }
+    Method { name: "lastError"; type: "string" }
+    Method {
+    name: "putIndex"
+    Parameter { name: "index_name"; type: "string" }
+    Parameter { name: "expressions"; type: "QStringList" }
+    Method {
+    name: "getIndexExpressions"
+    Parameter { name: "indexName"; type: "string" }
+    Method {
+    name: "getIndexKeys"
+    Parameter { name: "indexName"; type: "string" }
+    name: "U1db::Document"
+    prototype: "QObject"
+    exports: ["U1db/Document 1.0"]
+    Property { name: "database"; type: "U1db::Database"; isPointer: true }
+    Property { name: "docId"; type: "string" }
+    Property { name: "create"; type: "bool" }
+    Property { name: "defaults"; type: "QVariant" }
+    Property { name: "contents"; type: "QVariant" }
+    Signal {
+    name: "databaseChanged"
+    Parameter { name: "database"; type: "Database"; isPointer: true }
+    Signal {
+    name: "docIdChanged"
+    Parameter { name: "docId"; type: "string" }
+    Signal {
+    name: "createChanged"
+    Parameter { name: "create"; type: "bool" }
+    Signal {
+    name: "defaultsChanged"
+    Parameter { name: "defaults"; type: "QVariant" }
+    Signal {
+    name: "contentsChanged"
+    Parameter { name: "contents"; type: "QVariant" }
+    name: "U1db::Index"
+    prototype: "QObject"
+    exports: ["U1db/Index 1.0"]
+    Property { name: "database"; type: "U1db::Database"; isPointer: true }
+    Property { name: "name"; type: "string" }
+    Property { name: "expression"; type: "QStringList" }
+    Signal {
+    name: "databaseChanged"
+    Parameter { name: "database"; type: "Database"; isPointer: true }
+    Signal {
+    name: "nameChanged"
+    Parameter { name: "name"; type: "string" }
+    Signal {
+    name: "expressionChanged"
+    Parameter { name: "expression"; type: "QVariant" }
+    Signal { name: "dataInvalidated" }
+    name: "U1db::Query"
+    prototype: "QAbstractListModel"
+    exports: ["U1db/Query 1.0"]
+    Property { name: "index"; type: "U1db::Index"; isPointer: true }
+    Property { name: "query"; type: "QVariant" }
+    Property { name: "documents"; type: "QStringList"; isReadonly: true }
+    Property { name: "results"; type: "QVariantList"; isReadonly: true }
+    Signal {
+    name: "indexChanged"
+    Parameter { name: "index"; type: "Index"; isPointer: true }
+    Signal {
+    name: "queryChanged"
+    Parameter { name: "query"; type: "QVariant" }
+    Signal {
+    name: "documentsChanged"
+    Parameter { name: "documents"; type: "QStringList" }
+    Signal {
+    name: "resultsChanged"
+    Parameter { name: "results"; type: "QVariantList" }
+    name: "U1db::Synchronizer"
+    prototype: "QAbstractListModel"
+    exports: ["U1db/Synchronizer 1.0"]
+    Property { name: "source"; type: "U1db::Database"; isPointer: true }
+    Property { name: "synchronize"; type: "bool" }
+    Property { name: "resolve_to_source"; type: "bool" }
+    Property { name: "targets"; type: "QVariant" }
+    Property { name: "sync_output"; type: "QVariantList"; isReadonly: true }
+    Signal {
+    name: "sourceChanged"
+    Parameter { name: "source"; type: "Database"; isPointer: true }
+    Signal {
+    name: "targetsChanged"
+    Parameter { name: "targets"; type: "QVariant" }
+    Signal {
+    name: "syncChanged"
+    Parameter { name: "synchronize"; type: "bool" }
+    Signal {
+    name: "resolveToSourceChanged"
+    Parameter { name: "resolve_to_source"; type: "bool" }
+    Signal {
+    name: "syncOutputChanged"
+    Parameter { name: "sync_output"; type: "QVariantList" }
+    Signal { name: "syncCompleted" }
     name: "UCAlarm"
     prototype: "QObject"
     exports: ["Alarm 0.1"]

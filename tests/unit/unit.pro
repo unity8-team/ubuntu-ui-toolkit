@@ -19,6 +19,7 @@ SUBDIRS += tst_units \
     tst_scaling_image_provider \
     tst_qquick_image_extension \
     tst_performance \
+    tst_settings \
     tst_ubuntu_shape \
     tst_arguments \
     tst_argument \
