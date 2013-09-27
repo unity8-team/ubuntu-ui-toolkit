@@ -16,12 +16,7 @@ import sys, os
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-#sys.path.append(os.path.abspath('../ubuntu-ui-toolkit/tests/autopilot/'))
-#sys.path.insert(0, os.path.abspath('tests/autopilot/'))
-#sys.path.insert(0, os.path.abspath('../ubuntu-ui-toolkit/tests/autopilot/'))
-#sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), 'ubuntu-ui-toolkit/tests/autopilot/')))
-#sys.path.insert(0, os.path.abspath('.'))
-sys.path.insert(0, os.path.abspath('/home/nskaggs/projects/ubuntutouch/ubuntu-ui-toolkit/tests/autopilot/'))
+sys.path.insert(0, os.path.abspath('../ubuntu-ui-toolkit/tests/autopilot/'))
 
 # -- General configuration -----------------------------------------------------
 
@@ -46,7 +41,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'ubuntu-ui-toolkit-autopilot'
-copyright = u'2013, authors'
+copyright = u'2013, Canonical'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -233,7 +228,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
   ('index', 'ubuntu-ui-toolkit-autopilot', u'ubuntu-ui-toolkit-autopilot Documentation',
-   u'authors', 'ubuntu-ui-toolkit-autopilot', 'One line description of project.',
+   u'authors', 'ubuntu-ui-toolkit-autopilot', 'An autopilot emulator for the ubuntu sdk',
    'Miscellaneous'),
 ]
 
@@ -252,8 +247,8 @@ texinfo_documents = [
 # Bibliographic Dublin Core info.
 epub_title = u'ubuntu-ui-toolkit-autopilot'
 epub_author = u'authors'
-epub_publisher = u'authors'
-epub_copyright = u'2013, authors'
+epub_publisher = u'Canonical'
+epub_copyright = u'2013, Canonical'
 
 # The language of the text. It defaults to the language option
 # or en if the language is not set.
