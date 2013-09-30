@@ -93,15 +93,17 @@ MainView {
             '--desktop_file_hint={0}'.format(desktop_file_path),
             emulator_base=emulators.UbuntuUIToolkitEmulatorBase,
             app_type='qt')
-
-        self.assertThat(
-            self.main_view.visible, Eventually(Equals(True)))
+        self._wait_for_application()
 
     def _write_test_qml_file(self):
         qml_file = tempfile.NamedTemporaryFile(suffix='.qml', delete=False)
         qml_file.write(self.test_qml)
         qml_file.close()
         return qml_file.name
+
+    def _wait_for_application(self):
+        self.assertThat(
+            self.main_view.visible, Eventually(Equals(True)))
 
     @property
     def main_view(self):

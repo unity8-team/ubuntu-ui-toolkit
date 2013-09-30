@@ -17,10 +17,10 @@
 import testtools
 from autopilot import input, platform
 
-from ubuntuuitoolkit import base
+from ubuntuuitoolkit import base, tests
 
 
-class AppTestCase(base.UbuntuUIToolkitAppTestCase):
+class EmptyAppTestCase(base.UbuntuUIToolkitAppTestCase):
     """Empty test case to be used by other tests."""
 
     def _runTest(self):
@@ -31,12 +31,31 @@ class TestUbuntuUIToolkitAppTestCase(testtools.TestCase):
 
     @testtools.skipIf(platform.model() != 'Desktop', 'Desktop only')
     def test_desktop_input_device_class(self):
-        test = AppTestCase('_runTest')
+        test = EmptyAppTestCase('_runTest')
         test.setUp()
         self.assertIs(test.input_device_class, input.Mouse)
 
     @testtools.skipIf(platform.model() == 'Desktop', 'Phablet only')
     def test_phablet_input_device_class(self):
-        test = AppTestCase('_runTest')
+        test = EmptyAppTestCase('_runTest')
         test.setUp()
         self.assertIs(test.input_device_class, input.Touch)
+
+
+class EmptyQMLStringAppTestCase(tests.QMLStringAppTestCase):
+    """Empty test case to be used by other tests."""
+
+    def _runTest(self):
+        pass
+
+
+class TestQMLStringAppTestCase(testtools.TestCase):
+
+    def test_launch_application_not_visible_fails(self):
+        test = EmptyQMLStringAppTestCase('_runTest')
+        test.launch_application()
+        app1 = test.app
+        # Launch another application that will be in front of the first one.
+        test.launch_application()
+        test.app = app1
+        self.assertRaises(AssertionError, test._wait_for_application)
