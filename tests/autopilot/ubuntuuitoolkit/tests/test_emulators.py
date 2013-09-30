@@ -455,3 +455,25 @@ class ToggleTestCase(tests.QMLStringAppTestCase):
         with mock.patch.object(input.Pointer, 'click_object') as mock_click:
             self.toggle.uncheck()
         self.assertFalse(mock_click.called)
+
+
+class TestScreenUnlock(tests.ScreenUnlockTestCase):
+
+    @unittest.skipIf(platform.model() == 'Desktop', 'Phablet only')
+    def test_screen_unlock_works(self):
+        try:
+            unity8 = self.get_unity8_autopilot()
+            if unity8:
+                pass
+        except RuntimeError:
+            print("Could not find autopilot interface for unity8 "
+                  "restarting it in testability mode")
+
+            self.restart_unity8_in_testability()
+            unity8 = self.get_unity8_autopilot()
+
+        greeter = unity8.select_single("Greeter")
+
+        if greeter.shown:
+            self.swipe_greeter(greeter)
+            greeter.shown.wait_for(False)

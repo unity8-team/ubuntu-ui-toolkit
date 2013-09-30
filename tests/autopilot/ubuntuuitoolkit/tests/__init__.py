@@ -21,6 +21,7 @@ import tempfile
 
 from autopilot.input import Pointer
 from autopilot.matchers import Eventually
+from autopilot import introspection
 from testtools.matchers import Is, Not, Equals
 import subprocess
 
@@ -247,3 +248,42 @@ class QMLFileAppTestCase(base.UbuntuUIToolkitAppTestCase):
         btn = textField.select_single("AbstractButton")
         self.pointing_device.move_to_object(btn)
         self.pointing_device.click()
+
+
+class ScreenUnlockTestCase(base.UbuntuUIToolkitAppTestCase):
+
+    upstart_override = os.path.expanduser("~/.config/upstart/unity8.override")
+
+    def setUp(self):
+        super(ScreenUnlockTestCase, self).setUp()
+        self.pointing_device = Pointer(self.input_device_class.create())
+
+    def restart_unity8_in_testability(self):
+        """Adds an upstart override for unity8 and restarts it in
+        testability.
+
+        """
+        open(self.upstart_override, 'w').write("exec unity8 -testability")
+
+        # Incase unity8 is not already running, don't fail
+        try:
+            subprocess.check_call(["stop", "-q", "unity8"])
+        except subprocess.CalledProcessError:
+            pass
+
+        subprocess.check_call(["start", "-q", "unity8"])
+
+    def get_unity8_autopilot(self):
+        """Tries to find the autopilot interface for unity8."""
+
+        conn = "com.canonical.Shell.BottomBarVisibilityCommunicator"
+        return introspection.get_proxy_object_for_existing_process(
+            connection_name=conn)
+
+    def swipe_greeter(self, greeter):
+        """Makes sure the screen is really unlocked."""
+
+        x, y, w, h = greeter.globalRect
+        tx = int(x + w)
+        ty = int(y + (h / 2))
+        self.pointing_device.drag(tx, ty, tx / 2, ty)

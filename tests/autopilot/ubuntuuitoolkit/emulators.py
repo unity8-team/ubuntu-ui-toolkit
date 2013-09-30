@@ -15,7 +15,9 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 from autopilot import input, platform
-from autopilot.introspection import dbus
+from autopilot import introspection
+import os
+import subprocess
 
 _NO_TABS_ERROR = 'The MainView has no Tabs.'
 
@@ -38,7 +40,7 @@ def get_pointing_device():
     return input.Pointer(device=input_device_class.create())
 
 
-class UbuntuUIToolkitEmulatorBase(dbus.CustomEmulatorBase):
+class UbuntuUIToolkitEmulatorBase(introspection.dbus.CustomEmulatorBase):
     """A base class for all the Ubuntu UI Toolkit emulators."""
 
     def __init__(self, *args):
@@ -299,3 +301,66 @@ class CheckBox(UbuntuUIToolkitEmulatorBase):
         if self.checked:
             self.pointing_device.click_object(self)
             self.checked.wait_for(False)
+
+
+class ScreenUnlock(UbuntuUIToolkitEmulatorBase):
+    """Special class that helps apps to automatically swipe the screen
+    on Ubuntu phones and tablets before running their autopilot tests.
+    Should be used before the app is actually started.
+
+    """
+
+    upstart_override = os.path.expanduser("~/.config/upstart/unity8.override")
+
+    def _restart_unity8_in_testability(self):
+        """Adds an upstart override for unity8 and restarts it in
+        testability.
+
+        """
+        open(self.upstart_override, 'w').write("exec unity8 -testability")
+
+        # Incase unity8 is not already running, don't fail
+        try:
+            subprocess.check_call(["stop", "-q", "unity8"])
+        except subprocess.CalledProcessError:
+            pass
+
+        subprocess.check_call(["start", "-q", "unity8"])
+
+    def _get_unity8_autopilot(self):
+        """Tries to find the autopilot interface for unity8."""
+
+        conn = "com.canonical.Shell.BottomBarVisibilityCommunicator"
+        return introspection.get_proxy_object_for_existing_process(
+            connection_name=conn)
+
+    def _ensure_greeter_not_shown(self, greeter):
+        """Makes sure the screen is really unlocked."""
+
+        if greeter.shown is False:
+            pass
+        else:
+            x, y, w, h = greeter.globalRect
+            tx = int(x + w)
+            ty = int(y + (h / 2))
+            self.pointing_device.drag(tx, ty, tx / 2, ty)
+            greeter.shown.wait_for(False)
+
+    def unlock_screen(self):
+        try:
+            unity8 = self._get_unity8_autopilot()
+            if unity8:
+                pass
+        except RuntimeError:
+            # Didn't use logging here because we want to really print
+            # on the screen that unity8 is being restart so that devs
+            # may not think that their test suite hanged incase restarting
+            # unity8 takes a few seconds.
+            print("Could not find autopilot interface for unity8 "
+                  "restarting it in testability mode")
+
+            self._restart_unity8_in_testability()
+            unity8 = self._get_unity8_autopilot()
+
+        greeter = unity8.select_single("Greeter")
+        self._ensure_greeter_not_shown(greeter)
