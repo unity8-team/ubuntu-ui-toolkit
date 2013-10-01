@@ -186,6 +186,13 @@ class GenericTests(GalleryTestCase):
         textfield_numbers = self.getObject('textfield_numbers')
         self.assertThat(textfield_numbers.text, Eventually(Equals('123')))
 
+        self.tap_clearButton('textfield_numbers')
+        self.assertEqual(textfield_numbers.text, '')
+
+        #try typing decimal value when text filed is int only.
+        self.type_string('-100.123')
+        self.assertThat(textfield_numbers.text, Equals('-100123'))
+
     def test_textfield_disabled(self):
         item = "Text Field"
         self.loadItem(item)
@@ -196,43 +203,32 @@ class GenericTests(GalleryTestCase):
         self.pointing_device.click_object(textfield_disabled)
         self.assertFalse(textfield_disabled.focus)
 
-#     def test_textarea(self):
-#         item = "Text Field"
-#         self.loadItem(item)
-#         self.checkPageHeader(item)
+    def test_textarea_basic(self):
+        item = "Text Field"
+        self.loadItem(item)
+        self.checkPageHeader(item)
 
-#         template_textinputs = self.getObject("textinputs")
+        template_textinputs = self.getObject("textinputs")
 
-#         item_data = [
-#         ["textarea_default", True, -1, template_textinputs.longText, None ],
-#             [ "textarea_expanding", True, -1, "", None],
-#         [ "textarea_richtext", True, -1, template_textinputs.richText, None ]
-#         ]
+        item_data = [
+        ["textarea_default", True, -1, template_textinputs.longText, None ],
+        [ "textarea_expanding", True, -1, "", None]
+        ]
 
-#         for data in item_data:
-#             objName = data[0]
-#             objEnabled = data[1]
-#             objEchoMode = data[2]
-#             objText = data[3]
-#             objNumbersOnly = data[4]
+        for data in item_data:
+            objName = data[0]
+            objEnabled = data[1]
+            objEchoMode = data[2]
+            objText = data[3]
+            objNumbersOnly = data[4]
 
-#             obj = self.getObject(objName)
-#             self.tap(objName)
+            obj = self.getObject(objName)
+            self.tap(objName)
 
-#             self.assertThat(obj.enabled, Equals(objEnabled))
-# #            self.assertThat(obj.focus, Equals(obj.enabled))
-#             self.assertThat(obj.highlighted, Equals(obj.focus))
-#             #self.assertThat(obj.hasClearButton, Equals(True))
-#             self.assertThat(obj.text, Equals(objText))
-
-            #TODO: There is no clear button or method to clear a textarea?
-            #self.tap_clearButton(objName)
-
-            # self.assertThat(obj.text,Equals(""))
-
-            # self.type_string("Hello World!")
-
-            # self.assertThat(obj.text,Equals("Hello World!"))
+            self.assertThat(obj.enabled, Equals(objEnabled))
+            self.assertThat(obj.focus, Equals(obj.enabled))
+            self.assertThat(obj.highlighted, Equals(obj.focus))
+            self.assertThat(obj.text, Equals(objText))
 
     def test_progress_and_activity(self):
         item = "Progress and activity"
