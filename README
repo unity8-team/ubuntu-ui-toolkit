@@ -48,5 +48,5 @@ Documentation
 -------------
 
 Once built, you may view the documentation by opening  
-  documentation/html/overview-ubuntu-sdk.html
+  docs/qdoc/html/overview-ubuntu-sdk.html
 in your favorite web browser.
