@@ -16,9 +16,7 @@ import sys, os
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-print sys.path
 sys.path.insert(0, os.path.abspath('../tests/autopilot/'))
-print sys.path
 
 # -- General configuration -----------------------------------------------------
 
