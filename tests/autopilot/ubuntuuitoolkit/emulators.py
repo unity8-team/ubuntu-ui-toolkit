@@ -331,3 +331,23 @@ class CheckBox(UbuntuUIToolkitEmulatorBase):
         if self.checked:
             self.pointing_device.click_object(self)
             self.checked.wait_for(False)
+
+
+class Button(UbuntuUIToolkitEmulatorBase):
+    """Button autopilot emulator"""
+
+    def click(self):
+        self.pointing_device.click_object(self)
+
+    def hover(self):
+        self.pointing_device.move_to_object(self)
+        self.hovered.wait_for(True)
+
+    def press(self):
+        self.hover()
+        self.pointing_device.press()
+        self.pressed.wait_for(True)
+
+    def release(self):
+        self.pointing_device.release()
+        self.pressed.waitfor(False)
