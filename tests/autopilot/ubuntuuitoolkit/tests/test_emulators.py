@@ -481,6 +481,7 @@ MainView {
         self.button.click()
         self.assertEqual(self.button.text, "Click Me! 1")
 
+    @unittest.skipIf(platform.model() != 'Desktop', 'Desktop only')
     def test_button_emulator_hover(self):
         self.button.hover()
         self.assertTrue(self.button.hovered)
