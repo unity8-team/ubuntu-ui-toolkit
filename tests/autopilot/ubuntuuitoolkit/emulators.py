@@ -344,10 +344,10 @@ class Button(UbuntuUIToolkitEmulatorBase):
         self.hovered.wait_for(True)
 
     def press(self):
-        self.hover()
+        self.pointing_device.move_to_object(self)
         self.pointing_device.press()
         self.pressed.wait_for(True)
 
     def release(self):
         self.pointing_device.release()
-        self.pressed.waitfor(False)
+        self.pressed.wait_for(False)
