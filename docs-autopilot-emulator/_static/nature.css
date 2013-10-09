@@ -1,4 +1,8 @@
-@import url(basic.css);
+/*
+	Copyright 2013 Canonical Ltd.
+*/
+ 
+ @import url(basic.css);
 
 body {
 	font-family:Ubuntu, "DejaVu Sans", "Trebuchet MS", sans-serif;
