@@ -22,7 +22,7 @@ import shutil
 from autopilot.matchers import Eventually
 from testtools.matchers import Is, Not, Equals
 
-from ubuntuuitoolkit import tests
+from ubuntuuitoolkit import emulators, tests
 
 
 class GalleryTestCase(tests.QMLFileAppTestCase):
@@ -147,11 +147,17 @@ class GenericTests(GalleryTestCase):
         ]
 
         for data in item_data:
-            objName = data[0]
-            self.getObject(objName)
-            self.tap(objName)
-
-            # TODO: move slider value
+            slider = self.main_view.select_single(
+                emulators.Slider, objectName=data[0])
+            spread = (slider.maximumValue + slider.minimumValue)
+            values = [
+                slider.minimumValue,
+                (spread/2) + slider.minimumValue,
+                slider.maximumValue,
+                ]
+            for value in values:
+                slider.set_value(value)
+                self.assertEqual(slider.value, value)
 
     def test_textfield_standard(self):
         item = "Text Field"

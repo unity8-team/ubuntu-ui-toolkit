@@ -445,3 +445,139 @@ class ToggleTestCase(tests.QMLStringAppTestCase):
         with mock.patch.object(input.Pointer, 'click_object') as mock_click:
             self.toggle.uncheck()
         self.assertFalse(mock_click.called)
+
+
+TEST_SLIDER_LIVE_VALUE_0 = ("""
+import QtQuick 2.0
+import Ubuntu.Components 0.1
+
+MainView {
+    width: units.gu(48)
+    height: units.gu(60)
+
+    property variant button_count: 0
+
+    Slider {
+        objectName: 'test_slider'
+        minimumValue: 0
+        maximumValue: 20
+        live: true
+        value: 0
+    }
+}
+""")
+
+TEST_SLIDER_LIVE_VALUE_20 = ("""
+import QtQuick 2.0
+import Ubuntu.Components 0.1
+
+MainView {
+    width: units.gu(48)
+    height: units.gu(60)
+
+    property variant button_count: 0
+
+    Slider {
+        objectName: 'test_slider'
+        minimumValue: 0
+        maximumValue: 20
+        live: true
+        value: 20
+    }
+}
+""")
+
+TEST_SLIDER_VALUE_0 = ("""
+import QtQuick 2.0
+import Ubuntu.Components 0.1
+
+MainView {
+    width: units.gu(48)
+    height: units.gu(60)
+
+    property variant button_count: 0
+
+    Slider {
+        objectName: 'test_slider'
+        minimumValue: 0
+        maximumValue: 20
+        live: false
+        value: 0
+    }
+}
+""")
+
+TEST_SLIDER_VALUE_20 = ("""
+import QtQuick 2.0
+import Ubuntu.Components 0.1
+
+MainView {
+    width: units.gu(48)
+    height: units.gu(60)
+
+    property variant button_count: 0
+
+    Slider {
+        objectName: 'test_slider'
+        minimumValue: 0
+        maximumValue: 20
+        live: false
+        value: 20
+    }
+}
+""")
+
+TEST_SLIDER_VALUE_NEG = ("""
+import QtQuick 2.0
+import Ubuntu.Components 0.1
+
+MainView {
+    width: units.gu(48)
+    height: units.gu(60)
+
+    property variant button_count: 0
+
+    Slider {
+        objectName: 'test_slider'
+        minimumValue: -5
+        maximumValue: 20
+        live: false
+        value: 20
+    }
+}
+""")
+
+
+class SliderTestCase(tests.QMLStringAppTestCase):
+
+    scenarios = [
+        ('increase_live_slider', dict(
+            test_qml=TEST_SLIDER_LIVE_VALUE_0)),
+        ('decrease_live_slider', dict(
+            test_qml=TEST_SLIDER_LIVE_VALUE_20)),
+        ('increase_slider', dict(
+            test_qml=TEST_SLIDER_VALUE_0)),
+        ('decrease_slider', dict(
+            test_qml=TEST_SLIDER_VALUE_20)),
+        ('increase_slider_w_negative', dict(
+            test_qml=TEST_SLIDER_VALUE_NEG)),
+        ]
+
+    def setUp(self):
+        super(SliderTestCase, self).setUp()
+        self.slider = self.main_view.select_single(
+            emulators.Slider, objectName='test_slider')
+
+    def test_slider_set_value(self):
+
+        values = [0, 15, 20]
+        for value in values:
+            self.slider.set_value(value)
+            self.assertEqual(int(self.slider.value), int(value))
+
+    def test_slider_set_value_one(self):
+
+        values = [7]
+        for value in values:
+            self.slider.set_value(value)
+            self.assertEqual(int(self.slider.value), int(value))

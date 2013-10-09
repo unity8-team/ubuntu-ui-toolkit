@@ -331,3 +331,105 @@ class CheckBox(UbuntuUIToolkitEmulatorBase):
         if self.checked:
             self.pointing_device.click_object(self)
             self.checked.wait_for(False)
+
+
+class Slider(UbuntuUIToolkitEmulatorBase):
+    """Slider autopilot emulator"""
+
+    def _get_min(self):
+        return self.minimumValue
+
+    def _get_max(self):
+        return self.maximumValue
+
+    def _get_thumb(self):
+        self.slider_style = self.select_single("SliderStyle")
+        self.thumbSpacing = int(self.slider_style.thumbSpacing)
+        u_shapes = self.slider_style.select_many("UbuntuShape")
+
+        for u_shape in u_shapes:
+            if hasattr(u_shape, 'pressed'):
+                self.thumb = u_shape
+                return self.thumb
+
+        raise Exception("Slider could not find thumb to slide")
+
+    def _decrease_live_slider(self, set_value, step=1):
+        x, y, w, h = self.thumb.globalRect
+        while self.value > set_value:
+            x -= step
+            self.pointing_device.move(x, y)
+
+    def _increase_live_slider(self, set_value, step=1):
+        x, y, w, h = self.thumb.globalRect
+        while self.value < set_value:
+            x += step
+            self.pointing_device.move(x, y)
+
+    def _increase_position_slider(self, move_to_position, step=1):
+        x, y, w, h = self.thumb.globalRect
+        while self.thumb.position < move_to_position:
+            x += step
+            self.pointing_device.move(x, y)
+
+    def _decrease_position_slider(self, move_to_position, step=1):
+        x, y, w, h = self.thumb.globalRect
+        while self.thumb.position > move_to_position:
+            x -= step
+            self.pointing_device.move(x, y)
+
+    def set_value(self, set_value):
+        """increase live slider to value
+
+        parameter set_value: The value the slider will be set at when finished
+        """
+
+        if set_value > self.maximumValue or set_value < self.minimumValue:
+                raise ValueError('set_value out of range')
+
+        self._get_thumb()
+        if set_value != int(self.value):
+            self.pointing_device.move_to_object(self.thumb)
+            self.pointing_device.press()
+            self.pressed.wait_for(True)
+
+            if self.live:
+                if set_value > self.value:
+                    self._increase_live_slider(set_value)
+                if set_value < self.value:
+                    self._decrease_live_slider(set_value)
+                ## decrease will fail without this
+                if set_value > self.value:
+                    self._increase_live_slider(set_value)
+
+            else:
+                if set_value is not self.value:
+                    total_area = self.thumb.barMinusThumbWidth
+                    spread = (self.maximumValue - self.minimumValue)
+                    logger.debug("spread: {}".format(spread))
+                    if self.minimumValue < 0:
+                        percent = (
+                            (spread - (
+                                set_value - self.minimumValue))/spread)*100
+                    else:
+                        percent = ((spread - set_value)/spread)*100
+                    logger.debug("percent: {}".format(percent))
+                    new_position = (total_area * percent)/100
+                    logger.debug(
+                        "new_position {}".format(new_position))
+
+                    move_to = new_position - self.thumbSpacing
+                    self._increase_position_slider(
+                        total_area - (move_to))
+                    self._decrease_position_slider(
+                        total_area - (move_to))
+                    ## decrease will fail without this
+                    self._increase_position_slider(
+                        total_area - (move_to))
+
+            self.pointing_device.release()
+            self.pressed.wait_for(False)
+
+            assert set_value == int(self.value), str(
+                'set_value {} is not self.value {}'.format(
+                    set_value, int(self.value)))
