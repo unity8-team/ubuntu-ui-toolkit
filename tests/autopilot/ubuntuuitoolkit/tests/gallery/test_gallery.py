@@ -247,10 +247,16 @@ class GenericTests(GalleryTestCase):
 
         for data in item_data:
             objName = data[0]
-            self.getObject(objName)
+            test_item = self.getObject(objName)
             self.tap(objName)
 
-            # TODO: check for properties
+            if 'progressbar' in objName:
+                if 'indeterminate' in objName:
+                    self.assertTrue(test_item.indeterminate)
+                else:
+                    self.assertFalse(test_item.indeterminate)
+            if 'activityindicator' in objName:
+                self.assertTrue(test_item.running)
 
     def test_ubuntushape(self):
         item = "Ubuntu Shape"
