@@ -26,6 +26,7 @@ Template {
         TemplateRow {
             title: i18n.tr("Linear")
             Picker {
+                objectName: "picker_linear"
                 circular: false
                 model: ["Line1", "Line2", "Line3", "Line4", "Line5", "Line6", "Line7", "Line8", "Line9", "Line10"]
 
@@ -43,6 +44,7 @@ Template {
         TemplateRow {
             title: i18n.tr("Circular")
             Picker {
+                objectName: "picker_circular"
                 delegate: PickerDelegate {
                     Label {
                         text: modelData
@@ -66,6 +68,7 @@ Template {
         TemplateRow {
             title: i18n.tr("Infinite")
             Picker {
+                objectName: "picker_infinite"
                 id: picker
                 model: ListModel {}
                 circular: false
@@ -101,6 +104,7 @@ Template {
         TemplateRow {
             title: i18n.tr("Clock")
             Dialer {
+                objectName: "dialer_clock"
                 size: units.gu(20)
                 handSpace: units.gu(4)
                 minimumValue: 0
@@ -138,6 +142,7 @@ Template {
         TemplateRow {
             title: i18n.tr("Overlay")
             Dialer {
+                objectName: "dialer_overlay"
                 size: units.gu(20)
                 handSpace: units.gu(4)
 
