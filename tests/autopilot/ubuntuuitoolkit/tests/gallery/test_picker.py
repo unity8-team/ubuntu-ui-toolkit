@@ -85,10 +85,20 @@ class PickerTests(GalleryTestCase):
         circular = self.getObject('picker_circular')
         self.assertThat(circular.circular, Equals(True))
         selectedIndex = circular.selectedIndex
-        line = circular.wait_select_single('Label',
-                                           text='Line ' + str(selectedIndex))
+        #it seems picker needs some time to move to seletected index
+        #this requires uses of wait_select_single method in autopilot
+        #At time of writing this test, method is in trunk but not yet released.
+        #So I am looping it here to mimick the wait and will update
+        #once autopilot wait_select_single method becomes available.
+        for i in range(0, 10):
+            try:
+                line = circular.select_single('Label',
+                                              text='Line '
+                                              + str(selectedIndex))
+                self.assertIsNotNone(line)
+            except:
+                time.sleep(1)
 
-        self.assertIsNotNone(line)
         self.pointing_device.click_object(line)
 
         pathview = circular.select_single('QQuickPathView')
