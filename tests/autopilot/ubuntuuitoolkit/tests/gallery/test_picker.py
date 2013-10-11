@@ -124,7 +124,6 @@ class PickerTests(GalleryTestCase):
                                               text='Line ' + str(i % count))
                 self.assertIsNotNone(line)
                 self.pointing_device.click_object(line)
-                circular = self.getObject('picker_circular')
                 self.assertThat(circular.selectedIndex,
                                 Eventually(Equals(i % count)))
 
@@ -149,5 +148,5 @@ class PickerTests(GalleryTestCase):
             line = infinite.select_single('Label', text='Line ' + str(i))
             self.assertIsNotNone(line)
             self.pointing_device.click_object(line)
-            linear = self.getObject('picker_infinite')
+            infinite = self.getObject('picker_infinite')
             self.assertThat(infinite.selectedIndex, Eventually(Equals(i)))
