@@ -208,12 +208,13 @@ class QMLFileAppTestCase(base.UbuntuUIToolkitAppTestCase):
     def flick(self, flickable, direction, delta=40):
         """This funcito flicks the page from middle to the given direction."""
         x, y, w, h = flickable.globalRect
+        margin = 10
         if direction == FlickDirection.UP:
-            self.pointing_device.drag(x + w / 2, y + h / 2, x + w / 2,
+            self.pointing_device.drag(x + margin, y + h / 2, x + margin,
                                       y + h / 2 - delta)
             flickable.flicking.wait_for(False)
         elif direction == FlickDirection.DOWN:
-            self.pointing_device.drag(x + w / 2, y + h / 2, x + w / 2,
+            self.pointing_device.drag(x + margin, y + h / 2, x + margin,
                                       y + h / 2 + delta)
             flickable.flicking.wait_for(False)
         else:
