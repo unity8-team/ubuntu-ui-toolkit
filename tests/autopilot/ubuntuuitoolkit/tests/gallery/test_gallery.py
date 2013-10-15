@@ -73,9 +73,7 @@ class GalleryTestCase(tests.QMLFileAppTestCase):
             self.local_desktop_file_path = local_desktop_file_path
             return local_desktop_file_path
         else:
-            return os.path.join(
-                self._get_path_to_installed_gallery(),
-                'ubuntu-ui-toolkit-gallery.desktop')
+            return '/usr/share/applications/ubuntu-ui-toolkit-gallery.desktop'
 
     def tearDown(self):
         super(GalleryTestCase, self).tearDown()
