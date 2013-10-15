@@ -120,7 +120,6 @@ class QMLFileAppTestCase(base.UbuntuUIToolkitAppTestCase):
         desktop_file_path = self._get_desktop_file_path()
         self.app = self.launch_test_application(
             base.get_qmlscene_launch_command(),
-            "-I" + _get_module_include_path(),
             self.test_qml_file_path,
             '--desktop_file_hint={0}'.format(desktop_file_path),
             emulator_base=emulators.UbuntuUIToolkitEmulatorBase,
