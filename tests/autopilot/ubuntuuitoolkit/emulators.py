@@ -18,6 +18,7 @@ import logging
 
 from autopilot import input, platform
 from autopilot.introspection import dbus
+from time import sleep
 
 _NO_TABS_ERROR = 'The MainView has no Tabs.'
 
@@ -331,3 +332,69 @@ class CheckBox(UbuntuUIToolkitEmulatorBase):
         if self.checked:
             self.pointing_device.click_object(self)
             self.checked.wait_for(False)
+
+
+class OptionSelector(UbuntuUIToolkitEmulatorBase):
+    """OptionSelector Autopilot emulator"""
+
+    def count(self):
+        self.list_view = self.select_single("QQuickListView")
+        return self.list_view.count
+
+    def _current_index(self):
+        self.list_view = self.select_single("QQuickListView")
+        return self.list_view.currentIndex
+
+    def _is_expanded(self):
+        self.list_container = self.select_single(
+            "StyledItem", objectName='listContainer')
+        return self.list_container.isExpanded
+
+    def _expand(self):
+        """Expand an optionselector if it's collapsed"""
+        #if just collapsed it can think that the item is expanded
+        sleep(1)
+        self.list_container = self.select_single(
+            "StyledItem", objectName='listContainer')
+        if not self.list_container.isExpanded and not self.expanded:
+            self.pointing_device.click_object(self)
+            self.list_container.isExpanded.wait_for(True)
+            #selecting the same item too quickly after expand
+            #causes the wrong item to be selected
+            #https://bugs.launchpad.net/ubuntu-ui-toolkit/+bug/1231939
+            sleep(1)
+
+    def _collapse(self):
+        """Not sure if we need this yet"""
+        self.list_container = self.select_single(
+            "StyledItem", objectName='listContainer')
+        if self.list_container.isExpanded and not self.expanded:
+            self.pointing_device.click_object(self)
+            self.list_container.isExpanded.wait_for(False)
+
+    def hover(self):
+        """Hover mouse above OptionSelector, can only be used on desktop."""
+        if platform.model() == 'Desktop':
+            self.pointing_device.move_to_object(self)
+            self.hovered.wait_for(True)
+        else:
+            logger.warning("hover cannot be used on touch devices!")
+
+    def get_current_selected_text(self):
+        option_selector_delegate = self.select_single(
+            'OptionSelectorDelegate', focus='True')
+        current_label = option_selector_delegate.select_single(
+            'Label', visible='True')
+        return current_label.text
+
+    def select_text(self, text):
+        """Select item with label of text
+        parameter: text: The text of the label you want to select in
+        the QQuickList_View
+        """
+        label = self.select_single('Label', text=text)
+        self._expand()
+        if label is not None:
+            self.pointing_device.click_object(label)
+        else:
+            raise ValueError('Could not find item with label: {}'.format(text))
