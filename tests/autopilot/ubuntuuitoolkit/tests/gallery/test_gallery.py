@@ -100,41 +100,6 @@ class GenericTests(GalleryTestCase):
         self.loadItem(item)
         self.checkPageHeader(item)
 
-    def test_toggles(self):
-        item = "Toggles"
-        self.checkListItem(item)
-        self.loadItem(item)
-        self.checkPageHeader(item)
-
-        # check default states
-        item_data = [
-            ["checkbox_unchecked", False, True],
-            ["checkbox_checked", True, True],
-            ["checkbox_disabled_unchecked", False, False],
-            ["checkbox_disabled_checked", True, False],
-            ["switch_unchecked", False, True],
-            ["switch_checked", True, True],
-            ["switch_disabled_unchecked", False, False],
-            ["switch_disabled_checked", True, False]
-        ]
-
-        for data in item_data:
-            objName = data[0]
-            objChecked = data[1]
-            objEnabled = data[2]
-
-            obj = self.getObject(objName)
-            self.assertThat(obj.checked, Equals(objChecked))
-            self.assertThat(obj.enabled, Equals(objEnabled))
-
-            # try to interact with objects
-            self.tap(objName)
-
-            if (obj.enabled):
-                self.assertThat(obj.checked, Not(Equals(objChecked)))
-            else:
-                self.assertThat(obj.checked, Equals(objChecked))
-
     def test_slider(self):
         item = "Slider"
         self.loadItem(item)
@@ -271,6 +236,58 @@ class GenericTests(GalleryTestCase):
         for data in item_data:
             objName = data[0]
             self.getObject(objName)
+
+
+class TogglesTestCase(GalleryTestCase):
+
+    scenarios = [
+        ("checkbox_unchecked", dict(object_name="checkbox_unchecked",
+                                    object_checked=False,
+                                    object_enabled=True)),
+        ("checkbox_checked", dict(object_name="checkbox_checked",
+                                  object_checked=True,
+                                  object_enabled=True)),
+        ("checkbox_disabled_unchecked",
+            dict(object_name="checkbox_disabled_unchecked",
+                 object_checked=False,
+                 object_enabled=False)),
+        ("checkbox_disabled_checked",
+            dict(object_name="checkbox_disabled_checked",
+                 object_checked=True,
+                 object_enabled=False)),
+        ("switch_unchecked", dict(object_name="switch_unchecked",
+                                  object_checked=False,
+                                  object_enabled=True)),
+        ("switch_checked", dict(object_name="switch_checked",
+                                object_checked=True,
+                                object_enabled=True)),
+        ("switch_disabled_unchecked",
+            dict(object_name="switch_disabled_unchecked",
+                 object_checked=False,
+                 object_enabled=False)),
+        ("switch_disabled_checked",
+            dict(object_name="switch_disabled_checked",
+                 object_checked=True,
+                 object_enabled=False)),
+    ]
+
+    def test_toggles(self):
+        item = "Toggles"
+        self.checkListItem(item)
+        self.loadItem(item)
+        self.checkPageHeader(item)
+
+        obj = self.getObject(self.object_name)
+        self.assertThat(obj.checked, Equals(self.object_checked))
+        self.assertThat(obj.enabled, Equals(self.object_enabled))
+
+        # try to interact with objects
+        self.tap(self.object_name)
+
+        if (obj.enabled):
+            self.assertThat(obj.checked, Not(Equals(self.object_checked)))
+        else:
+            self.assertThat(obj.checked, Equals(self.object_checked))
 
 
 class ButtonsTestCase(GalleryTestCase):
