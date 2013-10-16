@@ -331,3 +331,15 @@ class CheckBox(UbuntuUIToolkitEmulatorBase):
         if self.checked:
             self.pointing_device.click_object(self)
             self.checked.wait_for(False)
+
+
+class UbuntuShape(UbuntuUIToolkitEmulatorBase):
+    """UbuntuShape Autopilot emulator."""
+
+    def get_image(self):
+        """get image used by UbuntuShape"""
+        image = self.select_single("QQuickImage")
+        if image is not None:
+            return image.source
+        else:
+            return "No image source found"
