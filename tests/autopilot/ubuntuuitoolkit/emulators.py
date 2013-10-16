@@ -337,7 +337,7 @@ class CheckBox(UbuntuUIToolkitEmulatorBase):
 class OptionSelector(UbuntuUIToolkitEmulatorBase):
     """OptionSelector Autopilot emulator"""
 
-    def count(self):
+    def get_option_count(self):
         self.list_view = self.select_single("QQuickListView")
         return self.list_view.count
 
@@ -353,9 +353,9 @@ class OptionSelector(UbuntuUIToolkitEmulatorBase):
     def _expand(self):
         """Expand an optionselector if it's collapsed"""
         #if just collapsed it can think that the item is expanded
-        sleep(1)
         self.list_container = self.select_single(
             "StyledItem", objectName='listContainer')
+        self.list_container.isExpanded.wait_for(False)
         if not self.list_container.isExpanded and not self.expanded:
             self.pointing_device.click_object(self)
             self.list_container.isExpanded.wait_for(True)

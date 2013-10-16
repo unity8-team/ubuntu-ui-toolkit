@@ -481,8 +481,8 @@ MainView {
             emulators.OptionSelector,
             objectName="test_option_selector_collapsed")
 
-    def test_count(self):
-        self.assertEqual(self.option_selector.count(), 5)
+    def test_get_option_count(self):
+        self.assertEqual(self.option_selector.get_option_count(), 5)
 
     def test_emulator(self):
         self.assertIsInstance(self.option_selector, emulators.OptionSelector)
