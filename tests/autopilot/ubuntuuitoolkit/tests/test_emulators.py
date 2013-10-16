@@ -14,11 +14,12 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+import mock
 import unittest
 
-import mock
 from autopilot import input, platform
-
+from os import path, remove
+from shutil import copy2
 from ubuntuuitoolkit import emulators, tests
 
 
@@ -445,3 +446,71 @@ class ToggleTestCase(tests.QMLStringAppTestCase):
         with mock.patch.object(input.Pointer, 'click_object') as mock_click:
             self.toggle.uncheck()
         self.assertFalse(mock_click.called)
+
+TEST_QML_WITH_IMAGE = ("""
+import QtQuick 2.0
+import Ubuntu.Components 0.1
+
+MainView {
+    width: units.gu(48)
+    height: units.gu(60)
+
+
+    UbuntuShape {
+        objectName: "test_with_image"
+
+        image: Image {
+            source: "map_icon_for_ubuntushape_test.png"
+            fillMode: Image.PreserveAspectCrop
+        }
+    }
+}
+""")
+
+TEST_QML_WITHOUT_IMAGE = ("""
+import QtQuick 2.0
+import Ubuntu.Components 0.1
+
+MainView {
+    width: units.gu(48)
+    height: units.gu(60)
+
+
+    UbuntuShape {
+        objectName: "test_without_image"
+        color: UbuntuColors.orange
+    }
+}
+""")
+
+
+class UbuntuShapeTestCase(tests.QMLStringAppTestCase):
+
+    file_name = "map_icon_for_ubuntushape_test.png"
+    org_file = path.join(path.dirname(__file__), file_name)
+    tmp_file = "/tmp/{}".format(file_name)
+    copy2(org_file, tmp_file)
+    scenarios = [
+        ('with_image', dict(
+            test_qml=TEST_QML_WITH_IMAGE,
+            object_name='test_with_image',
+            expected='file://{}'.format(tmp_file))),
+        ('without_image', dict(
+            test_qml=TEST_QML_WITHOUT_IMAGE,
+            object_name='test_without_image',
+            expected='No image source found'))
+    ]
+
+    def setUp(self):
+        super(UbuntuShapeTestCase, self).setUp()
+        self.shape = self.main_view.select_single(
+            emulators.UbuntuShape, objectName=self.object_name)
+
+    def tearDown(self):
+        super(UbuntuShapeTestCase, self).tearDown()
+        if path.isfile(self.tmp_file):
+            remove(self.tmp_file)
+
+    def test_get_image(self):
+        image = self.shape.get_image()
+        self.assertEqual(self.expected, image)

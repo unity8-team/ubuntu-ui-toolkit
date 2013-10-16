@@ -217,82 +217,62 @@ class GenericTests(GalleryTestCase):
 
             # TODO: check for properties
 
-    def test_ubuntushape(self):
-        item = "Ubuntu Shape"
-        self.loadItem(item)
-        self.checkPageHeader(item)
 
-        item_data = [
-            ["ubuntushape_color_hex"],
-            ["ubuntushape_color_lightblue"],
-            ["ubuntushape_color_darkgray"],
-            ["ubuntushape_image"],
-            ["ubuntushape_radius_small"],
-            ["ubuntushape_radius_medium"],
-            ["ubuntushape_sizes_15_6"],
-            ["ubuntushape_sizes_10_14"]
+class UbuntuShapeTestCase(GalleryTestCase):
+
+    scenarios = [
+        ("ubuntushape_color_hex",
+         dict(object_name="ubuntushape_color_hex",
+              prop="color",
+              value=[221, 72, 20, 255])),
+        ("ubuntushape_color_lightblue",
+         dict(object_name="ubuntushape_color_lightblue",
+              prop="color",
+              value=[119, 33, 111, 255])),
+        ("ubuntushape_color_darkgray",
+         dict(object_name="ubuntushape_color_darkgray",
+              prop="color",
+              value=[174, 167, 159, 255])),
+        ("ubuntushape_image",
+         dict(object_name="ubuntushape_image",
+              prop="image",
+              value="map_icon.png")),
+        ("ubuntushape_radius_small",
+         dict(object_name="ubuntushape_radius_small",
+              prop="radius",
+              value="small")),
+        ("ubuntushape_radius_medium",
+         dict(object_name="ubuntushape_radius_medium",
+              prop="radius",
+              value="medium")),
+        ("ubuntushape_sizes_15_6",
+         dict(object_name="ubuntushape_sizes_15_6",
+              prop=None,
+              value=None)),
+        ("ubuntushape_sizes_10_14",
+         dict(object_name="ubuntushape_sizes_10_14",
+              prop=None,
+              value=None)),
         ]
 
-        for data in item_data:
-            objName = data[0]
-            self.getObject(objName)
-
-
-class UbuntuShapeTestCase(GalleryTestCase):                                    
- 
-     scenarios = [
-         ("ubuntushape_color_hex",
-          dict(object_name="ubuntushape_color_hex", 
-               prop="color",
-               value=[221, 72, 20, 255])),
-         ("ubuntushape_color_lightblue",
-          dict(object_name="ubuntushape_color_lightblue",
-               prop="color",
-               value=[119, 33, 111, 255])),
-         ("ubuntushape_color_darkgray",
-          dict(object_name="ubuntushape_color_darkgray",
-               prop="color",
-               value=[174, 167, 159, 255])),
-         ("ubuntushape_image",
-          dict(object_name="ubuntushape_image",
-               prop="image",
-               value="map_icon.png")),
-         ("ubuntushape_radius_small",
-          dict(object_name="ubuntushape_radius_small",
-               prop="radius",
-               value="small")),
-         ("ubuntushape_radius_medium",
-          dict(object_name="ubuntushape_radius_medium",
-               prop="radius",
-               value="medium")),
-         ("ubuntushape_sizes_15_6",
-          dict(object_name="ubuntushape_sizes_15_6",
-               prop=None,
-               value=None)),
-         ("ubuntushape_sizes_10_14",
-          dict(object_name="ubuntushape_sizes_10_14",
-               prop=None,
-               value=None)),
-         ]
- 
-     def setUp(self):
+    def setUp(self):
         super(UbuntuShapeTestCase, self).setUp()
         item = "Ubuntu Shape"
         self.loadItem(item)
         self.checkPageHeader(item)
         self.shape = self.main_view.select_single(
             emulators.UbuntuShape, objectName=self.object_name)
-             
-     def test_ubuntu_shape(self):
- 
-         if self.prop is "color":
+
+    def test_ubuntu_shape(self):
+
+        if self.prop is "color":
             self.assertEqual(self.value, self.shape.color)
-         elif self.prop is "radius":
-            self.assertEqual(self.value, self.shape.radius) 
-         elif self.prop is "image":
+        elif self.prop is "radius":
+            self.assertEqual(self.value, self.shape.radius)
+        elif self.prop is "image":
             image = self.shape.get_image().split('/')
             self.assertEqual(self.value, image[-1])
-            
+
 
 class TogglesTestCase(GalleryTestCase):
 
