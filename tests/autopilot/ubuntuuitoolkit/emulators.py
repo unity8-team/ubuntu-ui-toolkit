@@ -338,6 +338,7 @@ class OptionSelector(UbuntuUIToolkitEmulatorBase):
     """OptionSelector Autopilot emulator"""
 
     def get_option_count(self):
+        """gets the number of items in the option selector"""
         self.list_view = self.select_single("QQuickListView")
         return self.list_view.count
 
@@ -353,6 +354,8 @@ class OptionSelector(UbuntuUIToolkitEmulatorBase):
     def _expand(self):
         """Expand an optionselector if it's collapsed"""
         #if just collapsed it can think that the item is expanded
+        # https://bugs.launchpad.net/ubuntu-ui-toolkit/+bug/1240288
+        sleep(1)
         self.list_container = self.select_single(
             "StyledItem", objectName='listContainer')
         self.list_container.isExpanded.wait_for(False)
@@ -364,14 +367,6 @@ class OptionSelector(UbuntuUIToolkitEmulatorBase):
             #https://bugs.launchpad.net/ubuntu-ui-toolkit/+bug/1231939
             sleep(1)
 
-    def _collapse(self):
-        """Not sure if we need this yet"""
-        self.list_container = self.select_single(
-            "StyledItem", objectName='listContainer')
-        if self.list_container.isExpanded and not self.expanded:
-            self.pointing_device.click_object(self)
-            self.list_container.isExpanded.wait_for(False)
-
     def hover(self):
         """Hover mouse above OptionSelector, can only be used on desktop."""
         if platform.model() == 'Desktop':
@@ -381,6 +376,7 @@ class OptionSelector(UbuntuUIToolkitEmulatorBase):
             logger.warning("hover cannot be used on touch devices!")
 
     def get_current_selected_text(self):
+        """gets the text of the currently selected item"""
         option_selector_delegate = self.select_single(
             'OptionSelectorDelegate', focus='True')
         current_label = option_selector_delegate.select_single(
@@ -389,8 +385,8 @@ class OptionSelector(UbuntuUIToolkitEmulatorBase):
 
     def select_text(self, text):
         """Select item with label of text
-        parameter: text: The text of the label you want to select in
-        the QQuickList_View
+        "parameter: text: The text of the label you want to select in
+            the QQuickList_View
         """
         label = self.select_single('Label', text=text)
         self._expand()

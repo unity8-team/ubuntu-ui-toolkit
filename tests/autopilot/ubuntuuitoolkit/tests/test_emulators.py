@@ -491,12 +491,6 @@ MainView {
         self.assertFalse(self.option_selector._is_expanded())
         self.option_selector._expand()
         self.assertTrue(self.option_selector._is_expanded())
-        self.option_selector._collapse()
-        self.assertFalse(self.option_selector._is_expanded())
-
-    def test_collapse_does_not_expand(self):
-        self.option_selector._collapse()
-        self.assertFalse(self.option_selector._is_expanded())
 
     def test_select_text(self):
         self.assertEqual(0, self.option_selector.selectedIndex)
@@ -511,7 +505,6 @@ MainView {
             self.option_selector.get_current_selected_text(), "Value 2")
 
     def test_same_item_2_times(self):
-        self.assertEqual(0, self.option_selector.selectedIndex)
         self.option_selector.select_text("Value 3")
         self.assertEqual(
             self.option_selector.get_current_selected_text(), "Value 3")
@@ -519,75 +512,4 @@ MainView {
         self.option_selector.select_text("Value 3")
         self.assertEqual(
             self.option_selector.get_current_selected_text(), "Value 3")
-        self.assertEqual(2, self.option_selector.selectedIndex)
-
-
-class OptionSelectorExpandedTestCase(tests.QMLStringAppTestCase):
-
-    test_qml = ("""
-import QtQuick 2.0
-import Ubuntu.Components 0.1
-
-MainView {
-    width: units.gu(48)
-    height: units.gu(60)
-
-    Column {
-        anchors.left: parent.left
-        anchors.right: parent.right
-        spacing: units.gu(3)
-
-      OptionSelector {
-          objectName: "test_option_selector_expanded"
-          text: i18n.tr("Expanded")
-          expanded: true
-          model: [i18n.tr("Value 1"),
-                  i18n.tr("Value 2"),
-                  i18n.tr("Value 3"),
-                  i18n.tr("Value 4")]
-      }
-   }
-}
-""")
-
-    def setUp(self):
-        super(OptionSelectorExpandedTestCase, self).setUp()
-        self.option_selector = self.main_view.select_single(
-            emulators.OptionSelector,
-            objectName="test_option_selector_expanded")
-
-    def test_emulator(self):
-        self.assertIsInstance(self.option_selector, emulators.OptionSelector)
-
-    def test_count(self):
-        self.assertEqual(self.option_selector.count(), 4)
-
-    def test_expand(self):
-        self.assertTrue(self.option_selector._is_expanded())
-        self.option_selector._expand()
-        self.assertTrue(self.option_selector._is_expanded())
-        self.option_selector._collapse()
-        self.assertTrue(self.option_selector._is_expanded())
-
-    def test_collapse_does_not_expand(self):
-        self.option_selector._collapse()
-        self.assertTrue(self.option_selector._is_expanded())
-
-    def test_select_text(self):
-        self.assertEqual(0, self.option_selector.selectedIndex)
-        self.option_selector.select_text("Value 3")
-        self.assertEqual(2, self.option_selector.selectedIndex)
-
-    def test_get_current_selected_text(self):
-        self.assertEqual(0, self.option_selector.selectedIndex)
-        self.option_selector.select_text("Value 2")
-        self.assertEqual(1, self.option_selector.selectedIndex)
-        self.assertEqual(
-            self.option_selector.get_current_selected_text(), "Value 2")
-
-    def test_same_item_2_times(self):
-        self.assertEqual(0, self.option_selector.selectedIndex)
-        self.option_selector.select_text("Value 3")
-        self.assertEqual(2, self.option_selector.selectedIndex)
-        self.option_selector.select_text("Value 3")
         self.assertEqual(2, self.option_selector.selectedIndex)
