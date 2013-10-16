@@ -118,49 +118,6 @@ class GenericTests(GalleryTestCase):
 
             # TODO: move slider value
 
-    def test_textfield_standard(self):
-        item = "Text Field"
-        self.loadItem(item)
-        self.checkPageHeader(item)
-        textfield_standard = self.getObject('textfield_standard')
-        self.pointing_device.click_object(textfield_standard)
-        self.assertThat(textfield_standard.focus, Eventually(Equals(True)))
-        self.type_string(u'Hello World')
-        self.assertThat(textfield_standard.text,
-                        Eventually(Equals(u'Hello World')))
-
-    def test_textfield_password(self):
-        item = "Text Field"
-        self.loadItem(item)
-        self.checkPageHeader(item)
-        textfield_password = self.getObject('textfield_password')
-        self.pointing_device.click_object(textfield_password)
-        self.assertThat(textfield_password.text, Equals('password'))
-
-        self.tap_clearButton('textfield_password')
-        self.assertThat(textfield_password.text, Eventually(Equals('')))
-
-        self.type_string(u'abcdefgh123')
-        self.assertThat(textfield_password.text,
-                        Eventually(Equals(u'abcdefgh123')))
-
-    def test_textfield_numbers(self):
-        item = "Text Field"
-        self.loadItem(item)
-        self.checkPageHeader(item)
-        textfield_numbers = self.getObject('textfield_numbers')
-        self.assertThat(textfield_numbers.text, Eventually(Equals('123')))
-
-    def test_textfield_disabled(self):
-        item = "Text Field"
-        self.loadItem(item)
-        self.checkPageHeader(item)
-        textfield_disabled = self.getObject('textfield_disabled')
-        self.assertFalse(textfield_disabled.enabled)
-        #try tapping a disabled field and verify that focus is false.
-        self.pointing_device.click_object(textfield_disabled)
-        self.assertFalse(textfield_disabled.focus)
-
 #     def test_textarea(self):
 #         item = "Text Field"
 #         self.loadItem(item)
@@ -218,6 +175,69 @@ class GenericTests(GalleryTestCase):
             # TODO: check for properties
 
 
+class TextFieldTestCase(GalleryTestCase):
+
+    scenarios = [
+        ('test textfield standard',
+         dict(object_name='textfield_standard',
+              disabled=False,
+              existing_text=None,
+              negative_test_text=False,
+              new_text=u'Hello World')),
+        ('test textfield password',
+         dict(object_name='textfield_password',
+              disabled=False,
+              existing_text='password',
+              negative_test_text=False,
+              new_text=u'abcdefgh123')),
+        ('test textfield numbers',
+         dict(object_name='textfield_numbers',
+              disabled=False,
+              existing_text='123',
+              negative_test_text=False,
+              new_text=u'0987654321')),
+        ('negative test textfield numbers',
+         dict(object_name='textfield_numbers',
+              disabled=False,
+              existing_text='123',
+              new_text=None,
+              negative_test_text="4a3b2c1",
+              negative_expecting_text="4321")),
+        ('disabled textfield',
+         dict(object_name='textfield_disabled',
+              disabled=True)),
+    ]
+
+    def test_textfield(self):
+        item = "Text Field"
+        self.loadItem(item)
+        self.checkPageHeader(item)
+        test_textfield = self.getObject(self.object_name)
+        if self.disabled:
+            self.assertFalse(test_textfield.enabled)
+            #try tapping a disabled field and verify that focus is false.
+            self.pointing_device.click_object(test_textfield)
+            self.assertFalse(test_textfield.focus)
+        else:
+            self.pointing_device.click_object(test_textfield)
+            self.assertThat(test_textfield.focus, Eventually(Equals(True)))
+            if self.existing_text:
+                self.assertThat(test_textfield.text,
+                                Equals(self.existing_text))
+                self.tap_clearButton(self.object_name)
+
+            if self.new_text:
+                self.type_string(self.new_text)
+                self.assertThat(test_textfield.text,
+                                Eventually(Equals(self.new_text)))
+
+            if self.negative_test_text:
+                self.type_string(self.negative_test_text)
+                self.assertThat(test_textfield.text,
+                                Eventually(
+                                    Equals(self.negative_expecting_text)))
+
+
 class UbuntuShapeTestCase(GalleryTestCase):
 
     scenarios = [
@@ -255,15 +275,12 @@ class UbuntuShapeTestCase(GalleryTestCase):
               value=None)),
         ]
 
-    def setUp(self):
-        super(UbuntuShapeTestCase, self).setUp()
+    def test_ubuntu_shape(self):
         item = "Ubuntu Shape"
         self.loadItem(item)
         self.checkPageHeader(item)
         self.shape = self.main_view.select_single(
             emulators.UbuntuShape, objectName=self.object_name)
-
-    def test_ubuntu_shape(self):
 
         if self.prop is "color":
             self.assertEqual(self.value, self.shape.color)
