@@ -513,3 +513,8 @@ MainView {
         self.assertEqual(
             self.option_selector.get_current_selected_text(), "Value 3")
         self.assertEqual(2, self.option_selector.selectedIndex)
+
+    @unittest.skipIf(platform.model() != 'Desktop', 'Desktop only')
+    def test_hover(self):
+        self.option_selector.hover()
+        self.assertTrue(self.option_selector.hovered)
