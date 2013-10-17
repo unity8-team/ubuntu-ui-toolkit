@@ -234,30 +234,6 @@ class GenericTests(GalleryTestCase):
 
             # self.assertThat(obj.text,Equals("Hello World!"))
 
-    def test_progress_and_activity(self):
-        item = "Progress and activity"
-        self.loadItem(item)
-        self.checkPageHeader(item)
-
-        item_data = [
-            ["progressbar_standard"],
-            ["progressbar_indeterminate"],
-            ["activityindicator_standard"]
-        ]
-
-        for data in item_data:
-            objName = data[0]
-            test_item = self.getObject(objName)
-            self.tap(objName)
-
-            if 'progressbar' in objName:
-                if 'indeterminate' in objName:
-                    self.assertTrue(test_item.indeterminate)
-                else:
-                    self.assertFalse(test_item.indeterminate)
-            if 'activityindicator' in objName:
-                self.assertTrue(test_item.running)
-
     def test_ubuntushape(self):
         item = "Ubuntu Shape"
         self.loadItem(item)
@@ -277,6 +253,34 @@ class GenericTests(GalleryTestCase):
         for data in item_data:
             objName = data[0]
             self.getObject(objName)
+
+
+class ProgressActivityTestCase(GalleryTestCase):
+
+    scenarios = [
+        ('progressbar standard', dict(
+            object_name="progressbar_standard")),
+        ('progressbar indeterminate', dict(
+            object_name="progressbar_indeterminate")),
+        ('activityindicator standard', dict(
+            object_name="activityindicator_standard")),
+    ]
+
+    def test_progress_and_activity(self):
+        item = "Progress and activity"
+        self.loadItem(item)
+        self.checkPageHeader(item)
+
+        test_item = self.getObject(self.object_name)
+        self.tap(self.object_name)
+
+        if 'progressbar' in self.object_name:
+            if 'indeterminate' in self.object_name:
+                self.assertTrue(test_item.indeterminate)
+            else:
+                self.assertFalse(test_item.indeterminate)
+        if 'activityindicator' in self.object_name:
+            self.assertTrue(test_item.running)
 
 
 class ButtonsTestCase(GalleryTestCase):
