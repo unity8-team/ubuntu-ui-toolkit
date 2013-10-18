@@ -444,4 +444,54 @@ class ToggleTestCase(tests.QMLStringAppTestCase):
     def test_uncheck_toggle_already_unchecked(self):
         with mock.patch.object(input.Pointer, 'click_object') as mock_click:
             self.toggle.uncheck()
-        self.assertFalse(mock_click.called)
+            self.assertFalse(mock_click.called)
+
+TEST_QML_PICKER_LINEAR = ("""
+import QtQuick 2.0
+import Ubuntu.Components 0.1
+import Ubuntu.Components.Pickers 0.1
+
+MainView {
+    width: units.gu(48)
+    height: units.gu(60)
+    Picker {
+        objectName: "test_picker"
+        circular: false
+        model: ["Line1",
+                "Line2",
+                "Line3",
+                "Line4",
+                "Line5",
+                "Line6",
+                "Line7",
+                "Line8",
+                "Line9",
+                "Line10"]
+
+        delegate: PickerDelegate {
+            Label {
+                text: modelData
+                anchors.verticalCenter: parent.verticalCenter
+            }
+        }
+    }
+}
+""")
+
+
+class PickerTestCase(tests.QMLStringAppTestCase):
+
+    scenarios = [
+        ('picker linear', dict(
+            test_qml=TEST_QML_PICKER_LINEAR, object_name='test_picker')),
+    ]
+
+    def setUp(self):
+        super(PickerTestCase, self).setUp()
+        self.picker = self.main_view.select_single(
+            emulators.Picker, objectName=self.object_name)
+
+    def test_visible(self):
+        picks = self.picker.list_visible_picks_text()
+        expected = [u'Line1', u'Line2', u'Line3']
+        self.assertEqual(expected, picks)

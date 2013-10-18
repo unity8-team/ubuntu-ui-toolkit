@@ -331,3 +331,96 @@ class CheckBox(UbuntuUIToolkitEmulatorBase):
         if self.checked:
             self.pointing_device.click_object(self)
             self.checked.wait_for(False)
+
+
+class Picker(UbuntuUIToolkitEmulatorBase):
+    """Picker Autopilot emulator."""
+
+    def get_current_pick(self):
+        """Get current picked text from picker"""
+        focused_abstract_button = self.select_single(
+            'AbstractButton', focus=True)
+        label = focused_abstract_button.select_single('Label')
+        return label.text
+
+    def list_visible_picks_text(self):
+        """Get visible items that can be picked
+
+        returns: list
+        """
+        buttons = self._get_abstract_buttons()
+        labels_text_list = []
+        for button in buttons:
+            label = button.select_single('Label')
+            if label.visible:
+                labels_text_list.append(label.text)
+        return labels_text_list
+
+    def _list_visible_picks_index(self):
+        buttons = self._get_abstract_buttons()
+        labels_list = []
+        for button in buttons:
+            label = button.select_single('Label')
+            if label.visible:
+                labels_list.append(label)
+        return labels_list
+
+    def _get_abstract_buttons(self):
+        return self.select_many('AbstractButton')
+
+    def get_pick_from_text(self, text):
+        """Get pick object from text"""
+        label = 'could not find label with text {}'.format(text)
+        buttons = self._get_abstract_buttons()
+        for button in buttons:
+            label = button.select_single('Label')
+            if label.text == text:
+                return label.text
+            else:
+                raise ValueError("could not find label with text {}".format(
+                    text))
+
+    def get_pick_from_index(self, index):
+        """Get pick object from index"""
+        buttons = self._get_abstract_buttons()
+        return buttons[index]
+
+    def hover_over_pick_text(self, text):
+        """Hover over label in the picker using text, only usable on Desktop
+
+        :parameter text: the text of the item in the picker to hover over"""
+        if platform.model() == "Desktop":
+            label = self.get_pick_from_text(text)
+            self.pointing_device.move_to_object(label)
+            return label.hovered.wait_for(True)
+        else:
+            return "Can only be used on Desktop!"
+
+    def hover_over_pick_index(self, index):
+        """Hover over label in the picker using index, only usable on Desktop
+
+        :parameter index: the index of the item in the picker to hover over"""
+        if platform.model() == "Desktop":
+            label = self.get_pick_from_index(index)
+            self.pointing_device.move_to_object(index)
+            return label.hovered.wait_for(True)
+        else:
+            return "Can only be used on Desktop!"
+
+    def click_pick_text(self, text):
+        """Click the text in the picker
+
+        :parameter text: The text in the picker to click on"""
+        label = self.get_pick_from_text(text)
+        if label.visable:
+            self.pointing_device.click_object(label)
+        else:
+            raise ValueError('label with text "{}" is not visible'.format(
+                text))
+
+    def click_pick_index(self, index):
+        """Click the index in the picker
+
+        :parameter index: The index in the picker to click on"""
+        picks = self._list_visible_picks
+        self.pointing_device.click_object(picks[index])
