@@ -787,7 +787,7 @@ StyledItem {
 
         function activateEditor()
         {
-            if (!control.activeFocus)
+            if (!editor.activeFocus)
                 editor.forceActiveFocus();
             else
                 showInputPanel();

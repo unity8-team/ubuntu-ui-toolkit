@@ -176,14 +176,37 @@ Item {
       The opened property is not updated until the swipe gesture is completed.
      */
     // opened is true if state is spread, or if state is moving/hint and the previous state was spread.
-    readonly property bool opened: (panel.state === "spread") ||
-                                   (panel.state === "moving" && internal.previousState === "spread")
+    property bool opened: (panel.state === "spread") ||
+                          (panel.state === "moving" && internal.previousState === "spread")
     /*! \internal */
+    // FIXME: When opened is made read-only, onOpenedChanged can be removed entirely.
+    onOpenedChanged: {
+        if (internal.openedChangedWarning) {
+            console.log("DEPRECATED use of Panel.opened property. This property will be made read-only,
+                please use the opened property of the Page tools or use Panel.open() and Panel.close().");
+
+            if (opened) {
+                panel.open();
+            } else {
+                panel.close();
+            }
+
+            // re-establish the previous binding for opened.
+            panel.opened = Qt.binding(function() {
+                return (panel.state === "spread") ||
+                        (panel.state === "moving" && internal.previousState === "spread");
+            })
+        }
+
+        internal.openedChangedWarning = true;
+    }
 
     /*!
       Open the panel
      */
     function open() {
+        // FIXME: When opened is made readonly, openedChangedWarning must be removed
+        internal.openedChangedWarning = false;
         panel.state = "spread";
     }
 
@@ -191,6 +214,8 @@ Item {
       Close the panel
      */
     function close() {
+        // FIXME: When opened is made readonly, openedChangedWarning must be removed.
+        internal.openedChangedWarning = false;
         panel.state = "";
     }
 
@@ -300,6 +325,9 @@ Item {
     QtObject {
         id: internal
 
+        // FIXME: Remove when opened property is made readonly
+        property bool openedChangedWarning: true
+
         /*!
           The duration in milliseconds of sliding in or out transitions when opening, closing, and showing the hint.
           Default value: 250
@@ -354,9 +382,9 @@ Item {
                     } else {
                         panel.close();
                     }
+                }
                 // if the panel was locked, do not slide it back in
                 // until the user performs an edge swipe.
-                }
             }
         }
     }
@@ -480,18 +508,22 @@ Item {
         function finishMoving() {
             if (draggingArea.dragVelocity < -44) {
                 if (internal.align === Qt.AlignBottom || internal.align === Qt.AlignRight) {
-                    panel.state = "spread";
+                    panel.open();
                 } else {
-                    panel.state = "";
+                    panel.close();
                 }
             } else if (draggingArea.dragVelocity > 44) {
                 if (internal.align === Qt.AlignBottom || internal.align === Qt.AlignRight) {
-                    panel.state = "";
+                    panel.close();
                 } else {
-                    panel.state = "spread";
+                    panel.open();
                 }
             } else {
-                panel.state = (bar.position < bar.size / 2) ? "spread" : "";
+                if (bar.position < bar.size / 2) {
+                    panel.open();
+                } else {
+                    panel.close();
+                }
             }
         }
     }
@@ -510,6 +542,8 @@ Item {
         property real size: internal.orientation === Qt.Horizontal ? height : width
         //position will always be in the range 0..size, where position==0 means spread, position==size means hidden.
         property real position: panel.opened ? 0 : size
+
+        onPositionChanged: bottomBarVisibilityCommunicator.position = size - position
 
         y: internal.align === Qt.AlignTop ? -position : internal.align === Qt.AlignBottom ? position : 0
         x: internal.align === Qt.AlignLeft ? -position : internal.align === Qt.AlignRight ? position : 0

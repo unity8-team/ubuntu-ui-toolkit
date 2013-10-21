@@ -104,7 +104,6 @@ Rectangle {
                 property bool opened: bottomLeftPanel.opened
                 property bool animating: bottomLeftPanel.animating
                 style: Theme.createStyleComponent("ToolbarStyle.qml", toolbar)
-
                 Label {
                     anchors.centerIn: parent
                     text: "This looks like a standard toolbar"
