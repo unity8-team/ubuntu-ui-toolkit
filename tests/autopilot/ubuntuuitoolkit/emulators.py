@@ -343,7 +343,23 @@ class Picker(UbuntuUIToolkitEmulatorBase):
         label = focused_abstract_button.select_single('Label')
         return label.text
 
-    def list_visible_picks_text(self):
+    def _get_visible_picks(self, opacity=.25):
+        buttons = self._get_abstract_buttons()
+        buttons_list = []
+        for button in buttons:
+            if button.opacity > opacity:
+                buttons_list.append(button)
+        return buttons_list
+
+    def get_visible_picks_text(self, opacity=.25):
+        buttons = self._get_visible_picks(opacity)
+        labels_list = []
+        for button in buttons:
+            label = button.select_single('Label')
+            labels_list.append(label)
+        return labels_list
+
+    def list_picks_text(self):
         """Get visible items that can be picked
 
         returns: list
@@ -356,29 +372,31 @@ class Picker(UbuntuUIToolkitEmulatorBase):
                 labels_text_list.append(label.text)
         return labels_text_list
 
-    def _list_visible_picks_index(self):
-        buttons = self._get_abstract_buttons()
-        labels_list = []
-        for button in buttons:
-            label = button.select_single('Label')
-            if label.visible:
-                labels_list.append(label)
-        return labels_list
-
     def _get_abstract_buttons(self):
         return self.select_many('AbstractButton')
 
-    def get_pick_from_text(self, text):
-        """Get pick object from text"""
-        label = 'could not find label with text {}'.format(text)
+    def get_pick_label_from_text(self, text):
+        """Get pick label from text"""
         buttons = self._get_abstract_buttons()
-        for button in buttons:
-            label = button.select_single('Label')
-            if label.text == text:
-                return label.text
-            else:
-                raise ValueError("could not find label with text {}".format(
-                    text))
+        label = [button.select_single('Label') for button in buttons if
+                 button.select_single('Label').text == text]
+        if label:
+            return label
+
+        raise ValueError("Could not find label with text: {}.".format(text))
+
+    def get_pick_abstractbutton_from_text(self, text):
+        """Get pick AbstractButton from text
+        :parameter text: the text in the label of the abstract button """
+        buttons = self._get_abstract_buttons()
+        button = [button for button in buttons if
+                  button.select_single('Label').text == text]
+
+        if button:
+            return button[0]
+
+        raise ValueError("Could not find button label with text: {}.".format(
+            text))
 
     def get_pick_from_index(self, index):
         """Get pick object from index"""
@@ -390,37 +408,44 @@ class Picker(UbuntuUIToolkitEmulatorBase):
 
         :parameter text: the text of the item in the picker to hover over"""
         if platform.model() == "Desktop":
-            label = self.get_pick_from_text(text)
-            self.pointing_device.move_to_object(label)
-            return label.hovered.wait_for(True)
+            button = self.get_pick_abstractbutton_from_text(text)
+            self.pointing_device.move_to_object(button)
+            button.hovered.wait_for(True)
         else:
-            return "Can only be used on Desktop!"
+            return 'Can only be used on Desktop!'
 
     def hover_over_pick_index(self, index):
         """Hover over label in the picker using index, only usable on Desktop
 
         :parameter index: the index of the item in the picker to hover over"""
         if platform.model() == "Desktop":
-            label = self.get_pick_from_index(index)
-            self.pointing_device.move_to_object(index)
-            return label.hovered.wait_for(True)
+            button = self.get_pick_abstract_button_from_index(index)
+            self.pointing_device.move_to_object(button)
+            button.hovered.wait_for(True)
         else:
             return "Can only be used on Desktop!"
 
-    def click_pick_text(self, text):
+    def click_pick_text(self, text, opacity=.25):
         """Click the text in the picker
 
         :parameter text: The text in the picker to click on"""
-        label = self.get_pick_from_text(text)
-        if label.visable:
-            self.pointing_device.click_object(label)
+        button = self.get_pick_abstractbutton_from_text(text)
+        if button.opacity > opacity:
+            self.pointing_device.click_object(button)
+            button.focus.wait_for(True)
         else:
-            raise ValueError('label with text "{}" is not visible'.format(
+            raise ValueError('Label with text "{}" is not visible!'.format(
                 text))
 
-    def click_pick_index(self, index):
+    def click_pick_index(self, index, opacity=.25):
         """Click the index in the picker
 
         :parameter index: The index in the picker to click on"""
-        picks = self._list_visible_picks
-        self.pointing_device.click_object(picks[index])
+        buttons = self._get_abstract_buttons()
+        if buttons[index].opacity > opacity:
+            self.pointing_device.click_object(buttons[index])
+            buttons[index].focus.wait_for(True)
+        else:
+            raise ValueError(
+                'AbstractButton with index "{}" is not visible!'.format(
+                    index))

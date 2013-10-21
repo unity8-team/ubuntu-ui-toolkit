@@ -478,12 +478,46 @@ MainView {
 }
 """)
 
+TEST_QML_PICKER_CIRCULAR = ("""
+import QtQuick 2.0
+import Ubuntu.Components 0.1
+import Ubuntu.Components.Pickers 0.1
+
+MainView {
+    width: units.gu(48)
+    height: units.gu(60)
+    Picker {
+        objectName: "test_picker"
+        circular: false
+        model: ["Line1",
+                "Line2",
+                "Line3",
+                "Line4",
+                "Line5",
+                "Line6",
+                "Line7",
+                "Line8",
+                "Line9",
+                "Line10"]
+
+        delegate: PickerDelegate {
+            Label {
+                text: modelData
+                anchors.verticalCenter: parent.verticalCenter
+            }
+        }
+    }
+}
+""")
+
 
 class PickerTestCase(tests.QMLStringAppTestCase):
 
     scenarios = [
         ('picker linear', dict(
             test_qml=TEST_QML_PICKER_LINEAR, object_name='test_picker')),
+        ('picker circular', dict(
+            test_qml=TEST_QML_PICKER_CIRCULAR, object_name='test_picker')),
     ]
 
     def setUp(self):
@@ -491,7 +525,54 @@ class PickerTestCase(tests.QMLStringAppTestCase):
         self.picker = self.main_view.select_single(
             emulators.Picker, objectName=self.object_name)
 
-    def test_visible(self):
-        picks = self.picker.list_visible_picks_text()
-        expected = [u'Line1', u'Line2', u'Line3']
-        self.assertEqual(expected, picks)
+    def test_hover(self):
+        buttons = self.picker._get_abstract_buttons()
+        for button in buttons:
+                self.assertFalse(button.hovered)
+        self.picker.hover_over_pick_text('Line3')
+        for button in buttons:
+            label = button.select_single('Label')
+            if label.text == 'Line3':
+                self.assertTrue(button.hovered)
+            else:
+                self.assertFalse(button.hovered)
+
+        self.picker.click_pick_text('Line3')
+        self.picker.hover_over_pick_text('Line5')
+
+        for button in buttons:
+            label = button.select_single('Label')
+            if label.text == 'Line5':
+                self.assertTrue(button.hovered)
+            else:
+                self.assertFalse(button.hovered)
+
+    def test_click_pick_text(self):
+        self.picker.click_pick_text('Line2')
+        self.assertEquals(self.picker.get_current_pick(), 'Line2')
+
+    def test_negative_click_text_does_not_exist(self):
+        error = self.assertRaises(
+            ValueError, lambda: self.picker.click_pick_text(
+                'this should fail'))
+        self.assertEqual(
+            error.message,
+            'Could not find button label with text: this should fail.')
+
+    def test_negative_click_text_not_visible(self):
+        error = self.assertRaises(
+            ValueError, lambda: self.picker.click_pick_text(
+                'Line5'))
+        self.assertEqual(
+            error.message,
+            'Label with text "Line5" is not visible!')
+
+    def test_click_pick_index(self):
+        self.picker.click_pick_index(2)
+        self.assertEquals(self.picker.get_current_pick(), 'Line3')
+
+    def test_negative_click_pick_index_not_visible(self):
+        error = self.assertRaises(
+            ValueError, lambda: self.picker.click_pick_index(5))
+        self.assertEquals(
+            error.message, 'AbstractButton with index "5" is not visible!')
