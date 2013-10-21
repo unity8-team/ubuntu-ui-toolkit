@@ -16,6 +16,7 @@
 
 """Tests for the Ubuntu UI Toolkit Gallery - OptionSelector component"""
 
+import time
 from autopilot.matchers import Eventually
 from testtools.matchers import Equals
 from ubuntuuitoolkit.tests.gallery import GalleryTestCase
