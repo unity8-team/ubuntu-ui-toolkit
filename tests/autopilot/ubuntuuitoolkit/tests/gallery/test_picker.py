@@ -16,7 +16,7 @@
 
 """Tests for the Ubuntu UI Toolkit Gallery - OptionSelector component"""
 
-import time
+from time import sleep
 from autopilot.matchers import Eventually
 from testtools.matchers import Equals
 from ubuntuuitoolkit.tests.gallery import GalleryTestCase
@@ -45,6 +45,7 @@ class PickerTests(GalleryTestCase):
         self.assertIsNotNone(flickable)
         self.reveal_item_by_flick(dialer_clock, flickable, FlickDirection.UP)
         self.assertThat(flickable.flicking, Eventually(Equals(False)))
+        #TODO: Need to add more testing logic.
 
     def test_picker_dialerhand(self):
         dialer_overlay = self.getObject('dialer_overlay')
@@ -53,8 +54,11 @@ class PickerTests(GalleryTestCase):
         self.assertIsNotNone(flickable)
         self.reveal_item_by_flick(dialer_overlay, flickable, FlickDirection.UP)
         self.assertThat(flickable.flicking, Eventually(Equals(False)))
+        #TODO: Need to add more testing logic.
 
     def test_picker_linear_picker(self):
+        """Testing the linear picker"""
+
         linear = self.getObject('picker_linear')
         self.assertThat(linear.circular, Equals(False))
         listview = linear.select_single('QQuickListView')
@@ -75,6 +79,8 @@ class PickerTests(GalleryTestCase):
             pass
 
     def test_picker_circular_picker(self):
+        """Testing the circular picker"""
+
         circular = self.getObject('picker_circular')
         self.assertThat(circular.circular, Equals(True))
         selectedIndex = circular.selectedIndex
@@ -90,7 +96,7 @@ class PickerTests(GalleryTestCase):
                                               + str(selectedIndex))
                 self.assertIsNotNone(line)
             except:
-                time.sleep(1)
+                sleep(1)
 
         self.pointing_device.click_object(line)
 
@@ -121,6 +127,8 @@ class PickerTests(GalleryTestCase):
                                 Eventually(Equals(i % count)))
 
     def test_picker_infinite_picker(self):
+        """Testing the infinite picker"""
+
         infinite = self.getObject('picker_infinite')
         self.assertThat(infinite.circular, Equals(False))
 
