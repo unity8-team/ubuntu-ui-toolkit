@@ -500,3 +500,56 @@ MainView {
         self._go_to_page1()
         self.main_view.go_back()
         self.assertEqual(self.header.title, 'Page 0')
+
+
+class ButtonTestCase(tests.QMLStringAppTestCase):
+
+    test_qml = ("""
+import QtQuick 2.0
+import Ubuntu.Components 0.1
+
+MainView {
+    width: units.gu(48)
+    height: units.gu(60)
+
+    property variant button_count: 0
+
+    Action {
+        text: "Click Me! " + button_count
+        id: click_button_action
+        onTriggered: button_count = button_count + 1
+    }
+    Button {
+        id: button
+        action: click_button_action
+        objectName: 'test_button'
+    }
+}
+""")
+
+    def setUp(self):
+        super(ButtonTestCase, self).setUp()
+        self.button = self.main_view.select_single(
+            emulators.Button, objectName='test_button')
+
+    def test_button_emulator_click(self):
+        """button.click must click the button"""
+        self.button.click()
+        self.assertEqual(self.button.text, "Click Me! 1")
+
+    @unittest.skipIf(platform.model() != 'Desktop', 'Desktop only')
+    def test_button_emulator_hover(self):
+        """hover() muse move the cursor over the button"""
+        self.button.hover()
+        self.assertTrue(self.button.hovered)
+
+    def test_button_emulator_press(self):
+        """press() must press the button"""
+        self.button.press()
+        self.assertTrue(self.button.pressed)
+
+    def test_button_emulator_release(self):
+        """release() must release the button"""
+        self.button.press()
+        self.button.release()
+        self.assertFalse(self.button.pressed)
