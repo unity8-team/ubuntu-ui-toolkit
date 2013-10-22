@@ -585,7 +585,7 @@ class PickerTestCase(tests.QMLStringAppTestCase):
         self.assertEquals(self.picker.get_current_pick(), 'Line1')
 
     @unittest.skipIf(platform.model() != 'Desktop', 'Desktop only')
-    def test_hover(self):
+    def test_hover_text(self):
         """When platform equals desktop, hovered property must be true
             when cursor is over pick text"""
 
@@ -609,6 +609,18 @@ class PickerTestCase(tests.QMLStringAppTestCase):
         #        self.assertTrue(button.hovered)
         #    else:
         #        self.assertFalse(button.hovered)
+
+    @unittest.skipIf(platform.model() != 'Desktop', 'Desktop only')
+    def test_hover_index(self):
+        """When platform equals desktop, hovered property must be true
+            when cursor is over pick index"""
+
+        buttons = self.picker._get_abstract_buttons()
+        for button in buttons:
+                self.assertFalse(button.hovered)
+        self.picker.hover_over_pick_index(2)
+        hovered_button = self.picker.get_pick_from_index(2)
+        self.assertTrue(hovered_button.hovered)
 
     def test_select_pick_text(self):
         """Must be to select a pick in picker base on text in pick"""
@@ -646,13 +658,29 @@ class PickerTestCase(tests.QMLStringAppTestCase):
         self.assertEquals(
             error.message, 'AbstractButton with index "5" is not visible!')
 
-    def test_get_pickable_text(self):
+    def test_get_pickable_text_list(self):
         """returns a list of picks that are pickable"""
-        pickable = self.picker.get_pickable_text()
+        pickable = self.picker.get_pickable_text_list()
         expected = ["Line1", "Line2", "Line3"]
         self.assertEquals(pickable, expected)
 
     def test_get_pickable_opacity(self):
-        pickable = self.picker.get_pickable_text(.99)
+        pickable = self.picker.get_pickable_text_list(.99)
         expected = ["Line1"]
         self.assertEquals(pickable, expected)
+
+    def test_negative_hover_text_not_desktop(self):
+        with mock.patch.object(platform, 'model'):
+                error = self.assertRaises(
+                    emulators.ToolkitEmulatorException,
+                    lambda: self.picker.hover_over_pick_text('Line3'))
+                self.assertEqual(
+                    error.message, 'Hover can only be used on Desktop!')
+
+    def test_negative_hover_index_not_desktop(self):
+        with mock.patch.object(platform, 'model'):
+                error = self.assertRaises(
+                    emulators.ToolkitEmulatorException,
+                    lambda: self.picker.hover_over_pick_index(2))
+                self.assertEqual(
+                    error.message, 'Hover can only be used on Desktop!')

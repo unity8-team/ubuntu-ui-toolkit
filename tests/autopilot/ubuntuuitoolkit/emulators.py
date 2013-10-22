@@ -353,16 +353,18 @@ class Picker(UbuntuUIToolkitEmulatorBase):
         return label.text
 
     def _get_pickable(self, opacity=.25):
-        """returns a list of buttons that can be picked
-        :parameter opacity: buttons at or < the opacity will not be returned"""
+        """Return a list of buttons that can be picked
+        :parameter opacity: buttons at or < the opacity will not be returned
+        """
         buttons = self._get_abstract_buttons()
         buttons_list = [
             button for button in buttons if button.opacity > opacity]
         return buttons_list
 
-    def get_pickable_text(self, opacity=.25):
-        """returns a list of text in AbstractButton that can be picked
-        :parameter opacity: buttons at or < the opacity will not be returned"""
+    def get_pickable_text_list(self, opacity=.25):
+        """Return a list of text in AbstractButton that can be picked
+        :parameter opacity: buttons at or < the opacity will not be returned
+        """
         buttons = self._get_pickable(opacity)
         text_list = [button.select_single('Label').text for button in buttons]
         return text_list
@@ -395,18 +397,20 @@ class Picker(UbuntuUIToolkitEmulatorBase):
             self.pointing_device.move_to_object(button)
             button.hovered.wait_for(True)
         else:
-            return 'Can only be used on Desktop!'
+            raise ToolkitEmulatorException(
+                'Hover can only be used on Desktop!')
 
     def hover_over_pick_index(self, index):
         """Hover over label in the picker using index, only usable on Desktop
 
         :parameter index: the index of the item in the picker to hover over"""
         if platform.model() == "Desktop":
-            button = self.get_pick_abstract_button_from_index(index)
+            button = self.get_pick_from_index(2)
             self.pointing_device.move_to_object(button)
             button.hovered.wait_for(True)
         else:
-            return "Can only be used on Desktop!"
+            raise ToolkitEmulatorException(
+                'Hover can only be used on Desktop!')
 
     def select_pick_text(self, text, opacity=.25):
         """Click/Tap the text in the picker
