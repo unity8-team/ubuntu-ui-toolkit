@@ -175,11 +175,48 @@ Item {
       Use edge swipes to open/close the panel.
       The opened property is not updated until the swipe gesture is completed.
      */
-    property bool opened: false
+    // opened is true if state is spread, or if state is moving/hint and the previous state was spread.
+    property bool opened: (panel.state === "spread") ||
+                          (panel.state === "moving" && internal.previousState === "spread")
     /*! \internal */
+    // FIXME: When opened is made read-only, onOpenedChanged can be removed entirely.
     onOpenedChanged: {
-        if (opened) state = "spread";
-        else state = "";
+        if (internal.openedChangedWarning) {
+            console.log("DEPRECATED use of Panel.opened property. This property will be made read-only,
+                please use the opened property of the Page tools or use Panel.open() and Panel.close().");
+
+            if (opened) {
+                panel.open();
+            } else {
+                panel.close();
+            }
+
+            // re-establish the previous binding for opened.
+            panel.opened = Qt.binding(function() {
+                return (panel.state === "spread") ||
+                        (panel.state === "moving" && internal.previousState === "spread");
+            })
+        }
+
+        internal.openedChangedWarning = true;
+    }
+
+    /*!
+      Open the panel
+     */
+    function open() {
+        // FIXME: When opened is made readonly, openedChangedWarning must be removed
+        internal.openedChangedWarning = false;
+        panel.state = "spread";
+    }
+
+    /*!
+      Close the panel
+     */
+    function close() {
+        // FIXME: When opened is made readonly, openedChangedWarning must be removed.
+        internal.openedChangedWarning = false;
+        panel.state = "";
     }
 
     /*!
@@ -273,11 +310,23 @@ Item {
                 properties: "position"
                 duration: internal.transitionDuration
             }
+        },
+        Transition {
+            id: transitionToMoving
+            to: "moving"
+            UbuntuNumberAnimation {
+                target: bar
+                properties: "position"
+                duration: Toolkit.UbuntuAnimation.SnapDuration
+            }
         }
     ]
 
     QtObject {
         id: internal
+
+        // FIXME: Remove when opened property is made readonly
+        property bool openedChangedWarning: true
 
         /*!
           The duration in milliseconds of sliding in or out transitions when opening, closing, and showing the hint.
@@ -285,13 +334,12 @@ Item {
          */
         property real transitionDuration: Toolkit.UbuntuAnimation.FastDuration
 
-
         property string previousState: ""
         property int movingDelta
 
         // Used for recovering the state from before
         //  bottomBarVisibilityCommunicator forced the toolbar to hide.
-        property bool savedlocked: panel.locked
+        property bool savedLocked: panel.locked
         property bool savedOpened: panel.opened
 
         // Convert from Qt.AlignLeading to Qt.AlignTrailing to Qt.AlignLeft and Qt.AlignRight
@@ -324,11 +372,17 @@ Item {
             if (bottomBarVisibilityCommunicator.forceHidden) {
                 internal.savedLocked = panel.locked;
                 internal.savedOpened = panel.opened;
-                panel.opened = false;
+                panel.close();
                 panel.locked = true;
             } else { // don't force hidden
-                panel.locked = internal.savedlocked;
-                if (internal.savedlocked) panel.opened = internal.savedOpened;
+                panel.locked = internal.savedLocked;
+                if (panel.locked) {
+                    if (internal.savedOpened) {
+                        panel.open();
+                    } else {
+                        panel.close();
+                    }
+                }
                 // if the panel was locked, do not slide it back in
                 // until the user performs an edge swipe.
             }
@@ -341,12 +395,7 @@ Item {
             internal.movingDelta = panel.hintSize + draggingArea.initialPosition - bar.size;
         } else if (state == "moving" && internal.previousState == "spread") {
             internal.movingDelta = draggingArea.initialPosition;
-        } else if (state == "spread") {
-            panel.opened = true;
-        } else if (state == "") {
-            panel.opened = false;
         }
-        internal.previousState = state;
     }
 
     Toolkit.InverseMouseArea {
@@ -355,7 +404,7 @@ Item {
             mouse.accepted = false;
             // the mouse click may cause an update
             //  of locked by the clicked Item behind
-            if (!panel.locked) panel.opened = false;
+            if (!panel.locked) panel.close();
         }
         propagateComposedEvents: true
         visible: panel.locked == false && panel.state == "spread"
@@ -392,75 +441,66 @@ Item {
         // set in onPressed, reset when entering "moving" state
         property Item pressedItem: null
 
-        // find the first child with a clicked property:
-        // TODO Remove this function when ToolbarActions is removed.
-        function getClickableItem(mouse) {
-            var item = bar; // contains the children
-            while (item && !item.hasOwnProperty("clicked")) {
-                var coords = mapToItem(item, mouse.x, mouse.y);
-                // FIXME: When using a ListView the highlight may be
-                //  returned instead of the Item that you are looking for
-                item = item.childAt(coords.x, coords.y);
-            }
-            return item; // will be null if no item has clicked() signal.
-        }
-
         // find the first child with a triggered property:
         function getTriggerableItem(mouse) {
             var item = bar; // contains the children
-            while (item && !item.hasOwnProperty("triggered")) {
+            while (item && !item.hasOwnProperty("trigger")) {
                 var coords = mapToItem(item, mouse.x, mouse.y);
                 // FIXME: When using a ListView the highlight may be
                 //  returned instead of the Item that you are looking for
                 item = item.childAt(coords.x, coords.y);
             }
-            return item; // will be null if no item has triggered() signal.
+            return item; // will be null if no item has trigger() function.
         }
 
-        // forward clicked and triggered events to any child Item with a
-        // clicked() or triggered() signal, not
-        // just MouseAreas since MouseAreas would block swiping of the panel.
+        // forward trigger() events to any child Item with trigger() function.
         // This must also happen when the panel is locked, so the DraggingArea is
         // never disabled, and other signal handlers will return when panel.locked is true.
-        // TODO: Remove clicked() call when ToolbarActions is removed.
         onClicked: {
-            if (pressedItem && pressedItem === getClickableItem(mouse)) {
+            if (pressedItem && pressedItem === getTriggerableItem(mouse)) {
                 // Click event positioned at the Item where the user first pressed
-                pressedItem.clicked();
-            } else if (pressedItem && pressedItem === getTriggerableItem(mouse)) {
-                // Click event positioned at the Item where the user first pressed
-                pressedItem.triggered(pressedItem);
+                pressedItem.trigger();
             }
         }
 
         property int initialPosition
         onPressed: {
-            pressedItem = getClickableItem(mouse);
-            if (null === pressedItem) pressedItem = getTriggerableItem(mouse);
+            pressedItem = getTriggerableItem(mouse);
             if (panel.locked) return;
             initialPosition = getMousePosition();
             if (panel.state == "") panel.state = "hint";
         }
 
+        /*!
+          The minimum amount of movement while pressed before switching to "moving" state.
+          This threshold is needed to avoid detecting unintentional small movements while
+          "clicking" as a drag.
+          */
+        property real dragThreshold: units.gu(1)
+
         onPositionChanged: {
             if (panel.locked) return;
-            if (panel.state == "hint" && mousePosition < initialPosition) {
+            if (panel.state == "hint" && mousePosition < initialPosition - dragThreshold) {
+                internal.previousState = "hint";
                 panel.state = "moving";
                 pressedItem = null;
-            } else if (panel.state == "spread" && mousePosition > initialPosition) {
+            } else if (panel.state == "spread" && mousePosition > initialPosition + dragThreshold) {
+                internal.previousState = "spread";
                 panel.state = "moving";
                 pressedItem = null;
             }
         }
 
         onReleased: {
-            if (panel.locked) return;
-            finishMoving();
+            if (panel.state == "moving" || panel.state == "hint") {
+                finishMoving();
+            }
         }
         // Mouse cursor moving out of the window while pressed on desktop
         onCanceled: {
-            if (panel.locked) return;
-            finishMoving();
+            if (panel.state == "moving" || panel.state == "hint") {
+                finishMoving();
+            }
         }
 
         // FIXME: Make all parameters below themable and resolution-independent.
@@ -468,18 +508,22 @@ Item {
         function finishMoving() {
             if (draggingArea.dragVelocity < -44) {
                 if (internal.align === Qt.AlignBottom || internal.align === Qt.AlignRight) {
-                    panel.state = "spread";
+                    panel.open();
                 } else {
-                    panel.state = "";
+                    panel.close();
                 }
             } else if (draggingArea.dragVelocity > 44) {
                 if (internal.align === Qt.AlignBottom || internal.align === Qt.AlignRight) {
-                    panel.state = "";
+                    panel.close();
                 } else {
-                    panel.state = "spread";
+                    panel.open();
                 }
             } else {
-                panel.state = (bar.position < bar.size / 2) ? "spread" : "";
+                if (bar.position < bar.size / 2) {
+                    panel.open();
+                } else {
+                    panel.close();
+                }
             }
         }
     }
@@ -498,6 +542,8 @@ Item {
         property real size: internal.orientation === Qt.Horizontal ? height : width
         //position will always be in the range 0..size, where position==0 means spread, position==size means hidden.
         property real position: panel.opened ? 0 : size
+
+        onPositionChanged: bottomBarVisibilityCommunicator.position = size - position
 
         y: internal.align === Qt.AlignTop ? -position : internal.align === Qt.AlignBottom ? position : 0
         x: internal.align === Qt.AlignLeft ? -position : internal.align === Qt.AlignRight ? position : 0

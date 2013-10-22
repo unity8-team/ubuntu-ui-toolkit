@@ -14,10 +14,18 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+import logging
+
 from autopilot import input, platform
 from autopilot.introspection import dbus
 
 _NO_TABS_ERROR = 'The MainView has no Tabs.'
+
+logger = logging.getLogger(__name__)
+
+
+class ToolkitEmulatorException(Exception):
+    """Exception raised when there is an error with the emulator."""
 
 
 def get_pointing_device():
@@ -27,23 +35,25 @@ def get_pointing_device():
     If not, the pointing device will be `Touch`.
 
     """
-    if platform.model == 'Desktop':
+    if platform.model() == 'Desktop':
         input_device_class = input.Mouse
     else:
         input_device_class = input.Touch
-    return input.Pointer(input_device_class.create())
+    return input.Pointer(device=input_device_class.create())
 
 
 class UbuntuUIToolkitEmulatorBase(dbus.CustomEmulatorBase):
     """A base class for all the Ubuntu UI Toolkit emulators."""
 
+    def __init__(self, *args):
+        super(UbuntuUIToolkitEmulatorBase, self).__init__(*args)
+        self.pointing_device = get_pointing_device()
+        # TODO it would be nice to have access to the screen keyboard if we are
+        # on the touch UI -- elopio - 2013-09-04
+
 
 class MainView(UbuntuUIToolkitEmulatorBase):
     """MainView Autopilot emulator."""
-
-    def __init__(self, *args):
-        super(MainView, self).__init__(*args)
-        self.pointing_device = get_pointing_device()
 
     def get_header(self):
         """Return the Header emulator of the MainView."""
@@ -72,7 +82,7 @@ class MainView(UbuntuUIToolkitEmulatorBase):
         x, y, _, _ = self.globalRect
         line_x = x + self.width * 0.50
         start_y = y + self.height - 1
-        stop_y = y + self.height * 0.95
+        stop_y = y + self.height - self.get_toolbar().height
 
         self.pointing_device.drag(line_x, start_y, line_x, stop_y)
 
@@ -88,7 +98,7 @@ class MainView(UbuntuUIToolkitEmulatorBase):
     def _drag_to_close_toolbar(self):
         x, y, _, _ = self.globalRect
         line_x = x + self.width * 0.50
-        start_y = y + self.height * 0.95
+        start_y = y + self.height - self.get_toolbar().height
         stop_y = y + self.height - 1
 
         self.pointing_device.drag(line_x, start_y, line_x, stop_y)
@@ -105,6 +115,7 @@ class MainView(UbuntuUIToolkitEmulatorBase):
         :return: The newly opened tab.
 
         """
+        logger.debug('Switch to next tab.')
         self.get_header().switch_to_next_tab()
         current_tab = self.get_tabs().get_current_tab()
         current_tab.visible.wait_for(True)
@@ -117,12 +128,23 @@ class MainView(UbuntuUIToolkitEmulatorBase):
         :return: The newly opened tab.
 
         """
+        logger.debug('Switch to tab with index {0}.'.format(index))
         tabs = self.get_tabs()
-        if index >= tabs.get_number_of_tabs():
+        number_of_tabs = tabs.get_number_of_tabs()
+        if index >= number_of_tabs:
             raise IndexError('Tab index out of range.')
         current_tab = tabs.get_current_tab()
+        number_of_switches = 0
         while not tabs.selectedTabIndex == index:
+            logger.debug(
+                'Current tab index: {0}.'.format(tabs.selectedTabIndex))
+            if number_of_switches >= number_of_tabs - 1:
+                # This prevents a loop. But if this error is ever raised, it's
+                # likely there's a bug on the emulator or on the QML Tab.
+                raise ToolkitEmulatorException(
+                    'The tab with index {0} was not selected.'.format(index))
             current_tab = self.switch_to_next_tab()
+            number_of_switches += 1
         return current_tab
 
     def switch_to_previous_tab(self):
@@ -148,7 +170,7 @@ class MainView(UbuntuUIToolkitEmulatorBase):
         tabs = self.get_tabs()
         for index, tab in enumerate(tabs.select_many('Tab')):
             if tab.objectName == object_name:
-                return self.switch_to_tab_by_index(index)
+                return self.switch_to_tab_by_index(tab.index)
         raise ValueError(
             'Tab with objectName "{0}" not found.'.format(object_name))
 
@@ -160,6 +182,11 @@ class MainView(UbuntuUIToolkitEmulatorBase):
         """
         return self.select_single(
             ActionSelectionPopover, objectName=object_name)
+
+    def go_back(self):
+        """Go to the previous page."""
+        toolbar = self.open_toolbar()
+        toolbar.click_back_button()
 
 
 class Header(UbuntuUIToolkitEmulatorBase):
@@ -186,10 +213,6 @@ class Header(UbuntuUIToolkitEmulatorBase):
 class Toolbar(UbuntuUIToolkitEmulatorBase):
     """Toolbar Autopilot emulator."""
 
-    def __init__(self, *args):
-        super(Toolbar, self).__init__(*args)
-        self.pointing_device = get_pointing_device()
-
     def click_button(self, object_name):
         """Click a button of the toolbar.
 
@@ -205,36 +228,54 @@ class Toolbar(UbuntuUIToolkitEmulatorBase):
     def _get_button(self, object_name):
         return self.select_single('ActionItem', objectName=object_name)
 
+    def click_back_button(self):
+        """Click the back button of the toolbar."""
+        self.click_button('back_toolbar_button')
+
 
 class Tabs(UbuntuUIToolkitEmulatorBase):
     """Tabs Autopilot emulator."""
 
     def get_current_tab(self):
         """Return the currently selected tab."""
-        return self.select_many('Tab')[self.selectedTabIndex]
+        return self._get_tab(self.selectedTabIndex)
+
+    def _get_tab(self, index):
+        tabs = self._get_tabs()
+        for tab in tabs:
+            if tab.index == index:
+                return tab
+        else:
+            raise ToolkitEmulatorException(
+                'There is no tab with index {0}.'.format(index))
+
+    def _get_tabs(self):
+        return self.select_many('Tab')
 
     def get_number_of_tabs(self):
         """Return the number of tabs."""
-        return len(self.select_many('Tab'))
+        return len(self._get_tabs())
 
 
 class TabBar(UbuntuUIToolkitEmulatorBase):
     """TabBar Autopilot emulator."""
 
-    def __init__(self, *args):
-        super(TabBar, self).__init__(*args)
-        self.pointing_device = get_pointing_device()
-
     def switch_to_next_tab(self):
         """Open the next tab."""
         # Click the tab bar to switch to selection mode.
+        logger.debug('Click the tab bar to enable selection mode.')
         self.pointing_device.click_object(self)
+        if not self.selectionMode:
+            logger.debug('Selection mode not enabled, try again.')
+            # in case someone stole the click, like the open toolbar
+            self.pointing_device.click_object(self)
+        logger.debug('Click the next tab bar button.')
         self.pointing_device.click_object(self._get_next_tab_button())
 
     def _get_next_tab_button(self):
         current_index = self._get_selected_button_index()
         next_index = (current_index + 1) % self._get_number_of_tab_buttons()
-        return self._get_tab_buttons()[next_index]
+        return self._get_tab_button(next_index)
 
     def _get_selected_button_index(self):
         return self.select_single('QQuickPathView').selectedButtonIndex
@@ -245,13 +286,18 @@ class TabBar(UbuntuUIToolkitEmulatorBase):
     def _get_tab_buttons(self):
         return self.select_many('AbstractButton')
 
+    def _get_tab_button(self, index):
+        buttons = self._get_tab_buttons()
+        for button in buttons:
+            if button.buttonIndex == index:
+                return button
+        else:
+            raise ToolkitEmulatorException(
+                'There is no tab button with index {0}.'.format(index))
+
 
 class ActionSelectionPopover(UbuntuUIToolkitEmulatorBase):
     """ActionSelectionPopover Autopilot emulator."""
-
-    def __init__(self, *args):
-        super(ActionSelectionPopover, self).__init__(*args)
-        self.pointing_device = get_pointing_device()
 
     def click_button_by_text(self, text):
         """Click a button on the popover.
@@ -278,3 +324,19 @@ class ActionSelectionPopover(UbuntuUIToolkitEmulatorBase):
         for button in buttons:
             if button.text == text:
                 return button
+
+
+class CheckBox(UbuntuUIToolkitEmulatorBase):
+    """CheckBox Autopilot emulator."""
+
+    def check(self):
+        """Check a CheckBox, if its not already checked."""
+        if not self.checked:
+            self.pointing_device.click_object(self)
+            self.checked.wait_for(True)
+
+    def uncheck(self):
+        """Uncheck a CheckBox, if its not already unchecked."""
+        if self.checked:
+            self.pointing_device.click_object(self)
+            self.checked.wait_for(False)

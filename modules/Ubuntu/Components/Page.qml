@@ -151,8 +151,14 @@ PageTreeNode {
         UnityActions.ActionContext {
             id: actionContext
 
-            Component.onCompleted: {
-                var manager = page.__propagated.actionManager;
+            property var actionManager: page.__propagated &&
+                                        page.__propagated.hasOwnProperty("actionManager") ?
+                                            page.__propagated.actionManager : null
+
+            onActionManagerChanged: addLocalContext(actionManager)
+            Component.onCompleted: addLocalContext(actionManager)
+
+            function addLocalContext(manager) {
                 if (manager) manager.addLocalContext(actionContext);
             }
         }
@@ -174,8 +180,6 @@ PageTreeNode {
                     internal.header.flickable = page.flickable;
                 }
                 if (tools) {
-                    // TODO: remove __pageStack when ToolbarActions becomes deprecated
-                    if (tools.hasOwnProperty("__pageStack")) tools.__pageStack = page.pageStack;
                     if (tools.hasOwnProperty("pageStack")) tools.pageStack = page.pageStack;
                 }
                 if (internal.toolbar) {

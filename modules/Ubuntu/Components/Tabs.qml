@@ -50,8 +50,8 @@ import QtQuick 2.0
                             anchors.centerIn: parent
                             text: "A centered label"
                         }
-                        tools: ToolbarActions {
-                            Action {
+                        tools: ToolbarItems {
+                            ToolbarButton {
                                 text: "action"
                                 onTriggered: print("action triggered")
                             }
@@ -175,20 +175,8 @@ PageTreeNode {
      */
     property TabBar tabBar: TabBar {
         tabsItem: tabs
+        visible: tabs.active
     }
-
-    /*!
-      \deprecated
-      This property is deprecated. Pages will now automatically update the toolbar when activated.
-     */
-    property ToolbarActions tools: null
-    /*!
-      \deprecated
-      \internal
-     */
-    onToolsChanged: print("Tabs.tools property was deprecated. "+
-                          "Pages will automatically update the toolbar when activated. "+
-                          "See CHANGES file, and use toolbar.tools instead when needed.");
 
     /*!
       \internal
@@ -224,8 +212,12 @@ PageTreeNode {
 
         function updateTabList() {
             var list = [];
+            var index = 0;
             for (var i=0; i < children.length; i++) {
-                if (isTab(tabsModel.children[i])) list.push(tabsModel.children[i]);
+                if (isTab(tabsModel.children[i])) {
+                    tabsModel.children[i].__protected.index = index++;
+                    list.push(tabsModel.children[i]);
+                }
             }
             tabList = list;
             tabs.modelChanged();

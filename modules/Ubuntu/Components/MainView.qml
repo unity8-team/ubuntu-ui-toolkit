@@ -124,7 +124,7 @@ import Ubuntu.Unity.Action 1.0 as UnityActions
     hidden when the user swipes it out, or when the active \l Page inside the MainView is changed.
     The examples above show how to include a single \l Page inside a MainView, but more advanced application
     structures are possible using \l PageStack and \l Tabs.
-    See \l ToolbarActions for details on how to to control the behavior and contents of the toolbar.
+    See \l ToolbarItems for details on how to to control the behavior and contents of the toolbar.
 */
 PageTreeNode {
     id: mainView
@@ -133,6 +133,10 @@ PageTreeNode {
       \preliminary
       The property holds the application's name, which must be the same as the
       desktop file's name.
+      The name also sets the name of the QCoreApplication and defaults for data
+      and cache folders that work on the desktop and under confinement.
+      C++ code that writes files may use QStandardPaths::writableLocation with
+      QStandardPaths::DataLocation or QStandardPaths::CacheLocation.
       */
     property string applicationName: ""
 
@@ -247,7 +251,12 @@ PageTreeNode {
             clip: headerItem.bottomY > 0 && activePage && activePage.flickable
                   && -activePage.flickable.contentY < headerItem.bottomY
 
-            property Page activePage: mainView.activeLeafNode
+            property Page activePage: isPage(mainView.activeLeafNode) ? mainView.activeLeafNode : null
+
+            function isPage(item) {
+                return item.hasOwnProperty("__isPageTreeNode") && item.__isPageTreeNode &&
+                        item.hasOwnProperty("title") && item.hasOwnProperty("tools");
+            }
 
             Item {
                 id: contents
@@ -289,6 +298,17 @@ PageTreeNode {
      */
     property alias actions: unityActionManager.actions
 
+    /*!
+      The ActionManager that supervises the global and local ActionContexts.
+      The \l actions property should be used preferably since it covers most
+      use cases. The ActionManager is accessible to have a more refined control
+      over the actions, e.g. if one wants to add/remove actions dynamically, create
+      specific action contexts, etc.
+
+      \qmlproperty UnityActions.ActionManager actionManager
+     */
+    property alias actionManager: unityActionManager
+
     Object {
         id: internal
         UnityActions.ActionManager {
@@ -319,24 +339,11 @@ PageTreeNode {
         property var actionManager: unityActionManager
     }
 
-    /*!
-      \deprecated
-      This property is DEPRECATED. Pages will now automatically update the toolbar when activated.
-      See \l ToolbarItems for more information on how to set the tools of a \l Page.
-     */
-    property ToolbarActions tools: null
-    /*!
-      \internal
-      \deprecated
-     */
-    onToolsChanged: print("MainView.tools property was DEPRECATED. "+
-                          "Pages will automatically update the toolbar when activated. "+
-                          "See CHANGES file, and use toolbar.tools instead when needed.");
-
     /*! \internal */
     onApplicationNameChanged: {
         if (applicationName !== "") {
             i18n.domain = applicationName;
+            UbuntuApplication.applicationName = applicationName
         }
     }
 }
