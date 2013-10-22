@@ -599,16 +599,16 @@ class PickerTestCase(tests.QMLStringAppTestCase):
                 self.assertTrue(button.hovered)
             else:
                 self.assertFalse(button.hovered)
+        # https://bugs.launchpad.net/ubuntu-ui-toolkit/+bug/1242718
+        #self.picker.select_pick_text('Line3')
+        #self.picker.hover_over_pick_text('Line5')
 
-        self.picker.select_pick_text('Line3')
-        self.picker.hover_over_pick_text('Line5')
-
-        for button in buttons:
-            label = button.select_single('Label')
-            if label.text == 'Line5':
-                self.assertTrue(button.hovered)
-            else:
-                self.assertFalse(button.hovered)
+        #for button in buttons:
+        #    label = button.select_single('Label')
+        #    if label.text == 'Line5':
+        #        self.assertTrue(button.hovered)
+        #    else:
+        #        self.assertFalse(button.hovered)
 
     def test_select_pick_text(self):
         """Must be to select a pick in picker base on text in pick"""
