@@ -16,8 +16,6 @@
 
 """Base classes for Autopilot tests using the Ubuntu UI Toolkit."""
 
-import subprocess
-
 from autopilot import (
     input,
     platform,
@@ -27,12 +25,7 @@ from autopilot import (
 
 def get_qmlscene_launch_command():
     """Return the command to launch qmlscene for autopilot tests."""
-    # We need to specify qt5 because qtchooser doesn't have a default
-    # configuration on devices and it seems the environment variable
-    # QT_SELECT=qt5 doesn't work for autopilot tests. --Mirv - 2013-10-03
-    arch = subprocess.check_output(
-        ["dpkg-architecture", "-qDEB_HOST_MULTIARCH"]).strip()
-    return '/usr/lib/' + arch + '/qt5/bin/qmlscene'
+    return 'qmlscene'
 
 
 class UbuntuUIToolkitAppTestCase(testcase.AutopilotTestCase):
