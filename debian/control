@@ -113,7 +113,6 @@ Architecture: all
 Depends: ${misc:Depends},
          ${shlibs:Depends},
          libautopilot-qt,
-         dpkg-dev,
          libqt5test5,
          libqt5widgets5,
          python-autopilot (>= 1.3),
