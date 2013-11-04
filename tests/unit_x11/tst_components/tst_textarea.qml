@@ -42,10 +42,6 @@ Item {
         color: colorTest.text.length < 4 ? "#0000ff" : "#00ff00"
     }
 
-    TextEdit {
-        id: textEdit
-    }
-
     ListItem.Empty {
         id: listItem
         height: 200
@@ -86,120 +82,48 @@ Item {
         }
 
         // TextEdit shared properties
-        function test_0_activeFocusOnPress() {
-            compare(textArea.activeFocusOnPress,textEdit.activeFocusOnPress,"TextArea.activeFocusOnPress is same as TextEdit.activeFocusOnPress")
-        }
-
-        function test_0_canPaste() {
-            compare(textArea.canPaste,textEdit.canPaste,"TextArea.canPaste is same as TextEdit.canPaste")
-        }
-
-        function test_0_canRedo() {
-            compare(textArea.canRedo,textEdit.canRedo,"TextArea.canRedo is same as TextEdit.canRedo")
-        }
-
-        function test_0_canUndo() {
-            compare(textArea.canUndo,textEdit.canUndo,"TextArea.canUndo is same as TextEdit.canUndo")
-        }
-
-        function test_0_color() {
-            compare(textArea.color,textEdit.color,"TextArea.color is same as TextEdit.canUndo")
-        }
-
         function test_0_cursorDelegate() {
             compare((textArea.cursorDelegate!=null),true,"TextArea.cursorDelegate is not null")
         }
 
-        function test_0_cursorPosition() {
-            compare(textArea.cursorPosition,textEdit.cursorPosition,"TextArea.cursorPosition is same as TextEdit.cursorPosition")
+        function test_zz_length() {
+            textArea.text = "a\nb\tc d"
+            compare(textArea.length, 7, "TextArea.length is 7 plain text characters")
+            textArea.textFormat = TextEdit.RichText
+            textArea.text = "<p>a\n<b>b</b>\tc d</p>"
+            compare(textArea.length, 7, "TextArea.length is 7 characters despite HTML markup")
         }
 
-        function test_0_cursorRectangle() {
-            compare(textArea.cursorRectangle,textEdit.cursorRectangle,"TextArea.cursorRectangle is same as TextEdit.cursorRectangle")
-        }
-
-        function test_0_cursorVisible() {
-            compare(textArea.cursorVisible,textEdit.cursorVisible,"TextArea.cursorVisible is same as TextEdit.cursorVisible")
-        }
-
-        function test_0_effectiveHorizontalAlignment() {
-            compare(textArea.effectiveHorizontalAlignment,textEdit.effectiveHorizontalAlignment,"TextArea.effectiveHorizontalAlignment is same as TextEdit.effectiveHorizontalAlignment")
-        }
-
-        function test_0_font() {
-            compare(textArea.font,textEdit.font,"TextArea.font is same as TextEdit.font")
-        }
-
-        function test_0_horizontalAlignment() {
-            compare(textArea.horizontalAlignment,textEdit.horizontalAlignment,"TextArea.horizontalAlignment is same as TextEdit.horizontalAlignment")
-        }
-
-        function test_0_inputMethodComposing() {
-            compare(textArea.inputMethodComposing,textEdit.inputMethodComposing,"TextArea.inputMethodComposing is same as TextEdit.inputMethodComposing")
-        }
-
-        function test_0_inputMethodHints() {
-            compare(textArea.inputMethodHints,textEdit.inputMethodHints,"TextArea.inputMethodHints is same as TextEdit.inputMethodHints")
-        }
-
-        function test_0_length() {
-            compare(textArea.length,textEdit.length,"TextArea.length is same as TextEdit.length")
-        }
-
-        function test_0_lineCount() {
-            compare(textArea.lineCount,textEdit.lineCount,"TextArea.lineCount is same as TextEdit.lineCount")
+        function test_zz_lineCount() {
+            console.log('ref err here')
+            textArea.text = "first"
+            compare(textArea.lineCount, 1, "1 line as expected")
+            // autosize reacts on lineCount
+            textArea.autoSize = true
+         /* FIXME
+            textArea.text = "first\nsecond"
+            compare(textArea.lineCount, 2, "2 lines as expected")
+          */
+            // the current height is that of 2 lines
+            var heightOfTwoLines = textArea.height
+            textArea.maximumLineCount = 2
+            textArea.text = "first\nsecond\nthird"
+         /* FIXME
+            compare(textArea.lineCount, 3, "3 lines as expected")
+          */
+            compare(textArea.height, heightOfTwoLines, 'still sized within maximum of 2')
         }
 
         function test_1_mouseSelectionMode() {
             compare(textArea.mouseSelectionMode, TextEdit.SelectWords,"TextArea.mouseSelectionMode is SelectWords")
         }
 
-        function test_0_persistentSelection() {
-            compare(textArea.persistentSelection,textEdit.persistentSelection,"TextArea.persistentSelection is same as TextEdit.persistentSelection")
-        }
-
-        function test_0_readOnly() {
-            compare(textArea.readOnly,textEdit.readOnly,"TextArea.readOnly is same as TextEdit.readOnly")
-        }
-
-        function test_0_renderType() {
-            compare(textArea.renderType,textEdit.renderType,"TextArea.renderType is same as TextEdit.renderType")
-        }
-
         function test_0_selectByMouse() {
             compare(textArea.selectByMouse,true,"TextArea.selectByMouse is true")
         }
 
-        function test_0_selectedText() {
-            compare(textArea.selectedText,textEdit.selectedText,"TextArea.selectedText is same as TextEdit.selectedText")
-        }
-
-        function test_0_selectedTextColor() {
-            compare(textArea.selectedTextColor,textEdit.selectedTextColor,"TextArea.selectedTextColor is same as TextEdit.selectedTextColor")
-        }
-
-        function test_0_selectionColor() {
-            compare(textArea.selectionColor,textEdit.selectionColor,"TextArea.selectionColor is same as TextEdit.selectionColor")
-        }
-
-        function test_0_selectionEnd() {
-            compare(textArea.selectionEnd,textEdit.selectionEnd,"TextArea.selectionEnd is same as TextEdit.selectionEnd")
-        }
-
-        function test_0_selectionStart() {
-            compare(textArea.selectionStart,textEdit.selectionStart,"TextArea.selectionStart is same as TextEdit.selectionStart")
-        }
-
-        function test_0_text() {
-            compare(textArea.text,textEdit.text,"TextArea.text is same as TextEdit.text")
-        }
-
         function test_0_textFormat() {
-            compare(textArea.textFormat,textEdit.textFormat,"TextArea.textFormat is same as TextEdit.textFormat")
-        }
-
-        function test_0_verticalAlignment() {
-            compare(textArea.verticalAlignment,textEdit.verticalAlignment,"TextArea.verticalAlignment is same as TextEdit.verticalAlignment")
+            compare(textArea.textFormat, TextEdit.PlainText,"TextArea.textFormat is same as TextEdit.textFormat")
         }
 
         function test_0_wrapMode() {
