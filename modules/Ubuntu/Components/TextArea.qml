@@ -15,7 +15,6 @@
  */
 
 import QtQuick 2.0
-import "mathUtils.js" as MathUtils
 
 /*!
     \qmltype TextArea
