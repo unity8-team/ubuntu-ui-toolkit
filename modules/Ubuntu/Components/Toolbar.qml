@@ -33,47 +33,79 @@ Panel {
     }
     height: background.height
 
+    // Closing of the toolbar on app contents ineraction is handled by the Page.
+    __closeOnContentsClicks: false
+
     /*!
       \preliminary
       The list of \l Actions to be shown on the toolbar
      */
     property Item tools: null
 
+    /*!
+      \preliminary
+      The time in milliseconds before the toolbar automatically hides after inactivity
+      when it is not locked.
+     */
+    property int hideTimeout: 5000
+
     /*! \internal */
     onToolsChanged: {
-        if (tools && tools.hasOwnProperty("locked")) locked = tools.locked;
-        if (tools && tools.hasOwnProperty("locked") && tools.hasOwnProperty("opened")
-                && tools.opened && tools.locked) {
-            // toolbar is locked in visible state.
-            internal.updateVisibleTools();
-            opened = true;
-        } else if (!opened && !animating) {
-            // toolbar is closed
-            internal.updateVisibleTools();
-        } else {
-            opened = false;
-            // internal.visibleTools will be updated
-            // when the hide animation is finished
-        }
-        if (tools && tools.hasOwnProperty("opened")) {
-            tools.opened = toolbar.opened;
+        internal.updateVisibleTools();
+        if (tools) {
+            if (tools && tools.hasOwnProperty("locked")) locked = tools.locked;
+            // open the toolbar, except when it is locked in closed position
+            if (tools && tools.hasOwnProperty("locked") && tools.hasOwnProperty("opened")
+                    && !tools.opened && tools.locked) {
+                // toolbar is locked in closed state
+                toolbar.close();
+            } else {
+                toolbar.open();
+            }
+
+            if (tools && tools.hasOwnProperty("opened")) {
+                tools.opened = toolbar.opened;
+            }
+            hideTimer.restart();
+        } else { // no tools
+            locked = true;
+            toolbar.close();
         }
     }
 
     // if tools is not specified, lock the toolbar in closed position
     locked: tools && tools.hasOwnProperty("locked") ? tools.locked : false
 
+    Timer {
+        id: hideTimer
+        interval: toolbar.hideTimeout
+        running: toolbar.opened && !toolbar.locked
+        onTriggered: toolbar.close()
+    }
+
     onOpenedChanged: {
         if (tools && tools.hasOwnProperty("opened")) {
             tools.opened = toolbar.opened;
         }
+        if (!toolbar.locked) hideTimer.restart();
     }
 
     Connections {
         target: tools
         ignoreUnknownSignals: true
-        onOpenedChanged: toolbar.opened = tools.opened;
-        onLockedChanged: toolbar.locked = tools.locked;
+        onOpenedChanged: {
+            if (tools.opened) {
+                toolbar.open();
+            } else {
+                toolbar.close();
+            }
+        }
+        onLockedChanged: {
+            toolbar.locked = tools.locked;
+            // open the toolbar when it becomes unlocked
+            // (may be because a new page was pushed to the page stack)
+            if (!toolbar.locked) toolbar.open();
+        }
     }
 
     QtObject {

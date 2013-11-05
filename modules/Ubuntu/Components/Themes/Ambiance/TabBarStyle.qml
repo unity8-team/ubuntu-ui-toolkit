@@ -35,7 +35,7 @@ Item {
     property real buttonPositioningVelocity: styledItem.animate ? 1.0 : -1
 
     // The time of inactivity before leaving selection mode automatically
-    property int deactivateTime: 3000
+    property int deactivateTime: 5000
 
     /*!
       The set of tabs this tab bar belongs to
@@ -235,6 +235,7 @@ Item {
         property bool needsScrolling: buttonRowWidth > tabBar.width
         interactive: needsScrolling
         width: needsScrolling ? tabBar.width : buttonRowWidth
+        clip: needsScrolling
 
         highlightRangeMode: PathView.NoHighlightRange
         offset: 0
