@@ -15,6 +15,7 @@
  */
 
 import QtQuick 2.0
+import Ubuntu.Unity.Action 1.0 as UnityActions
 
 /*!
     \qmltype TextField
@@ -588,20 +589,6 @@ ActionItem {
         control.triggered(control.text)
     }
 
-    /*!
-      \internal
-      Use the action parameter type for a default input method hint.
-    */
-    property int __type: action ? action.parameterType : 0
-    on__TypeChanged: {
-        // Don't undo explicitly specified hints
-        if (inputMethodHints != Qt.ImhNone)
-            return
-
-        /* FIXME: can we use UnityActions.Action.Type here? */
-        if (__type == 2 || __type == 4)
-            inputMethodHints = Qt.ImhDigitsOnly
-    }
 
     /*!
       Copies the currently selected text to the system clipboard.
@@ -843,9 +830,20 @@ ActionItem {
 
         signal popupTriggered()
 
+        property int type: action ? action.parameterType : 0
+        onTypeChanged: {
+            // Don't undo explicitly specified hints
+            if (inputMethodHints != Qt.ImhNone)
+                return
+
+            if (type == UnityActions.Action.Type.Integer
+             || type == UnityActions.Action.Type.Real)
+                inputMethodHints = Qt.ImhDigitsOnly
+        }
+
         function activateEditor()
         {
-            if (!control.activeFocus)
+            if (!editor.activeFocus)
                 editor.forceActiveFocus();
             else
                 showInputPanel();
