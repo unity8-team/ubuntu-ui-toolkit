@@ -16,6 +16,7 @@
 
 import QtQuick 2.0
 import U1db 1.0 as U1db
+import Ubuntu.Unity.Action 1.0 as UnityActions
 
 /*!
     \qmltype Option
@@ -105,15 +106,14 @@ Action {
       The default value changed. From this we assume the value type.
       */
     onDefaultValueChanged: {
-        /* FIXME: UnityActions.Action.Type.String doesn't work */
         if (typeof defaultValue == "string")
-            parameterType = 1
+            parameterType = UnityActions.Action.Integer
         else if (typeof defaultValue == "number")
-            parameterType = 4 // Javascript doesn't distinguish int (2) and real (4)
+            parameterType = UnityActions.Action.Real // Javascript doesn't distinguish int and real
         else if (typeof defaultValue == "boolean")
-            parameterType = 3
+            parameterType = UnityActions.Action.Bool
         else
-            parameterType = 0
+            parameterType = UnityActions.Action.None
     }
 
     /*!
