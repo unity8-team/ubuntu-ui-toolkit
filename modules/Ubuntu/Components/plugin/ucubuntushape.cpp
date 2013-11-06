@@ -67,12 +67,13 @@ static const char* const kFragmentShader =
     "uniform highp vec4 bgColor[2];                                                              \n"
     "uniform highp int bgGradientIndex;                                                          \n"
     "uniform highp vec4 cornerTransform;                                                         \n"
-    "uniform highp vec4 noCornerTransform;                                                       \n"
+    "uniform highp vec4 rectTransform;                                                           \n"
     "uniform highp vec4 overlayColor;                                                            \n"
     "uniform highp vec4 overlaySteps;                                                            \n"
     "uniform highp vec4 shadowColor[2];                                                          \n"
     "uniform highp float radius;                                                                 \n"
-    "uniform highp vec2 shadowSize;                                                              \n"
+    "uniform highp vec2 cornerShadowSize;                                                        \n"
+    "uniform highp vec2 rectShadowSize;                                                          \n"
     "uniform highp vec2 shadowOffset[2];                                                         \n"
     "uniform highp vec2 sourceOpacity;                                                           \n"
     "uniform sampler2D sampler[2];                                                               \n"
@@ -127,9 +128,13 @@ static const char* const kFragmentShader =
     "        shape = -shape * overlay + shape;                                                   \n"
     "    }                                                                                       \n"
 
+    "    highp float a = clamp(floor(textureCoord.y * 1000.0 - 499.5), 0.0, 1.0);\n"
+    "    highp vec4 transform = rectTransform * a + cornerTransform * (1.0 - a);"
+    "    highp vec2 shadowSize = rectShadowSize * a + cornerShadowSize * (1.0 - a);"
+
     //   Shape components.
     "    highp vec2 coord = abs(textureCoord * 2.0 - 1.0);                                       \n"
-    "    coord = max(coord * cornerTransform.xy + cornerTransform.zw, 0.0);                      \n"
+    "    coord = max(coord * transform.xy + transform.zw, 0.0);                      \n"
     "    highp float shapeMask = clamp(-length(coord) * radius + radius + 0.5, 0.0, 1.0);        \n"
     "    shape = shape * shapeMask;                                                              \n"
 
@@ -141,7 +146,7 @@ static const char* const kFragmentShader =
     "    if (features[6] != 0) {                                                                 \n"
     "        highp float shadow;                                                                 \n"
     "        coord = abs((textureCoord + shadowOffset[1]) * 2.0 - 1.0);                          \n"
-    "        coord = max(coord * cornerTransform.xy + cornerTransform.zw, 0.0);                  \n"
+    "        coord = max(coord * transform.xy + transform.zw, 0.0);                  \n"
     "        shadow = clamp(-length(coord) * shadowSize[1] + shadowSize[1], 0.0, 1.0);           \n"
     "        shadow = shadow * (shadow - 2.0) + 1.0;                                             \n"
     "        shadow = clamp(-shadow * shapeMask + shadow, 0.0, 1.0);                             \n"
@@ -176,8 +181,9 @@ MaterialData::MaterialData()
     : overlayColorPremultiplied(0.0f, 0.0f, 0.0f, 0.0f)
     , overlaySteps(0.0f, 0.0f, 0.0f, 0.0f)
     , cornerTransform(0.0f, 0.0f, 0.0f, 0.0f)
-    , noCornerTransform(0.0f, 0.0f, 0.0f, 0.0f)
-    , shadowSize(2.0f, 2.0f)
+    , rectTransform(0.0f, 0.0f, 0.0f, 0.0f)
+    , cornerShadowSize(0.0f, 0.0f)
+    , rectShadowSize(0.0f, 0.0f)
     , sourceOpacity(1.0f, 1.0f)
     , adjustedCornerRadius(0.0f)
     , backgroundGradientIndex(0)
@@ -1189,12 +1195,13 @@ QSGNode* UCUbuntuShape::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData* d
     const float sx = width / (2.0f * materialData_.adjustedCornerRadius);
     const float sy = height / (2.0f * materialData_.adjustedCornerRadius);
     materialData_.cornerTransform = QVector4D(sx, sy, 1.0f - sx, 1.0f - sy);
-    materialData_.noCornerTransform = QVector4D(width, height, 1.0f - width, 1.0f - height);
+    materialData_.rectTransform = QVector4D(width, height, 1.0f - width, 1.0f - height);
 
     // Store shadow sizes.
     const float shadowSizeOut = qMax(1.0f, shadowSize_[1]);
-    materialData_.shadowSize = QVector2D(0.0f, -materialData_.adjustedCornerRadius / shadowSizeOut);
-    // materialData_.shadowSize = QVector2D(0.0f, -0.5f / shadowSizeOut);
+    materialData_.cornerShadowSize = QVector2D(
+        0.0f, -materialData_.adjustedCornerRadius / shadowSizeOut);
+    materialData_.rectShadowSize = QVector2D(0.0f, -0.5f / shadowSizeOut);
 
     // Update node.
     UCUbuntuShapeNode* node = oldNode ?
@@ -1327,8 +1334,9 @@ void UCUbuntuShapeShader::initialize()
     shadowColorId_ = program()->uniformLocation("shadowColor");
     radiusId_ = program()->uniformLocation("radius");
     cornerTransformId_ = program()->uniformLocation("cornerTransform");
-    noCornerTransformId_ = program()->uniformLocation("noCornerTransform");
-    shadowSizeId_ = program()->uniformLocation("shadowSize");
+    rectTransformId_ = program()->uniformLocation("rectTransform");
+    cornerShadowSizeId_ = program()->uniformLocation("cornerShadowSize");
+    rectShadowSizeId_ = program()->uniformLocation("rectShadowSize");
     shadowOffsetId_ = program()->uniformLocation("shadowOffset");
     bgGradientIndexId_ = program()->uniformLocation("bgGradientIndex");
     sourceOpacityId_ = program()->uniformLocation("sourceOpacity");
@@ -1397,10 +1405,11 @@ void UCUbuntuShapeShader::updateState(
     program()->setUniformValue(overlayStepsId_, data->overlaySteps);
     program()->setUniformValueArray(shadowColorId_, data->shadowColorPremultiplied, 2);
     program()->setUniformValue(radiusId_, data->adjustedCornerRadius);
-    program()->setUniformValue(shadowSizeId_, data->shadowSize);
+    program()->setUniformValue(cornerShadowSizeId_, data->cornerShadowSize);
+    program()->setUniformValue(rectShadowSizeId_, data->rectShadowSize);
     program()->setUniformValueArray(shadowOffsetId_, data->shadowOffset, 2);
     program()->setUniformValue(cornerTransformId_, data->cornerTransform);
-    program()->setUniformValue(noCornerTransformId_, data->noCornerTransform);
+    program()->setUniformValue(rectTransformId_, data->rectTransform);
     program()->setUniformValue(bgGradientIndexId_, data->backgroundGradientIndex);
     program()->setUniformValue(sourceOpacityId_, data->sourceOpacity);
     program()->setUniformValueArray(sourceFillId_, data->sourceFill, 2);

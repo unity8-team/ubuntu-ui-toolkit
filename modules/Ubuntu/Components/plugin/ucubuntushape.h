@@ -38,8 +38,9 @@ struct MaterialData
     QVector4D shadowColorPremultiplied[2];
     QVector4D overlaySteps;
     QVector4D cornerTransform;
-    QVector4D noCornerTransform;
-    QVector2D shadowSize;
+    QVector4D rectTransform;
+    QVector2D cornerShadowSize;
+    QVector2D rectShadowSize;
     QVector2D shadowOffset[2];
     QVector2D sourceOpacity;
     QVector4D sourceFill[2];
@@ -379,8 +380,9 @@ private:
     int shadowColorId_;
     int radiusId_;
     int cornerTransformId_;
-    int noCornerTransformId_;
-    int shadowSizeId_;
+    int rectTransformId_;
+    int cornerShadowSizeId_;
+    int rectShadowSizeId_;
     int shadowOffsetId_;
     int bgGradientIndexId_;
     int sourceOpacityId_;
