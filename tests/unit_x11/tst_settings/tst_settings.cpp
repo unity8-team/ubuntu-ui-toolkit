@@ -37,10 +37,14 @@ class tst_Settings : public QObject
 public:
     tst_Settings() { }
 
-    QQuickView *loadTestCase(const QString &filename)
+    QQuickView *loadTestCase(const QString &filename, QSignalSpy **spy = 0)
     {
         QQuickView *view = new QQuickView(0);
         view->setGeometry(0,0, UCUnits::instance().gu(40), UCUnits::instance().gu(30));
+        if (spy) {
+            *spy = new QSignalSpy(view->engine(), SIGNAL(warnings(QList<QQmlError>)));
+            (*spy)->setParent(view);
+        }
 
         QDir modules("../../../modules");
         Q_ASSERT(modules.exists());
@@ -51,6 +55,10 @@ public:
         Q_ASSERT(view->rootObject());
         view->show();
         QTest::qWaitForWindowExposed(view);
+
+        // No warnings from QML
+        Q_ASSERT(spy.count() == 0);
+
         return view;
     }
 
@@ -76,16 +84,15 @@ private Q_SLOTS:
     {
         QQuickView *view = loadTestCase("Settings.qml");
         QQuickItem *root = view->rootObject();
+
+        /* The following doesn't work with Option, so we need to test in QML
+        QQuickItem *item = testItem(settings, "boolFalse");
+        QVERIFY(item);
+        QCOMPARE(item->property("value").toBool(), false); */
+
         // Run QML test case
         int i(root->metaObject()->indexOfMethod("test_defaults()"));
         root->metaObject()->method(i).invoke(root, Qt::DirectConnection);
-
-#if 0
-        // This doesn't work with Option, maybe for inheriting UnityAction
-        QQuickItem *item = testItem(root, "boolFalse");
-        QVERIFY(item);
-        QCOMPARE(item->property("value").toBool(), false);
-#endif
 
         // Modify some values in QML
         i = root->metaObject()->indexOfMethod("change_values()");
@@ -93,14 +100,19 @@ private Q_SLOTS:
 
         // Delete and re-load the view as if it was an app being restarted
         delete view;
-        qDebug() << "d v";
-        // FIXME: crash here
-        view = loadTestCase("Settings.qml");
+
+        QSignalSpy *spy;
+        view = loadTestCase("Settings.qml", &spy);
         root = view->rootObject();
+
         // Verifiy that the changed values were saved
         i = root->metaObject()->indexOfMethod("verify_values()");
         root->metaObject()->method(i).invoke(root, Qt::DirectConnection);
-        qDebug() << "v_v";
+
+        /* No warnings from QML: disabled as long as unrelated bugs aren't fixed:
+        qt5/qml/QtTest/TestCase.qml:702: ReferenceError: qtest is not defined
+        modules/Ubuntu/Components/MainView.qml:257: TypeError: Cannot call method 'hasOwnProperty' of null
+        QCOMPARE(spy->count(), 0); */
     }
 };
 

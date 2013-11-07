@@ -82,7 +82,6 @@ TestCase {
         compare(stringUrl.value, "http://www.canonical.com")
         compare(intMax.value, 13)
 
-        console.log("now tFu.t")
         // Components bound to settings should default to their value
         compare(textFieldUrl.text, stringUrl.value)
     }
