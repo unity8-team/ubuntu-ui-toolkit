@@ -49,8 +49,17 @@ AbstractButton {
 
     /*!
       \internal
+      Pass the real value, ActionItem.trigger otherwise causes a type mismatch error.
+      */
+    function trigger() {
+        if (enabled)
+            triggered(!checked)
+    }
+
+    /*!
+      \internal
      */
-    onTriggered: checked = !checked
+    onTriggered: checked = value
 
     style: Theme.createStyleComponent("CheckBoxStyle.qml", checkBox)
 }
