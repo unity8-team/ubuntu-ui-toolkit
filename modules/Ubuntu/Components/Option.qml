@@ -107,7 +107,7 @@ Action {
       */
     onDefaultValueChanged: {
         if (typeof defaultValue == "string")
-            parameterType = UnityActions.Action.Integer
+            parameterType = UnityActions.Action.String
         else if (typeof defaultValue == "number")
             parameterType = UnityActions.Action.Real // Javascript doesn't distinguish int and real
         else if (typeof defaultValue == "boolean")
