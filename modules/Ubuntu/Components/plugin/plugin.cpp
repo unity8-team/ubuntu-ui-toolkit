@@ -48,6 +48,7 @@
 #include "unitythemeiconprovider.h"
 #include "ucstatesaver.h"
 #include "ucurihandler.h"
+#include "ucmousefilter.h"
 
 #include <sys/types.h>
 #include <unistd.h>
@@ -163,6 +164,8 @@ void UbuntuComponentsPlugin::registerTypes(const char *uri)
     qmlRegisterType<UCStateSaver>(uri, 0, 1, "StateSaver");
     qmlRegisterType<UCStateSaverAttached>();
     qmlRegisterSingletonType<UCUriHandler>(uri, 0, 1, "UriHandler", registerUriHandler);
+    qmlRegisterType<UCMouseFilter>(uri, 0, 1, "MouseFilter");
+    qmlRegisterType<UCMouseEvent>();
     // Needed for unit tests
     qRegisterMetaType<QList <QQmlError> >();
 }

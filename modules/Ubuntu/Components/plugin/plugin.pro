@@ -53,7 +53,8 @@ HEADERS += plugin.h \
     ucstatesaver.h \
     statesaverbackend_p.h \
     ucstatesaver_p.h \
-    ucurihandler.h
+    ucurihandler.h \
+    ucmousefilter.h
 
 SOURCES += plugin.cpp \
     uctheme.cpp \
@@ -82,7 +83,8 @@ SOURCES += plugin.cpp \
     alarmrequest_p.cpp \
     ucstatesaver.cpp \
     statesaverbackend_p.cpp \
-    ucurihandler.cpp
+    ucurihandler.cpp \
+    ucmousefilter.cpp
 
 # adapters
 SOURCES += adapters/alarmsadapter_organizer.cpp

@@ -714,6 +714,22 @@ plugins.qmltypes
     name: "quitWithError"
     Parameter { name: "errorMessage"; type: "string" }
     Method { name: "quitWithError" }
+    name: "UCMouseFilter"
+    prototype: "QQuickItem"
+    exports: ["MouseFilter 0.1"]
+    Property { name: "acceptedButtons"; type: "Qt::MouseButtons" }
+    Signal {
+    name: "pressed"
+    Parameter { name: "event"; type: "UCMouseEvent"; isPointer: true }
+    Signal {
+    name: "positionChanged"
+    Parameter { name: "event"; type: "UCMouseEvent"; isPointer: true }
+    Signal {
+    name: "released"
+    Parameter { name: "event"; type: "UCMouseEvent"; isPointer: true }
+    Signal {
+    name: "clicked"
+    Parameter { name: "event"; type: "UCMouseEvent"; isPointer: true }
     name: "UCQQuickImageExtension"
     prototype: "QQuickImageBase"
     exports: ["QQuickImageBase 0.1"]

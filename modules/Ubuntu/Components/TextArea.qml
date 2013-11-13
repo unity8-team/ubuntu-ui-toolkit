@@ -15,6 +15,7 @@
  */
 
 import QtQuick 2.0
+import Ubuntu.Components 0.1 as UC
 
 /*!
     \qmltype TextArea
@@ -956,7 +957,7 @@ StyledItem {
             height: Math.max(internal.inputAreaHeight, editor.contentHeight)
             wrapMode: TextEdit.WrapAtWordBoundaryOrAnywhere
             mouseSelectionMode: TextEdit.SelectWords
-            selectByMouse: false
+            selectByMouse: true
             cursorDelegate: cursor
             color: control.__styleInstance.color
             selectedTextColor: Theme.palette.selected.foregroundText
@@ -984,40 +985,46 @@ StyledItem {
             }
 
             // handling text selection
-            MouseArea {
-                id: handler
-                enabled: control.enabled && control.activeFocusOnPress
+            UC.MouseFilter {
                 anchors.fill: parent
-                propagateComposedEvents: true
-
-                onPressed: {
-                    internal.activateEditor();
-                    internal.draggingMode = true;
-                }
-                onPressAndHold: {
-                    // move mode gets false if there was a mouse move after the press;
-                    // this is needed as Flickable will send a pressAndHold in case of
-                    // press -> move-pressed ->stop-and-hold-pressed gesture is performed
-                    if (!internal.draggingMode)
-                        return;
-                    internal.draggingMode = false;
-                    // open popup
-                    internal.positionCursor(mouse.x, mouse.y);
-                    internal.popupTriggered(editor.cursorPosition);
-                }
-                onReleased: {
-                    internal.draggingMode = false;
-                }
-                onDoubleClicked: {
-                    internal.activateEditor();
-                    if (control.selectByMouse)
-                        control.selectWord();
-                }
-                onClicked: {
-                    internal.activateEditor();
-                    internal.positionCursor(mouse.x, mouse.y);
-                }
+                onPressed: print("mice pressed inside? " + mouse.inside)
+                onReleased: print("mice released inside? " + mouse.inside)
             }
+
+//            MouseArea {
+//                id: handler
+//                enabled: control.enabled && control.activeFocusOnPress
+//                anchors.fill: parent
+//                propagateComposedEvents: true
+
+//                onPressed: {
+//                    internal.activateEditor();
+//                    internal.draggingMode = true;
+//                }
+//                onPressAndHold: {
+//                    // move mode gets false if there was a mouse move after the press;
+//                    // this is needed as Flickable will send a pressAndHold in case of
+//                    // press -> move-pressed ->stop-and-hold-pressed gesture is performed
+//                    if (!internal.draggingMode)
+//                        return;
+//                    internal.draggingMode = false;
+//                    // open popup
+//                    internal.positionCursor(mouse.x, mouse.y);
+//                    internal.popupTriggered(editor.cursorPosition);
+//                }
+//                onReleased: {
+//                    internal.draggingMode = false;
+//                }
+//                onDoubleClicked: {
+//                    internal.activateEditor();
+//                    if (control.selectByMouse)
+//                        control.selectWord();
+//                }
+//                onClicked: {
+//                    internal.activateEditor();
+//                    internal.positionCursor(mouse.x, mouse.y);
+//                }
+//            }
         }
     }
 
