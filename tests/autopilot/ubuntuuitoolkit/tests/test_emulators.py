@@ -690,3 +690,132 @@ MainView {
         self._go_to_page1()
         self.main_view.go_back()
         self.assertEqual(self.header.title, 'Page 0')
+
+TEST_QML_PICKER_LINEAR = ("""
+import QtQuick 2.0
+import Ubuntu.Components 0.1
+import Ubuntu.Components.Pickers 0.1
+
+MainView {
+    width: units.gu(48)
+    height: units.gu(60)
+    Picker {
+        objectName: "test_picker"
+        circular: false
+        model: ["Line1",
+                "Line2",
+                "Line3",
+                "Line4",
+                "Line5",
+                "Line6",
+                "Line7",
+                "Line8",
+                "Line9",
+                "Line10"]
+
+        delegate: PickerDelegate {
+            Label {
+                text: modelData
+                anchors.verticalCenter: parent.verticalCenter
+            }
+        }
+    }
+}
+""")
+
+TEST_QML_PICKER_CIRCULAR = ("""
+import QtQuick 2.0
+import Ubuntu.Components 0.1
+import Ubuntu.Components.Pickers 0.1
+
+MainView {
+    width: units.gu(48)
+    height: units.gu(60)
+    Picker {
+        objectName: "test_picker"
+        circular: false
+        model: ["Line1",
+                "Line2",
+                "Line3",
+                "Line4",
+                "Line5",
+                "Line6",
+                "Line7",
+                "Line8",
+                "Line9",
+                "Line10"]
+
+        delegate: PickerDelegate {
+            Label {
+                text: modelData
+                anchors.verticalCenter: parent.verticalCenter
+            }
+        }
+    }
+}
+""")
+
+
+class PickerTestCase(tests.QMLStringAppTestCase):
+
+    scenarios = [
+        ('picker linear', dict(
+            test_qml=TEST_QML_PICKER_LINEAR)),
+        ('picker circular', dict(
+            test_qml=TEST_QML_PICKER_CIRCULAR)),
+    ]
+
+    def setUp(self):
+        super(PickerTestCase, self).setUp()
+        self.picker = self.main_view.select_single(
+            emulators.Picker, objectName='test_picker')
+
+    def test_current_pick(self):
+        """get_current_pick must return the default pick"""
+        self.assertEquals(self.picker.get_current_pick().text, 'Line1')
+
+    def test_select_pick(self):
+        """Must be to select a pick in picker based on args and kwargs"""
+        self.picker.select_pick('Label', text='Line2')
+        self.assertEquals(self.picker.get_current_pick().text, 'Line2')
+
+    def test_negative_select_text_does_not_exist(self):
+        """select_pick_text must return a value error if it does not exist"""
+        error = self.assertRaises(
+            ValueError, lambda: self.picker.select_pick(
+                'Label',
+                text='this should fail',
+                opacity=.25,
+                )
+            )
+        self.assertEqual(
+            error.message,
+            "Could not find button args ('Label',) with kwargs [('opacity',"
+            " 0.25), ('text', 'this should fail')]."
+        )
+
+    def test_negative_select_pick_not_visible(self):
+        """select_pick_text must return ValueError, if pick with text is hidden
+        """
+        error = self.assertRaises(
+            ValueError, lambda: self.picker.select_pick(
+                'Label',
+                text='Line5',
+                )
+            )
+        self.assertEqual(
+            error.message,
+            "arg ('Label',) with kwargs [('text', 'Line5')] is not visible!",
+        )
+
+    def test_get_pickable_text_list(self):
+        """returns a list of picks that are pickable"""
+        pickable = self.picker.get_pickable_text_list()
+        pickable.sort()
+        expected = ["Line1", "Line2", "Line3"]
+        self.assertEquals(pickable, expected)
+
+    def test_get_pickable_opacity(self):
+        pickable = self.picker.get_pickable_text_list(.99)
+        expected = ["Line1"]
+        self.assertEquals(pickable, expected)

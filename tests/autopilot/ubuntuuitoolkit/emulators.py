@@ -465,6 +465,70 @@ class Empty(UbuntuUIToolkitEmulatorBase):
                 format(self.objectName))
 
 
+class Picker(UbuntuUIToolkitEmulatorBase):
+    """Picker Autopilot emulator."""
+
+    def get_current_pick(self):
+        """Return current pick from picker"""
+        focused_abstract_button = self.select_single(
+            'AbstractButton', focus=True)
+        label = focused_abstract_button.select_single('Label')
+        return label
+
+    def _get_pickable(self, opacity=.25):
+        """Return a list of buttons that can be picked
+        :parameter opacity: buttons at or < the opacity will not be returned
+        """
+        buttons = self._get_abstract_buttons()
+        buttons_list = [
+            button for button in buttons if button.opacity > opacity]
+        return buttons_list
+
+    def get_pickable_text_list(self, opacity=.25):
+        """Return a list of text in AbstractButton that can be picked
+        :parameter opacity: buttons at or < the opacity will not be returned
+        """
+        buttons = self._get_pickable(opacity)
+        text_list = [button.select_single('Label').text for button in buttons]
+        return text_list
+
+    def _get_abstract_buttons(self):
+        return self.select_many('AbstractButton')
+
+    def get_abstractbutton(self, *args, **kwargs):
+        """Return pick AbstractButton from text"""
+        buttons = self._get_abstract_buttons()
+        for button in buttons:
+            try:
+                if button.select_single(*args, **kwargs):
+                    return button
+            except dbus.StateNotFoundError:
+                pass
+
+        raise ValueError(
+            "Could not find button args {} with kwargs {}"".".format(
+                args, kwargs.items(),
+            )
+        )
+
+    def select_pick(self, *args, **kwargs):
+        """Click/Tap the text in the picker, default opacity is opacity=.25
+        """
+        opacity = kwargs.get('opacity', .25)
+
+        button = self.get_abstractbutton(*args, **kwargs)
+        if button.opacity > opacity:
+            self.pointing_device.click_object(button)
+            button.focus.wait_for(True)
+        else:
+            raise ValueError(
+                'arg {} with kwargs {} is not visible!'.format(
+                    args,
+                    kwargs.items(),
+                )
+            )
+
+
 class Base(Empty):
     pass
 
