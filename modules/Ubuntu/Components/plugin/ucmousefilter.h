@@ -35,6 +35,8 @@ public:
         , m_insidePress(insidePress)
         , m_overOsk(overOsk)
     {
+        // contrary to the original class, set accepted to false
+        setAccepted(false);
     }
 
     bool inside() const

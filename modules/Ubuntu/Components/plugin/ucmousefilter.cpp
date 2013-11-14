@@ -128,7 +128,6 @@ bool UCMouseFilter::eventFilter(QObject *object, QEvent *event)
     }
     if (object != this) {
         QEvent *mappedEvent = mapEventToArea(object, event);
-        bool captured = true;
         switch (event->type()) {
         case QEvent::MouseButtonPress:
         {
@@ -161,15 +160,12 @@ bool UCMouseFilter::eventFilter(QObject *object, QEvent *event)
 //            hoverMoveEvent(static_cast<QHoverEvent*>(mappedEvent));
 //            break;
         default:
-            captured = false;
             break;
         }
         if (mappedEvent != event) {
             event->setAccepted(mappedEvent->isAccepted());
             delete mappedEvent;
         }
-        if (captured)
-            return false;
     }
     return QObject::eventFilter(object, event);
 }
