@@ -226,7 +226,6 @@ void QuickUtils::lookupQuickView()
     Q_FOREACH (QWindow *w, QGuiApplication::topLevelWindows()) {
         m_rootView = qobject_cast<QQuickView*>(w);
         if (m_rootView) {
-            qDebug() << "ROOT" << m_rootView;
             // connect in case we get the root object changed
             QObject::connect(m_rootView, SIGNAL(statusChanged(QQuickView::Status)),
                              this, SIGNAL(rootObjectChanged()));

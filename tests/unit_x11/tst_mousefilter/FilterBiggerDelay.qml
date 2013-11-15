@@ -36,6 +36,7 @@ Item {
 
     MouseFilter {
         objectName: "filter"
+        pressAndHoldDelay: 1000
         anchors.fill: hole
     }
 

@@ -37,6 +37,7 @@ Item {
     MouseFilter {
         objectName: "filter"
         anchors.fill: hole
+        onDoubleClicked: mouse.accepted = true
     }
 
     InverseMouseArea {

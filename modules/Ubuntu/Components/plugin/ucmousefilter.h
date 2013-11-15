@@ -27,7 +27,7 @@ class UCMouseEvent : public QQuickMouseEvent
 {
     Q_OBJECT
     Q_PROPERTY(bool inside READ inside)
-    Q_PROPERTY(bool overInput READ overInput)
+    Q_PROPERTY(bool overInputPanel READ overInputPanel)
 public:
     UCMouseEvent(QPointF pos, Qt::MouseButton button, Qt::MouseButtons buttons, Qt::KeyboardModifiers modifiers
                   , bool insidePress, bool overOsk, bool isClick, bool wasHeld)
@@ -35,7 +35,7 @@ public:
         , m_insidePress(insidePress)
         , m_overOsk(overOsk)
     {
-        // contrary to the original class, set accepted to false
+        // contrary to the original class, do not accept events by default
         setAccepted(false);
     }
 
@@ -43,7 +43,7 @@ public:
     {
         return m_insidePress;
     }
-    bool overInput() const
+    bool overInputPanel() const
     {
         return m_overOsk;
     }
@@ -56,8 +56,17 @@ class UCMouseFilter : public QQuickItem
 {
     Q_OBJECT
     Q_PROPERTY(Qt::MouseButtons acceptedButtons READ acceptedButtons WRITE setAcceptedButtons NOTIFY acceptedButtonsChanged)
-    Q_PROPERTY(int pressAndHoldDelay READ pressAndHoldDelay WRITE setPressAndHoldDelay NOTIFY pressAndHoldChanged)
+    Q_PROPERTY(int pressAndHoldDelay READ pressAndHoldDelay WRITE setPressAndHoldDelay NOTIFY pressAndHoldDelayChanged)
+    Q_PROPERTY(Filter filter READ filter WRITE setFilter NOTIFY filterChanged)
+    Q_ENUMS(FilterType)
+    Q_FLAGS(Filter)
 public:
+    enum FilterType {
+        Nowhere         = 0x00,
+        MouseInside     = 0x01,
+        MouseOutside    = 0x02
+    };
+    Q_DECLARE_FLAGS(Filter, FilterType)
     explicit UCMouseFilter(QQuickItem *parent = 0);
 
     Qt::MouseButtons acceptedButtons() const;
@@ -66,9 +75,13 @@ public:
     int pressAndHoldDelay() const;
     void setPressAndHoldDelay(int delay);
 
+    Filter filter() const;
+    void setFilter(Filter filter);
+
 Q_SIGNALS:
     void acceptedButtonsChanged();
-    void pressAndHoldChanged();
+    void pressAndHoldDelayChanged();
+    void filterChanged();
 
     void pressed(UCMouseEvent *mouse);
     void positionChanged(UCMouseEvent *mouse);
@@ -83,7 +96,7 @@ public Q_SLOTS:
 
 protected:
     bool pointInOSK(QPointF &point);
-    QEvent *mapEventToArea(QObject *target, QEvent *event);
+    QMouseEvent *mapMouseToArea(QObject *target, QMouseEvent *event);
 
     // overrides
     virtual bool eventFilter(QObject *, QEvent *);
@@ -103,17 +116,23 @@ private:
     Qt::MouseButtons m_pressedInside;
     Qt::MouseButtons m_pressedOutside;
     int m_pressAndHoldDelay;
+    Filter m_filter;
 
-    bool m_lastPosInside:1;
+    FilterType m_lastPosType;
     bool m_lastPosOverOsk:1;
     bool m_moved:1;
     bool m_longPress:1;
     bool m_hovered:1;
+    bool m_doubleClicked:1;
 
+    FilterType eventType(QMouseEvent *event);
+    bool isMouseEvent(QEvent::Type type);
     void saveEvent(QMouseEvent *event);
-    void setHovered(bool value);
+    void setHovered(FilterType type);
+    bool isDoubleClickConnected();
 };
 
 QML_DECLARE_TYPE(UCMouseEvent)
+Q_DECLARE_OPERATORS_FOR_FLAGS(UCMouseFilter::Filter)
 
 #endif // UCMOUSEFILTER_H

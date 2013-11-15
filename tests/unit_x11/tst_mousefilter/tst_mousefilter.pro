@@ -5,4 +5,12 @@ DEFINES += SRCDIR=\\\"$$PWD/\\\"
 
 OTHER_FILES += \
     Defaults.qml \
-    Filter.qml
+    Filter.qml \
+    Capture.qml \
+    CaptureDoubleClick.qml \
+    CaptureClicked.qml \
+    PressOverOSK.qml \
+    AcceptedButtonsChanged.qml \
+    PressAndHoldDelayChanged.qml \
+    FilterBiggerDelay.qml \
+    CaptureMouseMove.qml

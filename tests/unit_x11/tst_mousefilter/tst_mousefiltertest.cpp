@@ -37,6 +37,7 @@ public:
 private:
     QString m_modulePath;
     bool insideClick;
+    bool oskClick;
 
     QQuickView * loadTest(const QString &file)
     {
@@ -54,13 +55,17 @@ private:
         return view;
     }
 
-    void pressAndHold(QWindow *view, Qt::MouseButton button, Qt::KeyboardModifiers modifiers, const QPoint &point)
+    void pressAndHold(QWindow *view, Qt::MouseButton button, Qt::KeyboardModifiers modifiers, const QPoint &point, int delay = 900)
     {
         QTest::mousePress(view, button, modifiers, point);
-        QTest::qWait(900);
+        QTest::qWait(delay);
     }
 
 protected Q_SLOTS:
+    void filterPressOverOSK(UCMouseEvent *event)
+    {
+        oskClick = event->overInputPanel();
+    }
     void filterClick(UCMouseEvent *event)
     {
         insideClick = event->inside();
@@ -82,18 +87,62 @@ private Q_SLOTS:
 
     void testCase_Defaults()
     {
-        QQuickView *view = loadTest("Defaults.qml");
+        QScopedPointer<QQuickView> view(loadTest("Defaults.qml"));
         QVERIFY(view);
         UCMouseFilter *filter = qobject_cast<UCMouseFilter*>(view->rootObject());
         QVERIFY(filter);
         QCOMPARE(filter->acceptedButtons(), Qt::LeftButton);
         QCOMPARE(filter->pressAndHoldDelay(), 800);
-        delete view;
     }
 
-    void testCase_FilterPressed()
+    void testCase_AcceptedButtonsChanged()
     {
-        QQuickView *view = loadTest("Filter.qml");
+        QScopedPointer<QQuickView> view(loadTest("AcceptedButtonsChanged.qml"));
+        QVERIFY(view);
+        UCMouseFilter *filter = qobject_cast<UCMouseFilter*>(view->rootObject());
+        QVERIFY(filter);
+        QCOMPARE(filter->acceptedButtons(), Qt::RightButton);
+    }
+
+    void testCase_PressAndHoldDelayChanged()
+    {
+        QScopedPointer<QQuickView> view(loadTest("PressAndHoldDelayChanged.qml"));
+        QVERIFY(view);
+        UCMouseFilter *filter = qobject_cast<UCMouseFilter*>(view->rootObject());
+        QVERIFY(filter);
+        QCOMPARE(filter->pressAndHoldDelay(), 1000);
+    }
+
+    void testCase_PressOverOSK()
+    {
+        QScopedPointer<QQuickView> view(loadTest("PressOverOSK.qml"));
+        QVERIFY(view);
+
+        QQuickItem *input = view->rootObject()->findChild<QQuickItem*>("input");
+        QVERIFY(input);
+        UCMouseFilter *filter = qobject_cast<UCMouseFilter*>(view->rootObject()->findChild<QQuickItem*>("filter"));
+        QVERIFY(filter);
+        QSignalSpy filterSpy(filter, SIGNAL(pressed(UCMouseEvent*)));
+        QObject::connect(filter, SIGNAL(pressed(UCMouseEvent*)), this, SLOT(filterPressOverOSK(UCMouseEvent*)));
+
+        // set focus for text input by pressing over it
+        QTest::mouseClick(view.data(), Qt::LeftButton, 0, QPoint (30, 5));
+        QCOMPARE(input->property("focus").toBool(), true);
+        QCOMPARE(filterSpy.count(), 0);
+
+        // press over the OSK area
+        oskClick = false;
+        QTest::mouseClick(view.data(), Qt::LeftButton, 0, QPoint(30, view->rootObject()->height() - 10));
+        QCOMPARE(filterSpy.count(), 1);
+        if (!qEnvironmentVariableIsSet("QT_IM_MODULE")) {
+            QEXPECT_FAIL(0, "This can be tested only with OSK presence", Continue);
+        }
+        QCOMPARE(oskClick, true);
+    }
+
+    void testCase_FilterPressedInside()
+    {
+        QScopedPointer<QQuickView> view(loadTest("Filter.qml"));
         QVERIFY(view);
 
         QQuickMouseArea *ma = qobject_cast<QQuickMouseArea*>(view->rootObject()->findChild<QQuickItem*>("MA"));
@@ -106,23 +155,38 @@ private Q_SLOTS:
         QSignalSpy imaSpy(ima, SIGNAL(pressed(QQuickMouseEvent*)));
         QSignalSpy filterSpy(filter, SIGNAL(pressed(UCMouseEvent*)));
 
-        QTest::mouseClick(view, Qt::LeftButton, 0, QPoint(30, 30));
+        QTest::mouseClick(view.data(), Qt::LeftButton, 0, QPoint(30, 30));
         QCOMPARE(maSpy.count(), 1);
         QCOMPARE(imaSpy.count(), 0);
         QCOMPARE(filterSpy.count(), 1);
 
-        maSpy.clear(); filterSpy.clear();
-        QTest::mouseClick(view, Qt::LeftButton, 0, QPoint(20, 20));
+    }
+
+    void testCase_FilterPressedOutside()
+    {
+        QScopedPointer<QQuickView> view(loadTest("Filter.qml"));
+        QVERIFY(view);
+
+        QQuickMouseArea *ma = qobject_cast<QQuickMouseArea*>(view->rootObject()->findChild<QQuickItem*>("MA"));
+        QVERIFY(ma);
+        InverseMouseAreaType *ima = qobject_cast<InverseMouseAreaType*>(view->rootObject()->findChild<QQuickItem*>("IMA"));
+        QVERIFY(ima);
+        UCMouseFilter *filter = qobject_cast<UCMouseFilter*>(view->rootObject()->findChild<QQuickItem*>("filter"));
+        QVERIFY(filter);
+        QSignalSpy maSpy(ma, SIGNAL(pressed(QQuickMouseEvent*)));
+        QSignalSpy imaSpy(ima, SIGNAL(pressed(QQuickMouseEvent*)));
+        QSignalSpy filterSpy(filter, SIGNAL(pressed(UCMouseEvent*)));
+
+        QTest::mouseClick(view.data(), Qt::LeftButton, 0, QPoint(20, 20));
         QCOMPARE(maSpy.count(), 0);
         QCOMPARE(imaSpy.count(), 1);
         QCOMPARE(filterSpy.count(), 1);
 
-        delete view;
     }
 
-    void testCase_FilterReleased()
+    void testCase_FilterReleasedInside()
     {
-        QQuickView *view = loadTest("Filter.qml");
+        QScopedPointer<QQuickView> view(loadTest("Filter.qml"));
         QVERIFY(view);
 
         QQuickMouseArea *ma = qobject_cast<QQuickMouseArea*>(view->rootObject()->findChild<QQuickItem*>("MA"));
@@ -135,23 +199,37 @@ private Q_SLOTS:
         QSignalSpy imaSpy(ima, SIGNAL(released(QQuickMouseEvent*)));
         QSignalSpy filterSpy(filter, SIGNAL(released(UCMouseEvent*)));
 
-        QTest::mouseClick(view, Qt::LeftButton, 0, QPoint(30, 30));
+        QTest::mouseClick(view.data(), Qt::LeftButton, 0, QPoint(30, 30));
         QCOMPARE(maSpy.count(), 1);
         QCOMPARE(imaSpy.count(), 0);
         QCOMPARE(filterSpy.count(), 1);
+    }
+
+    void testCase_FilterReleasedOutside()
+    {
+        QScopedPointer<QQuickView> view(loadTest("Filter.qml"));
+        QVERIFY(view);
+
+        QQuickMouseArea *ma = qobject_cast<QQuickMouseArea*>(view->rootObject()->findChild<QQuickItem*>("MA"));
+        QVERIFY(ma);
+        InverseMouseAreaType *ima = qobject_cast<InverseMouseAreaType*>(view->rootObject()->findChild<QQuickItem*>("IMA"));
+        QVERIFY(ima);
+        UCMouseFilter *filter = qobject_cast<UCMouseFilter*>(view->rootObject()->findChild<QQuickItem*>("filter"));
+        QVERIFY(filter);
+        QSignalSpy maSpy(ma, SIGNAL(released(QQuickMouseEvent*)));
+        QSignalSpy imaSpy(ima, SIGNAL(released(QQuickMouseEvent*)));
+        QSignalSpy filterSpy(filter, SIGNAL(released(UCMouseEvent*)));
 
         maSpy.clear(); filterSpy.clear();
-        QTest::mouseClick(view, Qt::LeftButton, 0, QPoint(20, 20));
+        QTest::mouseClick(view.data(), Qt::LeftButton, 0, QPoint(20, 20));
         QCOMPARE(maSpy.count(), 0);
         QCOMPARE(imaSpy.count(), 1);
         QCOMPARE(filterSpy.count(), 1);
-
-        delete view;
     }
 
     void testCase_FilterClickedInside()
     {
-        QQuickView *view = loadTest("Filter.qml");
+        QScopedPointer<QQuickView> view(loadTest("Filter.qml"));
         QVERIFY(view);
 
         QQuickMouseArea *ma = qobject_cast<QQuickMouseArea*>(view->rootObject()->findChild<QQuickItem*>("MA"));
@@ -166,18 +244,16 @@ private Q_SLOTS:
         QObject::connect(filter, SIGNAL(clicked(UCMouseEvent*)), this, SLOT(filterClick(UCMouseEvent*)));
 
         insideClick = false;
-        QTest::mouseClick(view, Qt::LeftButton, 0, QPoint(30, 30));
+        QTest::mouseClick(view.data(), Qt::LeftButton, 0, QPoint(30, 30));
         QCOMPARE(maSpy.count(), 1);
         QCOMPARE(imaSpy.count(), 0);
         QCOMPARE(filterSpy.count(), 1);
         QCOMPARE(insideClick, true);
-
-        delete view;
     }
 
     void testCase_FilterClickedOutside()
     {
-        QQuickView *view = loadTest("Filter.qml");
+        QScopedPointer<QQuickView> view(loadTest("Filter.qml"));
         QVERIFY(view);
 
         QQuickMouseArea *ma = qobject_cast<QQuickMouseArea*>(view->rootObject()->findChild<QQuickItem*>("MA"));
@@ -192,18 +268,40 @@ private Q_SLOTS:
         QObject::connect(filter, SIGNAL(clicked(UCMouseEvent*)), this, SLOT(filterClick(UCMouseEvent*)));
 
         insideClick = false;
-        QTest::mouseClick(view, Qt::LeftButton, 0, QPoint(20, 20));
+        QTest::mouseClick(view.data(), Qt::LeftButton, 0, QPoint(20, 20));
         QCOMPARE(maSpy.count(), 0);
         QCOMPARE(imaSpy.count(), 1);
         QCOMPARE(filterSpy.count(), 1);
         QCOMPARE(insideClick, false);
-
-        delete view;
     }
 
-    void testCase_FilterPressAndHold()
+    void testCase_FilterPressAndHoldInside()
     {
-        QQuickView *view = loadTest("Filter.qml");
+        QScopedPointer<QQuickView> view(loadTest("Filter.qml"));
+        QVERIFY(view);
+
+        QQuickMouseArea *ma = qobject_cast<QQuickMouseArea*>(view->rootObject()->findChild<QQuickItem*>("MA"));
+        QVERIFY(ma);
+        InverseMouseAreaType *ima = qobject_cast<InverseMouseAreaType*>(view->rootObject()->findChild<QQuickItem*>("IMA"));
+        QVERIFY(ima);
+        UCMouseFilter *filter = qobject_cast<UCMouseFilter*>(view->rootObject()->findChild<QQuickItem*>("filter"));
+        QVERIFY(filter);
+        QSignalSpy maSpy(ma, SIGNAL(pressAndHold(QQuickMouseEvent*)));
+        QSignalSpy imaSpy(ima, SIGNAL(pressAndHold(QQuickMouseEvent*)));
+        QSignalSpy filterSpy(filter, SIGNAL(pressAndHold(UCMouseEvent*)));
+
+        // inside
+        pressAndHold(view.data(), Qt::LeftButton, 0, QPoint(30, 30));
+        // discard press event
+        QTest::mouseRelease(view.data(), Qt::LeftButton, 0, QPoint(30, 30));
+        QCOMPARE(maSpy.count(), 1);
+        QCOMPARE(imaSpy.count(), 0);
+        QCOMPARE(filterSpy.count(), 1);
+    }
+
+    void testCase_FilterPressAndHoldOutside()
+    {
+        QScopedPointer<QQuickView> view(loadTest("Filter.qml"));
         QVERIFY(view);
 
         QQuickMouseArea *ma = qobject_cast<QQuickMouseArea*>(view->rootObject()->findChild<QQuickItem*>("MA"));
@@ -217,28 +315,83 @@ private Q_SLOTS:
         QSignalSpy filterSpy(filter, SIGNAL(pressAndHold(UCMouseEvent*)));
 
         // outside
-        pressAndHold(view, Qt::LeftButton, 0, QPoint(20, 20));
+        pressAndHold(view.data(), Qt::LeftButton, 0, QPoint(20, 20));
+        // discard press event
+        QTest::mouseRelease(view.data(), Qt::LeftButton, 0, QPoint(20, 20));
         QCOMPARE(maSpy.count(), 0);
         QCOMPARE(imaSpy.count(), 1);
         QCOMPARE(filterSpy.count(), 1);
-        // discard press event
-        QTest::mouseRelease(view, Qt::LeftButton, 0, QPoint(20, 20));
+    }
 
-        imaSpy.clear(); filterSpy.clear();
+    void testCase_FilterPressAndHoldInsideNewDelay()
+    {
+        QScopedPointer<QQuickView> view(loadTest("FilterBiggerDelay.qml"));
+        QVERIFY(view);
+
+        QQuickMouseArea *ma = qobject_cast<QQuickMouseArea*>(view->rootObject()->findChild<QQuickItem*>("MA"));
+        QVERIFY(ma);
+        InverseMouseAreaType *ima = qobject_cast<InverseMouseAreaType*>(view->rootObject()->findChild<QQuickItem*>("IMA"));
+        QVERIFY(ima);
+        UCMouseFilter *filter = qobject_cast<UCMouseFilter*>(view->rootObject()->findChild<QQuickItem*>("filter"));
+        QVERIFY(filter);
+        QSignalSpy maSpy(ma, SIGNAL(pressAndHold(QQuickMouseEvent*)));
+        QSignalSpy imaSpy(ima, SIGNAL(pressAndHold(QQuickMouseEvent*)));
+        QSignalSpy filterSpy(filter, SIGNAL(pressAndHold(UCMouseEvent*)));
+
         // inside
-        pressAndHold(view, Qt::LeftButton, 0, QPoint(30, 30));
+        pressAndHold(view.data(), Qt::LeftButton, 0, QPoint(30, 30));
+        // discard press event
+        QTest::mouseRelease(view.data(), Qt::LeftButton, 0, QPoint(30, 30));
+        QCOMPARE(maSpy.count(), 1);
+        QCOMPARE(imaSpy.count(), 0);
+        QCOMPARE(filterSpy.count(), 0);
+
+        // one more time, with soem extra threshold
+        maSpy.clear();
+        pressAndHold(view.data(), Qt::LeftButton, 0, QPoint(30, 30), 1100);
+        // discard press even
+        QTest::mouseRelease(view.data(), Qt::LeftButton, 0, QPoint(30, 30));
         QCOMPARE(maSpy.count(), 1);
         QCOMPARE(imaSpy.count(), 0);
         QCOMPARE(filterSpy.count(), 1);
-        // discard press event
-        QTest::mouseRelease(view, Qt::LeftButton, 0, QPoint(20, 20));
-
-        delete view;
     }
 
-    void testCase_FilterDoubleClick()
+    void testCase_FilterPressAndHoldOutsideNewDelay()
     {
-        QQuickView *view = loadTest("Filter.qml");
+        QScopedPointer<QQuickView> view(loadTest("FilterBiggerDelay.qml"));
+        QVERIFY(view);
+
+        QQuickMouseArea *ma = qobject_cast<QQuickMouseArea*>(view->rootObject()->findChild<QQuickItem*>("MA"));
+        QVERIFY(ma);
+        InverseMouseAreaType *ima = qobject_cast<InverseMouseAreaType*>(view->rootObject()->findChild<QQuickItem*>("IMA"));
+        QVERIFY(ima);
+        UCMouseFilter *filter = qobject_cast<UCMouseFilter*>(view->rootObject()->findChild<QQuickItem*>("filter"));
+        QVERIFY(filter);
+        QSignalSpy maSpy(ma, SIGNAL(pressAndHold(QQuickMouseEvent*)));
+        QSignalSpy imaSpy(ima, SIGNAL(pressAndHold(QQuickMouseEvent*)));
+        QSignalSpy filterSpy(filter, SIGNAL(pressAndHold(UCMouseEvent*)));
+
+        // outside
+        pressAndHold(view.data(), Qt::LeftButton, 0, QPoint(20, 20));
+        // discard press event
+        QTest::mouseRelease(view.data(), Qt::LeftButton, 0, QPoint(20, 20));
+        QCOMPARE(maSpy.count(), 0);
+        QCOMPARE(imaSpy.count(), 1);
+        QCOMPARE(filterSpy.count(), 0);
+
+        // one more time, with soem extra threshold
+        imaSpy.clear();
+        pressAndHold(view.data(), Qt::LeftButton, 0, QPoint(20, 20), 1100);
+        // discard press event
+        QTest::mouseRelease(view.data(), Qt::LeftButton, 0, QPoint(20, 20));
+        QCOMPARE(maSpy.count(), 0);
+        QCOMPARE(imaSpy.count(), 1);
+        QCOMPARE(filterSpy.count(), 1);
+    }
+
+    void testCase_FilterDoubleClickInside()
+    {
+        QScopedPointer<QQuickView> view(loadTest("Filter.qml"));
         QVERIFY(view);
 
         QQuickMouseArea *ma = qobject_cast<QQuickMouseArea*>(view->rootObject()->findChild<QQuickItem*>("MA"));
@@ -250,26 +403,73 @@ private Q_SLOTS:
         QSignalSpy maSpy(ma, SIGNAL(doubleClicked(QQuickMouseEvent*)));
         QSignalSpy imaSpy(ima, SIGNAL(doubleClicked(QQuickMouseEvent*)));
         QSignalSpy filterSpy(filter, SIGNAL(doubleClicked(UCMouseEvent*)));
-
-        // outside
-        QTest::mouseDClick(view, Qt::LeftButton, 0, QPoint(20, 20));
-        QCOMPARE(maSpy.count(), 0);
-        QCOMPARE(imaSpy.count(), 1);
-        QCOMPARE(filterSpy.count(), 1);
+        QSignalSpy maClickSpy(ma, SIGNAL(clicked(QQuickMouseEvent*)));
+        QSignalSpy imaClickSpy(ima, SIGNAL(clicked(QQuickMouseEvent*)));
+        QSignalSpy filterClickSpy(filter, SIGNAL(clicked(UCMouseEvent*)));
 
         // inside
-        imaSpy.clear(); filterSpy.clear();
-        QTest::mouseDClick(view, Qt::LeftButton, 0, QPoint(30, 30));
+        QTest::mouseDClick(view.data(), Qt::LeftButton, 0, QPoint(30, 30));
         QCOMPARE(maSpy.count(), 1);
         QCOMPARE(imaSpy.count(), 0);
         QCOMPARE(filterSpy.count(), 1);
-
-        delete view;
+        QCOMPARE(maClickSpy.count(), 1);
+        QCOMPARE(imaClickSpy.count(), 0);
+        QCOMPARE(filterClickSpy.count(), 1);
     }
 
-    void testCase_FilterEntered()
+    void testCase_FilterDoubleClickOutside()
     {
-        QQuickView *view = loadTest("Filter.qml");
+        QScopedPointer<QQuickView> view(loadTest("Filter.qml"));
+        QVERIFY(view);
+
+        QQuickMouseArea *ma = qobject_cast<QQuickMouseArea*>(view->rootObject()->findChild<QQuickItem*>("MA"));
+        QVERIFY(ma);
+        InverseMouseAreaType *ima = qobject_cast<InverseMouseAreaType*>(view->rootObject()->findChild<QQuickItem*>("IMA"));
+        QVERIFY(ima);
+        UCMouseFilter *filter = qobject_cast<UCMouseFilter*>(view->rootObject()->findChild<QQuickItem*>("filter"));
+        QVERIFY(filter);
+        QSignalSpy maSpy(ma, SIGNAL(doubleClicked(QQuickMouseEvent*)));
+        QSignalSpy imaSpy(ima, SIGNAL(doubleClicked(QQuickMouseEvent*)));
+        QSignalSpy filterSpy(filter, SIGNAL(doubleClicked(UCMouseEvent*)));
+        QSignalSpy maClickSpy(ma, SIGNAL(clicked(QQuickMouseEvent*)));
+        QSignalSpy imaClickSpy(ima, SIGNAL(clicked(QQuickMouseEvent*)));
+        QSignalSpy filterClickSpy(filter, SIGNAL(clicked(UCMouseEvent*)));
+
+        // outside
+        QTest::mouseDClick(view.data(), Qt::LeftButton, 0, QPoint(20, 20));
+        QCOMPARE(maSpy.count(), 0);
+        QCOMPARE(imaSpy.count(), 1);
+        QCOMPARE(filterSpy.count(), 1);
+        QCOMPARE(maClickSpy.count(), 0);
+        QCOMPARE(imaClickSpy.count(), 1);
+        QCOMPARE(filterClickSpy.count(), 1);
+    }
+
+    void testCase_FilterEnteredInside()
+    {
+        QScopedPointer<QQuickView> view(loadTest("Filter.qml"));
+        QVERIFY(view);
+
+        QQuickMouseArea *ma = qobject_cast<QQuickMouseArea*>(view->rootObject()->findChild<QQuickItem*>("MA"));
+        QVERIFY(ma);
+        InverseMouseAreaType *ima = qobject_cast<InverseMouseAreaType*>(view->rootObject()->findChild<QQuickItem*>("IMA"));
+        QVERIFY(ima);
+        UCMouseFilter *filter = qobject_cast<UCMouseFilter*>(view->rootObject()->findChild<QQuickItem*>("filter"));
+        QVERIFY(filter);
+        QSignalSpy maSpy(ma, SIGNAL(entered()));
+        QSignalSpy imaSpy(ima, SIGNAL(entered()));
+        QSignalSpy filterSpy(filter, SIGNAL(entered()));
+
+        // inside
+        QTest::mouseClick(view.data(), Qt::LeftButton, 0, QPoint(30, 30));
+        QCOMPARE(maSpy.count(), 1);
+        QCOMPARE(imaSpy.count(), 0);
+        QCOMPARE(filterSpy.count(), 1);
+    }
+
+    void testCase_FilterEnteredOutside()
+    {
+        QScopedPointer<QQuickView> view(loadTest("Filter.qml"));
         QVERIFY(view);
 
         QQuickMouseArea *ma = qobject_cast<QQuickMouseArea*>(view->rootObject()->findChild<QQuickItem*>("MA"));
@@ -283,24 +483,37 @@ private Q_SLOTS:
         QSignalSpy filterSpy(filter, SIGNAL(entered()));
 
         // outside
-        QTest::mouseClick(view, Qt::LeftButton, 0, QPoint(20, 20));
+        QTest::mouseClick(view.data(), Qt::LeftButton, 0, QPoint(20, 20));
         QCOMPARE(maSpy.count(), 0);
         QCOMPARE(imaSpy.count(), 1);
         QCOMPARE(filterSpy.count(), 0);
+    }
 
-        imaSpy.clear();
+    void testCase_FilterExitedInside()
+    {
+        QScopedPointer<QQuickView> view(loadTest("Filter.qml"));
+        QVERIFY(view);
+
+        QQuickMouseArea *ma = qobject_cast<QQuickMouseArea*>(view->rootObject()->findChild<QQuickItem*>("MA"));
+        QVERIFY(ma);
+        InverseMouseAreaType *ima = qobject_cast<InverseMouseAreaType*>(view->rootObject()->findChild<QQuickItem*>("IMA"));
+        QVERIFY(ima);
+        UCMouseFilter *filter = qobject_cast<UCMouseFilter*>(view->rootObject()->findChild<QQuickItem*>("filter"));
+        QVERIFY(filter);
+        QSignalSpy maSpy(ma, SIGNAL(exited()));
+        QSignalSpy imaSpy(ima, SIGNAL(exited()));
+        QSignalSpy filterSpy(filter, SIGNAL(exited()));
+
         // inside
-        QTest::mouseClick(view, Qt::LeftButton, 0, QPoint(30, 30));
+        QTest::mouseClick(view.data(), Qt::LeftButton, 0, QPoint(50, 50));
         QCOMPARE(maSpy.count(), 1);
         QCOMPARE(imaSpy.count(), 0);
         QCOMPARE(filterSpy.count(), 1);
-
-        delete view;
     }
 
-    void testCase_FilterExited()
+    void testCase_FilterExitedOutside()
     {
-        QQuickView *view = loadTest("Filter.qml");
+        QScopedPointer<QQuickView> view(loadTest("Filter.qml"));
         QVERIFY(view);
 
         QQuickMouseArea *ma = qobject_cast<QQuickMouseArea*>(view->rootObject()->findChild<QQuickItem*>("MA"));
@@ -314,24 +527,207 @@ private Q_SLOTS:
         QSignalSpy filterSpy(filter, SIGNAL(exited()));
 
         // outside
-        QTest::mouseClick(view, Qt::LeftButton, 0, QPoint(20, 20));
+        QTest::mouseClick(view.data(), Qt::LeftButton, 0, QPoint(20, 20));
         QCOMPARE(maSpy.count(), 0);
         QCOMPARE(imaSpy.count(), 1);
         QCOMPARE(filterSpy.count(), 0);
+    }
 
-        imaSpy.clear();
+    void testCase_FilterMouseMovedInside()
+    {
+        QScopedPointer<QQuickView> view(loadTest("Filter.qml"));
+        QVERIFY(view);
+
+        QQuickMouseArea *ma = qobject_cast<QQuickMouseArea*>(view->rootObject()->findChild<QQuickItem*>("MA"));
+        QVERIFY(ma);
+        InverseMouseAreaType *ima = qobject_cast<InverseMouseAreaType*>(view->rootObject()->findChild<QQuickItem*>("IMA"));
+        QVERIFY(ima);
+        UCMouseFilter *filter = qobject_cast<UCMouseFilter*>(view->rootObject()->findChild<QQuickItem*>("filter"));
+        QVERIFY(filter);
+        QSignalSpy maSpy(ma, SIGNAL(positionChanged(QQuickMouseEvent*)));
+        QSignalSpy imaSpy(ima, SIGNAL(positionChanged(QQuickMouseEvent*)));
+        QSignalSpy filterSpy(filter, SIGNAL(positionChanged(UCMouseEvent*)));
+
         // inside
-        QTest::mouseClick(view, Qt::LeftButton, 0, QPoint(50, 50));
+        QTest::mousePress(view.data(), Qt::LeftButton, 0, QPoint(30, 30));
+        QTest::mouseMove(view.data(), QPoint(40, 40));
+        QTest::mouseRelease(view.data(), Qt::LeftButton, 0, QPoint(40, 40));
         QCOMPARE(maSpy.count(), 1);
         QCOMPARE(imaSpy.count(), 0);
         QCOMPARE(filterSpy.count(), 1);
-
-        delete view;
     }
 
-    void testCase_MouseFilterInWindow()
+    void testCase_FilterMouseMovedOutside()
     {
-        QQuickView *view = loadTest("FilterInWindow.qml");
+        QScopedPointer<QQuickView> view(loadTest("Filter.qml"));
+        QVERIFY(view);
+
+        QQuickMouseArea *ma = qobject_cast<QQuickMouseArea*>(view->rootObject()->findChild<QQuickItem*>("MA"));
+        QVERIFY(ma);
+        InverseMouseAreaType *ima = qobject_cast<InverseMouseAreaType*>(view->rootObject()->findChild<QQuickItem*>("IMA"));
+        QVERIFY(ima);
+        UCMouseFilter *filter = qobject_cast<UCMouseFilter*>(view->rootObject()->findChild<QQuickItem*>("filter"));
+        QVERIFY(filter);
+        QSignalSpy maSpy(ma, SIGNAL(positionChanged(QQuickMouseEvent*)));
+        QSignalSpy imaSpy(ima, SIGNAL(positionChanged(QQuickMouseEvent*)));
+        QSignalSpy filterSpy(filter, SIGNAL(positionChanged(UCMouseEvent*)));
+
+        // outside
+        QTest::mousePress(view.data(), Qt::LeftButton, 0, QPoint(20, 20));
+        QTest::mouseMove(view.data(), QPoint(40, 20));
+        QTest::mouseRelease(view.data(), Qt::LeftButton, 0, QPoint(40, 20));
+        QCOMPARE(maSpy.count(), 0);
+        QCOMPARE(imaSpy.count(), 1);
+        QCOMPARE(filterSpy.count(), 1);
+    }
+
+    void testCase_FilterMouseMovedInsideOut()
+    {
+        QScopedPointer<QQuickView> view(loadTest("Filter.qml"));
+        QVERIFY(view);
+
+        QQuickMouseArea *ma = qobject_cast<QQuickMouseArea*>(view->rootObject()->findChild<QQuickItem*>("MA"));
+        QVERIFY(ma);
+        InverseMouseAreaType *ima = qobject_cast<InverseMouseAreaType*>(view->rootObject()->findChild<QQuickItem*>("IMA"));
+        QVERIFY(ima);
+        UCMouseFilter *filter = qobject_cast<UCMouseFilter*>(view->rootObject()->findChild<QQuickItem*>("filter"));
+        QVERIFY(filter);
+        QSignalSpy maSpy(ma, SIGNAL(positionChanged(QQuickMouseEvent*)));
+        QSignalSpy imaSpy(ima, SIGNAL(positionChanged(QQuickMouseEvent*)));
+        QSignalSpy filterSpy(filter, SIGNAL(positionChanged(UCMouseEvent*)));
+
+        // inside -> out
+        QTest::mousePress(view.data(), Qt::LeftButton, 0, QPoint(30, 30));
+        QTest::mouseMove(view.data(), QPoint(20, 20));
+        QTest::mouseRelease(view.data(), Qt::LeftButton, 0, QPoint(20, 20));
+        QCOMPARE(maSpy.count(), 1);
+        QCOMPARE(imaSpy.count(), 0);
+        QCOMPARE(filterSpy.count(), 1);
+    }
+
+    void testCase_FilterMouseMovedOutsideIn()
+    {
+        QScopedPointer<QQuickView> view(loadTest("Filter.qml"));
+        QVERIFY(view);
+
+        QQuickMouseArea *ma = qobject_cast<QQuickMouseArea*>(view->rootObject()->findChild<QQuickItem*>("MA"));
+        QVERIFY(ma);
+        InverseMouseAreaType *ima = qobject_cast<InverseMouseAreaType*>(view->rootObject()->findChild<QQuickItem*>("IMA"));
+        QVERIFY(ima);
+        UCMouseFilter *filter = qobject_cast<UCMouseFilter*>(view->rootObject()->findChild<QQuickItem*>("filter"));
+        QVERIFY(filter);
+        QSignalSpy maSpy(ma, SIGNAL(positionChanged(QQuickMouseEvent*)));
+        QSignalSpy imaSpy(ima, SIGNAL(positionChanged(QQuickMouseEvent*)));
+        QSignalSpy filterSpy(filter, SIGNAL(positionChanged(UCMouseEvent*)));
+
+        // inside -> out
+        QTest::mousePress(view.data(), Qt::LeftButton, 0, QPoint(20, 20));
+        QTest::mouseMove(view.data(), QPoint(40, 40));
+        QTest::mouseRelease(view.data(), Qt::LeftButton, 0, QPoint(40, 40));
+        QCOMPARE(maSpy.count(), 0);
+        QCOMPARE(imaSpy.count(), 1);
+        QCOMPARE(filterSpy.count(), 1);
+    }
+
+    void testCase_CaptureMouseMovedInside()
+    {
+        QScopedPointer<QQuickView> view(loadTest("CaptureMouseMove.qml"));
+        QVERIFY(view);
+
+        QQuickMouseArea *ma = qobject_cast<QQuickMouseArea*>(view->rootObject()->findChild<QQuickItem*>("MA"));
+        QVERIFY(ma);
+        InverseMouseAreaType *ima = qobject_cast<InverseMouseAreaType*>(view->rootObject()->findChild<QQuickItem*>("IMA"));
+        QVERIFY(ima);
+        UCMouseFilter *filter = qobject_cast<UCMouseFilter*>(view->rootObject()->findChild<QQuickItem*>("filter"));
+        QVERIFY(filter);
+        QSignalSpy maSpy(ma, SIGNAL(positionChanged(QQuickMouseEvent*)));
+        QSignalSpy imaSpy(ima, SIGNAL(positionChanged(QQuickMouseEvent*)));
+        QSignalSpy filterSpy(filter, SIGNAL(positionChanged(UCMouseEvent*)));
+
+        // inside
+        QTest::mousePress(view.data(), Qt::LeftButton, 0, QPoint(30, 30));
+        QTest::mouseMove(view.data(), QPoint(40, 40));
+        QTest::mouseRelease(view.data(), Qt::LeftButton, 0, QPoint(40, 40));
+        QCOMPARE(maSpy.count(), 0);
+        QCOMPARE(imaSpy.count(), 0);
+        QCOMPARE(filterSpy.count(), 1);
+    }
+
+    void testCase_CaptureMouseMovedOutside()
+    {
+        QScopedPointer<QQuickView> view(loadTest("CaptureMouseMove.qml"));
+        QVERIFY(view);
+
+        QQuickMouseArea *ma = qobject_cast<QQuickMouseArea*>(view->rootObject()->findChild<QQuickItem*>("MA"));
+        QVERIFY(ma);
+        InverseMouseAreaType *ima = qobject_cast<InverseMouseAreaType*>(view->rootObject()->findChild<QQuickItem*>("IMA"));
+        QVERIFY(ima);
+        UCMouseFilter *filter = qobject_cast<UCMouseFilter*>(view->rootObject()->findChild<QQuickItem*>("filter"));
+        QVERIFY(filter);
+        QSignalSpy maSpy(ma, SIGNAL(positionChanged(QQuickMouseEvent*)));
+        QSignalSpy imaSpy(ima, SIGNAL(positionChanged(QQuickMouseEvent*)));
+        QSignalSpy filterSpy(filter, SIGNAL(positionChanged(UCMouseEvent*)));
+
+        // outside
+        QTest::mousePress(view.data(), Qt::LeftButton, 0, QPoint(20, 20));
+        QTest::mouseMove(view.data(), QPoint(40, 20));
+        QTest::mouseRelease(view.data(), Qt::LeftButton, 0, QPoint(40, 20));
+        QCOMPARE(maSpy.count(), 0);
+        QCOMPARE(imaSpy.count(), 0);
+        QCOMPARE(filterSpy.count(), 1);
+    }
+
+    void testCase_CaptureMouseMovedInsideOut()
+    {
+        QScopedPointer<QQuickView> view(loadTest("CaptureMouseMove.qml"));
+        QVERIFY(view);
+
+        QQuickMouseArea *ma = qobject_cast<QQuickMouseArea*>(view->rootObject()->findChild<QQuickItem*>("MA"));
+        QVERIFY(ma);
+        InverseMouseAreaType *ima = qobject_cast<InverseMouseAreaType*>(view->rootObject()->findChild<QQuickItem*>("IMA"));
+        QVERIFY(ima);
+        UCMouseFilter *filter = qobject_cast<UCMouseFilter*>(view->rootObject()->findChild<QQuickItem*>("filter"));
+        QVERIFY(filter);
+        QSignalSpy maSpy(ma, SIGNAL(positionChanged(QQuickMouseEvent*)));
+        QSignalSpy imaSpy(ima, SIGNAL(positionChanged(QQuickMouseEvent*)));
+        QSignalSpy filterSpy(filter, SIGNAL(positionChanged(UCMouseEvent*)));
+
+        // inside -> out
+        QTest::mousePress(view.data(), Qt::LeftButton, 0, QPoint(30, 30));
+        QTest::mouseMove(view.data(), QPoint(20, 20));
+        QTest::mouseRelease(view.data(), Qt::LeftButton, 0, QPoint(20, 20));
+        QCOMPARE(maSpy.count(), 0);
+        QCOMPARE(imaSpy.count(), 0);
+        QCOMPARE(filterSpy.count(), 1);
+    }
+
+    void testCase_CaptureMouseMovedOutsideIn()
+    {
+        QScopedPointer<QQuickView> view(loadTest("CaptureMouseMove.qml"));
+        QVERIFY(view);
+
+        QQuickMouseArea *ma = qobject_cast<QQuickMouseArea*>(view->rootObject()->findChild<QQuickItem*>("MA"));
+        QVERIFY(ma);
+        InverseMouseAreaType *ima = qobject_cast<InverseMouseAreaType*>(view->rootObject()->findChild<QQuickItem*>("IMA"));
+        QVERIFY(ima);
+        UCMouseFilter *filter = qobject_cast<UCMouseFilter*>(view->rootObject()->findChild<QQuickItem*>("filter"));
+        QVERIFY(filter);
+        QSignalSpy maSpy(ma, SIGNAL(positionChanged(QQuickMouseEvent*)));
+        QSignalSpy imaSpy(ima, SIGNAL(positionChanged(QQuickMouseEvent*)));
+        QSignalSpy filterSpy(filter, SIGNAL(positionChanged(UCMouseEvent*)));
+
+        // inside -> out
+        QTest::mousePress(view.data(), Qt::LeftButton, 0, QPoint(20, 20));
+        QTest::mouseMove(view.data(), QPoint(40, 40));
+        QTest::mouseRelease(view.data(), Qt::LeftButton, 0, QPoint(40, 40));
+        QCOMPARE(maSpy.count(), 0);
+        QCOMPARE(imaSpy.count(), 0);
+        QCOMPARE(filterSpy.count(), 1);
+    }
+
+    void testCase_MouseFilterInWindowInsidePress()
+    {
+        QScopedPointer<QQuickView> view(loadTest("FilterInWindow.qml"));
         QVERIFY(view);
         QList<QQuickWindow*> windowList = view->rootObject()->findChildren<QQuickWindow*>("window");
         QVERIFY(windowList.count());
@@ -347,373 +743,178 @@ private Q_SLOTS:
         QSignalSpy imaSpy(ima, SIGNAL(pressed(QQuickMouseEvent*)));
         QSignalSpy filterSpy(filter, SIGNAL(pressed(UCMouseEvent*)));
 
+        // insideClick
         QTest::mouseClick(window, Qt::LeftButton, 0, QPoint(30, 30));
         QCOMPARE(maSpy.count(), 1);
         QCOMPARE(imaSpy.count(), 0);
         QCOMPARE(filterSpy.count(), 1);
+    }
 
-        maSpy.clear(); filterSpy.clear();
+    void testCase_MouseFilterInWindowOutsidePress()
+    {
+        QScopedPointer<QQuickView> view(loadTest("FilterInWindow.qml"));
+        QVERIFY(view);
+        QList<QQuickWindow*> windowList = view->rootObject()->findChildren<QQuickWindow*>("window");
+        QVERIFY(windowList.count());
+        QQuickWindow *window = windowList[0];
+
+        QQuickMouseArea *ma = qobject_cast<QQuickMouseArea*>(view->rootObject()->findChild<QQuickItem*>("MA"));
+        QVERIFY(ma);
+        InverseMouseAreaType *ima = qobject_cast<InverseMouseAreaType*>(view->rootObject()->findChild<QQuickItem*>("IMA"));
+        QVERIFY(ima);
+        UCMouseFilter *filter = qobject_cast<UCMouseFilter*>(view->rootObject()->findChild<QQuickItem*>("filter"));
+        QVERIFY(filter);
+        QSignalSpy maSpy(ma, SIGNAL(pressed(QQuickMouseEvent*)));
+        QSignalSpy imaSpy(ima, SIGNAL(pressed(QQuickMouseEvent*)));
+        QSignalSpy filterSpy(filter, SIGNAL(pressed(UCMouseEvent*)));
+
         QTest::mouseClick(window, Qt::LeftButton, 0, QPoint(20, 20));
         QCOMPARE(maSpy.count(), 0);
         QCOMPARE(imaSpy.count(), 1);
         QCOMPARE(filterSpy.count(), 1);
-
-        delete view;
     }
 
-//    void testCase_DoNotPropagateEvents()
-//    {
-//        eventCleanup.clear();
-//        InverseMouseAreaType *area = testArea("InverseMouseAreaDoNotPropagateEvents.qml");
-//        QVERIFY(area);
-//        // connect pressed signal to capture mouse object
-//        QObject::connect(area, SIGNAL(pressed(QQuickMouseEveQWidgetnt*)), this, SLOT(capturePressed(QQuickMouseEvent*)));
-//        QTest::mouseClick(quickView, Qt::LeftButton, Qt::NoModifier, QPoint(10, 10));
-//        QTest::waitForEvents();
-//        QVERIFY(eventCleanup.isEmpty());
-//    }
-
-
-//    void testCase_PropagateEvents()
-//    {
-//        eventCleanup.clear();
-//        InverseMouseAreaType *area = testArea("InverseMouseAreaPropagateEvents.qml");
-//        QVERIFY(area);
-//        // connect pressed signal to capture mouse object
-//        QObject::connect(area, SIGNAL(pressed(QQuickMouseEvent*)), this, SLOT(capturePressed(QQuickMouseEvent*)));
-//        QTest::mouseClick(quickView, Qt::LeftButton, Qt::NoModifier, QPoint(10, 10));
-//        QTest::waitForEvents();
-//        QVERIFY(eventCleanup.isEmpty());
-//    }
-
-//    void testCase_sensingAreaError()
-//    {
-//        InverseMouseAreaType *area = testArea("SensingAreaError.qml");
-//        QVERIFY(area);
-
-//        QTest::mouseClick(quickView, Qt::LeftButton, 0, QPoint(20, 20));
-//        QTest::waitForEvents();
-//        QCOMPARE(quickView->rootObject()->property("log").toString(), QString("IMA"));
-//    }
-
-//    void testCase_InverseMouseAreInWindow()
-//    {
-//        InverseMouseAreaType *area = testArea("InverseMouseAreaInWindow.qml");
-//        QVERIFY(area);
-//        quickView->show();
-
-//        QList<QQuickWindow *> l = quickView->rootObject()->findChildren<QQuickWindow*>("isawindow");
-//        QVERIFY(l.count());
-
-//        QTest::mouseClick(l[0], Qt::LeftButton, 0, QPoint(20, 10));
-//        QTest::waitForEvents();
-//        QCOMPARE(quickView->rootObject()->property("log").toString(), QString("IMA"));
-//    }
-
-//    void testCase_OverlappedMouseArea()
-//    {
-//        InverseMouseAreaType *area = testArea("OverlappedMouseArea.qml");
-//        QVERIFY(area);
-//        quickView->show();
-
-//        QTest::mouseClick(quickView, Qt::LeftButton, 0, QPoint(20, 10));
-//        QTest::waitForEvents();
-//        QCOMPARE(quickView->rootObject()->property("log").toString(), QString("MA"));
-//    }
-
-//    void testCase_InverseMouseAreaOnTop()
-//    {
-//        InverseMouseAreaType *area = testArea("InverseMouseAreaOnTop.qml");
-//        QVERIFY(area);
-//        quickView->show();
-//        QTest::qWaitForWindowExposed(quickView);
-
-//        QQuickItem *ma1 = quickView->rootObject()->findChild<QQuickItem*>("MA1");
-//        QVERIFY(ma1);
-//        QQuickItem *ma2 = quickView->rootObject()->findChild<QQuickItem*>("MA2");
-//        QVERIFY(ma2);
-
-//        QSignalSpy imaSpy(area, SIGNAL(pressed(QQuickMouseEvent*)));
-//        QSignalSpy ma1Spy(ma1, SIGNAL(pressed(QQuickMouseEvent*)));
-//        QSignalSpy ma2Spy(ma2, SIGNAL(pressed(QQuickMouseEvent*)));
-
-//        // click in the top rectangle
-//        QTest::mouseClick(quickView, Qt::LeftButton, 0, QPoint(10, 10));
-//        QTest::waitForEvents();
-//        QCOMPARE(ma1Spy.count(), 0);
-//        QCOMPARE(ma2Spy.count(), 0);
-//        QCOMPARE(imaSpy.count(), 1);
-//        imaSpy.clear();
-
-//        // click in the second rectangle
-//        QTest::mouseClick(quickView, Qt::LeftButton, 0, QPoint(10, 65));
-//        QTest::waitForEvents();
-//        QCOMPARE(ma1Spy.count(), 0);
-//        QCOMPARE(ma2Spy.count(), 0);
-//        QCOMPARE(imaSpy.count(), 1);
-//        imaSpy.clear();
-
-//        // click in teh button
-//        QTest::mouseClick(quickView, Qt::LeftButton, 0, QPoint(25, 85));
-//        QTest::waitForEvents();
-//        QCOMPARE(ma1Spy.count(), 0);
-//        QCOMPARE(ma2Spy.count(), 1);
-//        QCOMPARE(imaSpy.count(), 0);
-
-//        QSignalSpy imaDSpy(area, SIGNAL(doubleClicked(QQuickMouseEvent*)));
-//        QTest::mouseDClick(quickView, Qt::LeftButton, 0, QPoint(10, 65));
-//        QCOMPARE(imaDSpy.count(), 1);
-//        imaDSpy.clear();
-
-//        QTest::mouseDClick(quickView, Qt::LeftButton, 0, QPoint(10, 10));
-//        QCOMPARE(imaDSpy.count(), 1);
-//        imaDSpy.clear();
-//    }
-
-//    void testCase_InverseMouseAreaOnTopNoAccept()
-//    {
-//        InverseMouseAreaType *area = testArea("InverseMouseAreaOnTopNoAccept.qml");
-//        QVERIFY(area);
-//        quickView->show();
-//        QTest::qWaitForWindowExposed(quickView);
-
-//        QQuickItem *ma1 = quickView->rootObject()->findChild<QQuickItem*>("MA1");
-//        QVERIFY(ma1);
-//        QQuickItem *ma2 = quickView->rootObject()->findChild<QQuickItem*>("MA2");
-//        QVERIFY(ma2);
-
-//        QSignalSpy imaSpy(area, SIGNAL(pressed(QQuickMouseEvent*)));
-//        QSignalSpy ma1Spy(ma1, SIGNAL(pressed(QQuickMouseEvent*)));
-//        QSignalSpy ma2Spy(ma2, SIGNAL(pressed(QQuickMouseEvent*)));
-
-//        QTest::mouseClick(quickView, Qt::LeftButton, 0, QPoint(10, 10));
-//        QTest::waitForEvents();
-//        QCOMPARE(ma1Spy.count(), 1);
-//        QCOMPARE(ma2Spy.count(), 0);
-//        QCOMPARE(imaSpy.count(), 1);
-//        ma1Spy.clear(); imaSpy.clear();
-
-//        QTest::mouseClick(quickView, Qt::LeftButton, 0, QPoint(10, 65));
-//        QTest::waitForEvents();
-//        QCOMPARE(ma1Spy.count(), 0);
-//        QCOMPARE(ma2Spy.count(), 1);
-//        QCOMPARE(imaSpy.count(), 1);
-//        ma2Spy.clear(); imaSpy.clear();
-
-//        QTest::mouseClick(quickView, Qt::LeftButton, 0, QPoint(25, 80));
-//        QTest::waitForEvents();
-//        QCOMPARE(ma1Spy.count(), 0);
-//        QCOMPARE(ma2Spy.count(), 1);
-//        QCOMPARE(imaSpy.count(), 0);
-
-//        // double click should not reach inverse mouse area as onPressed did not accept the events
-//        QSignalSpy imaDSpy(area, SIGNAL(doubleClicked(QQuickMouseEvent*)));
-//        QTest::mouseDClick(quickView, Qt::LeftButton, 0, QPoint(10, 65));
-//        QCOMPARE(imaDSpy.count(), 0);
-//        imaDSpy.clear();
-
-//        QTest::mouseDClick(quickView, Qt::LeftButton, 0, QPoint(10, 10));
-//        QCOMPARE(imaDSpy.count(), 0);
-//        imaDSpy.clear();
-//    }
-
-//    void testCase_InverseMouseAreaOnTopTopmost()
-//    {
-//        InverseMouseAreaType *area = testArea("InverseMouseAreaOnTop.qml");
-//        QVERIFY(area);
-//        quickView->show();
-//        QTest::qWaitForWindowExposed(quickView);
-//        area->setProperty("topmostItem", true);
-
-//        QQuickItem *ma2 = quickView->rootObject()->findChild<QQuickItem*>("MA2");
-//        QVERIFY(ma2);
-
-//        QSignalSpy imaSpy(area, SIGNAL(pressed(QQuickMouseEvent*)));
-//        QSignalSpy ma2Spy(ma2, SIGNAL(pressed(QQuickMouseEvent*)));
-
-//        QTest::mouseClick(quickView, Qt::LeftButton, 0, QPoint(10, 10));
-//        QTest::waitForEvents();
-//        QCOMPARE(ma2Spy.count(), 0);
-//        QCOMPARE(imaSpy.count(), 1);
-//        imaSpy.clear();
-
-//        QTest::mouseClick(quickView, Qt::LeftButton, 0, QPoint(10, 65));
-//        QTest::waitForEvents();
-//        QCOMPARE(ma2Spy.count(), 0);
-//        QCOMPARE(imaSpy.count(), 1);
-//        imaSpy.clear();
-
-//        QTest::mouseClick(quickView, Qt::LeftButton, 0, QPoint(25, 80));
-//        QTest::waitForEvents();
-//        QCOMPARE(ma2Spy.count(), 1);
-//        QCOMPARE(imaSpy.count(), 0);
-
-//        QSignalSpy imaDSpy(area, SIGNAL(doubleClicked(QQuickMouseEvent*)));
-//        QTest::mouseDClick(quickView, Qt::LeftButton, 0, QPoint(10, 65));
-//        QCOMPARE(imaDSpy.count(), 1);
-//        imaDSpy.clear();
-
-//        QTest::mouseDClick(quickView, Qt::LeftButton, 0, QPoint(10, 10));
-//        QCOMPARE(imaDSpy.count(), 1);
-//        imaDSpy.clear();
-//    }
-
-//    void testCase_InverseMouseAreaSignals()
-//    {
-//        InverseMouseAreaType *area = testArea("InverseMouseAreaSignals.qml");
-//        QVERIFY(area);
-//        quickView->show();
-//        QTest::qWaitForWindowExposed(quickView);
-
-//        QSignalSpy pressSpy(area, SIGNAL(pressed(QQuickMouseEvent*)));
-//        QSignalSpy releaseSpy(area, SIGNAL(released(QQuickMouseEvent*)));
-//        QSignalSpy clickSpy(area, SIGNAL(clicked(QQuickMouseEvent*)));
-//        QSignalSpy enteredSpy(area, SIGNAL(entered()));
-//        QSignalSpy exitedSpy(area, SIGNAL(exited()));
-
-//        QTest::mouseClick(quickView, Qt::LeftButton, 0, QPoint(5, 5));
-//        QCOMPARE(pressSpy.count(), 1);
-//        QCOMPARE(releaseSpy.count(), 1);
-//        QCOMPARE(clickSpy.count(), 1);
-//        QCOMPARE(enteredSpy.count(), 1);
-//        QCOMPARE(exitedSpy.count(), 1);
-
-//        QSignalSpy doubleClickSpy(area, SIGNAL(doubleClicked(QQuickMouseEvent*)));
-//        QTest::mouseDClick(quickView, Qt::LeftButton, 0, QPoint(5, 5));
-//        QCOMPARE(doubleClickSpy.count(), 1);
-//    }
-
-//    void testCase_InverseMouseAreaNormalEventStack()
-//    {
-//        InverseMouseAreaType *ima = testArea("InverseMouseAreaNormalEventStack.qml");
-//        QVERIFY(ima);
-//        quickView->show();
-//        QTest::qWaitForWindowExposed(quickView);
-
-//        QQuickItem *ma = quickView->rootObject()->findChild<QQuickItem*>("MA");
-//        QVERIFY(ma);
-
-//        QSignalSpy imaSpy(ima, SIGNAL(pressed(QQuickMouseEvent*)));
-//        QSignalSpy maSpy(ma, SIGNAL(pressed(QQuickMouseEvent*)));
-
-//        QTest::mouseClick(quickView, Qt::LeftButton, Qt::NoModifier, QPoint(15, 15));
-//        QCOMPARE(imaSpy.count(), 0);
-//        QCOMPARE(maSpy.count(), 0);
-
-//        QTest::mouseClick(quickView, Qt::LeftButton, Qt::NoModifier, QPoint(115, 15));
-//        QCOMPARE(imaSpy.count(), 0);
-//        QCOMPARE(maSpy.count(), 1);
-//        maSpy.clear();
-
-//        QTest::mouseClick(quickView, Qt::LeftButton, Qt::NoModifier, QPoint(115, 115));
-//        QCOMPARE(imaSpy.count(), 1);
-//        QCOMPARE(maSpy.count(), 0);
-//    }
-
-//    void testCase_InverseMouseAreaTopmost()
-//    {
-//        InverseMouseAreaType *ima = testArea("InverseMouseAreaTopmostItem.qml");
-//        QVERIFY(ima);
-//        quickView->show();
-//        QTest::qWaitForWindowExposed(quickView);
-
-//        QQuickItem *ma = quickView->rootObject()->findChild<QQuickItem*>("MA");
-//        QVERIFY(ma);
-
-//        QSignalSpy imaSpy(ima, SIGNAL(pressed(QQuickMouseEvent*)));
-//        QSignalSpy maSpy(ma, SIGNAL(pressed(QQuickMouseEvent*)));
-//        QSignalSpy imaDblClick(ima, SIGNAL(doubleClicked(QQuickMouseEvent*)));
-
-//        QTest::mouseClick(quickView, Qt::LeftButton, Qt::NoModifier, QPoint(15, 15));
-//        QCOMPARE(imaSpy.count(), 0);
-//        QCOMPARE(maSpy.count(), 0);
-
-//        QTest::mouseClick(quickView, Qt::LeftButton, Qt::NoModifier, QPoint(115, 15));
-//        QCOMPARE(imaSpy.count(), 1);
-//        QCOMPARE(maSpy.count(), 0);
-
-//        imaSpy.clear();
-//        QTest::mouseClick(quickView, Qt::LeftButton, Qt::NoModifier, QPoint(115, 115));
-//        QCOMPARE(imaSpy.count(), 1);
-//        QCOMPARE(maSpy.count(), 0);
-
-//        QTest::mouseDClick(quickView, Qt::LeftButton, Qt::NoModifier, QPoint(115, 15));
-//        QCOMPARE(imaDblClick.count(), 1);
-//    }
-
-//    void testCase_InverseMouseAreaSensingArea()
-//    {
-//        InverseMouseAreaType *ima = testArea("InverseMouseAreaSensingArea.qml");
-//        QVERIFY(ima);
-//        quickView->show();
-//        QTest::qWaitForWindowExposed(quickView);
-
-//        QQuickItem *ma = quickView->rootObject()->findChild<QQuickItem*>("MA");
-//        QVERIFY(ma);
-
-//        QSignalSpy maSpy(ma, SIGNAL(clicked(QQuickMouseEvent*)));
-//        QSignalSpy imaSpy(ima, SIGNAL(clicked(QQuickMouseEvent*)));
-
-//        QTest::mouseClick(quickView, Qt::LeftButton, Qt::NoModifier, QPoint(75, 75));
-//        QCOMPARE(maSpy.count(), 0);
-//        QCOMPARE(imaSpy.count(), 1);
-//        imaSpy.clear();
-
-//        QTest::mouseClick(quickView, Qt::LeftButton, Qt::NoModifier, QPoint(25, 25));
-//        QCOMPARE(maSpy.count(), 1);
-//        QCOMPARE(imaSpy.count(), 0);
-//        maSpy.clear();
-
-//        QTest::mouseClick(quickView, Qt::LeftButton, Qt::NoModifier, QPoint(175, 175));
-//        QCOMPARE(maSpy.count(), 1);
-//        QCOMPARE(imaSpy.count(), 0);
-//    }
-
-//    void testCase_InverseMouseAreaSensingAreaChange()
-//    {
-//        InverseMouseAreaType *ima = testArea("InverseMouseAreaSensingArea.qml");
-//        QVERIFY(ima);
-//        quickView->show();
-//        QTest::qWaitForWindowExposed(quickView);
-
-//        QQuickItem *ma = quickView->rootObject()->findChild<QQuickItem*>("MA");
-//        QVERIFY(ma);
-
-//        QSignalSpy maSpy(ma, SIGNAL(clicked(QQuickMouseEvent*)));
-//        QSignalSpy imaSpy(ima, SIGNAL(clicked(QQuickMouseEvent*)));
-
-//        QTest::mouseClick(quickView, Qt::LeftButton, Qt::NoModifier, QPoint(75, 75));
-//        QCOMPARE(maSpy.count(), 0);
-//        QCOMPARE(imaSpy.count(), 1);
-//        imaSpy.clear();
-
-//        QTest::mouseClick(quickView, Qt::LeftButton, Qt::NoModifier, QPoint(25, 25));
-//        QCOMPARE(maSpy.count(), 1);
-//        QCOMPARE(imaSpy.count(), 0);
-//        maSpy.clear();
-
-//        QTest::mouseClick(quickView, Qt::LeftButton, Qt::NoModifier, QPoint(175, 175));
-//        QCOMPARE(maSpy.count(), 1);
-//        QCOMPARE(imaSpy.count(), 0);
-//        maSpy.clear();
-
-//        ima->setProperty("sensingArea", QVariant());
-
-//        QTest::mouseClick(quickView, Qt::LeftButton, Qt::NoModifier, QPoint(75, 75));
-//        QCOMPARE(maSpy.count(), 0);
-//        QCOMPARE(imaSpy.count(), 1);
-//        imaSpy.clear();
-
-//        QTest::mouseClick(quickView, Qt::LeftButton, Qt::NoModifier, QPoint(25, 25));
-//        QCOMPARE(maSpy.count(), 0);
-//        QCOMPARE(imaSpy.count(), 1);
-//        imaSpy.clear();
-
-//        QTest::mouseClick(quickView, Qt::LeftButton, Qt::NoModifier, QPoint(175, 175));
-//        QCOMPARE(maSpy.count(), 1);
-//        QCOMPARE(imaSpy.count(), 0);
-//    }
-
+    void testCase_CapturePressedInside()
+    {
+        QScopedPointer<QQuickView> view(loadTest("Capture.qml"));
+        QVERIFY(view);
+
+        QQuickMouseArea *ma = qobject_cast<QQuickMouseArea*>(view->rootObject()->findChild<QQuickItem*>("MA"));
+        QVERIFY(ma);
+        InverseMouseAreaType *ima = qobject_cast<InverseMouseAreaType*>(view->rootObject()->findChild<QQuickItem*>("IMA"));
+        QVERIFY(ima);
+        UCMouseFilter *filter = qobject_cast<UCMouseFilter*>(view->rootObject()->findChild<QQuickItem*>("filter"));
+        QVERIFY(filter);
+        QSignalSpy maSpy(ma, SIGNAL(pressed(QQuickMouseEvent*)));
+        QSignalSpy imaSpy(ima, SIGNAL(pressed(QQuickMouseEvent*)));
+        QSignalSpy filterSpy(filter, SIGNAL(pressed(UCMouseEvent*)));
+
+        QTest::mouseClick(view.data(), Qt::LeftButton, 0, QPoint(30, 30));
+        QCOMPARE(maSpy.count(), 0);
+        QCOMPARE(imaSpy.count(), 0);
+        QCOMPARE(filterSpy.count(), 1);
+    }
+
+    void testCase_CapturePressedOutside()
+    {
+        QScopedPointer<QQuickView> view(loadTest("Capture.qml"));
+        QVERIFY(view);
+
+        QQuickMouseArea *ma = qobject_cast<QQuickMouseArea*>(view->rootObject()->findChild<QQuickItem*>("MA"));
+        QVERIFY(ma);
+        InverseMouseAreaType *ima = qobject_cast<InverseMouseAreaType*>(view->rootObject()->findChild<QQuickItem*>("IMA"));
+        QVERIFY(ima);
+        UCMouseFilter *filter = qobject_cast<UCMouseFilter*>(view->rootObject()->findChild<QQuickItem*>("filter"));
+        QVERIFY(filter);
+        QSignalSpy maSpy(ma, SIGNAL(pressed(QQuickMouseEvent*)));
+        QSignalSpy imaSpy(ima, SIGNAL(pressed(QQuickMouseEvent*)));
+        QSignalSpy filterSpy(filter, SIGNAL(pressed(UCMouseEvent*)));
+
+        QTest::mouseClick(view.data(), Qt::LeftButton, 0, QPoint(20, 20));
+        QCOMPARE(maSpy.count(), 0);
+        QCOMPARE(imaSpy.count(), 0);
+        QCOMPARE(filterSpy.count(), 1);
+    }
+
+    void testCase_CaptureClickedInside()
+    {
+        QScopedPointer<QQuickView> view(loadTest("CaptureClicked.qml"));
+        QVERIFY(view);
+
+        QQuickMouseArea *ma = qobject_cast<QQuickMouseArea*>(view->rootObject()->findChild<QQuickItem*>("MA"));
+        QVERIFY(ma);
+        InverseMouseAreaType *ima = qobject_cast<InverseMouseAreaType*>(view->rootObject()->findChild<QQuickItem*>("IMA"));
+        QVERIFY(ima);
+        UCMouseFilter *filter = qobject_cast<UCMouseFilter*>(view->rootObject()->findChild<QQuickItem*>("filter"));
+        QVERIFY(filter);
+        QSignalSpy maSpy(ma, SIGNAL(clicked(QQuickMouseEvent*)));
+        QSignalSpy imaSpy(ima, SIGNAL(clicked(QQuickMouseEvent*)));
+        QSignalSpy filterSpy(filter, SIGNAL(clicked(UCMouseEvent*)));
+
+        QTest::mouseClick(view.data(), Qt::LeftButton, 0, QPoint(30, 30));
+        QCOMPARE(maSpy.count(), 0);
+        QCOMPARE(imaSpy.count(), 0);
+        QCOMPARE(filterSpy.count(), 1);
+    }
+
+    void testCase_CaptureClickedOutside()
+    {
+        QScopedPointer<QQuickView> view(loadTest("CaptureClicked.qml"));
+        QVERIFY(view);
+
+        QQuickMouseArea *ma = qobject_cast<QQuickMouseArea*>(view->rootObject()->findChild<QQuickItem*>("MA"));
+        QVERIFY(ma);
+        InverseMouseAreaType *ima = qobject_cast<InverseMouseAreaType*>(view->rootObject()->findChild<QQuickItem*>("IMA"));
+        QVERIFY(ima);
+        UCMouseFilter *filter = qobject_cast<UCMouseFilter*>(view->rootObject()->findChild<QQuickItem*>("filter"));
+        QVERIFY(filter);
+        QSignalSpy maSpy(ma, SIGNAL(clicked(QQuickMouseEvent*)));
+        QSignalSpy imaSpy(ima, SIGNAL(clicked(QQuickMouseEvent*)));
+        QSignalSpy filterSpy(filter, SIGNAL(clicked(UCMouseEvent*)));
+
+        QTest::mouseClick(view.data(), Qt::LeftButton, 0, QPoint(20, 20));
+        QCOMPARE(maSpy.count(), 0);
+        QCOMPARE(imaSpy.count(), 0);
+        QCOMPARE(filterSpy.count(), 1);
+    }
+
+    void testCase_CaptureDoubleClickInside()
+    {
+        QScopedPointer<QQuickView> view(loadTest("CaptureDoubleClick.qml"));
+        QVERIFY(view);
+
+        QQuickMouseArea *ma = qobject_cast<QQuickMouseArea*>(view->rootObject()->findChild<QQuickItem*>("MA"));
+        QVERIFY(ma);
+        InverseMouseAreaType *ima = qobject_cast<InverseMouseAreaType*>(view->rootObject()->findChild<QQuickItem*>("IMA"));
+        QVERIFY(ima);
+        UCMouseFilter *filter = qobject_cast<UCMouseFilter*>(view->rootObject()->findChild<QQuickItem*>("filter"));
+        QVERIFY(filter);
+        QSignalSpy maSpy(ma, SIGNAL(doubleClicked(QQuickMouseEvent*)));
+        QSignalSpy imaSpy(ima, SIGNAL(doubleClicked(QQuickMouseEvent*)));
+        QSignalSpy filterSpy(filter, SIGNAL(doubleClicked(UCMouseEvent*)));
+        QSignalSpy maClickSpy(ma, SIGNAL(clicked(QQuickMouseEvent*)));
+        QSignalSpy imaClickSpy(ima, SIGNAL(clicked(QQuickMouseEvent*)));
+        QSignalSpy filterClickSpy(filter, SIGNAL(clicked(UCMouseEvent*)));
+
+        // inside
+        QTest::mouseDClick(view.data(), Qt::LeftButton, 0, QPoint(30, 30));
+        QCOMPARE(maSpy.count(), 0);
+        QCOMPARE(imaSpy.count(), 0);
+        QCOMPARE(filterSpy.count(), 1);
+        // only the double click is suppressed!
+        QCOMPARE(maClickSpy.count(), 2);
+        QCOMPARE(imaClickSpy.count(), 0);
+        QCOMPARE(filterClickSpy.count(), 1);
+    }
+
+    void testCase_CaptureDoubleClickOutside()
+    {
+        QScopedPointer<QQuickView> view(loadTest("CaptureDoubleClick.qml"));
+        QVERIFY(view);
+
+        QQuickMouseArea *ma = qobject_cast<QQuickMouseArea*>(view->rootObject()->findChild<QQuickItem*>("MA"));
+        QVERIFY(ma);
+        InverseMouseAreaType *ima = qobject_cast<InverseMouseAreaType*>(view->rootObject()->findChild<QQuickItem*>("IMA"));
+        QVERIFY(ima);
+        UCMouseFilter *filter = qobject_cast<UCMouseFilter*>(view->rootObject()->findChild<QQuickItem*>("filter"));
+        QVERIFY(filter);
+        QSignalSpy maSpy(ma, SIGNAL(doubleClicked(QQuickMouseEvent*)));
+        QSignalSpy imaSpy(ima, SIGNAL(doubleClicked(QQuickMouseEvent*)));
+        QSignalSpy filterSpy(filter, SIGNAL(doubleClicked(UCMouseEvent*)));
+        QSignalSpy maClickSpy(ma, SIGNAL(clicked(QQuickMouseEvent*)));
+        QSignalSpy imaClickSpy(ima, SIGNAL(clicked(QQuickMouseEvent*)));
+        QSignalSpy filterClickSpy(filter, SIGNAL(clicked(UCMouseEvent*)));
+
+        // outside
+        QTest::mouseDClick(view.data(), Qt::LeftButton, 0, QPoint(20, 20));
+        QCOMPARE(maSpy.count(), 0);
+        QCOMPARE(imaSpy.count(), 0);
+        QCOMPARE(filterSpy.count(), 1);
+        QCOMPARE(maClickSpy.count(), 0);
+        // only the double click is suppressed!
+        QCOMPARE(imaClickSpy.count(), 2);
+        QCOMPARE(filterClickSpy.count(), 1);
+    }
 };
 
 QTEST_MAIN(tst_mouseFilterTest)

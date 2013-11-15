@@ -18,30 +18,19 @@ import QtQuick 2.0
 import Ubuntu.Components 0.1
 
 Item {
-    objectName: "root"
-    width: 100; height: 100
+    width: units.gu(40)
+    height: units.gu(71)
 
-    Rectangle {
-        id: hole
-        width: 50; height: 50
-        color: "blue"
-        objectName: "hole"
-        anchors.centerIn: parent
-    }
+    TextField {
+        objectName: "input"
+        width: parent.width
+        height: units.gu(5);
+        selectByMouse: true
 
-    MouseArea {
-        anchors.fill: parent
-        objectName: "MA"
-    }
-
-    MouseFilter {
-        objectName: "filter"
-        anchors.fill: hole
-    }
-
-    InverseMouseArea {
-        objectName: "IMA"
-        anchors.fill: hole
+        MouseFilter {
+            objectName: "filter"
+            anchors.fill: parent
+            filter: MouseFilter.MouseOutside
+        }
     }
 }
-
