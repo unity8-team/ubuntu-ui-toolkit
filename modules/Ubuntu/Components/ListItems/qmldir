@@ -15,3 +15,5 @@ Standard 0.1 Standard.qml
 Subtitled 0.1 Subtitled.qml
 SingleControl 0.1 SingleControl.qml
 ThinDivider 0.1 ThinDivider.qml
+ExpandingListView 0.1 ExpandingListView.qml
+Expanding 0.1 Expanding.qml
