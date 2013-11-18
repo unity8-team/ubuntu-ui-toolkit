@@ -5,7 +5,6 @@ Base {
     id: root
     implicitHeight: expanded ? expandedHeight : collapsedHeight
     clip: true
-    opacity: priv.otherExpanded ? .6 : 1
 
     property bool expanded: false
     property int collapsedHeight: __height
@@ -31,6 +30,13 @@ Base {
     Behavior on opacity {
         UbuntuNumberAnimation {}
     }
+
+    states: [
+        State {
+            name: "otherExpanded"; when: priv.otherExpanded
+            PropertyChanges { target: root; opacity: .6 }
+        }
+    ]
 
     property Item __view: ListView.view
     QtObject {

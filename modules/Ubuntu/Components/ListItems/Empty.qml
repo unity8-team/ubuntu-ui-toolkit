@@ -136,9 +136,6 @@ AbstractButton {
      */
     property bool showDivider: true
 
-    property int expandedHeight: height
-    property bool expanded: false
-
     /*!
       \internal
       Reparent so that the visuals of the children does not
