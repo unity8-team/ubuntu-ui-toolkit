@@ -159,7 +159,6 @@ private Q_SLOTS:
         QCOMPARE(maSpy.count(), 1);
         QCOMPARE(imaSpy.count(), 0);
         QCOMPARE(filterSpy.count(), 1);
-
     }
 
     void testCase_FilterPressedOutside()
@@ -181,7 +180,32 @@ private Q_SLOTS:
         QCOMPARE(maSpy.count(), 0);
         QCOMPARE(imaSpy.count(), 1);
         QCOMPARE(filterSpy.count(), 1);
+    }
 
+    void testCase_FilterNoLongpressAfterPressedInside()
+    {
+        QScopedPointer<QQuickView> view(loadTest("Filter.qml"));
+        QVERIFY(view);
+
+        QQuickMouseArea *ma = qobject_cast<QQuickMouseArea*>(view->rootObject()->findChild<QQuickItem*>("MA"));
+        QVERIFY(ma);
+        InverseMouseAreaType *ima = qobject_cast<InverseMouseAreaType*>(view->rootObject()->findChild<QQuickItem*>("IMA"));
+        QVERIFY(ima);
+        UCMouseFilter *filter = qobject_cast<UCMouseFilter*>(view->rootObject()->findChild<QQuickItem*>("filter"));
+        QVERIFY(filter);
+        QSignalSpy maSpy(ma, SIGNAL(pressed(QQuickMouseEvent*)));
+        QSignalSpy imaSpy(ima, SIGNAL(pressed(QQuickMouseEvent*)));
+        QSignalSpy filterSpy(filter, SIGNAL(pressed(UCMouseEvent*)));
+        QSignalSpy filterLongPress(filter, SIGNAL(pressAndHold(UCMouseEvent*)));
+
+        QTest::mousePress(view.data(), Qt::LeftButton, 0, QPoint(30, 30));
+        QTest::mouseMove(view.data(), QPoint(40, 30));
+        QTest::mouseRelease(view.data(), Qt::LeftButton, 0, QPoint(40, 30));
+        QTest::qWait(filter->pressAndHoldDelay() + 200);
+        QCOMPARE(maSpy.count(), 1);
+        QCOMPARE(imaSpy.count(), 0);
+        QCOMPARE(filterSpy.count(), 1);
+        QCOMPARE(filterLongPress.count(), 0);
     }
 
     void testCase_FilterReleasedInside()

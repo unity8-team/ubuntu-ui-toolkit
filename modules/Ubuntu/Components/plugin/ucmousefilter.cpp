@@ -290,10 +290,14 @@ QMouseEvent *UCMouseFilter::mapMouseToArea(QObject *target, QMouseEvent *event)
 {
     QMouseEvent *result = event;
     if (target != this) {
+        QQuickItem *item = qobject_cast<QQuickItem*>(target);
         // translate coordinates to local
+        // if item is null, the mapping will be from scene
+        QPointF lpos = mapFromItem(item, event->localPos());
+        QPointF wpos = mapFromItem(item, event->windowPos());
         result = new QMouseEvent(event->type(),
-                               mapFromScene(event->windowPos()),
-                               event->windowPos(),
+                               lpos,
+                               wpos,
                                event->screenPos(),
                                event->button(), event->buttons(), event->modifiers());
         // turn accepted off by default
@@ -441,7 +445,7 @@ void UCMouseFilter::timerEvent(QTimerEvent *event)
 {
     if (isEnabled() && event->timerId() == m_pressAndHoldTimer.timerId()) {
         m_pressAndHoldTimer.stop();
-        if ((m_filter & m_lastPosType) && (m_pressedInside || m_pressedOutside)) {
+        if ((m_filter & m_lastPosType) && (m_pressedInside || m_pressedOutside) && m_hovered) {
             m_longPress = true;
             UCMouseEvent mev(m_lastPos, m_lastButton, m_lastButtons, m_lastModifiers,
                              (m_lastPosType == MouseInside), m_lastPosOverOsk, false, true);

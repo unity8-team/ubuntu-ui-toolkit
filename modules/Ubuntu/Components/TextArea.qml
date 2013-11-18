@@ -917,6 +917,8 @@ StyledItem {
         flickableItem: flicker
         align: Qt.AlignBottom
     }
+
+    // flickable to scroll text content
     Flickable {
         id: flicker
         anchors {
@@ -929,7 +931,7 @@ StyledItem {
         interactive: !autoSize || (autoSize && maximumLineCount > 0)
         // do not allow rebounding
         boundsBehavior: Flickable.StopAtBounds
-        pressDelay: 500
+//        pressDelay: 500
 
         function ensureVisible(r)
         {
@@ -957,7 +959,7 @@ StyledItem {
             height: Math.max(internal.inputAreaHeight, editor.contentHeight)
             wrapMode: TextEdit.WrapAtWordBoundaryOrAnywhere
             mouseSelectionMode: TextEdit.SelectWords
-            selectByMouse: true
+            selectByMouse: control.activeFocusOnPress
             cursorDelegate: cursor
             color: control.__styleInstance.color
             selectedTextColor: Theme.palette.selected.foregroundText
@@ -987,9 +989,42 @@ StyledItem {
             // handling text selection
             UC.MouseFilter {
                 anchors.fill: parent
-                onPressed: print("mice pressed inside? " + mouse.inside)
-                onReleased: print("mice released inside? " + mouse.inside)
+                enabled: control.enabled && control.activeFocusOnPress
+                onPressed: {
+                    if (!mouse.inside) return;
+                    internal.activateEditor();
+                    internal.draggingMode = true;
+                }
+                onPressAndHold: {
+                    print("POH="+mouse.inside+mouse.x+" "+mouse.y)
+                    if (!mouse.inside) return;
+                    // move mode gets false if there was a mouse move after the press;
+                    // this is needed as Flickable will send a pressAndHold in case of
+                    // press -> move-pressed ->stop-and-hold-pressed gesture is performed
+                    if (!internal.draggingMode)
+                        return;
+                    internal.draggingMode = false;
+                    // open popup
+                    internal.positionCursor(mouse.x, mouse.y);
+                    internal.popupTriggered(editor.cursorPosition);
+                }
+                onReleased: {
+                    if (!mouse.inside) return;
+                    internal.draggingMode = false;
+                }
+                onDoubleClicked: {
+                    if (!mouse.inside) return;
+                    internal.activateEditor();
+                    if (control.selectByMouse)
+                        control.selectWord();
+                }
+                onClicked: {
+                    internal.activateEditor();
+                    internal.positionCursor(mouse.x, mouse.y);
+                }
+                onExited: print("mice left the area")
             }
+
 
 //            MouseArea {
 //                id: handler

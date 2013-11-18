@@ -98,27 +98,27 @@ Template {
             }
         }
 
-        TemplateRow {
-            title: i18n.tr("Expanding")
+//        TemplateRow {
+//            title: i18n.tr("Expanding")
 
-            TextArea {
-                objectName: "textarea_expanding"
-                placeholderText: "Expands up to 5 lines"
-                autoSize: true
-                maximumLineCount: 5
-                width: parent.width
-            }
-        }
+//            TextArea {
+//                objectName: "textarea_expanding"
+//                placeholderText: "Expands up to 5 lines"
+//                autoSize: true
+//                maximumLineCount: 5
+//                width: parent.width
+//            }
+//        }
 
-        TemplateRow {
-            title: i18n.tr("Rich Text")
+//        TemplateRow {
+//            title: i18n.tr("Rich Text")
 
-            TextArea {
-                objectName: "textarea_richtext"
-                textFormat: TextEdit.RichText
-                text: richText
-                width: parent.width
-            }
-        }
+//            TextArea {
+//                objectName: "textarea_richtext"
+//                textFormat: TextEdit.RichText
+//                text: richText
+//                width: parent.width
+//            }
+//        }
     }
 }
