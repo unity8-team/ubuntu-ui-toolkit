@@ -34,6 +34,7 @@ Item {
         width: sourceItem.width
         height: sourceItem.height
         live: true
+        smooth: true
     }
 
     ShaderEffect {
@@ -47,15 +48,19 @@ Item {
         property real targetWidth: magnifier.width / sourceItem.width
         property real targetHeight: magnifier.height / sourceItem.height
 
-//        vertexShader: "
-//            uniform highp mat4 qt_Matrix;
-//            attribute highp vec4 qt_Vertex;
-//            attribute highp vec2 qt_MultiTexCoord0;
-//            varying highp vec2 texCoord;
-//            void main() {
-//                texCoord = qt_MultiTexCoord0;
-//                gl_Position = qt_Matrix * qt_Vertex;
-//            }"
+        property real scaleFactor: 1.2
+
+        vertexShader: "
+            attribute highp vec4 qt_Vertex;
+            attribute highp vec2 qt_MultiTexCoord0;
+            uniform highp mat4 qt_Matrix;
+            uniform highp float scaleFactor;
+            varying highp vec2 qt_TexCoord0;
+            void main() {
+                qt_TexCoord0.x = 0.5 - 1. / (2. * scaleFactor) + qt_MultiTexCoord0.x / scaleFactor;
+                qt_TexCoord0.y = 0.5 - 1. / (2. * scaleFactor) + qt_MultiTexCoord0.y / scaleFactor;
+                gl_Position = qt_Matrix * qt_Vertex;
+            }";
 
         fragmentShader: "
             uniform lowp float qt_Opacity;
