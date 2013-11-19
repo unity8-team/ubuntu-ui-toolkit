@@ -27,6 +27,10 @@ Item {
     property alias sourceItem: effectSource.sourceItem
     property alias scaleFactor: effect.scaleFactor
 
+    // everything in the sourceItem that is not transparent will be made this color
+    // in the output, but the transparency of the input is respected
+    property alias outputColor: effect.outputColor
+
     ShaderEffectSource {
         id: effectSource
         visible: false
@@ -46,6 +50,7 @@ Item {
 
         property variant source: effectSource
         property real scaleFactor: 1.2
+        property color outputColor: "red"
 
         vertexShader: "
             attribute highp vec4 qt_Vertex;
@@ -62,11 +67,12 @@ Item {
             uniform lowp float qt_Opacity;
             varying highp vec2 qt_TexCoord0;
             uniform sampler2D source;
+            uniform highp vec4 outputColor;
 
             void main() {
                 vec2 tc = qt_TexCoord0;
                 lowp vec4 tex = texture2D(source, tc);
-                gl_FragColor = vec4(1.0, 0.0, 0.0, tex.a) * qt_Opacity;
+                gl_FragColor = vec4(outputColor.rgb, outputColor.a*tex.a) * qt_Opacity;
             }
             "
     }
