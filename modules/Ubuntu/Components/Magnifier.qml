@@ -31,9 +31,13 @@ Item {
         id: effectSource
         visible: false
 
+        property real sourceRectMultiplier: 2.0
+
         // XXX: This works because the parent of magnifier is the same as sourceItem
         //  in this case. Otherwise coordinate transformations will be needed.
         sourceRect: Qt.rect(magnifier.x, magnifier.y, magnifier.width, magnifier.height)
+
+        textureSize: Qt.size(magnifier.width*sourceRectMultiplier, magnifier.height*sourceRectMultiplier)
     }
 
     ShaderEffect {
@@ -42,6 +46,7 @@ Item {
 
         property variant source: effectSource
         property real scaleFactor: 1.2
+        property real realScaleFactor: effectSource.sourceRectMultiplier * scaleFactor
 
         vertexShader: "
             attribute highp vec4 qt_Vertex;
