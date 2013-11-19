@@ -104,10 +104,10 @@ Template {
                             }
                         }
 
-                        Toolkit.Label {
+                        Toolkit.UbuntuShape {
                             anchors { left: parent.left; right: parent.right }
-                            text: index % 2 ? "The tomato is the edible, often red fruit of the plant Solanum lycopersicum, commonly known as a tomato plant. Both the species and its use as a food originated in Mexico, and spread throughout the world following the Spanish colonization of the Americas. Its many varieties are now widely grown, sometimes in greenhouses in cooler climates. The tomato is consumed in diverse ways, including raw, as an ingredient in many dishes, sauces, salads, and drinks. While it is botanically a fruit, it is considered a vegetable for culinary purposes (as well as under U.S. customs regulations, see Nix v. Hedden), which has caused some confusion. The fruit is rich in lycopene, which may have beneficial health effects. The tomato belongs to the nightshade family (Solanaceae). The plants typically grow to 1–3 meters (3–10 ft) in height and have a weak stem that often sprawls over the ground and vines over other plants. It is a perennial in its native habitat, although often grown outdoors in temperate climates as an annual. An average common tomato weighs approximately 100 grams (4 oz).[2][3]" : "Some small expansion"
-                            wrapMode: Text.WordWrap
+                            height: index % 2 == 0 ? units.gu(6) : units.gu(18)
+                            color: "khaki"
                         }
                     }
                 }
@@ -146,10 +146,10 @@ Template {
                             }
                         }
 
-                        Toolkit.Label {
+                        Toolkit.UbuntuShape {
                             anchors { left: parent.left; right: parent.right }
-                            text: index % 2 ? "The tomato is the edible, often red fruit of the plant Solanum lycopersicum, commonly known as a tomato plant. Both the species and its use as a food originated in Mexico, and spread throughout the world following the Spanish colonization of the Americas. Its many varieties are now widely grown, sometimes in greenhouses in cooler climates. The tomato is consumed in diverse ways, including raw, as an ingredient in many dishes, sauces, salads, and drinks. While it is botanically a fruit, it is considered a vegetable for culinary purposes (as well as under U.S. customs regulations, see Nix v. Hedden), which has caused some confusion. The fruit is rich in lycopene, which may have beneficial health effects. The tomato belongs to the nightshade family (Solanaceae). The plants typically grow to 1–3 meters (3–10 ft) in height and have a weak stem that often sprawls over the ground and vines over other plants. It is a perennial in its native habitat, although often grown outdoors in temperate climates as an annual. An average common tomato weighs approximately 100 grams (4 oz).[2][3]" : "Some small expansion"
-                            wrapMode: Text.WordWrap
+                            height: index % 2 == 0 ? units.gu(6) : units.gu(18)
+                            color: "khaki"
                         }
                     }
                 }
