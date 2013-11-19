@@ -63,5 +63,19 @@ Rectangle {
         id: magnifier
         sourceItem: main
         anchors.fill: colorRect
+        scaleFactor: scaleSlider.value
+    }
+
+    Slider {
+        id: scaleSlider
+        anchors {
+            bottom: parent.bottom
+            left: parent.left
+            right: parent.right
+        }
+        minimumValue: 1.0
+        maximumValue: 2.0
+        value: 1.0
+        live: true
     }
 }

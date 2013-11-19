@@ -25,6 +25,7 @@ import QtQuick 2.0
 Item {
     id: magnifier
     property alias sourceItem: effectSource.sourceItem
+    property alias scaleFactor: effect.scaleFactor
 
     ShaderEffectSource {
         id: effectSource
@@ -57,8 +58,7 @@ Item {
             uniform highp float scaleFactor;
             varying highp vec2 qt_TexCoord0;
             void main() {
-                qt_TexCoord0.x = 0.5 - 1.0 / (2.0 * scaleFactor) + qt_MultiTexCoord0.x / scaleFactor;
-                qt_TexCoord0.y = 0.5 - 1.0 / (2.0 * scaleFactor) + qt_MultiTexCoord0.y / scaleFactor;
+                qt_TexCoord0 = vec2(0.5 - 1.0 / (2.0 * scaleFactor)) + qt_MultiTexCoord0 / vec2(scaleFactor);
                 gl_Position = qt_Matrix * qt_Vertex;
             }";
 
