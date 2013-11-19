@@ -27,6 +27,7 @@ Rectangle {
     Item {
         id: main
         anchors.fill: parent
+//        anchors.margins: units.gu(5)
 
         Label {
             anchors {

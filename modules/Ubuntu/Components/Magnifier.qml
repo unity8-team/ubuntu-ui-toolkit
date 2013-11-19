@@ -29,27 +29,18 @@ Item {
 
     ShaderEffectSource {
         id: effectSource
-        anchors.fill: parent
         visible: false
-        sourceItem: magnifier.parent
-        width: sourceItem.width
-        height: sourceItem.height
-        live: true
-        smooth: true
+
+        // XXX: This works because the parent of magnifier is the same as sourceItem
+        //  in this case. Otherwise coordinate transformations will be needed.
+        sourceRect: Qt.rect(magnifier.x, magnifier.y, magnifier.width, magnifier.height)
     }
 
     ShaderEffect {
         id: effect
         anchors.fill: parent
+
         property variant source: effectSource
-
-        // FIXME: I don't know where the factor 2 comes from
-        // FIXME: probably I can make the code prettier by configuring effectSource better
-        property real targetX: magnifier.mapToItem(sourceItem, magnifier.x, magnifier.y).x / sourceItem.width / 2
-        property real targetY: magnifier.mapToItem(sourceItem, magnifier.x, magnifier.y).y / sourceItem.height / 2
-        property real targetWidth: magnifier.width / sourceItem.width
-        property real targetHeight: magnifier.height / sourceItem.height
-
         property real scaleFactor: 1.2
 
         vertexShader: "
@@ -66,14 +57,10 @@ Item {
         fragmentShader: "
             uniform lowp float qt_Opacity;
             varying highp vec2 qt_TexCoord0;
-            uniform highp float targetX;
-            uniform highp float targetY;
-            uniform highp float targetWidth;
-            uniform highp float targetHeight;
             uniform sampler2D source;
 
             void main() {
-                vec2 tc = vec2(targetX, targetY) + qt_TexCoord0 * vec2(targetWidth, targetHeight);
+                vec2 tc = qt_TexCoord0;
                 lowp vec4 tex = texture2D(source, tc);
                 gl_FragColor = tex.rgba * qt_Opacity;
             }
