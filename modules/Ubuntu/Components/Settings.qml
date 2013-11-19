@@ -88,7 +88,7 @@ Item {
       */
     default property alias options: settings.couldntGetListToWorkWithoutAlias
 
-    Component.onCompleted: {
+    onOptionsChanged: {
         if (!SettingsStorage.addGroup(group, settings)) {
             console.log("Non-unique Settings declared with the group '%1'".arg(group))
             return
