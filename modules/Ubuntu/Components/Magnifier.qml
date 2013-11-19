@@ -46,7 +46,6 @@ Item {
 
         property variant source: effectSource
         property real scaleFactor: 1.2
-        property real realScaleFactor: effectSource.sourceRectMultiplier * scaleFactor
 
         vertexShader: "
             attribute highp vec4 qt_Vertex;
