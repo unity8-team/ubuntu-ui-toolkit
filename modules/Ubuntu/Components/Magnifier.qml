@@ -57,8 +57,8 @@ Item {
             uniform highp float scaleFactor;
             varying highp vec2 qt_TexCoord0;
             void main() {
-                qt_TexCoord0.x = 0.5 - 1. / (2. * scaleFactor) + qt_MultiTexCoord0.x / scaleFactor;
-                qt_TexCoord0.y = 0.5 - 1. / (2. * scaleFactor) + qt_MultiTexCoord0.y / scaleFactor;
+                qt_TexCoord0.x = 0.5 - 1.0 / (2.0 * scaleFactor) + qt_MultiTexCoord0.x / scaleFactor;
+                qt_TexCoord0.y = 0.5 - 1.0 / (2.0 * scaleFactor) + qt_MultiTexCoord0.y / scaleFactor;
                 gl_Position = qt_Matrix * qt_Vertex;
             }";
 
