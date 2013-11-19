@@ -756,6 +756,27 @@ plugins.qmltypes
     Method {
     name: "gu"
     Parameter { name: "value"; type: "float" }
+    Method {
+    name: "floorGridUnit"
+    Parameter { name: "value"; type: "float" }
+    Parameter { name: "precision"; type: "float" }
+    Method {
+    name: "floorGridUnit"
+    Parameter { name: "value"; type: "float" }
+    Method {
+    name: "ceilGridUnit"
+    Parameter { name: "value"; type: "float" }
+    Parameter { name: "precision"; type: "float" }
+    Method {
+    name: "ceilGridUnit"
+    Parameter { name: "value"; type: "float" }
+    Method {
+    name: "roundGridUnit"
+    Parameter { name: "value"; type: "float" }
+    Parameter { name: "precision"; type: "float" }
+    Method {
+    name: "roundGridUnit"
+    Parameter { name: "value"; type: "float" }
     name: "UCUriHandler"
     prototype: "QObject"
     exports: ["UriHandler 0.1"]

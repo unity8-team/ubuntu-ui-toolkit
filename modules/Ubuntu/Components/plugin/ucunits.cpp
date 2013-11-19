@@ -110,6 +110,57 @@ float UCUnits::gu(float value)
     return qRound(value * m_gridUnit);
 }
 
+/*!
+    \qmlmethod real Units::floorGridUnit(real value, real multiple)
+
+    Returns the lower number of grid units (in pixels) that a pixel \a value maps to for a given \a multiple of gu
+*/
+float UCUnits::floorGridUnit(float value, float multiple) const
+{
+    if (value == 0) {
+        return 0;
+    }
+    const float guMultiple = m_gridUnit * multiple;
+    const float mod = fmod(value, guMultiple);
+
+    return value - mod;
+}
+
+/*!
+    \qmlmethod real Units::ceilGridUnit(real value, real multiple)
+
+    Returns the upper number of grid units (in pixels) that a pixel \a value maps to for a given \a multiple
+*/
+float UCUnits::ceilGridUnit(float value, float multiple) const
+{
+    if (value == 0) {
+        return 0;
+    }
+    const float guMultiple = m_gridUnit * multiple;
+    const float mod = fmod(value, guMultiple);
+
+    return mod == 0 ? value : value + (guMultiple - mod);
+}
+
+/*!
+    \qmlmethod real Units::closestGridUnit(real value, real multiple)
+
+    Returns the closest number of grid units (in pixels) that a pixel \a value maps to for a given \a multiple
+*/
+float UCUnits::roundGridUnit(float value, float multiple) const
+{
+    if (value == 0) {
+        return 0;
+    }
+    const float guMultiple = m_gridUnit * multiple;
+    const float mod = fmod(value, guMultiple);
+
+    if (mod * 2 >= guMultiple) {
+        return value + (guMultiple - mod);
+    }
+    return value - mod;
+}
+
 QString UCUnits::resolveResource(const QUrl& url)
 {
     if (url.isEmpty()) {

@@ -37,6 +37,11 @@ public:
     explicit UCUnits(QObject *parent = 0);
     Q_INVOKABLE float dp(float value);
     Q_INVOKABLE float gu(float value);
+
+    Q_INVOKABLE float floorGridUnit(float value, float precision = 1.0) const;
+    Q_INVOKABLE float ceilGridUnit(float value, float precision = 1.0) const;
+    Q_INVOKABLE float roundGridUnit(float value, float precision = 1.0) const;
+
     QString resolveResource(const QUrl& url);
 
     // getters

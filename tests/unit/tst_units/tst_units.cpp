@@ -153,6 +153,103 @@ private Q_SLOTS:
         QCOMPARE(units.dp(1000.01), 2500.0f);
     }
 
+    void floorGridUnitTen() {
+        UCUnits units;
+        units.setGridUnit(10);
+
+        QCOMPARE(units.floorGridUnit(0.0, 1.0), 0.0f);
+        QCOMPARE(units.floorGridUnit(1.0, 1.0), 0.0f);
+        QCOMPARE(units.floorGridUnit(5.0, 1.0), 0.0f);
+        QCOMPARE(units.floorGridUnit(8.0, 1.0), 0.0f);
+        QCOMPARE(units.floorGridUnit(130.0, 1.0), 130.0f);
+        QCOMPARE(units.floorGridUnit(131.3, 1.0), 130.0f);
+        QCOMPARE(units.floorGridUnit(138.8, 1.0), 130.0f);
+
+        QCOMPARE(units.floorGridUnit(0.0, 0.5), 0.0f);
+        QCOMPARE(units.floorGridUnit(1.0, 0.5), 0.0f);
+        QCOMPARE(units.floorGridUnit(5.0, 0.5), 5.0f);
+        QCOMPARE(units.floorGridUnit(8.0, 0.5), 5.0f);
+        QCOMPARE(units.floorGridUnit(130.0, 0.5), 130.0f);
+        QCOMPARE(units.floorGridUnit(131.0, 0.5), 130.0f);
+        QCOMPARE(units.floorGridUnit(138.8, 0.5), 135.0f);
+
+        QCOMPARE(units.floorGridUnit(0.0, 2.0), 0.0f);
+        QCOMPARE(units.floorGridUnit(1.0, 2.0), 0.0f);
+        QCOMPARE(units.floorGridUnit(5.0, 2.0), 0.0f);
+        QCOMPARE(units.floorGridUnit(8.0, 2.0), 0.0f);
+        QCOMPARE(units.floorGridUnit(130.0, 2.0), 120.0f);
+        QCOMPARE(units.floorGridUnit(131.0, 2.0), 120.0f);
+        QCOMPARE(units.floorGridUnit(138.8, 2.0), 120.0f);
+        QCOMPARE(units.floorGridUnit(141.0, 2.0), 140.0f);
+    }
+
+    void ceilGridUnitTen() {
+        UCUnits units;
+        units.setGridUnit(10);
+
+        QCOMPARE(units.ceilGridUnit(0.0, 1.0), 0.0f);
+        QCOMPARE(units.ceilGridUnit(1.0, 1.0), 10.0f);
+        QCOMPARE(units.ceilGridUnit(5.0, 1.0), 10.0f);
+        QCOMPARE(units.ceilGridUnit(8.0, 1.0), 10.0f);
+        QCOMPARE(units.ceilGridUnit(130.0, 1.0), 130.0f);
+        QCOMPARE(units.ceilGridUnit(131.3, 1.0), 140.0f);
+        QCOMPARE(units.ceilGridUnit(138.8, 1.0), 140.0f);
+
+        QCOMPARE(units.ceilGridUnit(0.0, 0.5), 0.0f);
+        QCOMPARE(units.ceilGridUnit(1.0, 0.5), 5.0f);
+        QCOMPARE(units.ceilGridUnit(5.0, 0.5), 5.0f);
+        QCOMPARE(units.ceilGridUnit(8.0, 0.5), 10.0f);
+        QCOMPARE(units.ceilGridUnit(130.0, 0.5), 130.0f);
+        QCOMPARE(units.ceilGridUnit(131.0, 0.5), 135.0f);
+        QCOMPARE(units.ceilGridUnit(138.8, 0.5), 140.0f);
+
+        QCOMPARE(units.ceilGridUnit(0.0, 2.0), 0.0f);
+        QCOMPARE(units.ceilGridUnit(1.0, 2.0), 20.0f);
+        QCOMPARE(units.ceilGridUnit(5.0, 2.0), 20.0f);
+        QCOMPARE(units.ceilGridUnit(8.0, 2.0), 20.0f);
+        QCOMPARE(units.ceilGridUnit(130.0, 2.0), 140.0f);
+        QCOMPARE(units.ceilGridUnit(131.0, 2.0), 140.0f);
+        QCOMPARE(units.ceilGridUnit(138.8, 2.0), 140.0f);
+        QCOMPARE(units.ceilGridUnit(141.0, 2.0), 160.0f);
+    }
+
+    void roundGridUnitTen() {
+        UCUnits units;
+        units.setGridUnit(10);
+
+        QCOMPARE(units.roundGridUnit(0.0, 1.0), 0.0f);
+        QCOMPARE(units.roundGridUnit(1.0, 1.0), 00.0f);
+        QCOMPARE(units.roundGridUnit(5.0, 1.0), 10.0f);
+        QCOMPARE(units.roundGridUnit(8.0, 1.0), 10.0f);
+        QCOMPARE(units.roundGridUnit(12.0, 1.0), 10.0f);
+        QCOMPARE(units.roundGridUnit(130.0, 1.0), 130.0f);
+        QCOMPARE(units.roundGridUnit(131.3, 1.0), 130.0f);
+        QCOMPARE(units.roundGridUnit(136.0, 1.0), 140.0f);
+        QCOMPARE(units.roundGridUnit(138.8, 1.0), 140.0f);
+
+        QCOMPARE(units.roundGridUnit(0.0, 0.5), 0.0f);
+        QCOMPARE(units.roundGridUnit(1.0, 0.5), 0.0f);
+        QCOMPARE(units.roundGridUnit(5.0, 0.5), 5.0f);
+        QCOMPARE(units.roundGridUnit(8.0, 0.5), 10.0f);
+        QCOMPARE(units.roundGridUnit(12.0, 0.5), 10.0f);
+        QCOMPARE(units.roundGridUnit(130.0, 0.5), 130.0f);
+        QCOMPARE(units.roundGridUnit(131.0, 0.5), 130.0f);
+        QCOMPARE(units.roundGridUnit(136.0, 0.5), 135.0f);
+        QCOMPARE(units.roundGridUnit(138.8, 0.5), 140.0f);
+
+        QCOMPARE(units.roundGridUnit(0.0, 2.0), 0.0f);
+        QCOMPARE(units.roundGridUnit(1.0, 2.0), 0.0f);
+        QCOMPARE(units.roundGridUnit(5.0, 2.0), 0.0f);
+        QCOMPARE(units.roundGridUnit(8.0, 2.0), 0.0f);
+        QCOMPARE(units.roundGridUnit(12.0, 2.0), 20.0f);
+        QCOMPARE(units.roundGridUnit(129.0, 2.0), 120.0f);
+        QCOMPARE(units.roundGridUnit(130.0, 2.0), 140.0f);
+        QCOMPARE(units.roundGridUnit(131.0, 2.0), 140.0f);
+        QCOMPARE(units.roundGridUnit(136.0, 2.0), 140.0f);
+        QCOMPARE(units.roundGridUnit(138.8, 2.0), 140.0f);
+        QCOMPARE(units.roundGridUnit(141.0, 2.0), 140.0f);
+    }
+
     void resolveEmpty() {
         UCUnits units;
         QString resolved;
