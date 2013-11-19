@@ -77,5 +77,8 @@ Rectangle {
         maximumValue: 2.0
         value: 1.0
         live: true
+        function formatValue(v) {
+            return v.toFixed(2);
+        }
     }
 }
