@@ -23,17 +23,15 @@ import U1db 1.0 as U1db
     \ingroup ubuntu
     \brief Singleton managing storage of all settings.
 */
-QtObject {
+Object {
     /*!
       The global list of declared Settings by group.
       */
-    property var groups: null
+    property list<Settings> groups
     /*!
       Register a settings with a unique group name.
       */
     function addGroup(group, settings){
-        if (groups == null)
-            groups = {}
         if (group in groups)
             return false
         groups[group] = settings
