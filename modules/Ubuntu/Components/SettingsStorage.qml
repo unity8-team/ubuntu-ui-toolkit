@@ -33,8 +33,8 @@ Object {
       */
     function addGroup(group, settings){
         if (group in groups)
-            return false
-        groups[group] = settings
-        return true
+            return false;
+        groups[group] = settings;
+        return true;
     }
 }

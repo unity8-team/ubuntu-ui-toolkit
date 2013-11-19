@@ -90,9 +90,9 @@ Action {
       */
     onValueChanged: {
         if (__doc && __doc.contents) {
-            var ct = __doc.contents
-            ct[name] = value
-            __doc.contents = ct
+            var ct = __doc.contents;
+            ct[name] = value;
+            __doc.contents = ct;
         }
     }
     /*!
@@ -107,13 +107,13 @@ Action {
       */
     onDefaultValueChanged: {
         if (typeof defaultValue == "string")
-            parameterType = UnityActions.Action.String
+            parameterType = UnityActions.Action.String;
         else if (typeof defaultValue == "number")
-            parameterType = UnityActions.Action.Real // Javascript doesn't distinguish int and real
+            parameterType = UnityActions.Action.Real; // Javascript doesn't distinguish int and real
         else if (typeof defaultValue == "boolean")
-            parameterType = UnityActions.Action.Bool
+            parameterType = UnityActions.Action.Bool;
         else
-            parameterType = UnityActions.Action.None
+            parameterType = UnityActions.Action.None;
     }
 
     /*!

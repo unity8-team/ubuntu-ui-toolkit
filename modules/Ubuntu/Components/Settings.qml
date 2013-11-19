@@ -62,7 +62,7 @@ Item {
 
     onGroupChanged: {
         if (__doc.create)
-            console.log('Settings groups must not change after declaration!')
+            console.log('Settings groups must not change after declaration!');
     }
 
     /*!
@@ -90,22 +90,22 @@ Item {
 
     onOptionsChanged: {
         if (!SettingsStorage.addGroup(group, settings)) {
-            console.log("Non-unique Settings declared with the group '%1'".arg(group))
-            return
+            console.log("Non-unique Settings declared with the group '%1'".arg(group));
+            return;
         }
-        var defaultValues = {}
+        var defaultValues = {};
         for(var item in options) {
-            var child = options[item]
+            var child = options[item];
             if (child.name != null && child.defaultValue != null) {
-                defaultValues[child.name] = child.defaultValue
-                child.__doc = __doc
+                defaultValues[child.name] = child.defaultValue;
+                child.__doc = __doc;
             } else {
                 console.log("Ignoring incomplete Option declaration %1 in %2"
-                    .arg(child.name ? child.name : child.objectName).arg(group))
+                    .arg(child.name ? child.name : child.objectName).arg(group));
             }
         }
         __doc.defaults = defaultValues;
-        __doc.create = true
+        __doc.create = true;
     }
 
     U1db.Document {
@@ -114,10 +114,10 @@ Item {
         create: false
         onContentsChanged: {
             if (!__doc.contents)
-                return
+                return;
             for (var item in options) {
-                var child = options[item]
-                child.value = __doc.contents[child.name]
+                var child = options[item];
+                child.value = __doc.contents[child.name];
             }
         }
         database: U1db.Database {
