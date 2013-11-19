@@ -71,23 +71,31 @@ Item {
       */
     property bool persistent: true
 
+    /*!
+      \internal
+      */
+    property list<Option> couldntGetListToWorkWithoutAlias
+
+    /*!
+      The list of options. Most of the time it's enough to simply declare
+      each Option within the Settings.
+      */
+    default property alias options: settings.couldntGetListToWorkWithoutAlias
+
     Component.onCompleted: {
         if (!SettingsStorage.addGroup(group, settings)) {
             console.log("Non-unique Settings declared with the group '%1'".arg(group))
             return
         }
         var defaultValues = {}
-        for(var item in resources) {
-            var child = resources[item]
-            if (child.hasOwnProperty("name")
-             && child.hasOwnProperty("defaultValue")) {
-                if (child.name != null && child.defaultValue != null) {
-                    defaultValues[child.name] = child.defaultValue
-                    child.__doc = __doc
-                }
-                else
-                    console.log("Ignoring incomplete Option declaration %1 in %2"
-                        .arg(child.name ? child.name : child.objectName).arg(group))
+        for(var item in options) {
+            var child = options[item]
+            if (child.name != null && child.defaultValue != null) {
+                defaultValues[child.name] = child.defaultValue
+                child.__doc = __doc
+            } else {
+                console.log("Ignoring incomplete Option declaration %1 in %2"
+                    .arg(child.name ? child.name : child.objectName).arg(group))
             }
         }
         __doc.defaults = defaultValues;
@@ -101,12 +109,9 @@ Item {
         onContentsChanged: {
             if (!__doc.contents)
                 return
-            for(var item in resources) {
-                var child = resources[item]
-                if (child.hasOwnProperty("name")
-                 && child.hasOwnProperty("defaultValue")) {
-                    child.value = __doc.contents[child.name]
-                }
+            for (var item in options) {
+                var child = options[item]
+                child.value = __doc.contents[child.name]
             }
         }
         database: U1db.Database {
