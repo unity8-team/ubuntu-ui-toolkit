@@ -59,6 +59,12 @@ Item {
       An optional group for these settings.
       */
     property string group: "default"
+
+    onGroupChanged: {
+        if (__doc.create)
+            console.log('Settings groups must not change after declaration!')
+    }
+
     /*!
       By default all settings transparently store on disk and sync to the cloud
       if a U1 account is setup. Set to false to keep settings local.

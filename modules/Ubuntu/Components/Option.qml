@@ -89,7 +89,7 @@ Action {
       Store the value in the document.
       */
     onValueChanged: {
-        if (__doc) {
+        if (__doc && __doc.contents) {
             var ct = __doc.contents
             ct[name] = value
             __doc.contents = ct
