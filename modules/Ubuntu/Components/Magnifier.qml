@@ -44,6 +44,7 @@ Item {
         property variant source: effectSource
 
         // FIXME: I don't know where the factor 2 comes from
+        // FIXME: probably I can make the code prettier by configuring effectSource better
         property real targetX: magnifier.mapToItem(sourceItem, magnifier.x, magnifier.y).x / sourceItem.width / 2
         property real targetY: magnifier.mapToItem(sourceItem, magnifier.x, magnifier.y).y / sourceItem.height / 2
         property real targetWidth: magnifier.width / sourceItem.width
