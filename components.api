@@ -107,7 +107,7 @@ ListItem.Empty
     property int selectedIndex
     readonly property bool currentlyExpanded
     readonly property real itemHeight
-    signal delegateClicked(int index)
+    signal delegateClicked(int index, int selected)
     signal expansionCompleted()
 modules/Ubuntu/Components/OptionSelectorDelegate.qml
 ListItem.Standard
@@ -452,7 +452,7 @@ ListItem.Empty
     property int selectedIndex
     readonly property bool currentlyExpanded
     readonly property real itemHeight
-    signal delegateClicked(int index)
+    signal delegateClicked(int index, int selected)
     signal expansionCompleted()
 modules/Ubuntu/Components/ListItems/LabelVisual.qml
 Label
