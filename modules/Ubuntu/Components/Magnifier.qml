@@ -66,7 +66,7 @@ Item {
             void main() {
                 vec2 tc = qt_TexCoord0;
                 lowp vec4 tex = texture2D(source, tc);
-                gl_FragColor = tex.rgba * qt_Opacity;
+                gl_FragColor = vec4(1.0, 0.0, 0.0, tex.a) * qt_Opacity;
             }
             "
     }
