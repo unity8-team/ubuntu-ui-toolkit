@@ -172,7 +172,7 @@ ListItem.Empty {
     readonly property alias itemHeight: list.itemHeight
 
     /*!
-      Called when delegate is clicked.
+      Called when delegate is clicked. Parameters are the index clicked and whether it's currently selected for multiple choice.
      */
     signal delegateClicked(int index, int selected)
 
