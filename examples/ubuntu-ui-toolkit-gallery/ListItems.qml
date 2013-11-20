@@ -238,8 +238,7 @@ Template {
         }
 
         ListItem.ExpandablesListView {
-            anchors.left: parent.left
-            anchors.right: parent.right
+            anchors { left: parent.left; right: parent.right }
             height: units.gu(24)
             model: fruitModel
             clip: true
@@ -250,7 +249,6 @@ Template {
                 expandedHeight: contentColumn.height + units.gu(1)
 
                 onClicked: {
-                    print("clicked:", index);
                     expanded = true;
                 }
 
@@ -281,8 +279,7 @@ Template {
         className: "Header"
 
         ListItem.ExpandablesColumn {
-            anchors.left: parent.left
-            anchors.right: parent.right
+            anchors { left: parent.left; right: parent.right }
             clip: true
             height: units.gu(24)
 
@@ -324,8 +321,7 @@ Template {
         className: "Header"
 
         Column {
-            anchors.left: parent.left
-            anchors.right: parent.right
+            anchors { left: parent.left; right: parent.right }
             clip: true
 
             Repeater {
