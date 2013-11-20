@@ -157,6 +157,7 @@ Empty {
 
     Flickable {
         id: contentFlickable
+        objectName: "__expandableContentFlickable"
         anchors { fill: parent; leftMargin: root.__contentsMargins; rightMargin: __contentsMargins }
         interactive: root.expanded && flickableContent.height > height
         contentHeight: root.expandedHeight

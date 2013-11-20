@@ -34,8 +34,8 @@ TestCase {
 		Find a child from the item based on the objectName.
 	*/
     function findChild(obj,objectName) {
-        for (var i in obj.children) {
-            var child = obj.children[i];
+        for (var i in obj.data) {
+            var child = obj.data[i];
             if (child.objectName === objectName) return child;
             var subChild = findChild(child,objectName);
             if (subChild !== undefined) return subChild;
