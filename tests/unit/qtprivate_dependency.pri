@@ -1,1 +1,1 @@
-QT += quick-private qml-private core-private v8-private
+QT += quick-private qml-private core-private
