@@ -58,6 +58,7 @@ Item {
         when: windowShown
 
         function test_expanding_collapsing() {
+            // expand it and make sure it eventually reaches the expandedHeight
             expandable.expanded = true;
             tryCompare(expandable, "height", contentColumn.height);
 
@@ -65,6 +66,7 @@ Item {
             var flickable = findChild(expandable, "__expandableContentFlickable");
             compare(flickable.interactive, false);
 
+            // collapse it and make sure it eventually reaches the collapsedHeight
             expandable.expanded = false;
             tryCompare(expandable, "height", expandable.collapsedHeight);
         }
