@@ -87,7 +87,7 @@ Flickable {
 
     /*!
       \preliminary
-      Collaps the currently expanded item. If there isn't any item expanded, this function does nothing.
+      Collapse the currently expanded item. If there isn't any item expanded, this function does nothing.
      */
     function collapse() {
         priv.expandedItem.expanded = false;
