@@ -27,7 +27,7 @@ import Ubuntu.Components 0.1
 
     When used together with an \l ExpandablesListView or \l ExpandablesColumn it
     can coordinate with other items in the list to make sure it is scrolled while
-    expanding to be fully visible in the view. Additionally such it is made sure that
+    expanding to be fully visible in the view. Additionally it is made sure that
     only one Expandable item is expanded at a time and it is collapsed when the
     user clicks outside the item.
 
