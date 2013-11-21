@@ -85,7 +85,7 @@ Empty {
     /*!
       \preliminary
       The expanded height of the item's content. Defaults to the same as collapsedHeight which
-      disabled the expanding feature. In order for the item to be expandable, set this to the
+      disables the expanding feature. In order for the item to be expandable, set this to the
       expanded size. Note that the actual expanded size can be smaller if there is not enough
       space in the containing list. In that case the item becomes flickable automatically.
      */
