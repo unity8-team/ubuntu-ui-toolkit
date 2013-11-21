@@ -130,7 +130,7 @@ Empty {
         },
         State {
             name: "otherExpanded"; when: priv.otherExpanded
-            PropertyChanges { target: root; opacity: .6 }
+            PropertyChanges { target: root; opacity: .5 }
         },
         State {
             name: "expanded"; when: expanded
