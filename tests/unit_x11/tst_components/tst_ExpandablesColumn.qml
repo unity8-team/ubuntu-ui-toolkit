@@ -62,6 +62,10 @@ Item {
         name: "ExpandablesColumn"
         when: windowShown
 
+        function init() {
+            waitForRendering(expandablesColumn);
+        }
+
         function expandItem(item) {
             item.expanded = true;
             var targetHeight = Math.min(item.expandedHeight, expandablesColumn.height - item.collapsedHeight);

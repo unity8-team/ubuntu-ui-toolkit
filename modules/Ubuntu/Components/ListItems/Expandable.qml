@@ -117,6 +117,10 @@ Empty {
          */
         readonly property bool otherExpanded: isInExpandableList && __view.expandedItem !== null && __view.expandedItem !== undefined && __view.expandedItem !== root
 
+//        onOtherExpandedChanged: {
+//            print(index, ": otherExpanded is", otherExpanded,  __view.expandedItem)
+//        }
+
         /*! \internal
           Gives information about the maximum expanded height, in case that is limited by the containing ExpandablesListView or ExpandablesColumn
          */
@@ -124,6 +128,10 @@ Empty {
     }
 
     states: [
+        State {
+            name: ""
+            PropertyChanges { target: root; opacity: 1 }
+        },
         State {
             name: "otherExpanded"; when: priv.otherExpanded
             PropertyChanges { target: root; opacity: .6 }
@@ -133,6 +141,8 @@ Empty {
             PropertyChanges { target: root; z: 3 }
         }
     ]
+
+//    onStateChanged: print(index, ": state changed to", state)
 
     onExpandedChanged: {
         if (!expanded) {
