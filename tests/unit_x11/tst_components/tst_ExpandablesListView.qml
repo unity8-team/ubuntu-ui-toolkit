@@ -149,7 +149,7 @@ Item {
             // Restore listview height
             expandablesListView.height = units.gu(60);
             collapse();
-            // scroll the column back to top
+            // scroll the ListView back to top
             expandablesListView.flick(0, units.gu(500));
             tryCompare(expandablesListView, "flicking", false);
         }
