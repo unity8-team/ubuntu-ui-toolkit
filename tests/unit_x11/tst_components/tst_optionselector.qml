@@ -139,16 +139,16 @@ Item {
 
          function test_expansion_signal() {
              mouseClick(selector, 100, 100, Qt.LeftButton);
-             tryCompare(expansionSignal, "count", 1);
+             expansionSignal.wait();
          }
 
          function test_clicked_signal() {
-             mouseClick(multiSelector, 100, 80, Qt.LeftButton);
-             tryCompare(clickedSignal, "count", 1);
+             mouseClick(multiSelector, 100, 100, Qt.LeftButton);
+             clickedSignal.wait();
              //Did the first index get selected?
              compare(clickedSignal.signalArguments[0][0], 0);
              //Did it deselect?
-             compare(clickedSignal.signalArguments[0][0], 0);
+             compare(clickedSignal.signalArguments[0][1], 0);
          }
     }
 }
