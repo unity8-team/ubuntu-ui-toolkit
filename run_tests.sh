@@ -20,9 +20,9 @@ cd tests/autopilot
 echo running with arg: $1
 
 if [ "$1" == "" ]; then
-	autopilot run ubuntuuitoolkit
+	autopilot-py3 run ubuntuuitoolkit
 else
-	autopilot run -o ../../$1 -f xml -r -rd ../../ ubuntuuitoolkit
+	autopilot-py3 run -o ../../$1 -f xml -r -rd ../../ ubuntuuitoolkit
 fi
 
 exit 0
