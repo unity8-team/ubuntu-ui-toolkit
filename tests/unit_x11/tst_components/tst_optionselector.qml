@@ -35,7 +35,7 @@ Item {
             text: "TEST"
             delegate: selectorDelegate
             model: customModel
-            expanded: true
+            expanded: false
 
             action: {
                 enabled: true
@@ -43,6 +43,14 @@ Item {
                 text: 'Selector'
                 parameterType: UnityActions.Action.Type.Integer
             }
+        }
+
+        OptionSelector {
+            id: multiSelector
+
+            text: "TEST"
+            model: [1, 2, 3, 4]
+            multiSelection: true
         }
 
         OptionSelectorDelegate {
@@ -76,7 +84,7 @@ Item {
 
     SignalSpy {
         id: clickedSignal
-        target: selector
+        target: multiSelector
         signalName: "delegateClicked"
     }
 
@@ -131,8 +139,16 @@ Item {
 
          function test_expansion_signal() {
              mouseClick(selector, 100, 100, Qt.LeftButton);
-             tryCompare(clickedSignal, "count", 1);
              tryCompare(expansionSignal, "count", 1);
+         }
+
+         function test_clicked_signal() {
+             mouseClick(multiSelector, 100, 80, Qt.LeftButton);
+             tryCompare(clickedSignal, "count", 1);
+             //Did the first index get selected?
+             compare(clickedSignal.signalArguments[0][0], 0);
+             //Did it deselect?
+             compare(clickedSignal.signalArguments[0][0], 0);
          }
     }
 }

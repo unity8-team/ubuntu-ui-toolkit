@@ -119,16 +119,17 @@ ListItem.Standard {
     onClicked: {
         if (listView.container.currentlyExpanded) {
             if (!listView.multiSelection) {
+                //We pass -1 if the selector doesn't have multiple selection enabled since the signal has to support both cases. This is why a boolean isn't used.
                 listView.delegateClicked(index, -1);
                 listView.previousIndex = listView.currentIndex;
 
-            /*This is related to the built in functionality of the list view. If we select another item the currentIndex does not change, thus the focus doesn't either.
+                /*This is related to the built in functionality of the list view. If we select another item the currentIndex does not change, thus the focus doesn't either.
               This causes a bug if the selector is expandable. We have to manually reset the index to avoid this.*/
-            if (!listView.expanded && listView.currentIndex === index) {
-                listView.currentIndex = -1;
-            }
+                if (!listView.expanded && listView.currentIndex === index) {
+                    listView.currentIndex = -1;
+                }
 
-            listView.currentIndex = index;
+                listView.currentIndex = index;
             } else {
                 selected = !selected;
                 listView.delegateClicked(index, selected);
