@@ -22,7 +22,7 @@ import Ubuntu.Components 0.1
     \inqmlmodule Ubuntu.Components.ListItems 0.1
     \ingroup ubuntu-listitems
     \brief A column to be used together with the \l Expandable item.
-    This lays out its content just like a regular \l Column inside a \l Flickable but
+    This lays out its content just like a regular Column inside a Flickable but
     when used together with items of type \l Expandable it provides additional features
     like automatically positioning the expanding item when it expands and collapsing
     it again when the user taps outside of it.
@@ -123,6 +123,7 @@ Flickable {
 
     }
 
+    /*! \internal */
     onChildrenChanged: {
         priv.setViewToItems();
     }

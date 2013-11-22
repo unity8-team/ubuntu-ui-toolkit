@@ -22,7 +22,7 @@ import Ubuntu.Components 0.1
     \inqmlmodule Ubuntu.Components.ListItems 0.1
     \ingroup ubuntu-listitems
     \brief A ListView to be used together with the \l Expandable item.
-    The \l ExpanadablesListView works just like a regular \l ListView, but
+    The \l ExpandablesListView works just like a regular ListView, but
     is intended to be used with together with \l Expandable items as delegates.
     It provides additional features like automatically positioning the expanding
     item when it expands and collapsing it again when the user taps outside of it.
@@ -32,22 +32,24 @@ import Ubuntu.Components 0.1
         import Ubuntu.Components 0.1
         import Ubuntu.Components.ListItems 0.1 as ListItem
 
-        ListModel {
-            id: listModel
-        }
+        Item {
+            ListModel {
+                id: listModel
+            }
 
-        ListItem.ExpandablesListView {
-            anchors { left: parent.left; right: parent.right }
-            height: units.gu(24)
-            model: listModel
+            ListItem.ExpandablesListView {
+                anchors { left: parent.left; right: parent.right }
+                height: units.gu(24)
+                model: listModel
 
-            delegate: ListItem.Expandable {
-                id: expandingItem
+                delegate: ListItem.Expandable {
+                    id: expandingItem
 
-                expandedHeight: units.gu(30)
+                    expandedHeight: units.gu(30)
 
-                onClicked: {
-                    expanded = true;
+                    onClicked: {
+                        expanded = true;
+                    }
                 }
             }
         }

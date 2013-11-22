@@ -38,25 +38,24 @@ import Ubuntu.Components 0.1
         import Ubuntu.Components 0.1
         import Ubuntu.Components.ListItems 0.1 as ListItem
 
-        import Ubuntu.Components 0.1
-        import Ubuntu.Components.ListItems 0.1 as ListItem
+        Item {
+            ListModel {
+                id: listModel
+            }
 
-        ListModel {
-            id: listModel
-        }
+            ListItem.ExpandablesListView {
+                anchors { left: parent.left; right: parent.right }
+                height: units.gu(24)
+                model: listModel
 
-        ListItem.ExpandablesListView {
-            anchors { left: parent.left; right: parent.right }
-            height: units.gu(24)
-            model: listModel
+                delegate: ListItem.Expandable {
+                    id: expandingItem
 
-            delegate: ListItem.Expandable {
-                id: expandingItem
+                    expandedHeight: units.gu(30)
 
-                expandedHeight: units.gu(30)
-
-                onClicked: {
-                    expanded = true;
+                    onClicked: {
+                        expanded = true;
+                    }
                 }
             }
         }
@@ -138,6 +137,7 @@ Empty {
         }
     ]
 
+    /*! \internal */
     onExpandedChanged: {
         if (!expanded) {
             contentFlickable.contentY = 0;
