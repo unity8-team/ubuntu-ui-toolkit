@@ -31,6 +31,7 @@ Item {
         clip: true
 
         Repeater {
+            id: repeater
             model: 20
             delegate: Expandable {
                 id: expandable
@@ -132,6 +133,16 @@ Item {
 
             // make sure item1 is collapsed
             tryCompare(item, "expanded", false);
+        }
+
+        function test_dimOthers() {
+            var item = findChild(expandablesColumn, "expandable1");
+            expandItem(item);
+
+            for (var i = 0; i < repeater.count; ++i) {
+                var isCurrent = (repeater.itemAt(i) === expandablesColumn.expandedItem)
+                compare(repeater.itemAt(i).opacity, isCurrent ? 1 : .5)
+            }
         }
 
         function cleanup() {

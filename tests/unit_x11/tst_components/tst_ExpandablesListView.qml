@@ -106,7 +106,7 @@ Item {
 
         function test_noScrollingNeeded() {
             var item = findChild(expandablesListView, "expandable1");
-            compare(expandablesListView.mapFromItem(item).y, item.collapsedHeight);
+            fuzzyCompare(expandablesListView.mapFromItem(item).y, item.collapsedHeight, .5);
 
             expandItem(item);
 
@@ -143,6 +143,19 @@ Item {
 
             // make sure item1 is collapsed
             tryCompare(item, "expanded", false);
+        }
+
+        function test_dimOthers() {
+            var item = findChild(expandablesListView, "expandable1");
+            expandItem(item);
+
+            for (var i = 0; i < expandablesListView.contentItem.children.length; ++i) {
+                var childItem = expandablesListView.contentItem.children[i];
+                if (childItem.hasOwnProperty("expanded")) {
+                    compare(childItem.opacity, childItem.expanded ? 1 : .5)
+                }
+
+            }
         }
 
         function cleanup() {
