@@ -22,8 +22,8 @@ import Ubuntu.Components 0.1
     \inqmlmodule Ubuntu.Components.ListItems 0.1
     \ingroup ubuntu-listitems
     \brief A ListView to be used together with the \l Expandable item.
-    The \l ExpandablesListView works just like a regular ListView, but
-    is intended to be used with together with \l Expandable items as delegates.
+    The ExpandablesListView works just like a regular ListView, but is intended
+    to be used with together with \l Expandable items as delegates.
     It provides additional features like automatically positioning the expanding
     item when it expands and collapsing it again when the user taps outside of it.
 
