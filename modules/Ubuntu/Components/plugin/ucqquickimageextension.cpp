@@ -173,12 +173,16 @@ QString UCQQuickImageExtension::scaledBorder(const QString &border, const QStrin
     // Rewrite the border line with a scaled border value
     float scaledValue;
     QStringList parts = border.split(":");
+#if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
     if (scaleFactor.toFloat() < 1.0) {
         scaledValue = parts[1].toFloat() * scaleFactor.toFloat();
     } else {
         // match the behaviour of UCScalingImageProvider and do not upscale
         scaledValue = parts[1].toFloat();
     }
+#else
+    scaledValue = parts[1].toFloat() * scaleFactor.toFloat();
+#endif
     return parts[0] + ": " + QString::number(qRound(scaledValue));
 }
 
