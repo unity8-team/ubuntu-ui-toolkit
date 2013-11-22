@@ -75,6 +75,7 @@ void UCQQuickImageExtension::reloadSource()
     QString scaleFactor = resolved.left(separatorPosition);
     QString selectedFilePath = resolved.mid(separatorPosition+1);
 
+#if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
     // Prepend "image://scaling" for the image to be loaded by UCScalingImageProvider.
     if (!m_source.path().endsWith(".sci")) {
         // Regular image file
@@ -106,6 +107,44 @@ void UCQQuickImageExtension::reloadSource()
             m_image->setSource(m_source);
         }
     }
+#else
+    if (scaleFactor == "1") {
+        // No scaling. Just pass the file as is.
+        m_image->setSource(QUrl::fromLocalFile(selectedFilePath));
+    } else {
+        // Prepend "image://scaling" for the image to be loaded by UCScalingImageProvider.
+        if (!m_source.path().endsWith(".sci")) {
+            // Regular image file
+            m_image->setSource(QUrl("image://scaling/" + resolved));
+        } else {
+            // .sci image file. Rewrite the .sci file into a temporary file.
+            bool rewritten = true;
+            QTemporaryFile* rewrittenSciFile;
+
+            /* Ensure that only one temporary rewritten .sci file is created
+            for each source .sci file by storing the path to the temporary
+            file in a global hash.
+            */
+            rewrittenSciFile = UCQQuickImageExtension::s_rewrittenSciFiles.value(m_source).data();
+            if (rewrittenSciFile == NULL) {
+                rewrittenSciFile = new QTemporaryFile;
+                rewrittenSciFile->setFileTemplate(QDir::tempPath() + QDir::separator() + "XXXXXX.sci");
+                rewrittenSciFile->open();
+                QTextStream output(rewrittenSciFile);
+                rewritten = rewriteSciFile(selectedFilePath, scaleFactor, output);
+                rewrittenSciFile->close();
+
+                s_rewrittenSciFiles.insert(m_source, QSharedPointer<QTemporaryFile>(rewrittenSciFile));
+            }
+
+            if (rewritten) {
+                m_image->setSource(QUrl::fromLocalFile(rewrittenSciFile->fileName()));
+            } else {
+                m_image->setSource(m_source);
+            }
+        }
+    }
+#endif
 }
 
 bool UCQQuickImageExtension::rewriteSciFile(const QString &sciFilePath, const QString &scaleFactor, QTextStream& output)
@@ -134,12 +173,16 @@ QString UCQQuickImageExtension::scaledBorder(const QString &border, const QStrin
     // Rewrite the border line with a scaled border value
     float scaledValue;
     QStringList parts = border.split(":");
+#if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
     if (scaleFactor.toFloat() < 1.0) {
         scaledValue = parts[1].toFloat() * scaleFactor.toFloat();
     } else {
         // match the behaviour of UCScalingImageProvider and do not upscale
         scaledValue = parts[1].toFloat();
     }
+#else
+    scaledValue = parts[1].toFloat() * scaleFactor.toFloat();
+#endif
     return parts[0] + ": " + QString::number(qRound(scaledValue));
 }
 

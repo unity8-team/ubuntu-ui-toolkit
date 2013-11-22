@@ -31,7 +31,9 @@
 
 // Threshold in grid unit defining the texture quality to be used.
 const float lowHighTextureThreshold = 11.0f;
+#if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
 const float defaultGridUnit = 8.0f;
+#endif
 
 static const char* const shapeVertexShader =
     "uniform lowp mat4 matrix;                  \n"
@@ -147,8 +149,13 @@ ShapeItem::ShapeItem(QQuickItem* parent)
     setFlag(ItemHasContents);
     QObject::connect(&UCUnits::instance(), SIGNAL(gridUnitChanged()), this,
                      SLOT(gridUnitChanged()));
+#if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
     setImplicitWidth(8 * defaultGridUnit);
     setImplicitHeight(8 * defaultGridUnit);
+#else
+    setImplicitWidth(8 * gridUnit_);
+    setImplicitHeight(8 * gridUnit_);
+#endif
     update();
 }
 
@@ -325,8 +332,13 @@ void ShapeItem::setVerticalAlignment(VAlignment vAlignment)
 void ShapeItem::gridUnitChanged()
 {
     gridUnit_ = UCUnits::instance().gridUnit();
+#if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
     setImplicitWidth(8 * defaultGridUnit);
     setImplicitHeight(8 * defaultGridUnit);
+#else
+    setImplicitWidth(8 * gridUnit_);
+    setImplicitHeight(8 * gridUnit_);
+#endif
     dirtyFlags_ |= ShapeItem::DirtyGridUnit;
     update();
 }
@@ -391,7 +403,11 @@ QSGNode* ShapeItem::updatePaintNode(QSGNode* old_node, UpdatePaintNodeData* data
     // is less than 2 radii, the radius is scaled down anyhow.
     float radius = (radius_ == ShapeItem::SmallRadius) ?
         textureData->smallRadius : textureData->mediumRadius;
+#if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
     const float scaleFactor = defaultGridUnit / textureData->gridUnit;
+#else
+    const float scaleFactor = gridUnit_ / textureData->gridUnit;
+#endif
     radius *= scaleFactor;
     int scaledDown = 0;
     if (scaleFactor != 1.0f) {
