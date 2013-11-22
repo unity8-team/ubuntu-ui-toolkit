@@ -143,7 +143,7 @@ Item {
          }
 
          function test_clicked_signal() {
-             mouseClick(multiSelector, 100, 100, Qt.LeftButton);
+             mouseClick(multiSelector, 100, 80, Qt.LeftButton);
              clickedSignal.wait();
              //Did the first index get selected?
              compare(clickedSignal.signalArguments[0][0], 0);
