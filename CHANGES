@@ -9,6 +9,7 @@ UNRELEASED
 
 API Changes
 ***********
+* CHANGED IN: ListItems/OptionSelector: signal delegateSelected(index, selected)
 * ADDED IN: OptionSelector: readonly property bool currentlyExpanded
 * ADDED IN: ItemSelector: readonly property bool currentlyExpanded
 * ADDED IN: Tab: readonly property int index

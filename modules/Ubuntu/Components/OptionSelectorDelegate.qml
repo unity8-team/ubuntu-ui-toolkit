@@ -122,12 +122,13 @@ ListItem.Standard {
                 listView.delegateClicked(index, -1);
                 listView.previousIndex = listView.currentIndex;
 
-                /*This is related to the built in functionality of the list view. If we select another item the currentIndex does not change, thus the focus doesn't either.
-                  This causes a bug is the selector is not an always expanded one. We have to manually reset the index to avoid this.*/
-            if (!listView.expanded && listView.currentIndex === index)
+            /*This is related to the built in functionality of the list view. If we select another item the currentIndex does not change, thus the focus doesn't either.
+              This causes a bug if the selector is expandable. We have to manually reset the index to avoid this.*/
+            if (!listView.expanded && listView.currentIndex === index) {
                 listView.currentIndex = -1;
+            }
 
-                listView.currentIndex = index;
+            listView.currentIndex = index;
             } else {
                 selected = !selected;
                 listView.delegateClicked(index, selected);
