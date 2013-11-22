@@ -56,7 +56,11 @@ QImage UCScalingImageProvider::requestImage(const QString &id, QSize *size, cons
         QSize scaledSize = realSize;
         QSize constrainedSize;
 
+#if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
         if (!qFuzzyCompare(scaleFactor, (float)1.0) && scaleFactor < 1.0) {
+#else
+        if (!qFuzzyCompare(scaleFactor, (float)1.0)) {
+#endif
             scaledSize = realSize * scaleFactor;
         }
         if (requestedSize.isValid() && (requestedSize.width() < realSize.width() || requestedSize.height() < realSize.height())) {
@@ -71,6 +75,7 @@ QImage UCScalingImageProvider::requestImage(const QString &id, QSize *size, cons
 
         imageReader.read(&image);
         *size = scaledSize;
+#if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
         float windowPixelRatio = UCUnits::instance().gridUnit() / DEFAULT_GRID_UNIT_PX;
         if (scaleFactor < 1.0) {
             image.setDevicePixelRatio(windowPixelRatio);
@@ -79,6 +84,7 @@ QImage UCScalingImageProvider::requestImage(const QString &id, QSize *size, cons
                devicePixelRatio appropriately so that upscaling is done when rendering. */
             image.setDevicePixelRatio(windowPixelRatio / scaleFactor);
         }
+#endif
         return image;
     } else {
         return QImage();

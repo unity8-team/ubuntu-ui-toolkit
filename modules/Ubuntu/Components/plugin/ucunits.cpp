@@ -80,12 +80,14 @@ float UCUnits::gridUnit()
 
 void UCUnits::setGridUnit(float gridUnit)
 {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
     /* Implementation of resolution independence is spread accross
        the toolkit and qtubuntu. The number of pixels for a grid unit
        is read by both from the environment variable GRID_UNIT_PX.
        Setting the 'gridUnit' property here has no effect.
     */
     qWarning() << "UCUnits::setGridUnit is deprecated.";
+#endif
     m_gridUnit = gridUnit;
     Q_EMIT gridUnitChanged();
 }
@@ -97,7 +99,17 @@ void UCUnits::setGridUnit(float gridUnit)
 */
 float UCUnits::dp(float value)
 {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
     return qRound(value);
+#else
+    const float ratio = m_gridUnit / DEFAULT_GRID_UNIT_PX;
+    if (value <= 2.0) {
+        // for values under 2dp, return only multiples of the value
+        return qRound(value * qFloor(ratio));
+    } else {
+        return qRound(value * ratio);
+    }
+#endif
 }
 
 /*!
@@ -107,7 +119,11 @@ float UCUnits::dp(float value)
 */
 float UCUnits::gu(float value)
 {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
     return qRound(value * DEFAULT_GRID_UNIT_PX);
+#else
+    return qRound(value * m_gridUnit);
+#endif
 }
 
 QString UCUnits::resolveResource(const QUrl& url)
