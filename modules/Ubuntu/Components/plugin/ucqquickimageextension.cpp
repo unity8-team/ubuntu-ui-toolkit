@@ -122,8 +122,8 @@ void UCQQuickImageExtension::reloadSource()
             QTemporaryFile* rewrittenSciFile;
 
             /* Ensure that only one temporary rewritten .sci file is created
-            for each source .sci file by storing the path to the temporary
-            file in a global hash.
+               for each source .sci file by storing the path to the temporary
+               file in a global hash.
             */
             rewrittenSciFile = UCQQuickImageExtension::s_rewrittenSciFiles.value(m_source).data();
             if (rewrittenSciFile == NULL) {
