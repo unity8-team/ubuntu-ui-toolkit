@@ -129,7 +129,7 @@ Item {
             compare(image.height, testDelegate.height);
          }
 
-         function test_signal() {
+         function test_expansion_signal() {
              mouseClick(selector, 100, 100, Qt.LeftButton);
              tryCompare(clickedSignal, "count", 1);
              tryCompare(expansionSignal, "count", 1);
