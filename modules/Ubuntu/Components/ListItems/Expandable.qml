@@ -67,7 +67,6 @@ import Ubuntu.Components 0.1
 Empty {
     id: root
     implicitHeight: expanded ? priv.maxExpandedHeight : collapsedHeight
-    clip: true
 
     /*!
       \preliminary
@@ -162,10 +161,11 @@ Empty {
     Flickable {
         id: contentFlickable
         objectName: "__expandableContentFlickable"
-        anchors { fill: parent; leftMargin: root.__contentsMargins; rightMargin: __contentsMargins }
+        anchors { fill: parent; leftMargin: root.__contentsMargins; rightMargin: __contentsMargins; bottomMargin: divider.height }
         interactive: root.expanded && flickableContent.height > height
         contentHeight: root.expandedHeight
         flickableDirection: Flickable.VerticalFlick
+        clip: true
 
         Behavior on contentY {
             UbuntuNumberAnimation {}
