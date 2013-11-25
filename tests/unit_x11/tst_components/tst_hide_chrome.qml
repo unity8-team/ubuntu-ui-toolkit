@@ -76,7 +76,7 @@ Item {
             return tabBar;
         }
 
-        function test_tabBar_interaction_closes_toolbar_bug1223600() {
+        function test_tabBar_selectionMode_closes_toolbar_bug1223600() {
             testCase.setTabBarSelectionMode(false);
             var toolbar = testCase.openToolbar();
             testCase.setTabBarSelectionMode(true);
