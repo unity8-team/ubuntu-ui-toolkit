@@ -303,7 +303,7 @@ PageTreeNode {
                 target: headerItem.tabBar
                 onSelectionModeChanged: {
                     if (headerItem.tabBar.selectionMode) {
-                        toolbarItem.close();
+                        if (!toolbar.locked) toolbarItem.close();
                     }
                 }
             }
