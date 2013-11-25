@@ -1,3 +1,9 @@
+ubuntu-ui-toolkit (0.1.46+13.10.20131011.2-0ubuntu2) UNRELEASED; urgency=low
+
+  * add sphinx documentation
+
+ -- Nicholas Skaggs <nicholas.skaggs@canonical.com>  Tue, 29 Oct 2013 17:28:30 -0400
+
 ubuntu-ui-toolkit (0.1.46+13.10.20131011.2-0ubuntu1) saucy; urgency=low
 
   [ Zsombor Egri ]
