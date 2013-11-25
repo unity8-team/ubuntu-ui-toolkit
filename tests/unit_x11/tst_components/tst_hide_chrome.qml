@@ -67,19 +67,20 @@ Item {
             return toolbar;
         }
 
-        function activateTabBar() {
+        function setTabBarSelectionMode(newSelectionMode) {
             var tabBar = tabs.tabBar;
             var header = mainView.__propagated.header;
             compare(tabBar, header.contents, "TabBar is not the active header contents");
             header.show();
-            tabBar.selectionMode = true;
+            tabBar.selectionMode = newSelectionMode;
             return tabBar;
         }
 
         function test_tabBar_interaction_closes_toolbar_bug1223600() {
+            testCase.setTabBarSelectionMode(false);
             var toolbar = testCase.openToolbar();
             // toolbar is open
-            testCase.activateTabBar();
+            testCase.setTabBarSelectionMode(true);
             // toolbar is closed
             compare(toolbar.opened, false, "Activating TabBar did not close toolbar");
         }

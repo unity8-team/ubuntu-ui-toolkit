@@ -287,6 +287,26 @@ PageTreeNode {
             objectName: "MainView_Header"
             id: headerItem
             property real bottomY: headerItem.y + headerItem.height
+
+            property var tabBar: null
+            Binding {
+                target: headerItem
+                property: "tabBar"
+                value: headerItem.contents
+                when: headerItem.contents &&
+                      headerItem.contents.hasOwnProperty("selectionMode") &&
+                      headerItem.contents.hasOwnProperty("model") &&
+                      headerItem.contents.hasOwnProperty("selectedIndex")
+            }
+            Connections {
+                // no connections are made when target is null
+                target: headerItem.tabBar
+                onSelectionModeChanged: {
+                    if (headerItem.tabBar.selectionMode) {
+                        toolbarItem.close();
+                    }
+                }
+            }
         }
     }
 
