@@ -79,9 +79,7 @@ Item {
         function test_tabBar_interaction_closes_toolbar_bug1223600() {
             testCase.setTabBarSelectionMode(false);
             var toolbar = testCase.openToolbar();
-            // toolbar is open
             testCase.setTabBarSelectionMode(true);
-            // toolbar is closed
             compare(toolbar.opened, false, "Activating TabBar did not close toolbar");
         }
     }
