@@ -270,7 +270,7 @@ ListItem.Empty {
                 onDelegateClicked: optionSelector.delegateClicked(index, selected);
                 interactive: listContainer.height !== list.contentHeight && listContainer.currentlyExpanded ? true : false
                 clip: true
-                currentIndex: 0
+                currentIndex: multiSelection ? -1 : 1
                 model: optionSelector.model
                 anchors.fill: parent
 

@@ -49,6 +49,7 @@ import Ubuntu.Components 0.1 as Toolkit
 
 ListItem.Standard {
     id: option
+    objectName: "selectorDelegate"
 
     /*!
       \preliminary
@@ -109,7 +110,7 @@ ListItem.Standard {
 
     showDivider: index !== listView.count - 1 ? 1 : 0
     highlightWhenPressed: false
-    selected: ListView.isCurrentItem
+    selected: listView.multiSelection ? -1 : ListView.isCurrentItem
     anchors {
         left: parent.left
         right: parent.right
