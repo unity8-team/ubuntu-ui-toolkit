@@ -110,7 +110,7 @@ ListItem.Standard {
 
     showDivider: index !== listView.count - 1 ? 1 : 0
     highlightWhenPressed: false
-    selected: listView.multiSelection ? -1 : ListView.isCurrentItem
+    selected: ListView.isCurrentItem
     anchors {
         left: parent.left
         right: parent.right

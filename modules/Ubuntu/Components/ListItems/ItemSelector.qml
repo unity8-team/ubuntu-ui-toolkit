@@ -210,7 +210,7 @@ ListItem.Empty {
                 left: parent.left
                 right: parent.right
             }
-            state: itemSelector.expanded ? state = "alwaysExpanded" : state = "collapsed"
+            state: optionSelector.expanded || optionSelector.multiSelection ? "expanded" : "collapsed"
             style: Theme.createStyleComponent("ListItemOptionSelectorStyle.qml", listContainer)
 
             states: [ State {
@@ -261,7 +261,7 @@ ListItem.Empty {
                 onDelegateClicked: itemSelector.delegateClicked(index, selected);
                 interactive: listContainer.height !== list.contentHeight && listContainer.currentlyExpanded ? true : false
                 clip: true
-                currentIndex: 0
+                currentIndex: multiSelection ? -1 : 0
                 model: itemSelector.model
                 anchors.fill: parent
 
