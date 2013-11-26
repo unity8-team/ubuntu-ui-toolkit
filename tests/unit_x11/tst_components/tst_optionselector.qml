@@ -58,7 +58,7 @@ Item {
 
             text: "TEST"
             subText: "test"
-            icon: "../../resources/optionselector/test.png"
+            iconSource: "../../resources/optionselector/test.png"
             constrainImage: true
         }
     }
@@ -69,7 +69,7 @@ Item {
         OptionSelectorDelegate {
             text: name
             subText: description
-            icon: image
+            iconSource: image
             constrainImage: true
         }
     }
