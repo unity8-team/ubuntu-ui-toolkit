@@ -270,6 +270,26 @@ PageTreeNode {
                     topMargin: -parent.y
                 }
             }
+
+            MouseArea {
+                id: contentsArea
+                anchors.fill: contents
+                // This mouse area will be on top of the page contents, but
+                // under the toolbar and header.
+                // It is used for detecting interaction with the page contents
+                // which can close the toolbar and take a tab bar out of selection mode.
+
+                onPressed: {
+                    mouse.accepted = false;
+                    if (!toolbarItem.locked) {
+                        toolbarItem.close();
+                        }
+                    if (headerItem.tabBar && !headerItem.tabBar.alwaysSelectionMode) {
+                        headerItem.tabBar.selectionMode = false;
+                    }
+                }
+                propagateComposedEvents: true
+            }
         }
 
         Toolbar {
@@ -295,7 +315,7 @@ PageTreeNode {
                 value: headerItem.contents
                 when: headerItem.contents &&
                       headerItem.contents.hasOwnProperty("selectionMode") &&
-                      headerItem.contents.hasOwnProperty("model") &&
+                      headerItem.contents.hasOwnProperty("alwaysSelectionMode") &&
                       headerItem.contents.hasOwnProperty("selectedIndex")
             }
             Connections {
