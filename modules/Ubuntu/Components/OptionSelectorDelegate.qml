@@ -153,15 +153,15 @@ ListItem.Standard {
     onClicked: {
         if (listView.container.currentlyExpanded) {
             if (!listView.multiSelection) {
-                //We pass -1 if the selector doesn't have multiple selection enabled since the signal has to support both cases. This is why a boolean isn't used.
-                listView.delegateClicked(index, -1);
+                //Set the current index which changes currentItem if multiple choice isn't active.
                 listView.previousIndex = listView.currentIndex;
-
                 listView.currentIndex = index;
             } else {
+                //Otherwise change the selected value of the delegate.
                 selected = !selected;
-                listView.delegateClicked(index, selected);
             }
+
+            listView.delegateClicked(index, selected);
         }
 
         if (!listView.expanded && !listView.multiSelection) {
