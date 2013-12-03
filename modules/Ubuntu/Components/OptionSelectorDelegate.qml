@@ -160,9 +160,10 @@ ListItem.Standard {
                 //Only update our selected model property if 'model' inherits from QAbstractListModel
                 if (typeof listView.model.setProperty === "function") {
                     listView.model.setProperty(index, "selected", selected);
+                } else {
+                    //Sync the selections array which we can access to check our current selection.
+                    listView.selections[index] = selected;
                 }
-                //Sync the selections array which we can access to check our current selection.
-                listView.selections[index] = selected;
             }
 
             listView.delegateClicked(index);
@@ -177,8 +178,9 @@ ListItem.Standard {
         if (listView.multiSelection) {
             if (typeof listView.model.get === "function") {
                 selected = listView.model.get(index).selected;
+            } else {
+                listView.selections[index] = selected;
             }
-            listView.selections[index] = selected;
         }
 
         height = listView.itemHeight = childrenRect.height;
