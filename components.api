@@ -102,6 +102,7 @@ QtObject
 modules/Ubuntu/Components/OptionSelector.qml
 ListItem.Empty
     property var model
+    property ListModel listModel
     property bool expanded
     property bool multiSelection
     property bool colourImage
@@ -111,6 +112,7 @@ ListItem.Empty
     readonly property real itemHeight
     signal delegateClicked(int index)
     signal expansionCompleted()
+    function isSelected(i)
 modules/Ubuntu/Components/OptionSelectorDelegate.qml
 ListItem.Standard
     property string text
