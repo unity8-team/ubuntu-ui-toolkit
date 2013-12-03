@@ -66,17 +66,12 @@ import Ubuntu.Components 0.1 as Toolkit
                 expanded: true
                 colourImage: true
                 multiSelection: true
-                delegate: selectorDelegate
+                delegate: OptionSelectorDelegate { text: name; subText: description; iconSource: image; selected: radio }
 
                 onDelegateClicked: {
                     model.setProperty(index, "radio", !model.get(index).radio);
                     print("SELECTED: " + model.get(index).radio);
                 }
-            }
-
-            Component {
-                id: selectorDelegate
-                OptionSelectorDelegate { text: name; subText: description; iconSource: image; selected: radio }
             }
 
             ListModel {
