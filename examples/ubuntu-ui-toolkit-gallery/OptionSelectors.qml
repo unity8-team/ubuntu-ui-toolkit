@@ -55,7 +55,7 @@ Template {
                         i18n.tr("Value 2"),
                         i18n.tr("Value 3"),
                         i18n.tr("Value 4")]
-                onDelegateClicked: print("SELECTED: " + isSelected(index));
+                onDelegateClicked: print("SELECTION ARRAY: " + isSelected(index));
             }
 
             OptionSelector {

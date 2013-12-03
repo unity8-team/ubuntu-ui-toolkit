@@ -174,10 +174,13 @@ ListItem.Standard {
     }
 
     Component.onCompleted: {
-        if (typeof listView.model.get === "function") {
-            selected = listView.model.get(index).selected;
+        if (listView.multiSelection) {
+            if (typeof listView.model.get === "function") {
+                selected = listView.model.get(index).selected;
+            }
+            listView.selections[index] = selected;
         }
-        listView.selections[index] = selected;
+
         height = listView.itemHeight = childrenRect.height;
     }
 
