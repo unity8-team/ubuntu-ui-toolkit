@@ -68,16 +68,6 @@ import Ubuntu.Components 0.1 as Toolkit
                 multiSelection: true
                 delegate: selectorDelegate
 
-                Component.onCompleted: {
-                    //Print out our radio roles which are bound to the delegate's selected property.
-                    for (var i = 0; i < model.count; i++) {
-                        print(model.get(i).radio);
-                    }
-
-                    //Reset our first delegate's radio role which was bound as true. This change is reflected in our UI.
-                    model.setProperty(0, "radio", false);
-                }
-
                 onDelegateClicked: {
                     model.setProperty(index, "radio", !model.get(index).radio);
                     print("SELECTED: " + model.get(index).radio);
