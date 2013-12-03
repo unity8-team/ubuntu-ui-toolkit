@@ -461,6 +461,7 @@ ListItem.Empty
     readonly property real itemHeight
     signal delegateClicked(int index)
     signal expansionCompleted()
+    function isSelected(i)
 modules/Ubuntu/Components/ListItems/LabelVisual.qml
 Label
     property bool selected

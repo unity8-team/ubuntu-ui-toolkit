@@ -181,6 +181,18 @@ ListItem.Empty {
      */
     signal expansionCompleted()
 
+    /*!
+      \preliminary
+      Is i of our model currently selected?
+     */
+    function isSelected(i) {
+        var selected = list.selections[i];
+        if (typeof model.get === "function") {
+            selected = model.get(i).selected;
+        }
+        return selected;
+    }
+
     showDivider: false
 
     Column {
@@ -251,11 +263,15 @@ ListItem.Empty {
                 id: list
                 objectName: "listView"
 
+                property var selections: []
+
                 property int previousIndex: list.currentIndex
+                property real itemHeight
+
                 readonly property alias expanded: itemSelector.expanded
                 readonly property alias multiSelection: itemSelector.multiSelection
                 readonly property alias container: listContainer
-                property real itemHeight
+
                 signal delegateClicked(int index)
 
                 onDelegateClicked: itemSelector.delegateClicked(index);
