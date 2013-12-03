@@ -60,7 +60,7 @@ Template {
 
             OptionSelector {
                objectName: "optionselector_custommodel"
-               text: i18n.tr("Custom Model")
+               text: i18n.tr("Custom Model Multiple Selection")
                 model: customModel
                 expanded: true
                 multiSelection: true
