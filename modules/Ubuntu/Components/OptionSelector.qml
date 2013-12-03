@@ -177,6 +177,10 @@ ListItem.Empty {
      */
     signal expansionCompleted()
 
+    /*!
+      \preliminary
+      Is i of our model currently selected?
+     */
     function isSelected(i) {
         var selected = list.selections[i];
         if (typeof model.get === "function") {
