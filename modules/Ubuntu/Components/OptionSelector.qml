@@ -51,7 +51,6 @@ import Ubuntu.Components 0.1 as Toolkit
             }
 
             OptionSelector {
-                objectName: "optionselector_multipleselection"
                 text: i18n.tr("Multiple Selection")
                 expanded: false
                 multiSelection: true
@@ -62,24 +61,40 @@ import Ubuntu.Components 0.1 as Toolkit
             }
 
             OptionSelector {
-                text: i18n.tr("Label")
+                text: i18n.tr("Multiple Selection Custom Model")
                 model: customModel
                 expanded: true
                 colourImage: true
+                multiSelection: true
                 delegate: selectorDelegate
+
+                Component.onCompleted: {
+                    //Print out our radio roles which are bound to the delegate's selected property.
+                    for (var i = 0; i < model.count; i++) {
+                        print(model.get(i).radio);
+                    }
+
+                    //Reset our first delegate's radio role which was bound as true. This change is reflected in our UI.
+                    model.setProperty(0, "radio", false);
+                }
+
+                onDelegateClicked: {
+                    model.setProperty(index, "radio", !model.get(index).radio);
+                    print("SELECTED: " + model.get(index).radio);
+                }
             }
 
             Component {
                 id: selectorDelegate
-                OptionSelectorDelegate { text: name; subText: description; iconSource: image }
+                OptionSelectorDelegate { text: name; subText: description; iconSource: image; selected: radio }
             }
 
             ListModel {
                 id: customModel
-                ListElement { name: "Name 1"; description: "Description 1"; image: "images.png" }
-                ListElement { name: "Name 2"; description: "Description 2"; image: "images.png" }
-                ListElement { name: "Name 3"; description: "Description 3"; image: "images.png" }
-                ListElement { name: "Name 4"; description: "Description 4"; image: "images.png" }
+                ListElement { name: "Name 1"; description: "Description 1"; image: "images.png"; radio: true }
+                ListElement { name: "Name 2"; description: "Description 2"; image: "images.png"; radio: false }
+                ListElement { name: "Name 3"; description: "Description 3"; image: "images.png"; radio: true }
+                ListElement { name: "Name 4"; description: "Description 4"; image: "images.png"; radio: false }
             }
 
             OptionSelector {
@@ -173,7 +188,7 @@ ListItem.Empty {
     /*!
       Called when delegate is clicked. Parameters are the index clicked and whether it's currently selected for multiple choice.
      */
-    signal delegateClicked(int index, bool selected)
+    signal delegateClicked(int index)
 
     /*!
       Called when the selector has finished expanding or collapsing.
@@ -260,14 +275,15 @@ ListItem.Empty {
             ListView {
                 id: list
 
+                property var selections: []
                 property int previousIndex: -1
                 readonly property alias expanded: optionSelector.expanded
                 readonly property alias multiSelection: optionSelector.multiSelection
                 readonly property alias container: listContainer
                 property real itemHeight
-                signal delegateClicked(int index, bool selected)
+                signal delegateClicked(int index)
 
-                onDelegateClicked: optionSelector.delegateClicked(index, selected);
+                onDelegateClicked: optionSelector.delegateClicked(index);
                 interactive: listContainer.height !== list.contentHeight && listContainer.currentlyExpanded ? true : false
                 clip: true
                 currentIndex: multiSelection ? -1 : 0

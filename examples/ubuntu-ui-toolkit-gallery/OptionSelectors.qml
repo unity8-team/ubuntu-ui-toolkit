@@ -47,37 +47,41 @@ Template {
             }
 
             OptionSelector {
-                objectName: "optionselector_multipleselection"
-                text: i18n.tr("Multiple Selection")
-                expanded: false
-                multiSelection: true
-                onDelegateClicked: print("DELEGATE CLICKED: " + index, "SELECTED: " + selected)
-                model: [i18n.tr("Value 1"),
-                        i18n.tr("Value 2"),
-                        i18n.tr("Value 3"),
-                        i18n.tr("Value 4")]
-            }
-
-            OptionSelector {
                objectName: "optionselector_custommodel"
-               text: i18n.tr("Custom Model")
+               text: i18n.tr("Multiple Selection Custom Model")
                 model: customModel
                 expanded: true
                 colourImage: true
+                multiSelection: true
                 delegate: selectorDelegate
+
+                Component.onCompleted: {
+                    //Print out our radio roles which are bound to the delegate's selected property.
+                    for (var i = 0; i < model.count; i++) {
+                        print(model.get(i).radio);
+                    }
+
+                    //Reset our first delegate's radio role which was bound as true. This change is reflected in our UI.
+                    model.setProperty(0, "radio", false);
+                }
+
+                onDelegateClicked: {
+                    model.setProperty(index, "radio", !model.get(index).radio);
+                    print("SELECTED: " + model.get(index).radio);
+                }
             }
 
             Component {
                 id: selectorDelegate
-                OptionSelectorDelegate { text: name; subText: description; iconSource: image }
+                OptionSelectorDelegate { text: name; subText: description; iconSource: image; selected: radio }
             }
 
             ListModel {
                 id: customModel
-                ListElement { name: "Name 1"; description: "Description 1"; image: "images.png" }
-                ListElement { name: "Name 2"; description: "Description 2"; image: "images.png" }
-                ListElement { name: "Name 3"; description: "Description 3"; image: "images.png" }
-                ListElement { name: "Name 4"; description: "Description 4"; image: "images.png" }
+                ListElement { name: "Name 1"; description: "Description 1"; image: "images.png"; radio: true }
+                ListElement { name: "Name 2"; description: "Description 2"; image: "images.png"; radio: false }
+                ListElement { name: "Name 3"; description: "Description 3"; image: "images.png"; radio: true }
+                ListElement { name: "Name 4"; description: "Description 4"; image: "images.png"; radio: false }
             }
 
             OptionSelector {

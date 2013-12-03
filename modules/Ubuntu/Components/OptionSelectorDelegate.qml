@@ -156,12 +156,9 @@ ListItem.Standard {
                 //Set the current index which changes currentItem if multiple choice isn't active.
                 listView.previousIndex = listView.currentIndex;
                 listView.currentIndex = index;
-            } else {
-                //Otherwise change the selected value of the delegate.
-                selected = !selected;
             }
 
-            listView.delegateClicked(index, selected);
+            listView.delegateClicked(index);
         }
 
         if (!listView.expanded && !listView.multiSelection) {

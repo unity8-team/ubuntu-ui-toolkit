@@ -174,7 +174,7 @@ ListItem.Empty {
     /*!
       Called when delegate is clicked. Parameters are the index clicked and whether it's currently selected for multiple choice.
      */
-    signal delegateClicked(int index, int selected)
+    signal delegateClicked(int index)
 
     /*!
       Called when the selector has finished expanding or collapsing.
@@ -256,9 +256,9 @@ ListItem.Empty {
                 readonly property alias multiSelection: itemSelector.multiSelection
                 readonly property alias container: listContainer
                 property real itemHeight
-                signal delegateClicked(int index, int selected)
+                signal delegateClicked(int index)
 
-                onDelegateClicked: itemSelector.delegateClicked(index, selected);
+                onDelegateClicked: itemSelector.delegateClicked(index);
                 interactive: listContainer.height !== list.contentHeight && listContainer.currentlyExpanded ? true : false
                 clip: true
                 currentIndex: multiSelection ? -1 : 0
