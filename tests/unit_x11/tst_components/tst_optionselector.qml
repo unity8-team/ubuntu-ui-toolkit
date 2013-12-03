@@ -148,12 +148,14 @@ Item {
              clickedSignal.wait();
              //Did the first index get clicked?
              compare(clickedSignal.signalArguments[0][0], 0);
+             compare(multiSelector.isSelected(clickedSignal.signalArguments[0][0]), true);
 
              //Second option.
              mouseClick(multiSelector, 100, 90, Qt.LeftButton);
              clickedSignal.wait();
              //Did the second index get clicked?
              compare(clickedSignal.signalArguments[1][0], 1);
+             compare(multiSelector.isSelected(clickedSignal.signalArguments[1][0]), true);
          }
     }
 }
