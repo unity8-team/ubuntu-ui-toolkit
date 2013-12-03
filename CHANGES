@@ -9,6 +9,8 @@ UNRELEASED
 
 API Changes
 ***********
+* ADDED IN: OptionSelector: function isSelected(i)
+* ADDED IN: ItemSelector: function isSelected(i)
 * ADDED IN: Action: property string iconName
 * ADDED IN: ActionItem: property string iconName
 * ADDED IN: OptionSelectorDelegate: property string iconName
