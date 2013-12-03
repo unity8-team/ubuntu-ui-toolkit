@@ -178,7 +178,11 @@ ListItem.Empty {
     signal expansionCompleted()
 
     function isSelected(i) {
-        return list.selections[i];
+        var selected = list.selections[i];
+        if (typeof model.get === "function") {
+            selected = model.get(i).selected;
+        }
+        return selected;
     }
 
      /*!

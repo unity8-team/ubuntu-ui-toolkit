@@ -66,7 +66,7 @@ Template {
                 multiSelection: true
                 colourImage: true
                 delegate: OptionSelectorDelegate { text: name; subText: description; iconSource: image; selected: selected }
-                onDelegateClicked: print("SELECTED ROLE: " + model.get(index).selected);
+                onDelegateClicked: print("SELECTED ROLE: " + isSelected(index));
             }
 
             ListModel {
