@@ -61,25 +61,20 @@ import Ubuntu.Components 0.1 as Toolkit
             }
 
             OptionSelector {
-                text: i18n.tr("Multiple Selection Custom Model")
+                text: i18n.tr("Multiple Choice Custom Model")
                 model: customModel
                 expanded: true
                 colourImage: true
                 multiSelection: true
-                delegate: OptionSelectorDelegate { text: name; subText: description; iconSource: image; selected: radio }
-
-                onDelegateClicked: {
-                    model.setProperty(index, "radio", !model.get(index).radio);
-                    print("SELECTED: " + model.get(index).radio);
-                }
+                delegate: OptionSelectorDelegate { text: name; subText: description; iconSource: image; selected: selected }
             }
 
             ListModel {
                 id: customModel
-                ListElement { name: "Name 1"; description: "Description 1"; image: "images.png"; radio: true }
-                ListElement { name: "Name 2"; description: "Description 2"; image: "images.png"; radio: false }
-                ListElement { name: "Name 3"; description: "Description 3"; image: "images.png"; radio: true }
-                ListElement { name: "Name 4"; description: "Description 4"; image: "images.png"; radio: false }
+                ListElement { name: "Name 1"; description: "Description 1"; image: "images.png"; selected: true}
+                ListElement { name: "Name 2"; description: "Description 2"; image: "images.png"; selected: false }
+                ListElement { name: "Name 3"; description: "Description 3"; image: "images.png"; selected: true }
+                ListElement { name: "Name 4"; description: "Description 4"; image: "images.png"; selected: false }
             }
 
             OptionSelector {
@@ -121,6 +116,8 @@ ListItem.Empty {
       The list of values that will be shown under the label text. This is a model.
      */
     property var model
+
+    property ListModel listModel
 
     /*!
       \preliminary
@@ -179,6 +176,10 @@ ListItem.Empty {
       Called when the selector has finished expanding or collapsing.
      */
     signal expansionCompleted()
+
+    function isSelected(i) {
+        return list.selections[i];
+    }
 
      /*!
       \internal
@@ -260,11 +261,15 @@ ListItem.Empty {
             ListView {
                 id: list
 
+                property var selections: []
+
                 property int previousIndex: -1
+                property real itemHeight
+
                 readonly property alias expanded: optionSelector.expanded
                 readonly property alias multiSelection: optionSelector.multiSelection
                 readonly property alias container: listContainer
-                property real itemHeight
+
                 signal delegateClicked(int index)
 
                 onDelegateClicked: optionSelector.delegateClicked(index);

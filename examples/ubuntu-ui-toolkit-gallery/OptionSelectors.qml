@@ -47,26 +47,34 @@ Template {
             }
 
             OptionSelector {
+                objectName: "optionselector_multipleselection"
+                text: i18n.tr("Multiple Selection")
+                expanded: false
+                multiSelection: true
+                model: [i18n.tr("Value 1"),
+                        i18n.tr("Value 2"),
+                        i18n.tr("Value 3"),
+                        i18n.tr("Value 4")]
+                onDelegateClicked: print("SELECTED: " + isSelected(index));
+            }
+
+            OptionSelector {
                objectName: "optionselector_custommodel"
-               text: i18n.tr("Multiple Selection Custom Model")
+               text: i18n.tr("Custom Model")
                 model: customModel
                 expanded: true
-                colourImage: true
                 multiSelection: true
-                delegate: OptionSelectorDelegate { text: name; subText: description; iconSource: image; selected: radio }
-
-                onDelegateClicked: {
-                    model.setProperty(index, "radio", !model.get(index).radio);
-                    print("SELECTED: " + model.get(index).radio);
-                }
+                colourImage: true
+                delegate: OptionSelectorDelegate { text: name; subText: description; iconSource: image; selected: selected }
+                onDelegateClicked: print("SELECTED ROLE: " + model.get(index).selected);
             }
 
             ListModel {
                 id: customModel
-                ListElement { name: "Name 1"; description: "Description 1"; image: "images.png"; radio: true }
-                ListElement { name: "Name 2"; description: "Description 2"; image: "images.png"; radio: false }
-                ListElement { name: "Name 3"; description: "Description 3"; image: "images.png"; radio: true }
-                ListElement { name: "Name 4"; description: "Description 4"; image: "images.png"; radio: false }
+                ListElement { name: "Name 1"; description: "Description 1"; image: "images.png"; selected: true}
+                ListElement { name: "Name 2"; description: "Description 2"; image: "images.png"; selected: false }
+                ListElement { name: "Name 3"; description: "Description 3"; image: "images.png"; selected: true }
+                ListElement { name: "Name 4"; description: "Description 4"; image: "images.png"; selected: false }
             }
 
             OptionSelector {

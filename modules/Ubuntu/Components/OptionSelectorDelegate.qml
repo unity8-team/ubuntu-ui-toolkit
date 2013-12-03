@@ -155,6 +155,14 @@ ListItem.Standard {
                 //Set the current index which changes currentItem if multiple choice isn't active.
                 listView.previousIndex = listView.currentIndex;
                 listView.currentIndex = index;
+            } else {
+                selected = !selected;
+                //Only update our selected model property if 'model' inherits from QAbstractListModel
+                if (typeof listView.model.setProperty === "function") {
+                    listView.model.setProperty(index, "selected", selected);
+                }
+                //Sync the selections array which we can access to check our current selection.
+                listView.selections[index] = selected;
             }
 
             listView.delegateClicked(index);
@@ -166,6 +174,10 @@ ListItem.Standard {
     }
 
     Component.onCompleted: {
+        if (typeof listView.model.get === "function") {
+            selected = listView.model.get(index).selected;
+        }
+        listView.selections[index] = selected;
         height = listView.itemHeight = childrenRect.height;
     }
 
