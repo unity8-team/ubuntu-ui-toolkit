@@ -9,8 +9,6 @@ UNRELEASED
 
 API Changes
 ***********
-* CHANGED IN ItemSelector: signal delegateSelected(index) TO signal delegateSelected(index, selected)
-* CHANGED IN OptionSelector: signal delegateSelected(index) TO signal delegateSelected(index, selected)
 * ADDED IN: Action: property string iconName
 * ADDED IN: ActionItem: property string iconName
 * ADDED IN: OptionSelectorDelegate: property string iconName

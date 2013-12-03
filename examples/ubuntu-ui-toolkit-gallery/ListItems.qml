@@ -106,7 +106,6 @@ Template {
                 text: i18n.tr("Multiple Selection")
                 expanded: false
                 multiSelection: true
-                onDelegateClicked: print("DELEGATE CLICKED: " + index, "SELECTED: " + selected)
                 model: [i18n.tr("Value 1"),
                         i18n.tr("Value 2"),
                         i18n.tr("Value 3"),
