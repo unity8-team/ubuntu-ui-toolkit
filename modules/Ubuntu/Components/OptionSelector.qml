@@ -275,7 +275,6 @@ ListItem.Empty {
             ListView {
                 id: list
 
-                property var selections: []
                 property int previousIndex: -1
                 readonly property alias expanded: optionSelector.expanded
                 readonly property alias multiSelection: optionSelector.multiSelection
