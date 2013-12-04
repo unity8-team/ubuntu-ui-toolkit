@@ -18,7 +18,7 @@ import QtQuick 2.0
 import Ubuntu.Components 0.1
 
 /*!
-    ****DEPRECATED! PLEASE USE ITEM SELECTOR OR FOR THE UBUNTU SHAPE VERSION THE OPTION SELECTOR.****
+    ****DEPRECATED! PLEASE USE THE OPTION SELECTOR.****
 
     \qmltype ValueSelector
     \inqmlmodule Ubuntu.Components.ListItems 0.1
@@ -183,6 +183,8 @@ Empty {
     property bool expanded: false
 
     showDivider: false
+
+    Component.onCompleted: console.debug("VALUESELECTOR IS DEPRECATED. PLEASE USE OPTIONSELECTOR WITH contained: false");
 
     Column {
         id: column

@@ -192,6 +192,7 @@ ListItem.Empty
     property real containerHeight
     property int selectedIndex
     property bool currentlyExpanded
+    property bool contained
     readonly property real itemHeight
     signal delegateClicked(int index)
     signal expansionCompleted()

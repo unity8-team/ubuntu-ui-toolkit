@@ -72,7 +72,7 @@ ListItem.Standard {
     property url icon: iconSource
     onIconChanged: if (icon != iconSource) {
                        console.warn("WARNING: OptionSelectorDelegate.icon is DEPRECATED. " +
-                                     "Use iconName and iconSource instead.")
+                                    "Use iconName and iconSource instead.")
                    }
 
     /*!
@@ -140,7 +140,7 @@ ListItem.Standard {
             gl_FragColor = colour * sourceColour.a * qt_Opacity;
         }"
 
-    showDivider: index !== listView.count - 1 ? 1 : 0
+    showDivider: index === listView.count - 1 || !listView.container.contained ? 0 : 1
     highlightWhenPressed: false
     selected: ListView.isCurrentItem
     anchors {
@@ -316,12 +316,12 @@ ListItem.Standard {
                 duration: Toolkit.UbuntuAnimation.FastDuration
             }
         }, PropertyAnimation {
-                id: optionCollapse
-                target: option
-                properties: "opacity"
-                from : 1.0
-                to: 0.0
-                duration: Toolkit.UbuntuAnimation.SlowDuration
+            id: optionCollapse
+            target: option
+            properties: "opacity"
+            from : 1.0
+            to: 0.0
+            duration: Toolkit.UbuntuAnimation.SlowDuration
         }
     ]
 
@@ -351,7 +351,7 @@ ListItem.Standard {
                 visible: colourImage
 
                 fragmentShader: fragColourShader
-             }
+            }
         }
 
         Column {
@@ -400,6 +400,6 @@ ListItem.Standard {
             height: source.height
 
             fragmentShader: fragColourShader
-         }
+        }
     }
 }

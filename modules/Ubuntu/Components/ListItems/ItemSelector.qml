@@ -19,6 +19,7 @@ import "." as ListItem
 import Ubuntu.Components 0.1
 
 /*!
+  ****DEPRECATED! PLEASE THE OPTION SELECTOR WITH CONTAINED PROPERTY TRUE.****
     \qmltype ItemSelector
     \inqmlmodule Ubuntu.Components.ListItems 0.1
     \ingroup ubuntu-listitems
@@ -182,6 +183,8 @@ ListItem.Empty {
     signal expansionCompleted()
 
     showDivider: false
+
+    Component.onCompleted: console.debug("ITEMSELECTOR IS DEPRECATED. PLEASE USE OPTIONSELECTOR WITH contained: true");
 
     Column {
         id: column

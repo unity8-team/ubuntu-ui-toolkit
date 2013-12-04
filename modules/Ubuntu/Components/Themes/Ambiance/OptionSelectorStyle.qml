@@ -31,5 +31,6 @@ Item {
         width: styledItem.width
         height: styledItem.height
         radius: "medium"
+        visible: styledItem.contained
     }
 }

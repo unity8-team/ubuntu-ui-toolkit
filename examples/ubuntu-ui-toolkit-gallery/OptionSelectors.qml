@@ -28,12 +28,12 @@ Template {
             spacing: units.gu(3)
 
             OptionSelector {
-               objectName: "optionselector_collapsed"
-               text: i18n.tr("Collapsed")
+                objectName: "optionselector_collapsed"
+                text: i18n.tr("Collapsed")
                 model: [i18n.tr("Value 1"),
-                        i18n.tr("Value 2"),
-                        i18n.tr("Value 3"),
-                        i18n.tr("Value 4")]
+                    i18n.tr("Value 2"),
+                    i18n.tr("Value 3"),
+                    i18n.tr("Value 4")]
             }
 
             OptionSelector {
@@ -41,9 +41,9 @@ Template {
                 text: i18n.tr("Expanded")
                 expanded: true
                 model: [i18n.tr("Value 1"),
-                        i18n.tr("Value 2"),
-                        i18n.tr("Value 3"),
-                        i18n.tr("Value 4")]
+                    i18n.tr("Value 2"),
+                    i18n.tr("Value 3"),
+                    i18n.tr("Value 4")]
             }
 
             OptionSelector {
@@ -52,16 +52,17 @@ Template {
                 expanded: false
                 multiSelection: true
                 model: [i18n.tr("Value 1"),
-                        i18n.tr("Value 2"),
-                        i18n.tr("Value 3"),
-                        i18n.tr("Value 4")]
+                    i18n.tr("Value 2"),
+                    i18n.tr("Value 3"),
+                    i18n.tr("Value 4")]
             }
 
             OptionSelector {
-               objectName: "optionselector_custommodel"
-               text: i18n.tr("Custom Model")
+                objectName: "optionselector_custommodel"
+                text: i18n.tr("Custom Model")
                 model: customModel
                 expanded: true
+                contained: false
                 colourImage: true
                 delegate: selectorDelegate
             }
@@ -82,14 +83,15 @@ Template {
             OptionSelector {
                 text: i18n.tr("Label")
                 model: [i18n.tr("Value 1"),
-                        i18n.tr("Value 2"),
-                        i18n.tr("Value 3"),
-                        i18n.tr("Value 4"),
-                        i18n.tr("Value 5"),
-                        i18n.tr("Value 6"),
-                        i18n.tr("Value 7"),
-                        i18n.tr("Value 8")]
+                    i18n.tr("Value 2"),
+                    i18n.tr("Value 3"),
+                    i18n.tr("Value 4"),
+                    i18n.tr("Value 5"),
+                    i18n.tr("Value 6"),
+                    i18n.tr("Value 7"),
+                    i18n.tr("Value 8")]
                 containerHeight: itemHeight * 4
+                contained: false
             }
 
             OptionSelector {
@@ -97,14 +99,15 @@ Template {
                 expanded: true
                 selectedIndex: -1
                 model: [i18n.tr("Value 1"),
-                        i18n.tr("Value 2"),
-                        i18n.tr("Value 3"),
-                        i18n.tr("Value 4"),
-                        i18n.tr("Value 5"),
-                        i18n.tr("Value 6"),
-                        i18n.tr("Value 7"),
-                        i18n.tr("Value 8")]
+                    i18n.tr("Value 2"),
+                    i18n.tr("Value 3"),
+                    i18n.tr("Value 4"),
+                    i18n.tr("Value 5"),
+                    i18n.tr("Value 6"),
+                    i18n.tr("Value 7"),
+                    i18n.tr("Value 8")]
                 containerHeight: itemHeight * 4
+                contained: false
             }
         }
     }

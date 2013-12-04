@@ -165,6 +165,12 @@ ListItem.Empty {
     property alias currentlyExpanded: listContainer.currentlyExpanded
 
     /*!
+      \preliminary
+      Is full width activated or is this a contained selector? The contained selector has an UbuntuShape background.
+     */
+    property bool contained: true
+
+    /*!
       \qmlproperty real itemHeight
       Height of an individual list item.
      */
@@ -180,7 +186,7 @@ ListItem.Empty {
      */
     signal expansionCompleted()
 
-     /*!
+    /*!
       \internal
       Trigger the action, passing the current index.
      */
@@ -194,20 +200,20 @@ ListItem.Empty {
     Column {
         id: column
 
-        spacing: units.gu(2)
         anchors {
             left: parent.left
             right: parent.right
         }
 
-        Label {
+        ListItem.Standard {
             id : label
 
             text: optionSelector.text
             visible: optionSelector.text !== "" ? true : false
+            showDivider: !contained
         }
 
-        StyledItem {
+        ListItem.Standard {
             id: listContainer
             objectName: "listContainer"
 
@@ -215,6 +221,7 @@ ListItem.Empty {
             readonly property url tick: __styleInstance.tick
             readonly property color themeColour: Theme.palette.selected.fieldText
             readonly property alias colourImage: optionSelector.colourImage
+            property alias contained: optionSelector.contained
             property bool currentlyExpanded: expanded || multiSelection
 
             anchors {
@@ -223,6 +230,7 @@ ListItem.Empty {
             }
             state: optionSelector.expanded ? "expanded" : "collapsed"
             style: Theme.createStyleComponent("OptionSelectorStyle.qml", listContainer)
+            showDivider: !currentlyExpanded
             states: [ State {
                     name: "expanded"
                     when: listContainer.currentlyExpanded
