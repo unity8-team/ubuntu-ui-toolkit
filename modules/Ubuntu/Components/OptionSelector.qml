@@ -117,8 +117,6 @@ ListItem.Empty {
      */
     property var model
 
-    property ListModel listModel
-
     /*!
       \preliminary
       Specifies whether the list is always expanded.
