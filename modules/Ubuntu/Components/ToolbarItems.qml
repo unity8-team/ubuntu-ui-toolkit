@@ -175,7 +175,7 @@ Item {
           Determine whether this ToolbarItems has any visible Items
         */
         function hasVisibleItems() {
-            if (back && back.visible) return true;
+//            if (back && back.visible) return true;
             for (var i=0; i < toolsContainer.children.length; i++) {
                 if (toolsContainer.children[i].visible) return true;
             }
@@ -197,6 +197,8 @@ Item {
         // when toolbarItems.back is updated.
         property Item previousBackItem: null
 
+        // FIXME TIM: Don't set the parent of backItem to be the backContainer if the
+        //  back item is in the header. Why not use a Connection for this?
         function updateBackItem() {
             if (backContainer.previousBackItem) backContainer.previousBackItem.parent = null;
             backContainer.previousBackItem = toolbarItems.back;
