@@ -321,6 +321,15 @@ PageTreeNode {
             property real bottomY: headerItem.y + headerItem.height
             animate: canvas.animate
 
+            Binding {
+                target: header
+                property: "controls"
+                when: mainView.activeLeafNode && mainView.activeLeafNode.hasOwnProperty("tools") &&
+                      mainView.activeLeafNode.tools && mainView.activeLeafNode.tools.hasOwnProperty("back") &&
+                      mainView.activeLeafNode.tools.back && mainView.activeLeafNode.tools.back.visible
+                value: mainView.activeLeafNode.tools.back
+            }
+
             property Item tabBar: null
             Binding {
                 target: headerItem

@@ -79,6 +79,9 @@ StyledItem {
     property Item contents: null
     onContentsChanged: header.show()
 
+    // TODO TIM: description
+    property Item controls: null
+
     /*!
       The flickable that controls the movement of the header.
       Will be set automatically by Pages inside a MainView, but can

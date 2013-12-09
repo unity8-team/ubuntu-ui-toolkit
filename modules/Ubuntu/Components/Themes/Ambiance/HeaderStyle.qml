@@ -63,9 +63,40 @@ Item {
     }
 
     Item {
-        id: foreground
+        id: controlContainer
         anchors {
             left: parent.left
+            top: parent.top
+        }
+        height: headerStyle.contentHeight
+        width: styledItem.controls ? styledItem.controls.width : 0
+
+        Binding {
+            target: styledItem.controls
+            property: "parent"
+            value: controlContainer
+            when: styledItem.controls
+        }
+
+        // Compensate for the lack of a MouseArea in the ToolbarButton by
+        //  adding a MouseArea on top of it.
+        MouseArea {
+            // FIXME: Currently this only works if the controls is a single
+            //  ToolbarButton. To support multiple controls, use a similar
+            //  detection of the clicked item as in Panel.qml.
+            anchors.fill: parent
+            onClicked: {
+                styledItem.controls.trigger();
+            }
+            visible: styledItem.controls && styledItem.controls.hasOwnProperty("trigger") &&
+                     !styledItem.controls.hasOwnProperty("clicked")
+        }
+    }
+
+    Item {
+        id: foreground
+        anchors {
+            left: controlContainer.right
             right: parent.right
             top: parent.top
         }
