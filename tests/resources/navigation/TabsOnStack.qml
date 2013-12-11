@@ -25,7 +25,6 @@ MainView {
     PageStack {
         id: pageStack
         Component.onCompleted: push(page0)
-
         Page {
             id: page0
             title: "Stack"
@@ -35,27 +34,28 @@ MainView {
                 text: "Press"
             }
         }
-    }
-    Tabs {
-        id: tabsOnStack
-        visible: false
-        Tab {
-            title: "Tab 3"
-            page: Page {
-                id: page3
-                Label {
-                    anchors.centerIn: parent
-                    text: "Press back to return to the previous tabs"
+        Tabs {
+            id: tabsOnStack
+            active: false
+            onActiveChanged: print("active = "+active)
+            Tab {
+                title: "Tab 3"
+                page: Page {
+                    id: page3
+                    Label {
+                        anchors.centerIn: parent
+                        text: "Press back to return to the previous tabs"
+                    }
                 }
             }
-        }
-        Tab {
-            title: "Tab 4"
-            page: Page {
-                id: page4
-                Label {
-                    anchors.centerIn: parent
-                    text: "Page 4"
+            Tab {
+                title: "Tab 4"
+                page: Page {
+                    id: page4
+                    Label {
+                        anchors.centerIn: parent
+                        text: "Page 4"
+                    }
                 }
             }
         }
