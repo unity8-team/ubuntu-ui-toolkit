@@ -16,6 +16,9 @@
 
 .pragma library
 
+/*!
+  The given object is an instance of the PageTreeNode component.
+ */
 function isNode(object) {
     // FIXME: Use QuickUtils.className() when it becomes available.
     return (object && object.hasOwnProperty("__isPageTreeNode") && object.__isPageTreeNode);
