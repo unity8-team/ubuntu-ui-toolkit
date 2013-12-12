@@ -15,7 +15,7 @@
  */
 
 import QtQuick 2.0
-import "pageTreeNodeUtils.js" as Utils
+import "pageTree.js" as PageTree
 
 /*!
     \internal
@@ -128,7 +128,7 @@ StyledItem {
           Find the parent node.
          */
         function updatePageTree() {
-            node.parentNode = Utils.getParentPageTreeNode(node);
+            node.parentNode = PageTree.getParentNode(node);
         }
     }
 }

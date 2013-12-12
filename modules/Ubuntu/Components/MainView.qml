@@ -16,7 +16,7 @@
 
 import QtQuick 2.0
 import Ubuntu.Unity.Action 1.0 as UnityActions
-import "pageTreeNodeUtils.js" as PageTreeNodeUtils
+import "pageTree.js" as PageTree
 
 /*!
     \qmltype MainView
@@ -422,5 +422,5 @@ PageTreeNode {
     /*! \internal
       If no child is active, activate the first child.
      */
-    Component.onCompleted: PageTreeNodeUtils.activateOneChildNode(contents)
+    Component.onCompleted: PageTree.activateOneChildNode(contents)
 }

@@ -16,7 +16,7 @@
 
 .pragma library
 
-function isPageTreeNode(object) {
+function isNode(object) {
     // FIXME: Use QuickUtils.className() when it becomes available.
     return (object && object.hasOwnProperty("__isPageTreeNode") && object.__isPageTreeNode);
 }
@@ -24,12 +24,12 @@ function isPageTreeNode(object) {
 /*!
   Return the parent node in the page tree, or null if the item is the root node or invalid.
  */
-function getParentPageTreeNode(item) {
+function getParentNode(item) {
     var node = null;
     if (item) {
         var i = item.parent;
         while (i) {
-            if (isPageTreeNode(i)) {
+            if (isNode(i)) {
                 node = i;
                 break;
             }
@@ -49,7 +49,7 @@ function activateOneChildNode(item) {
     var child;
     for (var i=0; i < item.children.length; i++) {
         child = item.children[i];
-        if (isPageTreeNode(child)) {
+        if (isNode(child)) {
             if (firstPageTreeNodeIndex < 0) firstPageTreeNodeIndex = i;
             if (child.active) {
                 firstActiveIndex = i;
