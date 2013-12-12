@@ -129,6 +129,10 @@ PageTreeNode {
     onActiveChanged: {
         internal.updateHeaderAndToolbar();
         internal.updateActions();
+        if (internal.firstTimeActive) {
+            internal.firstTimeActive = false;
+            if (page.active) internal.updateFlickablePosition();
+        }
     }
     /*! \internal */
     onTitleChanged: internal.updateHeaderAndToolbar()
@@ -137,7 +141,11 @@ PageTreeNode {
     /*! \internal */
     onPageStackChanged: internal.updateHeaderAndToolbar()
     /*! \internal */
-    onFlickableChanged: internal.updateHeaderAndToolbar()
+    onFlickableChanged: {
+        internal.firstTimeActive = true;
+        internal.updateHeaderAndToolbar();
+        internal.updateFlickablePosition();
+    }
 
     /*!
       Local actions. These actions will be made available outside the application
@@ -234,6 +242,9 @@ PageTreeNode {
             value: internal.headerHeight
             when: page.flickable
         }
+
+        // first time the page is activated, flickable position may be updated.
+        property bool firstTimeActive: true
 
         function updateFlickablePosition() {
             if (page.flickable) {
