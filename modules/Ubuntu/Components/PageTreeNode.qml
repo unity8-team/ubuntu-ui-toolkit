@@ -83,7 +83,6 @@ StyledItem {
       If \l MainView has no active children, it will automatically set the active property
       for its first child that has the property.
      */
-//    property bool active: node.parentNode ? node.parentNode.active : false
     property bool active: false
 
     /*!
