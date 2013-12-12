@@ -74,9 +74,6 @@ PageTreeNode {
     }
     height: parent ? page.flickable ? parent.height : parent.height - internal.headerHeight : undefined
 
-    // will be activated by MainView/PageStack/Tabs
-    active: false
-
     /*!
       The title of the page. Will be shown in the header of the \l MainView.
      */
