@@ -15,6 +15,7 @@
  */
 
 import QtQuick 2.0
+import "pageTreeNodeUtils.js" as Utils
 
 /*!
     \internal
@@ -121,36 +122,14 @@ StyledItem {
         value: false
     }
 
-    Item {
+    QtObject {
         id: internal
-        function isPageTreeNode(object) {
-            // FIXME: Use QuickUtils.className() when it becomes available.
-            return (object && object.hasOwnProperty("__isPageTreeNode") && object.__isPageTreeNode);
-        }
-
-        /*!
-          Return the parent node in the page tree, or null if the item is the root node or invalid.
-         */
-        function getParentPageTreeNode(item) {
-            var node = null;
-            if (item) {
-                var i = item.parent;
-                while (i) {
-                    if (internal.isPageTreeNode(i)) {
-                        node = i;
-                        break;
-                    }
-                    i = i.parent;
-                }
-            }
-            return node;
-        }
 
         /*!
           Find the parent node.
          */
         function updatePageTree() {
-            node.parentNode = internal.getParentPageTreeNode(node);
+            node.parentNode = Utils.getParentPageTreeNode(node);
         }
     }
 }
