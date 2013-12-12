@@ -29,6 +29,8 @@ import QtQuick 2.0
 StyledItem {
     id: node
 
+    visible: active
+
     /*!
       \internal
       Used to determine whether an Item is a PageTreeNode
@@ -73,7 +75,8 @@ StyledItem {
       \l Tabs and \l PageStack to determine which of multiple nodes in the Tabs or
       PageStack is the currently active one.
      */
-    property bool active: node.parentNode ? node.parentNode.active : false
+//    property bool active: node.parentNode ? node.parentNode.active : false
+    property bool active: false
 
     /*!
       The \l PageStack that this Page has been pushed on, or null if it is not

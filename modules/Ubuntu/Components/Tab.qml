@@ -69,6 +69,13 @@ PageTreeNode {
 
     visible: active
 
+    Binding {
+        target: page
+        property: "active"
+        value: tab.active
+        when: page && page.hasOwnProperty("active")
+    }
+
     /*!
       \internal
     */
