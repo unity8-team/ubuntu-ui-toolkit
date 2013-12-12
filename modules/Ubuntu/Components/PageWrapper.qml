@@ -72,8 +72,6 @@ PageTreeNode {
         }
     }
 
-    visible: active
-
     /*!
       \preliminary
       Properties are use to initialize a new object, or if reference
