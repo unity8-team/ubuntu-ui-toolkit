@@ -23,6 +23,25 @@ TestCase {
 
     MainView {
         id: mainView
+
+        Page {
+            id: page0
+        }
+        Page {
+            id: page1
+        }
+    }
+
+    MainView {
+        id: mainView2
+        Page {
+            id: inactivePage
+            active: false
+        }
+        Page {
+            id: activePage
+            active: true
+        }
     }
 
     Action {
@@ -34,6 +53,16 @@ TestCase {
         compare(mainView.automaticOrientation, false, "Automatic orientation off by default.");
         compare(mainView.applicationName, "", "Application name is empty string by default.");
         compare(mainView.actions.length, 0, "No actions defined by default")
+    }
+
+    function test_autoActivePages() {
+        // automatic page activation
+        compare(page0.active, true, "First page automatically active.");
+        compare(page1.active, false, "Following pages automatically not active.");
+
+        // manual page activation
+        compare(inactivePage.active, false, "If there is an active page, don't activate first page.");
+        compare(activePage.active, true, "Active page is not automatically deactivated.");
     }
 
     function test_automaticOrientation() {

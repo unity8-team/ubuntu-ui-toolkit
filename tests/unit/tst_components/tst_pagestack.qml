@@ -48,7 +48,8 @@ TestCase {
         compare(pageStack.currentPage, null, "currentPage properly reset");
     }
 
-    function test_active() {
+    function test_active_bug1260116() {
+        compare(page1.active, false, "Page is not active before pushing");
         pageStack.push(page1);
         compare(page1.active, true, "Page is active after pushing");
         pageStack.push(page2);
@@ -81,7 +82,8 @@ TestCase {
         pageStack.clear();
     }
 
-    function test_tabs_inside_stack_bug1187850() {
+    function test_tabs_inside_stack_bug1187850_bugbug1260116() {
+        compare(tabs.active, false, "Tabs not active before pushed on PageStack");
         pageStack.push(tabs);
         compare(pageStack.currentPage, tabs, "Tabs can be pushed on a PageStack");
         compare(tabs.active, true, "Tabs on top of a PageStack are active");
@@ -101,23 +103,22 @@ TestCase {
         PageStack {
             id: pageStack
         }
-    }
-    Page {
-        id: page1
-        title: "Title 1"
-        tools: ToolbarItems {
-            id: tools1
+        Page {
+            id: page1
+            title: "Title 1"
+            tools: ToolbarItems {
+                id: tools1
+            }
         }
-    }
-    Page {
-        id: page2
-        title: "Title 2"
-        tools: ToolbarItems {
-            id: tools2
+        Page {
+            id: page2
+            title: "Title 2"
+            tools: ToolbarItems {
+                id: tools2
+            }
         }
-    }
-
-    Tabs {
-        id: tabs
+        Tabs {
+            id: tabs
+        }
     }
 }
