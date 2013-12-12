@@ -81,7 +81,7 @@ StyledItem {
       selected \l Tab.
 
       If \l MainView has no active children, it will automatically set the active property
-      for its first child that has the property.
+      for its first child that is a PageTreeNode.
      */
     property bool active: false
 
