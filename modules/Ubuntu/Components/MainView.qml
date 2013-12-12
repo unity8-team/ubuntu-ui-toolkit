@@ -385,6 +385,38 @@ PageTreeNode {
         UnityActions.ActionManager {
             id: unityActionManager
         }
+
+        // FIXME: This function is identical to PageTreeNode.isPageTreeNode(object). Consider
+        //  moving it to a utils JS file.
+        function isPageTreeNode(object) {
+            return (object && object.hasOwnProperty("__isPageTreeNode") && object.__isPageTreeNode);
+        }
+
+        /*!
+          If none of the children of the item is active, make the first one active.
+         */
+        function selectChildToActivate(item) {
+            var firstActiveIndex = -1;
+            var firstPageTreeNodeIndex = -1;
+            var child;
+            for (var i=0; i < item.children.length; i++) {
+                child = item.children[i];
+                if (internal.isPageTreeNode(child)) {
+                    if (firstPageTreeNodeIndex < 0) firstPageTreeNodeIndex = i;
+                    if (child.active) {
+                        firstActiveIndex = i;
+                        break;
+                    }
+                }
+            }
+            if (firstActiveIndex < 0) {
+                // None of the children of the MainView is an active PageTreeNode.
+                // Activate the first suitable child:
+                if (firstPageTreeNodeIndex >= 0) {
+                    item.children[firstPageTreeNodeIndex].active = true;
+                }
+            }
+        }
     }
 
     __propagated: QtObject {
@@ -417,4 +449,7 @@ PageTreeNode {
             UbuntuApplication.applicationName = applicationName
         }
     }
+
+    /*! \internal */
+    Component.onCompleted: internal.selectChildToActivate(contents)
 }

@@ -37,7 +37,6 @@ MainView {
         Tabs {
             id: tabsOnStack
             active: false
-            onActiveChanged: print("active = "+active)
             Tab {
                 title: "Tab 3"
                 page: Page {

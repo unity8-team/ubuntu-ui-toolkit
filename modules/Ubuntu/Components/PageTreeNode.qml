@@ -74,6 +74,13 @@ StyledItem {
       where all nodes are active. All other nodes are not active. This is used by
       \l Tabs and \l PageStack to determine which of multiple nodes in the Tabs or
       PageStack is the currently active one.
+
+      Default value is false, but \l PageStack and \l Tab will create
+      a binding that makes the page active when it is on top of the \l PageStack, or the
+      selected \l Tab.
+
+      If \l MainView has no active children, it will automatically set the active property
+      for its first child that has the property.
      */
 //    property bool active: node.parentNode ? node.parentNode.active : false
     property bool active: false
