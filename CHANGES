@@ -10,6 +10,7 @@ UNRELEASED
 API Changes
 ***********
 * ADDED IN: OptionSelector: function isSelected(i)
+* ADDED IN: PickerDelegate: readonly property Picker picker
 * ADDED IN: ItemSelector: function isSelected(i)
 * CHANGED IN: OptionSelector: readonly property bool currentlyExpanded TO property bool currentlyExpanded
 * CHANGED IN: ItemSelector: readonly property bool currentlyExpanded TO property bool currentlyExpanded
