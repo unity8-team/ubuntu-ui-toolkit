@@ -38,9 +38,9 @@ MainView {
             id: tabsOnStack
             active: false
             Tab {
-                title: "Tab 3"
+                title: "Tab 1"
                 page: Page {
-                    id: page3
+                    id: page1
                     Label {
                         anchors.centerIn: parent
                         text: "Press back to return to the previous tabs"
@@ -48,12 +48,12 @@ MainView {
                 }
             }
             Tab {
-                title: "Tab 4"
+                title: "Tab 2"
                 page: Page {
-                    id: page4
+                    id: page2
                     Label {
                         anchors.centerIn: parent
-                        text: "Page 4"
+                        text: "Page 2"
                     }
                 }
             }
