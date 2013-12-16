@@ -188,7 +188,6 @@ QtObject
 modules/Ubuntu/Components/OptionSelector.qml
 ListItem.Empty
     property var model
-    property ListModel listModel
     property bool expanded
     property bool multiSelection
     property bool colourImage
