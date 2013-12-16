@@ -57,13 +57,13 @@ import Ubuntu.Unity.Action 1.0 as UnityActions
                 Button {
                     height: parent.height
                     width: height
-                    iconSource: "caps-lock.png"
+                    iconName: "compose"
                     onClicked: doSomething()
                 }
                 Button {
                     height: parent.height
                     width: height
-                    iconSource: "num-lock.png"
+                    iconName: "undo"
                     onClicked: doSomething()
                 }
             }
@@ -543,9 +543,7 @@ ActionItem {
       \qmlproperty enumeration verticalAlignment
     */
     property alias horizontalAlignment: editor.horizontalAlignment
-    /*! \internal */
     property alias effectiveHorizontalAlignment: editor.effectiveHorizontalAlignment
-    /*! \internal */
     property alias verticalAlignment: editor.verticalAlignment
 
     /*!
@@ -570,7 +568,7 @@ ActionItem {
     /*!
       The highlighted text color, used in selections.
 
-      \qmlproperty color selctedTextColor
+      \qmlproperty color selectedTextColor
       */
     property alias selectedTextColor: editor.selectedTextColor
 

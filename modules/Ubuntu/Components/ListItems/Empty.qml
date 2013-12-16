@@ -158,7 +158,7 @@ AbstractButton {
 
     /*!
       \preliminary
-      \qmlproperty ThinDivider bottomDividerLine
+      \qmlproperty ThinDivider divider
       Exposes our the bottom line divider.
      */
     property alias divider: bottomDividerLine
@@ -199,7 +199,7 @@ AbstractButton {
         readonly property int itemMoveOffset: confirmRemoval ?  width * 0.5 : width * 0.3
 
         /*! \internal
-          Defines the inital pressed possition
+          Defines the initial pressed position
          */
         property int pressedPosition: -1
 

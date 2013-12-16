@@ -9,6 +9,7 @@ ActionItem
 modules/Ubuntu/Components/Action.qml
 UnityActions.Action
     property url iconSource
+    property string iconName
     property bool visible
     property Component itemHint
 modules/Ubuntu/Components/ActionItem.qml
@@ -16,6 +17,7 @@ StyledItem
     property Action action
     property string text
     property url iconSource
+    property string iconName
     signal triggered(var value)
     function trigger(value)
 modules/Ubuntu/Components/ActionList.qml
@@ -25,9 +27,6 @@ QtObject
 modules/Ubuntu/Components/ActivityIndicator.qml
 AnimatedItem
     property bool running
-modules/Ubuntu/Components/AnimatedItem.qml
-StyledItem
-    property bool onScreen
 modules/Ubuntu/Components/Button.qml
 AbstractButton
     property color color
@@ -36,6 +35,17 @@ AbstractButton
 modules/Ubuntu/Components/CheckBox.qml
 AbstractButton
     property bool checked
+    function trigger()
+modules/Ubuntu/Components/Colors/UbuntuColors.qml
+QtObject
+    readonly property color orange
+    readonly property color lightAubergine
+    readonly property color midAubergine
+    readonly property color darkAubergine
+    readonly property color warmGrey
+    readonly property color coolGrey
+    property Gradient orangeGradient
+    property Gradient greyGradient
 modules/Ubuntu/Components/CrossFadeImage.qml
 Item
     property url source
@@ -44,25 +54,9 @@ Item
     readonly property bool running
     property size sourceSize
     readonly property int status
-modules/Ubuntu/Components/DraggingArea.qml
-MouseArea
-    property int orientation
-    property bool dragging
-    property real dragVelocity
-    property real dragValue
-    property real lateralPosition
-    property point __pressedPosition
-    property var __dragEvents
-    property bool clickValidated
-    property bool zeroVelocityCounts
-    signal dragStart
-    signal dragEnd
-    function updateSpeed()
-    function cullOldDragEvents(currentTime)
-    function getEventSpeed(currentTime, event)
-    function pushDragEvent(event)
 modules/Ubuntu/Components/Header.qml
 StyledItem
+    property bool animate
     function show()
     function hide()
     property string title
@@ -76,6 +70,107 @@ Item
 modules/Ubuntu/Components/Label.qml
 Text
     property string fontSize
+modules/Ubuntu/Components/ListItems/Base.qml
+Empty
+    property variant icon
+    property url iconSource
+    property string iconName
+    property url fallbackIconSource
+    property string fallbackIconName
+    property bool progression
+    property bool iconFrame
+    property real __iconWidth
+    property real __iconHeight
+    property real __leftIconMargin
+    property real __rightIconMargin
+    property bool __iconIsItem
+    property internal children
+modules/Ubuntu/Components/ListItems/Caption.qml
+Item
+    property string text
+modules/Ubuntu/Components/ListItems/Divider.qml
+Image
+modules/Ubuntu/Components/ListItems/Empty.qml
+AbstractButton
+    property bool selected
+    property bool highlightWhenPressed
+    property bool removable
+    property bool confirmRemoval
+    readonly property string swipingState
+    readonly property bool waitingConfirmationForRemoval
+    signal itemRemoved
+    property int __height
+    property bool showDivider
+    default property internal children
+    property internal __contents
+    property list<Item> backgroundIndicator
+    property ThinDivider divider
+    property real __contentsMargins
+    function cancelItemRemoval()
+modules/Ubuntu/Components/ListItems/Header.qml
+Item
+    property string text
+    property internal __foregroundColor
+modules/Ubuntu/Components/ListItems/ItemSelector.qml
+ListItem.Empty
+    property var model
+    property bool expanded
+    property bool multiSelection
+    property bool colourImage
+    property real containerHeight
+    property int selectedIndex
+    property bool currentlyExpanded
+    readonly property real itemHeight
+    signal delegateClicked(int index)
+    signal expansionCompleted()
+modules/Ubuntu/Components/ListItems/MultiValue.qml
+Base
+    property variant values
+modules/Ubuntu/Components/ListItems/SingleControl.qml
+Empty
+    property Item control
+    function __updateControl()
+modules/Ubuntu/Components/ListItems/SingleValue.qml
+Base
+    property string value
+modules/Ubuntu/Components/ListItems/Standard.qml
+Empty
+    property variant icon
+    property url iconSource
+    property string iconName
+    property url fallbackIconSource
+    property string fallbackIconName
+    property bool progression
+    property real __iconWidth
+    property real __iconHeight
+    property real __leftIconMargin
+    property real __rightIconMargin
+    property Item control
+    property bool iconFrame
+    property bool __controlAreaPressed
+    property bool __iconIsItem
+    property internal __foregroundColor
+modules/Ubuntu/Components/ListItems/Subtitled.qml
+Base
+    property string text
+    property string subText
+modules/Ubuntu/Components/ListItems/ThinDivider.qml
+Image
+modules/Ubuntu/Components/ListItems/ValueSelector.qml
+Empty
+    property variant icon
+    property url iconSource
+    property string iconName
+    property url fallbackIconSource
+    property string fallbackIconName
+    property real __iconWidth
+    property real __iconHeight
+    property real __leftIconMargin
+    property real __rightIconMargin
+    property bool iconFrame
+    property variant values
+    property int selectedIndex
+    property bool expanded
 modules/Ubuntu/Components/MainView.qml
 PageTreeNode
     property string applicationName
@@ -87,13 +182,6 @@ PageTreeNode
     default property internal contentsItem
     property list<Action> actions
     property UnityActions.ActionManager actionManager
-modules/Ubuntu/Components/ModelSectionCounter.qml
-Object
-    property var view
-    property int count
-    readonly property real sectionHeight
-    property bool cacheSections
-    property var cache
 modules/Ubuntu/Components/Object.qml
 QtObject
     default property internal children
@@ -106,12 +194,12 @@ Action
 modules/Ubuntu/Components/OptionSelector.qml
 ListItem.Empty
     property var model
-    property bool alwaysExpanded
+    property bool expanded
     property bool multiSelection
     property bool colourImage
     property real containerHeight
     property int selectedIndex
-    readonly property bool expanded
+    property bool currentlyExpanded
     readonly property real itemHeight
     signal delegateClicked(int index)
     signal expansionCompleted()
@@ -120,6 +208,8 @@ ListItem.Standard
     property string text
     property string subText
     property url icon
+    property url iconSource
+    property string iconName
     property bool constrainImage
     property bool colourImage
     property color assetColour
@@ -137,7 +227,6 @@ PageTreeNode
     property string title
     property Flickable flickable
     property list<Action> actions
-    default property internal pageContents
 modules/Ubuntu/Components/PageStack.qml
 PageTreeNode
     property bool __showHeader
@@ -146,24 +235,6 @@ PageTreeNode
     function push(page, properties)
     function pop()
     function clear()
-modules/Ubuntu/Components/PageTreeNode.qml
-StyledItem
-    property bool __isPageTreeNode
-    property Header header
-    property Toolbar toolbar
-    property QtObject __propagated
-    property bool active
-    property Item pageStack
-    property Item parentNode
-    property Item activeLeafNode
-    property bool isLeaf
-modules/Ubuntu/Components/PageWrapper.qml
-PageTreeNode
-    property var reference
-    property Item object
-    property bool canDestroy
-    property var properties
-    function destroyObject()
 modules/Ubuntu/Components/Panel.qml
 Item
     default property list<Object> contents
@@ -171,11 +242,102 @@ Item
     property bool opened
     function open()
     function close()
+    property int hideTimeout
     property bool locked
     property real hintSize
     property real triggerSize
+    property bool animate
     readonly property bool animating
     property bool __closeOnContentsClicks
+    property bool pressed
+modules/Ubuntu/Components/Pickers/Dialer.qml
+StyledItem
+    property real minimumValue
+    property real maximumValue
+    property real size
+    property real handSpace
+    readonly property Item centerItem
+    property list<var> centerContent
+    readonly property list<DialerHands> hands
+    signal handUpdated(var hand)
+modules/Ubuntu/Components/Pickers/DialerHand.qml
+StyledItem
+    property real value
+    property DialerHandGroup hand
+    readonly property Dialer dialer
+    default property list<QtObject> overlay
+    readonly property int index
+    property internal __grabber
+modules/Ubuntu/Components/Pickers/Picker.qml
+StyledItem
+    property bool circular
+    property var model
+    property Component delegate
+    property int selectedIndex
+    property bool live
+    property int __clickedIndex
+modules/Ubuntu/Components/Pickers/PickerDelegate.qml
+AbstractButton
+    readonly property Picker picker
+modules/Ubuntu/Components/Popups/ActionSelectionPopover.qml
+Popover
+    property Item target
+    property var actions
+    property Component delegate
+modules/Ubuntu/Components/Popups/ComposerSheet.qml
+SheetBase
+    signal cancelClicked
+    signal confirmClicked
+modules/Ubuntu/Components/Popups/DefaultSheet.qml
+SheetBase
+    property bool doneButton
+    signal closeClicked
+    signal doneClicked
+modules/Ubuntu/Components/Popups/Dialog.qml
+PopupBase
+    default property list<Object> contents
+    property string title
+    property string text
+    property Item caller
+    property Item pointerTarget
+    property real edgeMargins
+    property real callerMargin
+    property bool modal
+modules/Ubuntu/Components/Popups/Popover.qml
+PopupBase
+    default property list<Object> container
+    property real contentWidth
+    property real contentHeight
+    property Item caller
+    property Item pointerTarget
+    property real edgeMargins
+    property real callerMargin
+    property bool autoClose
+    property Component foregroundStyle
+    function show()
+    function hide()
+    function __makeInvisible()
+modules/Ubuntu/Components/Popups/PopupBase.qml
+OrientationHelper
+    property Item dismissArea
+    property bool grabDismissAreaEvents
+    function show()
+    function hide()
+    function __closeIfHidden()
+    function __closePopup()
+    property Item __foreground
+    property bool __closeOnDismissAreaPress
+    property internal __dimBackground
+    property internal __eventGrabber
+modules/Ubuntu/Components/Popups/SheetBase.qml
+PopupBase
+    default property list<Object> container
+    property real contentsWidth
+    property real contentsHeight
+    property string title
+    property bool modal
+    property internal __leftButton
+    property internal __rightButton
 modules/Ubuntu/Components/ProgressBar.qml
 AnimatedItem
     property bool indeterminate
@@ -193,10 +355,8 @@ Item
     property string group
     property bool sync
     property bool persistent
-modules/Ubuntu/Components/SettingsStorage.qml
-QtObject
-    property var groups
-    function addGroup(group, settings)
+    property list<Option> couldntGetListToWorkWithoutAlias
+    default property internal options
 modules/Ubuntu/Components/Slider.qml
 StyledItem
     property real minimumValue
@@ -223,7 +383,10 @@ PageTreeNode
 modules/Ubuntu/Components/TabBar.qml
 StyledItem
     property Item tabsItem
+    property var model
+    readonly property bool pressed
     property bool selectionMode
+    property int selectedIndex
     property bool alwaysSelectionMode
     property bool animate
 modules/Ubuntu/Components/Tabs.qml
@@ -232,8 +395,8 @@ PageTreeNode
     readonly property Tab selectedTab
     readonly property Item currentPage
     property TabBar tabBar
-    property internal __tabs
     default property list<Item> tabChildren
+    readonly property int count
     signal modelChanged()
 modules/Ubuntu/Components/TextArea.qml
 StyledItem
@@ -297,12 +460,6 @@ StyledItem
     function undo()
     function forceActiveFocus()
     property internal __internal
-modules/Ubuntu/Components/TextCursor.qml
-StyledItem
-    property var editorItem
-    property string positionProperty
-    property var popover
-    function openPopover()
 modules/Ubuntu/Components/TextField.qml
 ActionItem
     property bool highlighted
@@ -345,8 +502,8 @@ ActionItem
     property string text
     property Validator validator
     property enumeration horizontalAlignment
-    property internal effectiveHorizontalAlignment
-    property internal verticalAlignment
+    property enumeration effectiveHorizontalAlignment
+    property enumeration verticalAlignment
     property string passwordCharacter
     property color selectionColor
     property color selectedTextColor
@@ -369,12 +526,22 @@ ActionItem
     function remove(start, end)
     function getText(start, end)
     property internal __internal
-modules/Ubuntu/Components/TextInputPopover.qml
-ActionSelectionPopover
-modules/Ubuntu/Components/Toolbar.qml
-Panel
-    property Item tools
-    property int hideTimeout
+modules/Ubuntu/Components/Themes/Palette.qml
+QtObject
+    property PaletteValues normal
+    property PaletteValues selected
+modules/Ubuntu/Components/Themes/PaletteValues.qml
+QtObject
+    property color background
+    property color backgroundText
+    property color base
+    property color baseText
+    property color foreground
+    property color foregroundText
+    property color overlay
+    property color overlayText
+    property color field
+    property color fieldText
 modules/Ubuntu/Components/ToolbarButton.qml
 ActionItem
 modules/Ubuntu/Components/ToolbarItems.qml
@@ -393,240 +560,6 @@ Item
     property string radius
     property Item image
     property url borderSource
-modules/Ubuntu/Components/Colors/UbuntuColors.qml
-QtObject
-    readonly property color orange
-    readonly property color lightAubergine
-    readonly property color midAubergine
-    readonly property color darkAubergine
-    readonly property color warmGrey
-    readonly property color coolGrey
-    property Gradient orangeGradient
-    property Gradient greyGradient
-modules/Ubuntu/Components/ListItems/Base.qml
-Empty
-    property variant icon
-    property url fallbackIconSource
-    property bool progression
-    property bool iconFrame
-    property real __iconWidth
-    property real __iconHeight
-    property real __leftIconMargin
-    property real __rightIconMargin
-    property bool __iconIsItem
-    property internal children
-modules/Ubuntu/Components/ListItems/Caption.qml
-Item
-    property string text
-modules/Ubuntu/Components/ListItems/Divider.qml
-Image
-modules/Ubuntu/Components/ListItems/Empty.qml
-AbstractButton
-    property bool selected
-    property bool highlightWhenPressed
-    property bool removable
-    property bool confirmRemoval
-    readonly property string swipingState
-    readonly property bool waitingConfirmationForRemoval
-    signal itemRemoved
-    property int __height
-    property bool showDivider
-    default property internal children
-    property internal __contents
-    property list<Item> backgroundIndicator
-    property ThinDivider divider
-    property real __contentsMargins
-    function cancelItemRemoval()
-modules/Ubuntu/Components/ListItems/Header.qml
-Item
-    property string text
-    property internal __foregroundColor
-modules/Ubuntu/Components/ListItems/IconVisual.qml
-Item
-    property url source
-    property url fallbackSource
-    property bool hasFrame
-modules/Ubuntu/Components/ListItems/ImageWithFallback.qml
-Image
-    property url fallbackSource
-    property bool fallbackRequired
-    function isSourceDefined(sourceUrl)
-    function tryLoadingFallbackSource()
-    function checkStatus()
-modules/Ubuntu/Components/ListItems/ItemSelector.qml
-ListItem.Empty
-    property var model
-    property bool alwaysExpanded
-    property bool multiSelection
-    property bool colourImage
-    property real containerHeight
-    property int selectedIndex
-    readonly property bool expanded
-    readonly property real itemHeight
-    signal delegateClicked(int index)
-    signal expansionCompleted()
-modules/Ubuntu/Components/ListItems/LabelVisual.qml
-Label
-    property bool selected
-    property bool secondary
-    property bool overlay
-    function isInsideOverlay(item)
-modules/Ubuntu/Components/ListItems/MultiValue.qml
-Base
-    property variant values
-modules/Ubuntu/Components/ListItems/ProgressionVisual.qml
-Item
-    property bool showSplit
-    property real splitMargin
-modules/Ubuntu/Components/ListItems/SingleControl.qml
-Empty
-    property Item control
-    function __updateControl()
-modules/Ubuntu/Components/ListItems/SingleValue.qml
-Base
-    property string value
-modules/Ubuntu/Components/ListItems/Standard.qml
-Empty
-    property variant icon
-    property url fallbackIconSource
-    property bool progression
-    property real __iconWidth
-    property real __iconHeight
-    property real __leftIconMargin
-    property real __rightIconMargin
-    property Item control
-    property bool iconFrame
-    property bool __controlAreaPressed
-    property bool __iconIsItem
-    property internal __foregroundColor
-modules/Ubuntu/Components/ListItems/Subtitled.qml
-Base
-    property string text
-    property string subText
-modules/Ubuntu/Components/ListItems/ThinDivider.qml
-Image
-modules/Ubuntu/Components/ListItems/ValueSelector.qml
-Empty
-    property variant icon
-    property url fallbackIconSource
-    property real __iconWidth
-    property real __iconHeight
-    property real __leftIconMargin
-    property real __rightIconMargin
-    property bool iconFrame
-    property variant values
-    property int selectedIndex
-    property bool expanded
-modules/Ubuntu/Components/Pickers/Dialer.qml
-StyledItem
-    property real minimumValue
-    property real maximumValue
-    property real size
-    property real handSpace
-    readonly property Item centerItem
-    property list<var> centerContent
-    readonly property list<DialerHands> hands
-    signal handUpdated(var hand)
-modules/Ubuntu/Components/Pickers/DialerHand.qml
-StyledItem
-    property real value
-    property DialerHandGroup hand
-    readonly property Dialer dialer
-    default property list<QtObject> overlay
-    readonly property int index
-    property internal __grabber
-modules/Ubuntu/Components/Pickers/DialerHandGroup.qml
-QtObject
-    property real width
-    property real height
-    property bool draggable
-    property bool visible
-    property bool toCenterItem
-modules/Ubuntu/Components/Pickers/Picker.qml
-StyledItem
-    property bool circular
-    property var model
-    property Component delegate
-    property int selectedIndex
-    property bool live
-    property int __clickedIndex
-modules/Ubuntu/Components/Pickers/PickerDelegate.qml
-AbstractButton
-modules/Ubuntu/Components/Popups/ActionSelectionPopover.qml
-Popover
-    property Item target
-    property var actions
-    property Component delegate
-modules/Ubuntu/Components/Popups/ComposerSheet.qml
-SheetBase
-    signal cancelClicked
-    signal confirmClicked
-modules/Ubuntu/Components/Popups/DefaultSheet.qml
-SheetBase
-    property bool doneButton
-    signal closeClicked
-    signal doneClicked
-modules/Ubuntu/Components/Popups/Dialog.qml
-PopupBase
-    default property list<Object> contents
-    property string title
-    property string text
-    property Item caller
-    property Item pointerTarget
-    property real edgeMargins
-    property real callerMargin
-    property bool modal
-modules/Ubuntu/Components/Popups/Popover.qml
-PopupBase
-    default property list<Object> container
-    property real contentWidth
-    property internal contentHeight
-    property Item caller
-    property Item pointerTarget
-    property real edgeMargins
-    property real callerMargin
-    property bool autoClose
-    property Component foregroundStyle
-    function show()
-    function hide()
-    function __makeInvisible()
-modules/Ubuntu/Components/Popups/PopupBase.qml
-OrientationHelper
-    property Item dismissArea
-    property bool grabDismissAreaEvents
-    function show()
-    function hide()
-    function __closeIfHidden()
-    function __closePopup()
-    property Item __foreground
-    property bool __closeOnDismissAreaPress
-    property internal __dimBackground
-    property internal __eventGrabber
-modules/Ubuntu/Components/Popups/SheetBase.qml
-PopupBase
-    default property list<Object> container
-    property real contentsWidth
-    property real contentsHeight
-    property string title
-    property bool modal
-    property internal __leftButton
-    property internal __rightButton
-modules/Ubuntu/Components/Themes/Palette.qml
-QtObject
-    property PaletteValues normal
-    property PaletteValues selected
-modules/Ubuntu/Components/Themes/PaletteValues.qml
-QtObject
-    property color background
-    property color backgroundText
-    property color base
-    property color baseText
-    property color foreground
-    property color foregroundText
-    property color overlay
-    property color overlayText
-    property color field
-    property color fieldText
 plugins.qmltypes
     name: "InverseMouseAreaType"
     prototype: "QQuickMouseArea"
@@ -636,32 +569,6 @@ plugins.qmltypes
     Method {
     name: "contains"
     Parameter { name: "point"; type: "QPointF" }
-    name: "QQmlPropertyMap"
-    prototype: "QObject"
-    Signal {
-    name: "valueChanged"
-    Parameter { name: "key"; type: "string" }
-    Parameter { name: "value"; type: "QVariant" }
-    Method { name: "keys"; type: "QStringList" }
-    name: "QQuickClipboard"
-    prototype: "QObject"
-    exports: ["Clipboard 0.1"]
-    Property { name: "data"; type: "QQuickMimeData"; isReadonly: true; isPointer: true }
-    Method {
-    name: "push"
-    Parameter { name: "data"; type: "QVariant" }
-    Method { name: "clear" }
-    Method { name: "newData"; type: "QQuickMimeData*" }
-    name: "QQuickMimeData"
-    prototype: "QObject"
-    exports: ["MimeData 0.1"]
-    Property { name: "formats"; type: "QStringList"; isReadonly: true }
-    Property { name: "text"; type: "string" }
-    Property { name: "html"; type: "string" }
-    Property { name: "urls"; type: "QList<QUrl>" }
-    Property { name: "color"; type: "QColor" }
-    Property { name: "data"; type: "QVariant" }
-    Signal { name: "typeChanged" }
     name: "ShapeItem"
     prototype: "QQuickItem"
     exports: ["Shape 0.1"]
@@ -677,129 +584,6 @@ plugins.qmltypes
     Property { name: "borderSource"; type: "string" }
     Signal { name: "borderChanged" }
     Method { name: "gridUnitChanged" }
-    name: "U1db::Database"
-    prototype: "QAbstractListModel"
-    exports: ["U1db/Database 1.0"]
-    Property { name: "path"; type: "string" }
-    Property { name: "error"; type: "string"; isReadonly: true }
-    Signal {
-    name: "pathChanged"
-    Parameter { name: "path"; type: "string" }
-    Signal {
-    name: "errorChanged"
-    Parameter { name: "error"; type: "string" }
-    Signal {
-    name: "docChanged"
-    Parameter { name: "docId"; type: "string" }
-    Parameter { name: "content"; type: "QVariant" }
-    Signal {
-    name: "docLoaded"
-    Parameter { name: "docId"; type: "string" }
-    Parameter { name: "content"; type: "QVariant" }
-    Method {
-    name: "getDoc"
-    Parameter { name: "docId"; type: "string" }
-    Method {
-    name: "putDoc"
-    Parameter { name: "newDoc"; type: "QVariant" }
-    Parameter { name: "docID"; type: "string" }
-    Method {
-    name: "putDoc"
-    Parameter { name: "newDoc"; type: "QVariant" }
-    Method { name: "listDocs"; type: "QList<QString>" }
-    Method { name: "lastError"; type: "string" }
-    Method {
-    name: "putIndex"
-    Parameter { name: "index_name"; type: "string" }
-    Parameter { name: "expressions"; type: "QStringList" }
-    Method {
-    name: "getIndexExpressions"
-    Parameter { name: "indexName"; type: "string" }
-    Method {
-    name: "getIndexKeys"
-    Parameter { name: "indexName"; type: "string" }
-    name: "U1db::Document"
-    prototype: "QObject"
-    exports: ["U1db/Document 1.0"]
-    Property { name: "database"; type: "U1db::Database"; isPointer: true }
-    Property { name: "docId"; type: "string" }
-    Property { name: "create"; type: "bool" }
-    Property { name: "defaults"; type: "QVariant" }
-    Property { name: "contents"; type: "QVariant" }
-    Signal {
-    name: "databaseChanged"
-    Parameter { name: "database"; type: "Database"; isPointer: true }
-    Signal {
-    name: "docIdChanged"
-    Parameter { name: "docId"; type: "string" }
-    Signal {
-    name: "createChanged"
-    Parameter { name: "create"; type: "bool" }
-    Signal {
-    name: "defaultsChanged"
-    Parameter { name: "defaults"; type: "QVariant" }
-    Signal {
-    name: "contentsChanged"
-    Parameter { name: "contents"; type: "QVariant" }
-    name: "U1db::Index"
-    prototype: "QObject"
-    exports: ["U1db/Index 1.0"]
-    Property { name: "database"; type: "U1db::Database"; isPointer: true }
-    Property { name: "name"; type: "string" }
-    Property { name: "expression"; type: "QStringList" }
-    Signal {
-    name: "databaseChanged"
-    Parameter { name: "database"; type: "Database"; isPointer: true }
-    Signal {
-    name: "nameChanged"
-    Parameter { name: "name"; type: "string" }
-    Signal {
-    name: "expressionChanged"
-    Parameter { name: "expression"; type: "QVariant" }
-    Signal { name: "dataInvalidated" }
-    name: "U1db::Query"
-    prototype: "QAbstractListModel"
-    exports: ["U1db/Query 1.0"]
-    Property { name: "index"; type: "U1db::Index"; isPointer: true }
-    Property { name: "query"; type: "QVariant" }
-    Property { name: "documents"; type: "QStringList"; isReadonly: true }
-    Property { name: "results"; type: "QVariantList"; isReadonly: true }
-    Signal {
-    name: "indexChanged"
-    Parameter { name: "index"; type: "Index"; isPointer: true }
-    Signal {
-    name: "queryChanged"
-    Parameter { name: "query"; type: "QVariant" }
-    Signal {
-    name: "documentsChanged"
-    Parameter { name: "documents"; type: "QStringList" }
-    Signal {
-    name: "resultsChanged"
-    Parameter { name: "results"; type: "QVariantList" }
-    name: "U1db::Synchronizer"
-    prototype: "QAbstractListModel"
-    exports: ["U1db/Synchronizer 1.0"]
-    Property { name: "source"; type: "U1db::Database"; isPointer: true }
-    Property { name: "synchronize"; type: "bool" }
-    Property { name: "resolve_to_source"; type: "bool" }
-    Property { name: "targets"; type: "QVariant" }
-    Property { name: "sync_output"; type: "QVariantList"; isReadonly: true }
-    Signal {
-    name: "sourceChanged"
-    Parameter { name: "source"; type: "Database"; isPointer: true }
-    Signal {
-    name: "targetsChanged"
-    Parameter { name: "targets"; type: "QVariant" }
-    Signal {
-    name: "syncChanged"
-    Parameter { name: "synchronize"; type: "bool" }
-    Signal {
-    name: "resolveToSourceChanged"
-    Parameter { name: "resolve_to_source"; type: "bool" }
-    Signal {
-    name: "syncOutputChanged"
-    Parameter { name: "sync_output"; type: "QVariantList" }
-    Signal { name: "syncCompleted" }
     name: "UCAlarm"
     prototype: "QObject"
     exports: ["Alarm 0.1"]
@@ -923,3 +707,229 @@ plugins.qmltypes
     Parameter { name: "singular"; type: "string" }
     Parameter { name: "plural"; type: "string" }
     Parameter { name: "n"; type: "int" }
+    name: "unity::action::Action"
+    prototype: "QObject"
+    name: "Type"
+    Property { name: "name"; type: "string" }
+    Property { name: "text"; type: "string" }
+    Property { name: "iconName"; type: "string" }
+    Property { name: "description"; type: "string" }
+    Property { name: "keywords"; type: "string" }
+    Property { name: "enabled"; type: "bool" }
+    Property { name: "parameterType"; type: "unity::action::Action::Type" }
+    Signal {
+    name: "nameChanged"
+    Parameter { name: "value"; type: "string" }
+    Signal {
+    name: "textChanged"
+    Parameter { name: "value"; type: "string" }
+    Signal {
+    name: "iconNameChanged"
+    Parameter { name: "value"; type: "string" }
+    Signal {
+    name: "descriptionChanged"
+    Parameter { name: "value"; type: "string" }
+    Signal {
+    name: "keywordsChanged"
+    Parameter { name: "value"; type: "string" }
+    Signal {
+    name: "enabledChanged"
+    Parameter { name: "value"; type: "bool" }
+    Signal {
+    name: "parameterTypeChanged"
+    Parameter { name: "value"; type: "unity::action::Action::Type" }
+    Signal {
+    name: "triggered"
+    Parameter { name: "value"; type: "QVariant" }
+    Method {
+    name: "trigger"
+    Parameter { name: "value"; type: "QVariant" }
+    Method { name: "trigger" }
+    name: "unity::action::ActionContext"
+    prototype: "QObject"
+    Property { name: "active"; type: "bool" }
+    Signal {
+    name: "activeChanged"
+    Parameter { name: "value"; type: "bool" }
+    Signal { name: "actionsChanged" }
+    Method {
+    name: "addAction"
+    Parameter { name: "action"; type: "unity::action::Action"; isPointer: true }
+    Method {
+    name: "removeAction"
+    Parameter { name: "action"; type: "unity::action::Action"; isPointer: true }
+    name: "unity::action::ActionManager"
+    prototype: "QObject"
+    Property {
+    name: "globalContext"
+    Signal { name: "localContextsChanged" }
+    Signal { name: "actionsChanged" }
+    Method {
+    name: "addAction"
+    Parameter { name: "action"; type: "unity::action::Action"; isPointer: true }
+    Method {
+    name: "removeAction"
+    Parameter { name: "action"; type: "unity::action::Action"; isPointer: true }
+    Method { name: "globalContext"; type: "unity::action::ActionContext*" }
+    Method {
+    name: "addLocalContext"
+    Parameter { name: "context"; type: "unity::action::ActionContext"; isPointer: true }
+    Method {
+    name: "removeLocalContext"
+    Parameter { name: "context"; type: "unity::action::ActionContext"; isPointer: true }
+    name: "unity::action::PreviewAction"
+    prototype: "unity::action::Action"
+    Property { name: "commitLabel"; type: "string" }
+    Signal { name: "started" }
+    Signal { name: "cancelled" }
+    Signal { name: "resetted" }
+    Signal {
+    name: "commitLabelChanged"
+    Parameter { name: "value"; type: "string" }
+    Signal { name: "parametersChanged" }
+    Method {
+    name: "addParameter"
+    Parameter { name: "parameter"; type: "unity::action::PreviewParameter"; isPointer: true }
+    Method {
+    name: "removeParameter"
+    Parameter { name: "parameter"; type: "unity::action::PreviewParameter"; isPointer: true }
+    Component { name: "unity::action::PreviewParameter"; prototype: "QObject" }
+    name: "unity::action::PreviewRangeParameter"
+    prototype: "unity::action::PreviewParameter"
+    exports: ["Ubuntu.Unity.Action/PreviewRangeParameter 1.0"]
+    Property { name: "text"; type: "string" }
+    Property { name: "value"; type: "float" }
+    Property { name: "minimumValue"; type: "float" }
+    Property { name: "maximumValue"; type: "float" }
+    Signal {
+    name: "textChanged"
+    Parameter { name: "text"; type: "string" }
+    Signal {
+    name: "valueChanged"
+    Parameter { name: "value"; type: "float" }
+    Signal {
+    name: "minimumValueChanged"
+    Parameter { name: "value"; type: "float" }
+    Signal {
+    name: "maximumValueChanged"
+    Parameter { name: "value"; type: "float" }
+    name: "unity::action::qml::Action"
+    prototype: "unity::action::Action"
+    exports: ["Ubuntu.Unity.Action/Action 1.0"]
+    name: "unity::action::qml::ActionContext"
+    prototype: "unity::action::ActionContext"
+    exports: ["Ubuntu.Unity.Action/ActionContext 1.0"]
+    Property { name: "actions"; type: "unity::action::Action"; isList: true; isReadonly: true }
+    name: "unity::action::qml::ActionManager"
+    prototype: "unity::action::ActionManager"
+    exports: ["Ubuntu.Unity.Action/ActionManager 1.0"]
+    Property {
+    name: "localContexts"
+    Property { name: "actions"; type: "unity::action::Action"; isList: true; isReadonly: true }
+    name: "unity::action::qml::PreviewAction"
+    prototype: "unity::action::PreviewAction"
+    exports: ["Ubuntu.Unity.Action/PreviewAction 1.0"]
+    Property {
+    name: "parameters"
+    prototype: "QObject"
+    name: "Action"
+    exports: ["Action -1.-1"]
+    Property { name: "iconSource"; type: "QUrl" }
+    Property { name: "iconName"; type: "string" }
+    Property { name: "visible"; type: "bool" }
+    Property { name: "itemHint"; type: "QQmlComponent"; isPointer: true }
+    Property { name: "name"; type: "string" }
+    Property { name: "text"; type: "string" }
+    Property { name: "iconName"; type: "string" }
+    Property { name: "description"; type: "string" }
+    Property { name: "keywords"; type: "string" }
+    Property { name: "enabled"; type: "bool" }
+    Property { name: "parameterType"; type: "unity::action::Action::Type" }
+    Signal {
+    name: "nameChanged"
+    Parameter { name: "value"; type: "string" }
+    Signal {
+    name: "textChanged"
+    Parameter { name: "value"; type: "string" }
+    Signal {
+    name: "iconNameChanged"
+    Parameter { name: "value"; type: "string" }
+    Signal {
+    name: "descriptionChanged"
+    Parameter { name: "value"; type: "string" }
+    Signal {
+    name: "keywordsChanged"
+    Parameter { name: "value"; type: "string" }
+    Signal {
+    name: "enabledChanged"
+    Parameter { name: "value"; type: "bool" }
+    Signal {
+    name: "parameterTypeChanged"
+    Parameter { name: "value"; type: "unity::action::Action::Type" }
+    Signal {
+    name: "triggered"
+    Parameter { name: "value"; type: "QVariant" }
+    Method {
+    name: "trigger"
+    Parameter { name: "value"; type: "QVariant" }
+    Method { name: "trigger" }
+    prototype: "QObject"
+    name: "Object"
+    exports: ["Object -1.-1"]
+    Property { name: "__defaultPropertyFix"; type: "QObject"; isList: true; isReadonly: true }
+    Property { name: "children"; type: "QObject"; isList: true; isReadonly: true }
+    prototype: "QObject"
+    name: "Option"
+    exports: ["Option -1.-1"]
+    Property { name: "iconSource"; type: "QUrl" }
+    Property { name: "iconName"; type: "string" }
+    Property { name: "visible"; type: "bool" }
+    Property { name: "itemHint"; type: "QQmlComponent"; isPointer: true }
+    Property { name: "name"; type: "string" }
+    Property { name: "defaultValue"; type: "QVariant" }
+    Property { name: "value"; type: "QVariant" }
+    Property { name: "__doc"; type: "QVariant" }
+    Property { name: "name"; type: "string" }
+    Property { name: "text"; type: "string" }
+    Property { name: "iconName"; type: "string" }
+    Property { name: "description"; type: "string" }
+    Property { name: "keywords"; type: "string" }
+    Property { name: "enabled"; type: "bool" }
+    Property { name: "parameterType"; type: "unity::action::Action::Type" }
+    Signal {
+    name: "nameChanged"
+    Parameter { name: "value"; type: "string" }
+    Signal {
+    name: "textChanged"
+    Parameter { name: "value"; type: "string" }
+    Signal {
+    name: "iconNameChanged"
+    Parameter { name: "value"; type: "string" }
+    Signal {
+    name: "descriptionChanged"
+    Parameter { name: "value"; type: "string" }
+    Signal {
+    name: "keywordsChanged"
+    Parameter { name: "value"; type: "string" }
+    Signal {
+    name: "enabledChanged"
+    Parameter { name: "value"; type: "bool" }
+    Signal {
+    name: "parameterTypeChanged"
+    Parameter { name: "value"; type: "unity::action::Action::Type" }
+    Signal {
+    name: "triggered"
+    Parameter { name: "value"; type: "QVariant" }
+    Method {
+    name: "trigger"
+    Parameter { name: "value"; type: "QVariant" }
+    Method { name: "trigger" }
+    prototype: "QQuickItem"
+    name: "Settings"
+    exports: ["Settings -1.-1"]
+    Property { name: "group"; type: "string" }
+    Property { name: "sync"; type: "bool" }
+    Property { name: "persistent"; type: "bool" }
+    Property {
+    name: "couldntGetListToWorkWithoutAlias"
+    Property { name: "options"; type: "Option_QMLTYPE_10"; isList: true; isReadonly: true }
