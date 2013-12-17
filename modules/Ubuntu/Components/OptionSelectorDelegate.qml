@@ -140,7 +140,7 @@ ListItem.Standard {
             gl_FragColor = colour * sourceColour.a * qt_Opacity;
         }"
 
-    showDivider: index === listView.count - 1 || !listView.container.contained ? 0 : 1
+    showDivider: index === listView.count - 1 && listView.container.contained ? 0 : 1
     highlightWhenPressed: false
     selected: ListView.isCurrentItem
     anchors {

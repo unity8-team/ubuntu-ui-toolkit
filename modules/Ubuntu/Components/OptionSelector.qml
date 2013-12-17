@@ -230,7 +230,7 @@ ListItem.Empty {
             }
             state: optionSelector.expanded ? "expanded" : "collapsed"
             style: Theme.createStyleComponent("OptionSelectorStyle.qml", listContainer)
-            showDivider: !currentlyExpanded
+            showDivider: !currentlyExpanded && !contained
             states: [ State {
                     name: "expanded"
                     when: listContainer.currentlyExpanded
