@@ -335,6 +335,7 @@ modules/Ubuntu/Components/ProgressBar.qml
 AnimatedItem
     property bool indeterminate
     property real minimumValue
+    property color leftColor
     property real maximumValue
     property real value
 modules/Ubuntu/Components/Scrollbar.qml

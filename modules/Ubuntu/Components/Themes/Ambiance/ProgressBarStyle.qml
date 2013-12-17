@@ -44,7 +44,7 @@ Item {
         anchors.fill: background
         sourceItem: progressBar.indeterminate ? null : background
         progress: progressBarStyle.progress
-        leftColor: Theme.palette.selected.foreground
+        leftColor: prgoressBar.leftColor
         rightColor: Theme.palette.normal.base
     }
 
@@ -71,7 +71,7 @@ Item {
     PartialColorize {
         anchors.fill: valueLabel
         sourceItem: progressBar.indeterminate ? null : valueLabel
-        leftColor: Theme.palette.selected.foregroundText
+        leftColor: progressbar.leftColor
         rightColor: Theme.palette.normal.baseText
         progress: (progressBarStyle.progress * background.width - valueLabel.x) / valueLabel.width
     }

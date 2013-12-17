@@ -60,6 +60,13 @@ AnimatedItem {
 
     /*!
       \preliminary
+      Specifies the left color of the progress bar.  Defaults to 
+      Theme.palette.selected.foreground
+    */
+    property color leftColor: Theme.palette.selected.foreground
+
+    /*!
+      \preliminary
       Specifies the maximum value of the progress.
     */
     property real maximumValue: 1.0
