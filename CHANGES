@@ -10,6 +10,7 @@ UNRELEASED
 API Changes
 ***********
 * ADDED IN: OptionSelector: property bool contained
+* ADDED IN: PickerDelegate: readonly property Picker picker
 * DEPRECATED: ItemSelector
 * DEPRECATED: ValueSelector
 * CHANGED IN: OptionSelector: readonly property bool currentlyExpanded TO property bool currentlyExpanded

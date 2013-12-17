@@ -116,7 +116,6 @@ import Ubuntu.Components 0.1
 
 ListItem.Empty {
     id: itemSelector
-    __height: column.height
 
     /*!
       \preliminary
@@ -152,7 +151,18 @@ ListItem.Empty {
       \preliminary
       Custom height for list container which allows scrolling inside the selector.
      */
-    property real containerHeight: list.contentHeight
+    property real containerHeight: {
+        /*The reason for this slightly unconventional method of setting the container height
+          is due to the fact that if we set it to the selector height by default (which is
+          bound to the colum height) then we wouldn't be able to scroll to the end of the bottom
+          boundary. The text is also invisible if none is set so this is taken into account too.*/
+        var textHeight = text === "" ? 0 : label.height + column.spacing;
+        if (parent && parent.height < list.contentHeight) {
+            return parent.height - textHeight;
+        } else {
+            list.contentHeight;
+        }
+    }
 
     /*!
       \qmlproperty int selectedIndex
@@ -182,6 +192,7 @@ ListItem.Empty {
      */
     signal expansionCompleted()
 
+    __height: column.height
     showDivider: false
 
     Component.onCompleted: console.debug("ITEMSELECTOR IS DEPRECATED. PLEASE USE OPTIONSELECTOR WITH contained: true");
@@ -195,6 +206,8 @@ ListItem.Empty {
         }
 
         ListItem.Standard {
+            id: label
+
             text: itemSelector.text
             visible: itemSelector.text !== "" ? true : false
         }
