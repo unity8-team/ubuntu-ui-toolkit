@@ -68,30 +68,6 @@ class OptionSelectorTests(GalleryTestCase):
         self.pointing_device.click_object(selectedValue)
         self.assertThat(expanded.selectedIndex, Eventually(Equals(0)))
 
-    def test_optionselector_custommodel(self):
-        item = "Option Selector"
-        self.loadItem(item)
-        self.checkPageHeader(item)
-
-        custommodel = self.getObject("optionselector_custommodel")
-        flickable = self.main_view.select_single('QQuickFlickable')
-        self.assertIsNotNone(flickable)
-
-        #Flick upward to reveal the hidden ui element.
-        self.reveal_item_by_flick(custommodel, flickable, FlickDirection.UP)
-        self.assertThat(flickable.flicking, Eventually(Equals(False)))
-
-        self.assertThat(custommodel.selectedIndex, Equals(0))
-        selectedValue = custommodel.select_single('Label', text='Name 4')
-        self.assertIsNotNone(selectedValue)
-        self.pointing_device.click_object(selectedValue)
-        self.assertThat(custommodel.selectedIndex, Eventually(Equals(3)))
-
-        selectedValue = custommodel.select_single('Label', text='Name 1')
-        self.assertIsNotNone(selectedValue)
-        self.pointing_device.click_object(selectedValue)
-        self.assertThat(custommodel.selectedIndex, Eventually(Equals(0)))
-
         #scroll the page downward now.
         collapsed = self.getObject("optionselector_collapsed")
         self.reveal_item_by_flick(collapsed, flickable, FlickDirection.DOWN)
