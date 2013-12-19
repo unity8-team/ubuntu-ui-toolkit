@@ -28,7 +28,8 @@ MainView {
     applicationName: "ubuntu-ui-toolkit-gallery"
 
 
-    width: units.gu(120)
+//    width: units.gu(120)
+    width: units.gu(70)
     height: units.gu(75)
 
     property bool wideAspect: width >= units.gu(80)
@@ -69,23 +70,67 @@ MainView {
     Layouts {
         anchors.fill: parent
 
+        layouts: [
+            ConditionalLayout {
+                name: "TwoColumns"
+                when: gallery.wideAspect
+
+                Page {
+                    clip: true
+                    Row {
+                        anchors.fill: parent
+                        Rectangle {
+                            anchors {
+                                top: parent.top
+                                bottom: parent.bottom
+                            }
+                            color: "green"
+                            width: units.gu(40)
+                            ItemLayout {
+                                anchors.fill: parent
+                                item: "widgetList"
+                            }
+                        }
+                        Rectangle {
+                            anchors {
+                                top: parent.top
+                                bottom: parent.bottom
+                            }
+                            color: "pink"
+                            width: parent.width - x
+                            ItemLayout {
+                                anchors.fill: parent
+                                item: "content"
+                            }
+                        }
+                    }
+                }
+            }
+
+        ]
+
         PageStack {
             id: pageStack
             Component.onCompleted: push(mainPage)
+            active: !gallery.wideAspect
+            clip: true
 
             Page {
                 id: mainPage
                 title: "Ubuntu UI Toolkit"
                 visible: false
-                flickable: widgetList
-
-                Rectangle {
-                    color: Qt.rgba(0.0, 0.0, 0.0, 0.01)
-                    anchors.fill: parent
+//                active: false
+                Component.onCompleted: print("mainPage.active initially = "+active)
+                onActiveChanged: print("mainPage.active = "+active)
+                //                flickable: widgetList
+//                flickable: gallery.wideAspect ? null : widgetList
+                flickable: null
+                clip: true
 
                     ListView {
                         id: widgetList
                         objectName: "widgetList"
+                        Layouts.item: "widgetList"
                         anchors.fill: parent
                         model: widgetsModel
                         delegate: ListItem.Standard {
@@ -96,12 +141,11 @@ MainView {
                             onClicked: {
                                 contentPage.title = model.label;
                                 contentPage.source = model.source;
-                                //                            if (!wideAspect) {
-                                pageStack.push(contentPage);
-                                //                            }
+                                                            if (!wideAspect) {
+                                                                pageStack.push(contentPage);
+                                                            }
                             }
                         }
-                    }
                 }
             }
 
@@ -109,15 +153,17 @@ MainView {
                 id: contentPage
                 visible: false
                 property alias source: contentLoader.source
-                onActiveChanged: if (!active) source = ""
-                ToolbarItems{ id: defTools}
-                tools: contentLoader.item && contentLoader.item.tools ? contentLoader.item.tools : defTools
-                flickable: contentLoader.item && !wideAspect ? contentLoader.item.flickable : null
+//                onActiveChanged: if (!active) source = ""
+//                ToolbarItems{ id: defTools}
+//                tools: contentLoader.item && contentLoader.item.tools ? contentLoader.item.tools : defTools
+//                flickable: contentLoader.item && !wideAspect ? contentLoader.item.flickable : null
+                flickable: null
 
                 Loader {
                     id: contentLoader
                     objectName: "contentLoader"
                     anchors.fill: parent
+                    Layouts.item: "content"
                 }
             }
         }
