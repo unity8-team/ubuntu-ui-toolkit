@@ -55,7 +55,7 @@ Template {
                         i18n.tr("Value 2"),
                         i18n.tr("Value 3"),
                         i18n.tr("Value 4")]
-                onDelegateClicked: print("OPTION IS SELECTED: " + isSelected(index));
+                onDelegateClicked: print("OPTION " + index +" IS SELECTED: " + isSelected(index));
                 Component.onCompleted: {
                     for (var i = 0; i < 4; i++) {
                         print("OPTION ON CREATION: " + isSelected(i));
@@ -71,7 +71,7 @@ Template {
                 multiSelection: true
                 colourImage: true
                 delegate: OptionSelectorDelegate { text: name; subText: description; iconSource: image; selected: selected }
-                onDelegateClicked: print("OPTION IS SELECTED: " + isSelected(index));
+                onDelegateClicked: print("OPTION " + index +" IS SELECTED: " + isSelected(index));
             }
 
             ListModel {
