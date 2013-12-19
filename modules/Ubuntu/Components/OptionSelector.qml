@@ -112,7 +112,8 @@ ListItem.Empty {
 
     /*!
       \preliminary
-      The list of values that will be shown under the label text. This is a model.
+      The list of values that will be shown under the label text. This is a model. If the selector is a multiple selection and this model doesn't inherit from QAbstractListModel
+      then we fall back to using an internal array of booleans to keep track of the selection.
      */
     property var model
 
@@ -187,13 +188,16 @@ ListItem.Empty {
 
     /*!
       \preliminary
-      Is i of our model currently selected?
+      Is option i of our model currently selected?
      */
     function isSelected(i) {
-        var selected = list.selections[i];
+        var selected;
         if (typeof model.get === "function") {
             selected = model.get(i).selected;
+        } else {
+            selected = list.selections[i]
         }
+
         return selected;
     }
 

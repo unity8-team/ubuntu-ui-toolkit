@@ -35,7 +35,6 @@ Item {
             text: "TEST"
             delegate: selectorDelegate
             model: customModel
-            expanded: false
 
             action: {
                 enabled: true
@@ -101,7 +100,8 @@ Item {
          function test_expanded() {
              var listContainer = findChild(selector, "listContainer");
 
-             selector.expanded = false;
+             compare(multiSelector.expanded, false, "multi selector should be false on startup.")
+
              compare(listContainer.currentlyExpanded, false, "expanded should be true if list is an expanded one");
              compare(listContainer.state, "collapsed", "state should be collapsed");
 
