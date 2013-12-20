@@ -163,8 +163,9 @@ Item {
                         anchors {
                             bottom: parent.bottom
                             bottomMargin: headerTextBottomMargin
+                            left: button.right
+                            leftMargin: -width
                         }
-                        x: button.width - width
 
                         // The indicator image must be visible after the selected tab button, when the
                         // tab bar is not in selection mode, or after the "last" button (starting with
