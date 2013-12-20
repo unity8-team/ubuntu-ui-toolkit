@@ -82,15 +82,17 @@ class OptionSelectorTests(GalleryTestCase):
         self.assertThat(flickable.flicking, Eventually(Equals(False)))
 
         self.assertThat(custommodel.selectedIndex, Equals(0))
-        selectedValue = custommodel.select_single('Label', text='Name 4')
+        selectedValue = custommodel.select_single('OptionSelectorDelegate',
+                                                  text='Name 4')
         self.assertIsNotNone(selectedValue)
         self.pointing_device.click_object(selectedValue)
-        self.assertThat(custommodel.selectedIndex, Eventually(Equals(3)))
+        self.assertThat(selectedValue.selected, Eventually(Equals(True)))
 
-        selectedValue = custommodel.select_single('Label', text='Name 1')
+        selectedValue = custommodel.select_single('OptionSelectorDelegate',
+                                                  text='Name 1')
         self.assertIsNotNone(selectedValue)
         self.pointing_device.click_object(selectedValue)
-        self.assertThat(custommodel.selectedIndex, Eventually(Equals(0)))
+        self.assertThat(selectedValue.selected, Eventually(Equals(True)))
 
         #scroll the page downward now.
         collapsed = self.getObject("optionselector_collapsed")
