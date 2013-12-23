@@ -178,6 +178,10 @@ PageTreeNode {
         property Header header: page.__propagated && page.__propagated.header ? page.__propagated.header : null
         property Toolbar toolbar: page.__propagated && page.__propagated.toolbar ? page.__propagated.toolbar : null
 
+        // Used to position the Page when there is no flickable.
+        // When there is a flickable, the header will automatically position it.
+        property real headerHeight: internal.header && internal.header.visible ? internal.header.height : 0
+
         onHeaderChanged: internal.updateHeaderAndToolbar()
         onToolbarChanged: internal.updateHeaderAndToolbar()
 
@@ -198,11 +202,9 @@ PageTreeNode {
 
         Connections {
             target: page
-            onFlickableChanged: internal.updateFlickablePosition()
+            onFlickableChanged: internal.initializeFlickablePosition()
         }
-        Component.onCompleted: internal.updateFlickablePosition()
-
-        property real headerHeight: internal.header && internal.header.visible ? internal.header.height : 0
+        Component.onCompleted: internal.initializeFlickablePosition()
 
         function isVerticalFlickable(object) {
             if (object && object.hasOwnProperty("flickableDirection") && object.hasOwnProperty("contentHeight")) {
@@ -233,26 +235,14 @@ PageTreeNode {
             return null;
         }
 
-        Binding {
-            target: page.flickable
-            property: "topMargin"
-            value: internal.headerHeight
-            when: page.flickable
-        }
-
-        // first time the page is activated, flickable position may be updated.
-        property bool firstTimeActive: true
-
-        function updateFlickablePosition() {
+        function initializeFlickablePosition() {
             if (page.flickable) {
-                // Set-up the top-margin of the contents of the Flickable so that
-                //  the contents is never hidden by the header
-                var displacement = headerHeight;
+                // compensating for header height and setting flickable.topMargin is done
+                //  automatically by the header when its flickable property is set.
                 if (page.flickable.hasOwnProperty("headerItem") && page.flickable.headerItem) {
                     // flickable is a ListView with a headerItem
-                    displacement += page.flickable.headerItem.height;
+                    page.flickable.contentY -= page.flickable.headerItem.height;
                 }
-                page.flickable.contentY = -displacement;
             }
         }
     }
