@@ -128,7 +128,7 @@ PageTreeNode {
         internal.updateActions();
         if (internal.firstTimeActive) {
             internal.firstTimeActive = false;
-            if (page.active) internal.updateFlickablePosition();
+//            if (page.active) internal.updateFlickablePosition();
         }
     }
     /*! \internal */
@@ -141,7 +141,7 @@ PageTreeNode {
     onFlickableChanged: {
         internal.firstTimeActive = true;
         internal.updateHeaderAndToolbar();
-        internal.updateFlickablePosition();
+//        internal.initializeFlickablePosition();
     }
 
     /*!
