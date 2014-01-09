@@ -250,9 +250,10 @@ PageTreeNode {
             // only clip when necessary
             // ListView headers may be positioned at the top, independent from
             // flickable.contentY, so do not clip depending on activePage.flickable.contentY.
-            clip: headerItem.bottomY > 0 && activePage && activePage.flickable
+            clip: headerItem.bottomY > 0 && activeFlickable
 
             property Page activePage: isPage(mainView.activeLeafNode) ? mainView.activeLeafNode : null
+            property Flickable activeFlickable: activePage ? activePage.flickable : null
 
             function isPage(item) {
                 return item && item.hasOwnProperty("__isPageTreeNode") && item.__isPageTreeNode &&
@@ -267,7 +268,7 @@ PageTreeNode {
                     bottomMargin: toolbarItem.locked && toolbarItem.opened ? toolbarItem.height + toolbarItem.triggerSize : 0
                     // TODO: update comment
                     // compensate so that the actual y is always 0
-                    topMargin: contentsClipper.clip ? -parent.y : 0
+                    topMargin: contentsClipper.activeFlickable ? -parent.y : 0
                 }
             }
 
