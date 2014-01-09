@@ -56,11 +56,6 @@ Template {
                         i18n.tr("Value 3"),
                         i18n.tr("Value 4")]
                 onDelegateClicked: print("OPTION " + index +" IS SELECTED: " + isSelected(index));
-                Component.onCompleted: {
-                    for (var i = 0; i < 4; i++) {
-                        print("OPTION ON CREATION: " + isSelected(i));
-                    }
-                }
             }
 
             OptionSelector {
