@@ -16,23 +16,18 @@
 
 import QtQuick 2.0
 import Ubuntu.Components 0.1
-import QtQuick.Window 2.0
 
 Item {
+    id: root
     width: 100
     height: 100
 
-    OrientationHelper {
-        objectName: "helper"
-        orientationAngle: 90
-    }
-
-    Window {
-        id: window
-    }
-
-    Item {
-        objectName: "checkpoint"
-        property int contentOrientation: window.contentOrientation
+    Column {
+        id: column
+        Loader {
+            id: outerLoader
+            objectName: "outerLoader"
+            StateSaver.properties: "source"
+        }
     }
 }
