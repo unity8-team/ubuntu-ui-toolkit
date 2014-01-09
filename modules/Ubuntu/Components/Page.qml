@@ -67,17 +67,12 @@ import Ubuntu.Unity.Action 1.0 as UnityActions
 */
 PageTreeNode {
     id: page
-//    anchors.fill: parent
     anchors {
         left: parent ? parent.left : undefined
         right: parent ? parent.right : undefined
         bottom: parent ? parent.bottom : undefined
-//        top: parent ? parent.top : undefined
     }
     height: parent ? page.flickable ? parent.height : parent.height - internal.headerHeight : undefined
-//    height: parent.height
-//    height: parent.height - internal.headerHeight
-//    onHeightChanged: print("height for page "+page.title+" changed to "+height)
 
     /*!
       The title of the page. Will be shown in the header of the \l MainView.
@@ -178,15 +173,12 @@ PageTreeNode {
         // Used to position the Page when there is no flickable.
         // When there is a flickable, the header will automatically position it.
         property real headerHeight: internal.header && internal.header.visible ? internal.header.height : 0
-        onHeaderHeightChanged: print("headerHeight changed to "+headerHeight+" for page "+page.title)
 
         onHeaderChanged: internal.updateHeaderAndToolbar()
         onToolbarChanged: internal.updateHeaderAndToolbar()
 
         function updateHeaderAndToolbar() {
             if (page.active) {
-                print("updating header and toolbar for page "+page.title)
-
                 if (internal.header) {
                     internal.header.title = page.title;
                     internal.header.flickable = page.flickable;
