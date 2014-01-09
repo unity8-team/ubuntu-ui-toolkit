@@ -67,13 +67,15 @@ import Ubuntu.Unity.Action 1.0 as UnityActions
 */
 PageTreeNode {
     id: page
-    anchors.fill: parent
-//    anchors {
-//        left: parent ? parent.left : undefined
-//        right: parent ? parent.right : undefined
-//        bottom: parent ? parent.bottom : undefined
-//    }
-//    height: parent ? page.flickable ? parent.height : parent.height - internal.headerHeight : undefined
+//    anchors.fill: parent
+    anchors {
+        left: parent ? parent.left : undefined
+        right: parent ? parent.right : undefined
+        bottom: parent ? parent.bottom : undefined
+//        top: parent ? parent.top : undefined
+    }
+    height: parent ? page.flickable ? parent.height : parent.height - internal.headerHeight : undefined
+//    height: parent.height
 //    height: parent.height - internal.headerHeight
 //    onHeightChanged: print("height for page "+page.title+" changed to "+height)
 

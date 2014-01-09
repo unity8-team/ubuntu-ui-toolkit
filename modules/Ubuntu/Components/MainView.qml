@@ -267,8 +267,8 @@ PageTreeNode {
                     // move the whole contents up if the toolbar is locked and opened otherwise the toolbar will obscure part of the contents
                     bottomMargin: toolbarItem.locked && toolbarItem.opened ? toolbarItem.height + toolbarItem.triggerSize : 0
                     // compensate so that the actual y is always 0
-//                    topMargin: -parent.y
-                    topMargin: contentsClipper.activePage && !contentsClipper.activePage.flickable ? 0 : -parent.y
+                    topMargin: contentsClipper.clip ? -parent.y : 0
+//                    topMargin: contentsClipper.activePage && !contentsClipper.activePage.flickable ? 0 : -parent.y
 //                    topMargin: 0 //header.height
 //                    topMargin: activePage && activePage.flickable ? -parent.y : header.height - parent.y
                 }

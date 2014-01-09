@@ -37,6 +37,7 @@ MainView {
     automaticOrientation: true
 
     state: width >= units.gu(80) ? "wide" : "narrow"
+    onStateChanged: print("state = "+state)
     states: [
         State {
             name: "narrow"
