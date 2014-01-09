@@ -81,7 +81,6 @@ class OptionSelectorTests(GalleryTestCase):
         self.reveal_item_by_flick(custommodel, flickable, FlickDirection.UP)
         self.assertThat(flickable.flicking, Eventually(Equals(False)))
 
-        self.assertThat(custommodel.selectedIndex, Equals(0))
         selectedValue = custommodel.select_single('OptionSelectorDelegate',
                                                   text='Name 4')
         self.assertIsNotNone(selectedValue)
