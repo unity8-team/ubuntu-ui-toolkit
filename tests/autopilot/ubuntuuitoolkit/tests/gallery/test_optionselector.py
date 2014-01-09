@@ -91,7 +91,7 @@ class OptionSelectorTests(GalleryTestCase):
                                                   text='Name 1')
         self.assertIsNotNone(selectedValue)
         self.pointing_device.click_object(selectedValue)
-        self.assertThat(selectedValue.selected, Eventually(Equals(True)))
+        self.assertThat(selectedValue.selected, Eventually(Equals(False)))
 
         #scroll the page downward now.
         collapsed = self.getObject("optionselector_collapsed")
