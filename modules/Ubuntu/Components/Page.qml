@@ -71,8 +71,22 @@ PageTreeNode {
         left: parent ? parent.left : undefined
         right: parent ? parent.right : undefined
         bottom: parent ? parent.bottom : undefined
+        top: undefined
     }
-    height: parent ? page.flickable ? parent.height : parent.height - internal.headerHeight : undefined
+//    height: parent ? page.flickable ? parent.height : parent.height - internal.headerHeight : undefined
+    height: 400 //404 // parent ? parent.height - 76 : undefined //internal.headerHeight : undefined
+
+
+    Rectangle {
+//        width: parent.width
+        height: 10
+        color: "purple"
+        anchors {
+            left: parent.left
+            right: parent.right
+            top: parent.top
+        }
+    }
 
     /*!
       The title of the page. Will be shown in the header of the \l MainView.
@@ -173,6 +187,14 @@ PageTreeNode {
         // Used to position the Page when there is no flickable.
         // When there is a flickable, the header will automatically position it.
         property real headerHeight: internal.header && internal.header.visible ? internal.header.height : 0
+        onHeaderHeightChanged: print("internal.headerHeight changed to "+headerHeight+" for page "+page.title)
+//        Binding {
+//            target: page
+//            property: "height"
+//            value: page.parent.height - page.__propagated.header.height
+//            when: page.__propagated && page.__propagated.header //&&
+////                    page.__propagated.header.visible
+//        }
 
         onHeaderChanged: internal.updateHeaderAndToolbar()
         onToolbarChanged: internal.updateHeaderAndToolbar()

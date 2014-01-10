@@ -268,7 +268,8 @@ PageTreeNode {
                     bottomMargin: toolbarItem.locked && toolbarItem.opened ? toolbarItem.height + toolbarItem.triggerSize : 0
                     // compensate so that the actual y is always 0 when there is an active flickable.
                     // Without the flickable, the top of the contents needs to align with he bottom of the header.
-                    topMargin: contentsClipper.activeFlickable ? -parent.y : 0
+//                    topMargin: contentsClipper.activeFlickable ? -parent.y : 0
+                    topMargin: -parent.y
                 }
             }
 
