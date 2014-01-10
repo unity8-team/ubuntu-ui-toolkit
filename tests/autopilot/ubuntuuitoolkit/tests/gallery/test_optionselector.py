@@ -30,12 +30,12 @@ class OptionSelectorTests(GalleryTestCase):
         self.loadItem(item)
         self.checkPageHeader(item)
         collapsed = self.getObject("optionselector_collapsed")
-        styleditem = collapsed.select_single('Standard',
+        standard = collapsed.select_single('Standard',
                                              objectName='listContainer')
 
         self.assertThat(collapsed.selectedIndex, Equals(0))
         self.pointing_device.click_object(collapsed)
-        self.assertThat(styleditem.currentlyExpanded, Eventually(Equals(True)))
+        self.assertThat(standard.currentlyExpanded, Eventually(Equals(True)))
         #try to search the following list entry few times
         #as it may not be available immediately.
         for t in range(0, 9):
@@ -48,7 +48,7 @@ class OptionSelectorTests(GalleryTestCase):
 
         self.pointing_device.click_object(selectedValue)
         self.assertThat(collapsed.selectedIndex, Eventually(Equals(3)))
-        self.assertThat(styleditem.currentlyExpanded,
+        self.assertThat(standard.currentlyExpanded,
                         Eventually(Equals(False)))
 
     def test_optionselector_expanded(self):
