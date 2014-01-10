@@ -30,7 +30,7 @@ class OptionSelectorTests(GalleryTestCase):
         self.loadItem(item)
         self.checkPageHeader(item)
         collapsed = self.getObject("optionselector_collapsed")
-        styleditem = collapsed.select_single('ListItem.Standard',
+        styleditem = collapsed.select_single('Standard',
                                              objectName='listContainer')
 
         self.assertThat(collapsed.selectedIndex, Equals(0))
