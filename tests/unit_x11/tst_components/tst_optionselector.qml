@@ -106,7 +106,7 @@ MainView {
          function test_expanded() {
              var listContainer = findChild(selector, "listContainer");
 
-             compare(multiSelector.expanded, false, "multi selector should be false on startup.")
+             compare(multiSelector.expanded, false, "expanded should be false on startup.")
 
              compare(listContainer.currentlyExpanded, false, "expanded should be true if list is an expanded one");
              compare(listContainer.state, "collapsed", "state should be collapsed");
@@ -147,13 +147,13 @@ MainView {
              skip('FIXME: This test doesn\'t pass in CI')
              mouseClick(multiSelector, 100, 90, Qt.LeftButton);
              clickedSignal.wait();
-             compare(multiSelector.isSelected(clickedSignal.signalArguments[0][0]), true);
+             compare(multiSelector.isSelected(clickedSignal.signalArguments[0][0]), true, "Clicked signal was not emitted and option was not selected.");
 
              //Second option.
              mouseClick(multiSelector, 100, 90, Qt.LeftButton);
              clickedSignal.wait();
              //Did the second index get clicked?
-             compare(multiSelector.isSelected(clickedSignal.signalArguments[1][0]), false);
+             compare(multiSelector.isSelected(clickedSignal.signalArguments[1][0]), false, "Clicked signal was not emitted and option was not deselected.");
          }
 
          function test_expansion_signal() {
