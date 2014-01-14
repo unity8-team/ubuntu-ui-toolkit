@@ -33,7 +33,12 @@ MainView {
             id: selector
 
             text: "TEST"
-            delegate: selectorDelegate
+            delegate: OptionSelectorDelegate {
+                text: name
+                subText: description
+                iconSource: image
+                constrainImage: true
+            }
             model: customModel
 
             action: {
@@ -58,17 +63,6 @@ MainView {
             text: "TEST"
             subText: "test"
             iconSource: "../../resources/optionselector/test.png"
-            constrainImage: true
-        }
-    }
-
-    Component {
-        id: selectorDelegate
-
-        OptionSelectorDelegate {
-            text: name
-            subText: description
-            iconSource: image
             constrainImage: true
         }
     }
