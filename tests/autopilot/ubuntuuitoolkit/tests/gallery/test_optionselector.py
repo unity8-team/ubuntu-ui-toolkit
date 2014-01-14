@@ -34,7 +34,7 @@ class OptionSelectorTests(GalleryTestCase):
                                              objectName='listContainer')
 
         self.assertThat(collapsed.selectedIndex, Equals(0))
-        self.pointing_device.click_object(collapsed)
+        self.pointing_device.click_object(styleditem)
         self.assertThat(styleditem.currentlyExpanded, Eventually(Equals(True)))
         #try to search the following list entry few times
         #as it may not be available immediately.
