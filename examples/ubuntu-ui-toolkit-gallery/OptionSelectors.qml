@@ -55,7 +55,6 @@ Template {
                         i18n.tr("Value 2"),
                         i18n.tr("Value 3"),
                         i18n.tr("Value 4")]
-                onDelegateClicked: print("OPTION " + index +" IS SELECTED: " + isSelected(index));
             }
 
             OptionSelector {
@@ -66,7 +65,6 @@ Template {
                 multiSelection: true
                 colourImage: true
                 delegate: OptionSelectorDelegate { text: name; subText: description; iconSource: image; selected: selected }
-                onDelegateClicked: print("OPTION " + index +" IS SELECTED: " + isSelected(index));
             }
 
             ListModel {
