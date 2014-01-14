@@ -195,7 +195,7 @@ ListItem.Empty {
         if (typeof model.get === "function") {
             selected = model.get(i).selected;
         } else {
-            selected = list.selections[i]
+            selected = list.selections[i];
         }
 
         return selected;
