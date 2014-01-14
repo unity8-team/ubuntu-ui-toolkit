@@ -129,7 +129,6 @@ MainView {
 
          function test_custom_model_delegate() {
              compare(selector.model, customModel, "Model wasn't set correctly.");
-             compare(selector.delegate, selectorDelegate, "Delegate hasn't been set correctly");
          }
 
          function test_image_constraint() {
