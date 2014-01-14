@@ -284,7 +284,7 @@ ListItem.Empty {
                 id: list
 
                 /*This array is initialised on an index by index basis in each OptionSelectorDelegate's onCompleted call.
-                Values are reset everytime a multiple choice selection is checked/unchecked.*/
+                Values are reset everytime a multiple choice selection is clicked.*/
                 property var selections: []
 
                 property int previousIndex: -1
