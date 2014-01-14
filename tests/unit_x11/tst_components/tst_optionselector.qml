@@ -144,7 +144,6 @@ MainView {
          }
 
          function test_clicked_signal() {
-             skip('FIXME: This test doesn\'t pass in CI')
              mouseClick(multiSelector, 100, 90, Qt.LeftButton);
              clickedSignal.wait();
              compare(multiSelector.isSelected(clickedSignal.signalArguments[0][0]), true, "Clicked signal was not emitted and option was not selected.");
@@ -157,13 +156,11 @@ MainView {
          }
 
          function test_expansion_signal() {
-             skip('FIXME: This test doesn\'t pass in CI')
              mouseClick(selector, 100, 100, Qt.LeftButton);
              expansionSignal.wait();
          }
 
          function test_triggered() {
-             skip('FIXME: This test doesn\'t pass in CI')
              mouseClick(selector, 100, 100, Qt.LeftButton);
              triggeredSignal.wait();
          }
