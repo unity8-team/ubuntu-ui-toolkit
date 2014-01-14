@@ -56,15 +56,6 @@ MainView {
             model: [1, 2, 3, 4]
             multiSelection: true
         }
-
-        OptionSelectorDelegate {
-            id: testDelegate
-
-            text: "TEST"
-            subText: "test"
-            iconSource: "../../resources/optionselector/test.png"
-            constrainImage: true
-        }
     }
 
     ListModel {
@@ -129,11 +120,6 @@ MainView {
 
          function test_custom_model_delegate() {
              compare(selector.model, customModel, "Model wasn't set correctly.");
-         }
-
-         function test_image_constraint() {
-            var image = findChild(testDelegate, "icon");
-            compare(image.height, testDelegate.height);
          }
 
          function test_clicked_signal() {
