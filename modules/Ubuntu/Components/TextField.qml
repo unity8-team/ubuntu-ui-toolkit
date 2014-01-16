@@ -539,11 +539,19 @@ ActionItem {
       horizontal alignment of TextField, use the read-only property effectiveHorizontalAlignment.
 
       \qmlproperty enumeration horizontalAlignment
-      \qmlproperty enumeration effectiveHorizontalAlignment
-      \qmlproperty enumeration verticalAlignment
     */
     property alias horizontalAlignment: editor.horizontalAlignment
+    /*!
+      \qmlproperty enumeration effectiveHorizontalAlignment
+
+      See \l horizontalAlignment for details.
+    */
     property alias effectiveHorizontalAlignment: editor.effectiveHorizontalAlignment
+    /*!
+      \qmlproperty enumeration verticalAlignment
+
+      See \l horizontalAlignment for details.
+     */
     property alias verticalAlignment: editor.verticalAlignment
 
     /*!
@@ -834,8 +842,8 @@ ActionItem {
             if (inputMethodHints != Qt.ImhNone)
                 return
 
-            if (type == UnityActions.Action.Type.Integer
-             || type == UnityActions.Action.Type.Real)
+            if (type == UnityActions.Action.Integer
+             || type == UnityActions.Action.Real)
                 inputMethodHints = Qt.ImhDigitsOnly
         }
 
