@@ -57,7 +57,7 @@ public:
         QTest::qWaitForWindowExposed(view);
 
         // No warnings from QML
-        Q_ASSERT(spy.count() == 0);
+        Q_ASSERT((*spy)->count() == 0);
 
         return view;
     }
