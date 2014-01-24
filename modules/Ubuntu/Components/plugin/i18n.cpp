@@ -239,15 +239,19 @@ user_manager_loaded(GObject*    object,
 void
 UbuntuI18n::userManagerLoaded()
 {
-    m_user = act_user_manager_get_user(m_manager, qPrintable(qgetenv("USER")));
+    QByteArray name = qgetenv("USER");
 
-    if (m_user != NULL) {
-        g_object_ref(m_user);
+    if (!name.isEmpty()) {
+        m_user = act_user_manager_get_user(m_manager, name.constData());
 
-        if (act_user_is_loaded(m_user)) {
-            userLoaded();
-        } else {
-            g_signal_connect(m_user, "is-loaded", G_CALLBACK(user_loaded), this);
+        if (m_user != NULL) {
+            g_object_ref(m_user);
+
+            if (act_user_is_loaded(m_user)) {
+                userLoaded();
+            } else {
+                g_signal_connect(m_user, "is-loaded", G_CALLBACK(user_loaded), this);
+            }
         }
     }
 }
