@@ -26,6 +26,10 @@ namespace C {
 #include <stdlib.h>
 #include <locale.h>
 
+void user_manager_loaded(GObject* object, GParamSpec* pspec, gpointer user_data);
+void user_loaded(GObject* object, GParamSpec* pspec, gpointer user_data);
+void user_language_changed(GObject* object, GParamSpec* pspec, gpointer user_data);
+
 /*!
  * \qmltype i18n
  * \instantiates UbuntuI18n
@@ -63,6 +67,34 @@ UbuntuI18n::UbuntuI18n(QObject* parent) : QObject(parent)
      *   defines the order of multiple locales
      */
     m_language = setlocale(LC_ALL, "");
+
+    /* Load the current user. We're watching for when his language changes. */
+    m_manager = act_user_manager_get_default();
+
+    if (m_manager != NULL) {
+        gboolean loaded;
+        g_object_ref(m_manager);
+        g_object_get(m_manager, "is-loaded", &loaded, NULL);
+
+        if (loaded) {
+            userManagerLoaded();
+        } else {
+            g_signal_connect(m_manager, "notify::is-loaded", G_CALLBACK(user_manager_loaded), this);
+        }
+    }
+}
+
+UbuntuI18n::~UbuntuI18n()
+{
+    if (m_user != NULL) {
+        g_signal_handlers_disconnect_by_data(m_user, this);
+        g_object_unref(m_user);
+    }
+
+    if (m_manager != NULL) {
+        g_signal_handlers_disconnect_by_data(m_manager, this);
+        g_object_unref(m_manager);
+    }
 }
 
 /*!
@@ -183,4 +215,80 @@ QString UbuntuI18n::dtr(const QString& domain, const QString& singular, const QS
     } else {
         return QString::fromUtf8(C::dngettext(domain.toUtf8(), singular.toUtf8(), plural.toUtf8(), n));
     }
+}
+
+void
+user_manager_loaded(GObject*    object,
+                    GParamSpec* pspec,
+                    gpointer    user_data)
+{
+    Q_UNUSED(pspec);
+
+    ActUserManager* manager = ACT_USER_MANAGER(object);
+
+    gboolean loaded;
+    g_object_get(manager, "is-loaded", &loaded, NULL);
+
+    if (loaded) {
+        UbuntuI18n* instance = static_cast<UbuntuI18n*>(user_data);
+        g_signal_handlers_disconnect_by_data(manager, instance);
+        instance->userManagerLoaded();
+    }
+}
+
+void
+UbuntuI18n::userManagerLoaded()
+{
+    m_user = act_user_manager_get_user(m_manager, qPrintable(qgetenv("USER")));
+
+    if (m_user != NULL) {
+        g_object_ref(m_user);
+
+        if (act_user_is_loaded(m_user)) {
+            userLoaded();
+        } else {
+            g_signal_connect(m_user, "is-loaded", G_CALLBACK(user_loaded), this);
+        }
+    }
+}
+
+void
+user_loaded(GObject*    object,
+            GParamSpec* pspec,
+            gpointer    user_data)
+{
+    Q_UNUSED(pspec);
+
+    ActUser* user = ACT_USER(object);
+
+    if (act_user_is_loaded(user)) {
+        UbuntuI18n* instance = static_cast<UbuntuI18n*>(user_data);
+        g_signal_handlers_disconnect_by_data(user, instance);
+        instance->userLoaded();
+    }
+}
+
+void
+UbuntuI18n::userLoaded()
+{
+    g_signal_connect(m_user, "notify::language", G_CALLBACK(user_language_changed), this);
+    userLanguageChanged();
+}
+
+void
+user_language_changed(GObject*    object,
+                      GParamSpec* pspec,
+                      gpointer    user_data)
+{
+    Q_UNUSED(object);
+    Q_UNUSED(pspec);
+
+    UbuntuI18n* instance = static_cast<UbuntuI18n*>(user_data);
+    instance->userLanguageChanged();
+}
+
+void
+UbuntuI18n::userLanguageChanged()
+{
+    setLanguage(act_user_get_language(m_user));
 }

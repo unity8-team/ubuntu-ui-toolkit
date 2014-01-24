@@ -20,6 +20,7 @@
 #define UBUNTU_COMPONENTS_I18N_H
 
 #include <QtCore/QObject>
+#include <act/act.h>
 
 class QQmlContext;
 class QQmlEngine;
@@ -34,8 +35,9 @@ private:
     Q_DISABLE_COPY(UbuntuI18n)
     explicit UbuntuI18n(QObject* parent = 0);
 
-
 public:
+    ~UbuntuI18n();
+
     static UbuntuI18n& instance() {
         static UbuntuI18n instance;
         return instance;
@@ -60,8 +62,19 @@ Q_SIGNALS:
     void languageChanged();
 
 private:
+    void userManagerLoaded();
+    void userLoaded();
+    void userLanguageChanged();
+
+    friend void user_manager_loaded(GObject* object, GParamSpec* pspec, gpointer user_data);
+    friend void user_loaded(GObject* object, GParamSpec* pspec, gpointer user_data);
+    friend void user_language_changed(GObject* object, GParamSpec* pspec, gpointer user_data);
+
     QString m_domain;
     QString m_language;
+
+    ActUserManager* m_manager;
+    ActUser* m_user;
 };
 
 #endif // UBUNTU_COMPONENTS_I18N_H

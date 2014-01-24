@@ -1,4 +1,10 @@
 include(../test-include.pri)
+
+unix {
+    CONFIG += link_pkgconfig
+    PKGCONFIG += glib-2.0 accountsservice
+}
+
 QT += gui
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
 
