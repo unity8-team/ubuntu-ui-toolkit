@@ -60,6 +60,7 @@ private Q_SLOTS:
     void testNameSet();
     void testCreateStyleComponent();
     void testCreateStyleComponent_data();
+    void testChangeThemeAfterCompletion();
     void testThemesRelativePath();
     void testThemesRelativePathWithParent();
     void testThemesRelativePathWithParentXDGDATA();
@@ -135,6 +136,28 @@ void tst_UCTheme::testCreateStyleComponent_data() {
     QTest::newRow("Existing style") << "TestStyle.qml" << "Parent.qml" << true;
     QTest::newRow("Non existing style") << "NotExistingTestStyle.qml" << "Parent.qml" << false;
     QTest::newRow("No parent") << "TestStyle.qml" << "" << false;
+}
+
+void tst_UCTheme::testChangeThemeAfterCompletion()
+{
+    qputenv("UBUNTU_UI_TOOLKIT_THEMES_PATH", "../tst_theme_engine");
+
+    QScopedPointer<QQuickView> view(loadTest("ChangeThemeAfterCompletion.qml"));
+    QVERIFY(view);
+
+    UCTheme *theme = UCTheme::instance();
+    QVERIFY(theme);
+
+    QQmlComponent *style = view->rootObject()->property("style").value<QQmlComponent*>();
+    QVERIFY(!style);
+    // change the theme
+    QSignalSpy nameChanged(theme, SIGNAL(nameChanged()));
+    theme->setName("TestModule.TestTheme");
+    QTest::waitForEvents();
+    QCOMPARE(nameChanged.count(), 1);
+
+    style = view->rootObject()->property("style").value<QQmlComponent*>();
+    QVERIFY(style);
 }
 
 void tst_UCTheme::testThemesRelativePath()

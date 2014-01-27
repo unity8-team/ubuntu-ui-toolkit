@@ -7,4 +7,5 @@ OTHER_FILES += \
     NameSet.qml \
     ThemesRelativePath.qml \
     CustomTheme.qml \
-    TestThemeTestStyle.qml
+    TestThemeTestStyle.qml \
+    ChangeThemeAfterCompletion.qml
