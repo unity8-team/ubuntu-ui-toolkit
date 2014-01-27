@@ -47,6 +47,7 @@ public:
     QObject* palette() const;
 
     Q_INVOKABLE QQmlComponent* createStyleComponent(const QString& styleName, QObject* parent);
+    Q_INVOKABLE QQmlComponent* createStyleComponent(const QString &themeName, const QString &styleName, QObject *parent);
 
 Q_SIGNALS:
     void nameChanged();

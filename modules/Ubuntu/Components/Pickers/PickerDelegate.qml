@@ -47,7 +47,7 @@ AbstractButton {
         internal.itemList.currentIndex = index;
     }
 
-    style: Theme.createStyleComponent("PickerDelegateStyle.qml", pickerDelegate)
+    style: Theme.createStyleComponent(Theme.name, "PickerDelegateStyle.qml", pickerDelegate)
 
     QtObject {
         id: internal

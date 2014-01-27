@@ -16,6 +16,7 @@
 
 import QtQuick 2.0
 import "Popups" 0.1
+import Ubuntu.Components 0.1 as Ubuntu
 
 StyledItem {
     id: cursorItem
@@ -58,5 +59,5 @@ StyledItem {
         }
     }
 
-    style: Theme.createStyleComponent("TextCursorStyle.qml", cursorItem)
+    style: Ubuntu.Theme.createStyleComponent(Ubuntu.Theme.name, "TextCursorStyle.qml", cursorItem)
 }

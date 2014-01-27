@@ -183,7 +183,7 @@ Template {
             confirmRemoval: (index % 2)
             backgroundIndicator: Rectangle {
                 anchors.fill: parent
-                color: Theme.palette.normal.base
+                color: Toolkit.Theme.palette.normal.base
             }
         }
     }

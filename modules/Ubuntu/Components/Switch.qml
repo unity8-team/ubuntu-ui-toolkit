@@ -18,6 +18,7 @@
 //     that needs to be validated with designers though.
 
 import QtQuick 2.0
+import Ubuntu.Components 0.1 as Ubuntu
 
 /*!
     \qmltype Switch
@@ -42,5 +43,5 @@ import QtQuick 2.0
 */
 CheckBox {
     id: switchItem
-    style: Theme.createStyleComponent("SwitchStyle.qml", switchItem)
+    style: Ubuntu.Theme.createStyleComponent(Ubuntu.Theme.name, "SwitchStyle.qml", switchItem)
 }

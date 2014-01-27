@@ -32,7 +32,8 @@
 #include <QtCore/QTextStream>
 #include <QtCore/QLibraryInfo>
 #include <QtCore/QStandardPaths>
-
+#include <QtQml/private/qqmlproperty_p.h>
+#include <QtQml/private/qqmlabstractbinding_p.h>
 /*!
     \qmltype Theme
     \instantiates UCTheme
@@ -65,7 +66,7 @@
 
     StyledItem {
         id: myItem
-        style: Theme.createStyleComponent("MyItemStyle.qml", myItem)
+        style: Theme.createStyleComponent(Theme.name, "MyItemStyle.qml", myItem)
     }
     \endqml
 
@@ -110,8 +111,8 @@ UCTheme::UCTheme(QObject *parent) :
     updateThemePaths();
     loadPalette();
 
-    QObject::connect(this, SIGNAL(nameChanged()),
-                     this, SLOT(loadPalette()), Qt::UniqueConnection);
+    QObject::connect(this, &UCTheme::nameChanged,
+                     this, &UCTheme::loadPalette, Qt::UniqueConnection);
 }
 
 UCTheme::~UCTheme()
@@ -237,33 +238,39 @@ QString UCTheme::parentThemeName(const QString& themeName)
 */
 QQmlComponent* UCTheme::createStyleComponent(const QString& styleName, QObject* parent)
 {
-    QQmlComponent *component = NULL;
+    qmlInfo(parent) << "Deprecated, use createStyleComponent(themeName, styleName, parent)";
+    return createStyleComponent(m_name, styleName, parent);
+}
 
-    if (parent != NULL) {
-        QQmlEngine* engine = qmlEngine(parent);
-        if (engine != m_engine && !m_engine) {
+/*!
+    \qmlmethod Component Theme::createStyleComponent(string themeName, string styleName, object parent)
+
+    Returns an instance of the style component named \a styleName from \a themeName.
+*/
+QQmlComponent* UCTheme::createStyleComponent(const QString &themeName, const QString &styleName, QObject *parent)
+{
+    QQmlComponent *style = 0;
+    if (!(themeName.isEmpty() || themeName != m_name) && (parent != NULL)) {
+        QQmlEngine *engine = qmlEngine(parent);
+        if (!engine || ((engine != m_engine) && !m_engine)) {
             qmlInfo(parent) <<
                UbuntuI18n::instance().tr(QString("ERROR: %1 component to be created in a different QQmlEngine instance.").arg(styleName));
             return NULL;
         }
-        // make sure we have the paths
-        if (engine != NULL) {
-            QUrl url = styleUrl(styleName);
-            if (url.isValid()) {
-                component = new QQmlComponent(engine, url, QQmlComponent::PreferSynchronous, parent);
-                if (component->isError()) {
-                    qmlInfo(parent) << component->errorString();
-                    delete component;
-                    component = NULL;
-                }
-            } else {
-                qmlInfo(parent) <<
-                   UbuntuI18n::instance().tr(QString("Warning: Style %1 not found in theme %2").arg(styleName).arg(m_name));
+        QUrl url = styleUrl(styleName);
+        if (url.isValid()) {
+            style = new QQmlComponent(engine, url, QQmlComponent::PreferSynchronous, parent);
+            if (style->isError()) {
+                qmlInfo(parent) << style->errorString();
+                delete style;
+                style = NULL;
             }
+        } else {
+            qmlInfo(parent) <<
+               UbuntuI18n::instance().tr(QString("Warning: Style %1 not found in theme %2").arg(styleName).arg(m_name));
         }
     }
-
-    return component;
+    return style;
 }
 
 void UCTheme::loadPalette()

@@ -16,6 +16,7 @@
 
 import QtQuick 2.0
 import "mathUtils.js" as MathUtils
+import Ubuntu.Components 0.1 as Ubuntu
 
 /*!
     \qmltype TextArea
@@ -904,7 +905,7 @@ StyledItem {
         }
         // hint is shown till user types something in the field
         visible: (editor.getText(0, editor.length) == "") && !editor.inputMethodComposing
-        color: Theme.palette.normal.backgroundText
+        color: Ubuntu.Theme.palette.normal.backgroundText
         fontSize: "medium"
         elide: Text.ElideRight
         wrapMode: Text.WordWrap
@@ -963,8 +964,8 @@ StyledItem {
             selectByMouse: false
             cursorDelegate: cursor
             color: control.__styleInstance.color
-            selectedTextColor: Theme.palette.selected.foregroundText
-            selectionColor: Theme.palette.selected.foreground
+            selectedTextColor: Ubuntu.Theme.palette.selected.foregroundText
+            selectionColor: Ubuntu.Theme.palette.selected.foreground
             font.pixelSize: FontUtils.sizeToPixels("medium")
             // forward keys to the root element so it can be captured outside of it
             Keys.forwardTo: [control]
@@ -1025,5 +1026,5 @@ StyledItem {
         }
     }
 
-    style: Theme.createStyleComponent("TextAreaStyle.qml", control)
+    style: Ubuntu.Theme.createStyleComponent(Ubuntu.Theme.name, "TextAreaStyle.qml", control)
 }

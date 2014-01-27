@@ -15,6 +15,7 @@
  */
 
 import QtQuick 2.0
+import Ubuntu.Components 0.1 as Ubuntu
 
 /*!
     \qmltype CheckBox
@@ -52,5 +53,5 @@ AbstractButton {
      */
     onTriggered: checked = !checked
 
-    style: Theme.createStyleComponent("CheckBoxStyle.qml", checkBox)
+    style: Ubuntu.Theme.createStyleComponent(Ubuntu.Theme.name, "CheckBoxStyle.qml", checkBox)
 }

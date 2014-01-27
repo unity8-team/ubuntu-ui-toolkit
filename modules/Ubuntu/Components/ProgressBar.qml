@@ -15,6 +15,7 @@
  */
 
 import QtQuick 2.0
+import Ubuntu.Components 0.1 as Ubuntu
 
 /*!
     \qmltype ProgressBar
@@ -70,5 +71,5 @@ AnimatedItem {
     */
     property real value: 0.5
 
-    style: Theme.createStyleComponent("ProgressBarStyle.qml", progressBar)
+    style: Ubuntu.Theme.createStyleComponent(Ubuntu.Theme.name, "ProgressBarStyle.qml", progressBar)
 }

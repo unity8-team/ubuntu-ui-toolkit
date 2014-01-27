@@ -15,6 +15,7 @@
  */
 
 import QtQuick 2.0
+import Ubuntu.Components 0.1 as Ubuntu
 
 /*!
     \qmltype ActivityIndicator
@@ -58,5 +59,5 @@ AnimatedItem {
     implicitWidth: units.gu(3)
     implicitHeight: units.gu(3)
 
-    style: Theme.createStyleComponent("ActivityIndicatorStyle.qml", indicator)
+    style: Ubuntu.Theme.createStyleComponent(Ubuntu.Theme.name, "ActivityIndicatorStyle.qml", indicator)
 }

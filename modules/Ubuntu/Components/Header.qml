@@ -184,5 +184,5 @@ StyledItem {
         }
     }
 
-    style: Theme.createStyleComponent("HeaderStyle.qml", header)
+    style: Ubuntu.Theme.createStyleComponent(Ubuntu.Theme.name, "HeaderStyle.qml", header)
 }

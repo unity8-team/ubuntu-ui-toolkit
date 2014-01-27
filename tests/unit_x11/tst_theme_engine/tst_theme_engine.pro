@@ -8,4 +8,5 @@ OTHER_FILES += \
     ThemesRelativePath.qml \
     CustomTheme.qml \
     TestThemeTestStyle.qml \
-    ChangeThemeAfterCompletion.qml
+    ChangeThemeAfterCompletion.qml \
+    ChangeThemeAfterCompletionNewFunction.qml

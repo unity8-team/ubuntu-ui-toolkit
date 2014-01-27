@@ -15,6 +15,7 @@
  */
 
 import QtQuick 2.0
+import Ubuntu.Components 0.1 as Ubuntu
 
 /*!
     \internal
@@ -132,7 +133,7 @@ Panel {
         property bool opened: toolbar.opened
         property bool animating: toolbar.animating
 
-        style: Theme.createStyleComponent("ToolbarStyle.qml", background)
+        style: Ubuntu.Theme.createStyleComponent(Ubuntu.Theme.name, "ToolbarStyle.qml", background)
     }
 
     Item {

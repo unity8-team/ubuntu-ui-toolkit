@@ -16,6 +16,7 @@
 
 import QtQuick 2.0
 import Ubuntu.Unity.Action 1.0 as UnityActions
+import Ubuntu.Components 0.1 as Ubuntu
 
 /*!
     \qmltype TextField
@@ -990,7 +991,7 @@ ActionItem {
         }
         // hint is shown till user types something in the field
         visible: (editor.text == "") && !editor.inputMethodComposing
-        color: Theme.palette.normal.backgroundText
+        color: Ubuntu.Theme.palette.normal.backgroundText
         fontSize: "medium"
         elide: Text.ElideRight
     }
@@ -1012,8 +1013,8 @@ ActionItem {
         onTextChanged: internal.textChanged = true
         cursorDelegate: cursor
         color: control.__styleInstance.color
-        selectedTextColor: Theme.palette.selected.foregroundText
-        selectionColor: Theme.palette.selected.foreground
+        selectedTextColor: Ubuntu.Theme.palette.selected.foregroundText
+        selectionColor: Ubuntu.Theme.palette.selected.foreground
         font.pixelSize: FontUtils.sizeToPixels("medium")
         passwordCharacter: "\u2022"
         // forward keys to the root element so it can be captured outside of it
@@ -1082,5 +1083,5 @@ ActionItem {
         cursorPosition = 0;
     }
 
-    style: Theme.createStyleComponent("TextFieldStyle.qml", control)
+    style: Ubuntu.Theme.createStyleComponent(Ubuntu.Theme.name, "TextFieldStyle.qml", control)
 }

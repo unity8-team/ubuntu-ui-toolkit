@@ -143,7 +143,7 @@ StyledItem {
     implicitWidth: size
     implicitHeight: size
 
-    style: Theme.createStyleComponent("DialerStyle.qml", dialer)
+    style: Theme.createStyleComponent(Theme.name, "DialerStyle.qml", dialer)
 
     Item {
         id: internal

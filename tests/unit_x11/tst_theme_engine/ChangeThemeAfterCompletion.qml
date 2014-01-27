@@ -22,5 +22,6 @@ StyledItem {
     width: units.gu(40)
     height: units.gu(71)
 
+    // use the deprecated API
     style: Theme.createStyleComponent("TestStyle.qml", item)
 }

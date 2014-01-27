@@ -15,6 +15,7 @@
  */
 
 import QtQuick 2.0
+import Ubuntu.Components 0.1 as Ubuntu
 
 /*!
     \qmltype TabBar
@@ -86,7 +87,7 @@ StyledItem {
 
     implicitHeight: units.gu(7.5)
 
-    style: Theme.createStyleComponent("TabBarStyle.qml", tabBar)
+    style: Ubuntu.Theme.createStyleComponent(Ubuntu.Theme.name, "TabBarStyle.qml", tabBar)
 
     QtObject {
         id: internal

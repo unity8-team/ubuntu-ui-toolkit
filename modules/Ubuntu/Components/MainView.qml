@@ -16,6 +16,7 @@
 
 import QtQuick 2.0
 import Ubuntu.Unity.Action 1.0 as UnityActions
+import Ubuntu.Components 0.1 as Ubuntu
 
 /*!
     \qmltype MainView
@@ -196,10 +197,10 @@ PageTreeNode {
     StyledItem {
         id: background
         anchors.fill: parent
-        style: Theme.createStyleComponent("MainViewStyle.qml", background)
+        style: Ubuntu.Theme.createStyleComponent(Ubuntu.Theme.name, "MainViewStyle.qml", background)
 
         property color headerColor: backgroundColor
-        property color backgroundColor: Theme.palette.normal.background
+        property color backgroundColor: Ubuntu.Theme.palette.normal.background
         property color footerColor: backgroundColor
     }
 

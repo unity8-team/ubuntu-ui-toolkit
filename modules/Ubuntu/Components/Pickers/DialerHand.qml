@@ -141,7 +141,7 @@ StyledItem {
     anchors.centerIn: parent
     width: parent.width
     height: parent.height
-    style: Theme.createStyleComponent("DialerHandStyle.qml", dialerHand)
+    style: Theme.createStyleComponent(Theme.name, "DialerHandStyle.qml", dialerHand)
 
     /*! \internal */
     onParentChanged: {

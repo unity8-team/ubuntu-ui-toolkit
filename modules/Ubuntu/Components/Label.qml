@@ -15,6 +15,7 @@
  */
 
 import QtQuick 2.0
+import Ubuntu.Components 0.1 as Ubuntu
 
 /*!
     \qmltype Label
@@ -56,7 +57,7 @@ Text {
 
     font.pixelSize: FontUtils.sizeToPixels(fontSize)
     font.family: "Ubuntu"
-    color: Theme.palette.selected.backgroundText
+    color: Ubuntu.Theme.palette.selected.backgroundText
 
     /* FIXME: workaround for QTBUG 35095 where Text's alignment is incorrect
        when the width changes and LayoutMirroring is enabled.

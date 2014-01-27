@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 Canonical Ltd.
+ * Copyright 2014 Canonical Ltd.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,13 +17,10 @@
 import QtQuick 2.0
 import Ubuntu.Components 0.1
 
-// Internal helper class for the visuals of
-// the progression symbol.
 StyledItem {
-    id: progressionVisual
+    id: item
+    width: units.gu(40)
+    height: units.gu(71)
 
-    property bool showSplit: false
-    property real splitMargin
-
-    style: Theme.createStyleComponent(Theme.name, "ProgressionVisualStyle.qml", progressionVisual)
+    style: Theme.createStyleComponent(Theme.name, "TestStyle.qml", item)
 }

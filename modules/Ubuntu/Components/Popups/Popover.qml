@@ -236,7 +236,7 @@ PopupBase {
         signal showCompleted()
         signal hideCompleted()
 
-        style: Theme.createStyleComponent("PopoverForegroundStyle.qml", foreground)
+        style: Theme.createStyleComponent(Theme.name, "PopoverForegroundStyle.qml", foreground)
     }
 
     QtObject {

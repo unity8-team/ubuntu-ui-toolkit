@@ -223,7 +223,7 @@ ListItem.Empty {
 
             readonly property url chevron: __styleInstance.chevron
             readonly property url tick: __styleInstance.tick
-            readonly property color themeColour: Theme.palette.selected.fieldText
+            readonly property color themeColour: Toolkit.Theme.palette.selected.fieldText
             readonly property alias colourImage: optionSelector.colourImage
             property bool currentlyExpanded: expanded || multiSelection
 
@@ -232,7 +232,7 @@ ListItem.Empty {
                 right: parent.right
             }
             state: optionSelector.expanded ? "expanded" : "collapsed"
-            style: Theme.createStyleComponent("OptionSelectorStyle.qml", listContainer)
+            style: Toolkit.Theme.createStyleComponent(Toolkit.Theme.name, "OptionSelectorStyle.qml", listContainer)
             states: [ State {
                     name: "expanded"
                     when: listContainer.currentlyExpanded

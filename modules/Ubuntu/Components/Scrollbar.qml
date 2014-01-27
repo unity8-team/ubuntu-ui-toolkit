@@ -15,6 +15,7 @@
  */
 
 import QtQuick 2.0
+import Ubuntu.Components 0.1 as Ubuntu
 
 /*!
     \qmltype ScrollBar
@@ -147,5 +148,5 @@ StyledItem {
         }
     }
 
-    style: Theme.createStyleComponent("ScrollbarStyle.qml", scrollbar)
+    style: Ubuntu.Theme.createStyleComponent(Ubuntu.Theme.name, "ScrollbarStyle.qml", scrollbar)
 }

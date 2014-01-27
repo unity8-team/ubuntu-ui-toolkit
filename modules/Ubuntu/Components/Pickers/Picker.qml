@@ -124,7 +124,7 @@ StyledItem {
     implicitWidth: units.gu(8)
     implicitHeight: units.gu(20)
 
-    style: Theme.createStyleComponent("PickerStyle.qml", picker)
+    style: Theme.createStyleComponent(Theme.name, "PickerStyle.qml", picker)
 
     /*! \internal */
     property int __clickedIndex: -1

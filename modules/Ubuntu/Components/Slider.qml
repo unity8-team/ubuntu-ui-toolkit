@@ -18,6 +18,7 @@
 
 import QtQuick 2.0
 import "mathUtils.js" as MathUtils
+import Ubuntu.Components 0.1 as Ubuntu
 
 /*!
     \qmltype Slider
@@ -190,5 +191,5 @@ StyledItem {
         }
     }
 
-    style: Theme.createStyleComponent("SliderStyle.qml", slider)
+    style: Ubuntu.Theme.createStyleComponent(Ubuntu.Theme.name, "SliderStyle.qml", slider)
 }

@@ -61,6 +61,7 @@ private Q_SLOTS:
     void testCreateStyleComponent();
     void testCreateStyleComponent_data();
     void testChangeThemeAfterCompletion();
+    void testChangeThemeAfterCompletionNewFunction();
     void testThemesRelativePath();
     void testThemesRelativePathWithParent();
     void testThemesRelativePathWithParentXDGDATA();
@@ -124,7 +125,7 @@ void tst_UCTheme::testCreateStyleComponent()
     QQmlEngine *engine = view->engine();
     QQmlComponent parentComponent(engine, parentName);
     QScopedPointer<QObject> parent(parentComponent.create());
-    QQmlComponent* component = theme->createStyleComponent(styleName, parent.data());
+    QQmlComponent* component = theme->createStyleComponent(theme->name(), styleName, parent.data());
 
     QCOMPARE(component != NULL, success);
 }
@@ -157,6 +158,29 @@ void tst_UCTheme::testChangeThemeAfterCompletion()
     QCOMPARE(nameChanged.count(), 1);
 
     style = view->rootObject()->property("style").value<QQmlComponent*>();
+    QEXPECT_FAIL(0, "Deprecated function used", Continue);
+    QVERIFY(style);
+}
+
+void tst_UCTheme::testChangeThemeAfterCompletionNewFunction()
+{
+    qputenv("UBUNTU_UI_TOOLKIT_THEMES_PATH", "../tst_theme_engine");
+
+    QScopedPointer<QQuickView> view(loadTest("ChangeThemeAfterCompletionNewFunction.qml"));
+    QVERIFY(view);
+
+    UCTheme *theme = UCTheme::instance();
+    QVERIFY(theme);
+
+    QQmlComponent *style = view->rootObject()->property("style").value<QQmlComponent*>();
+    QVERIFY(!style);
+    // change the theme
+    QSignalSpy nameChanged(theme, SIGNAL(nameChanged()));
+    theme->setName("TestModule.TestTheme");
+    QTest::waitForEvents();
+    QCOMPARE(nameChanged.count(), 1);
+
+    style = view->rootObject()->property("style").value<QQmlComponent*>();
     QVERIFY(style);
 }
 
@@ -173,7 +197,7 @@ void tst_UCTheme::testThemesRelativePath()
     QQmlEngine *engine = view->engine();
     QQmlComponent parentComponent(engine, "Parent.qml");
     QScopedPointer<QObject> parent(parentComponent.create());
-    QQmlComponent* component = theme->createStyleComponent("TestStyle.qml", parent.data());
+    QQmlComponent* component = theme->createStyleComponent(theme->name(), "TestStyle.qml", parent.data());
 
     QCOMPARE(component != NULL, true);
     QCOMPARE(component->status(), QQmlComponent::Ready);
@@ -193,7 +217,7 @@ void tst_UCTheme::testThemesRelativePathWithParent()
     QQmlEngine *engine = view->engine();
     QQmlComponent parentComponent(engine, "Parent.qml");
     QScopedPointer<QObject> parent(parentComponent.create());
-    QQmlComponent* component = theme->createStyleComponent("TestStyle.qml", parent.data());
+    QQmlComponent* component = theme->createStyleComponent(theme->name(), "TestStyle.qml", parent.data());
 
     QCOMPARE(component != NULL, true);
     QCOMPARE(component->status(), QQmlComponent::Ready);
@@ -214,7 +238,7 @@ void tst_UCTheme::testThemesRelativePathWithParentXDGDATA()
     QQmlEngine *engine = view->engine();
     QQmlComponent parentComponent(engine, "Parent.qml");
     QScopedPointer<QObject> parent(parentComponent.create());
-    QQmlComponent* component = theme->createStyleComponent("TestStyle.qml", parent.data());
+    QQmlComponent* component = theme->createStyleComponent(theme->name(), "TestStyle.qml", parent.data());
 
     QCOMPARE(component != NULL, true);
     QCOMPARE(component->status(), QQmlComponent::Ready);
@@ -235,7 +259,7 @@ void tst_UCTheme::testThemesRelativePathWithParentNoVariablesSet()
     QQmlEngine *engine = view->engine();
     QQmlComponent parentComponent(engine, "Parent.qml");
     QScopedPointer<QObject> parent(parentComponent.create());
-    QQmlComponent* component = theme->createStyleComponent("TestStyle.qml", parent.data());
+    QQmlComponent* component = theme->createStyleComponent(theme->name(), "TestStyle.qml", parent.data());
 
     QCOMPARE(spy->count(), 1);
     QCOMPARE(component == NULL, true);
@@ -255,7 +279,7 @@ void tst_UCTheme::testThemesRelativePathWithParentOneXDGPathSet()
     QQmlEngine *engine = view->engine();
     QQmlComponent parentComponent(engine, "Parent.qml");
     QScopedPointer<QObject> parent(parentComponent.create());
-    QQmlComponent* component = theme->createStyleComponent("TestStyle.qml", parent.data());
+    QQmlComponent* component = theme->createStyleComponent(theme->name(), "TestStyle.qml", parent.data());
 
     QCOMPARE(component != NULL, true);
     QCOMPARE(component->status(), QQmlComponent::Ready);
