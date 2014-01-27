@@ -93,6 +93,14 @@ static QObject *registerUbuntuColors(QQmlEngine *engine, QJSEngine *scriptEngine
            "Ubuntu.Components", "Colors/UbuntuColors.qml");
 }
 
+static QObject *registerTheme(QQmlEngine *engine, QJSEngine *scriptEngine)
+{
+    Q_UNUSED(scriptEngine)
+
+    UCTheme *theme = new UCTheme(engine);
+    return theme;
+}
+
 QUrl UbuntuComponentsPlugin::baseUrl(const QStringList& importPathList, const char* uri)
 {
     /* FIXME: remove when migrating to Qt 5.1 and use QQmlExtensionPlugin::baseUrl()
@@ -150,6 +158,7 @@ void UbuntuComponentsPlugin::registerTypes(const char *uri)
 {
     Q_ASSERT(uri == QLatin1String("Ubuntu.Components"));
 
+    qmlRegisterSingletonType<UCTheme>(uri, 0, 1, "Theme", registerTheme);
     qmlRegisterSingletonType<QObject>(uri, 0, 1, "UbuntuColors", registerUbuntuColors);
     qmlRegisterUncreatableType<UbuntuI18n>(uri, 0, 1, "i18n", "Singleton object");
     qmlRegisterExtendedType<QQuickImageBase, UCQQuickImageExtension>(uri, 0, 1, "QQuickImageBase");
@@ -179,8 +188,6 @@ void UbuntuComponentsPlugin::initializeEngine(QQmlEngine *engine, const char *ur
     // register root object watcher that sets a global property with the root object
     // that can be accessed from any object
     context->setContextProperty("QuickUtils", &QuickUtils::instance());
-
-    UCTheme::instance().registerToContext(context);
 
     context->setContextProperty("i18n", &UbuntuI18n::instance());
     ContextPropertyChangeListener *i18nChangeListener =

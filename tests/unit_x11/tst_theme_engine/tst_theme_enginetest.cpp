@@ -19,6 +19,9 @@
 #include <QtTest/QtTest>
 #include <QtQml/QQmlEngine>
 #include <QtQml/QQmlComponent>
+#include <QtQuick/QQuickView>
+#include <QtQuick/QQuickItem>
+#include <QtQml/QQmlContext>
 #include "uctheme.h"
 
 class tst_UCTheme : public QObject
@@ -26,6 +29,28 @@ class tst_UCTheme : public QObject
     Q_OBJECT
 private:
     QString m_xdgDataPath;
+    QString m_modulePath;
+
+    QQuickView *loadTest(const QString &file, QSignalSpy **spy = 0)
+    {
+        QQuickView *view = new QQuickView;
+        if (view) {
+            view->engine()->addImportPath(m_modulePath);
+            if (spy) {
+                (*spy) = new QSignalSpy(view->engine(), SIGNAL(warnings(QList<QQmlError>)));
+                (*spy)->setParent(view);
+            }
+            view->setSource(QUrl::fromLocalFile(file));
+            if (!view->rootObject()) {
+                view->deleteLater();
+                view = 0;
+            } else {
+                view->show();
+                QTest::qWaitForWindowExposed(view);
+            }
+        }
+        return view;
+    }
 
 private Q_SLOTS:
     void initTestCase();
@@ -45,6 +70,9 @@ private Q_SLOTS:
 void tst_UCTheme::initTestCase()
 {
     m_xdgDataPath = QLatin1String(getenv("XDG_DATA_DIRS"));
+    QString modules("../../../modules");
+    QVERIFY(QDir(modules).exists());
+    m_modulePath = QDir(modules).absolutePath();
 }
 
 void tst_UCTheme::cleanupTestCase()
@@ -54,20 +82,28 @@ void tst_UCTheme::cleanupTestCase()
 
 void tst_UCTheme::testInstance()
 {
-    UCTheme::instance();
+    QVERIFY(UCTheme::instance() == NULL);
 }
 
 void tst_UCTheme::testNameDefault()
 {
-    UCTheme theme;
-    QCOMPARE(theme.name(), QString("Ubuntu.Components.Themes.Ambiance"));
+    QScopedPointer<QQuickView> view(loadTest("Defaults.qml"));
+    QVERIFY(view);
+
+    UCTheme *theme = UCTheme::instance();
+    QVERIFY(theme);
+    QCOMPARE(theme->name(), QString("Ubuntu.Components.Themes.Ambiance"));
 }
 
 void tst_UCTheme::testNameSet()
 {
-    UCTheme theme;
-    theme.setName("MyBeautifulTheme");
-    QCOMPARE(theme.name(), QString("MyBeautifulTheme"));
+    QScopedPointer<QQuickView> view(loadTest("NameSet.qml"));
+    QVERIFY(view);
+
+    UCTheme *theme = UCTheme::instance();
+    QVERIFY(theme);
+    QVERIFY(view->rootObject()->setProperty("themeName", "MyBeautifulTheme"));
+    QCOMPARE(theme->name(), QString("MyBeautifulTheme"));
 }
 
 void tst_UCTheme::testCreateStyleComponent()
@@ -78,12 +114,16 @@ void tst_UCTheme::testCreateStyleComponent()
 
     qputenv("UBUNTU_UI_TOOLKIT_THEMES_PATH", ".");
 
-    UCTheme theme;
-    theme.setName("TestModule.TestTheme");
-    QQmlEngine engine;
-    QQmlComponent parentComponent(&engine, parentName);
-    QObject* parent = parentComponent.create();
-    QQmlComponent* component = theme.createStyleComponent(styleName, parent);
+    QScopedPointer<QQuickView> view(loadTest("TestThemeTestStyle.qml"));
+    QVERIFY(view);
+
+    UCTheme *theme = UCTheme::instance();
+    QVERIFY(theme);
+
+    QQmlEngine *engine = view->engine();
+    QQmlComponent parentComponent(engine, parentName);
+    QScopedPointer<QObject> parent(parentComponent.create());
+    QQmlComponent* component = theme->createStyleComponent(styleName, parent.data());
 
     QCOMPARE(component != NULL, success);
 }
@@ -101,12 +141,16 @@ void tst_UCTheme::testThemesRelativePath()
 {
     qputenv("UBUNTU_UI_TOOLKIT_THEMES_PATH", "../tst_theme_engine");
 
-    UCTheme theme;
-    theme.setName("TestModule.TestTheme");
-    QQmlEngine engine;
-    QQmlComponent parentComponent(&engine, "Parent.qml");
-    QObject* parent = parentComponent.create();
-    QQmlComponent* component = theme.createStyleComponent("TestStyle.qml", parent);
+    QScopedPointer<QQuickView> view(loadTest("TestThemeTestStyle.qml"));
+    QVERIFY(view);
+
+    UCTheme *theme = UCTheme::instance();
+    QVERIFY(theme);
+
+    QQmlEngine *engine = view->engine();
+    QQmlComponent parentComponent(engine, "Parent.qml");
+    QScopedPointer<QObject> parent(parentComponent.create());
+    QQmlComponent* component = theme->createStyleComponent("TestStyle.qml", parent.data());
 
     QCOMPARE(component != NULL, true);
     QCOMPARE(component->status(), QQmlComponent::Ready);
@@ -117,13 +161,16 @@ void tst_UCTheme::testThemesRelativePathWithParent()
     QSKIP("https://bugs.launchpad.net/ubuntu-ui-toolkit/+bug/1248982");
     qputenv("UBUNTU_UI_TOOLKIT_THEMES_PATH", "../../resources/themes:../../resources/themes/TestModule");
 
-    UCTheme theme;
-    theme.setName("CustomTheme");
-    QQmlEngine engine;
-    theme.registerToContext(engine.rootContext());
-    QQmlComponent parentComponent(&engine, "Parent.qml");
-    QObject* parent = parentComponent.create();
-    QQmlComponent* component = theme.createStyleComponent("TestStyle.qml", parent);
+    QScopedPointer<QQuickView> view(loadTest("CustomTheme.qml"));
+    QVERIFY(view);
+
+    UCTheme *theme = UCTheme::instance();
+    QVERIFY(theme);
+
+    QQmlEngine *engine = view->engine();
+    QQmlComponent parentComponent(engine, "Parent.qml");
+    QScopedPointer<QObject> parent(parentComponent.create());
+    QQmlComponent* component = theme->createStyleComponent("TestStyle.qml", parent.data());
 
     QCOMPARE(component != NULL, true);
     QCOMPARE(component->status(), QQmlComponent::Ready);
@@ -135,13 +182,16 @@ void tst_UCTheme::testThemesRelativePathWithParentXDGDATA()
     qputenv("UBUNTU_UI_TOOLKIT_THEMES_PATH", "");
     qputenv("XDG_DATA_DIRS", "../../resources/themes:../../resources/themes/TestModule");
 
-    UCTheme theme;
-    theme.setName("CustomTheme");
-    QQmlEngine engine;
-    theme.registerToContext(engine.rootContext());
-    QQmlComponent parentComponent(&engine, "Parent.qml");
-    QObject* parent = parentComponent.create();
-    QQmlComponent* component = theme.createStyleComponent("TestStyle.qml", parent);
+    QScopedPointer<QQuickView> view(loadTest("CustomTheme.qml"));
+    QVERIFY(view);
+
+    UCTheme *theme = UCTheme::instance();
+    QVERIFY(theme);
+
+    QQmlEngine *engine = view->engine();
+    QQmlComponent parentComponent(engine, "Parent.qml");
+    QScopedPointer<QObject> parent(parentComponent.create());
+    QQmlComponent* component = theme->createStyleComponent("TestStyle.qml", parent.data());
 
     QCOMPARE(component != NULL, true);
     QCOMPARE(component->status(), QQmlComponent::Ready);
@@ -152,15 +202,19 @@ void tst_UCTheme::testThemesRelativePathWithParentNoVariablesSet()
     qputenv("UBUNTU_UI_TOOLKIT_THEMES_PATH", "");
     qputenv("XDG_DATA_DIRS", "");
 
-    UCTheme theme;
-    QQmlEngine engine;
-    QSignalSpy spy(&engine, SIGNAL(warnings(QList<QQmlError>)));
-    theme.registerToContext(engine.rootContext());
-    QQmlComponent parentComponent(&engine, "Parent.qml");
-    QObject* parent = parentComponent.create();
-    QQmlComponent* component = theme.createStyleComponent("TestStyle.qml", parent);
-    // warning about TestStyle not defined in Ubuntu.Components.Themes.Ambiance should be shown
-    QCOMPARE(spy.count(), 1);
+    QSignalSpy *spy;
+    QScopedPointer<QQuickView> view(loadTest("Defaults.qml", &spy));
+    QVERIFY(view);
+
+    UCTheme *theme = UCTheme::instance();
+    QVERIFY(theme);
+
+    QQmlEngine *engine = view->engine();
+    QQmlComponent parentComponent(engine, "Parent.qml");
+    QScopedPointer<QObject> parent(parentComponent.create());
+    QQmlComponent* component = theme->createStyleComponent("TestStyle.qml", parent.data());
+
+    QCOMPARE(spy->count(), 1);
     QCOMPARE(component == NULL, true);
 }
 
@@ -169,15 +223,20 @@ void tst_UCTheme::testThemesRelativePathWithParentOneXDGPathSet()
     qputenv("UBUNTU_UI_TOOLKIT_THEMES_PATH", "");
     qputenv("XDG_DATA_DIRS", "../tst_theme_engine");
 
-    UCTheme theme;
-    theme.setName("TestModule.TestTheme");
-    QQmlEngine engine;
-    QQmlComponent parentComponent(&engine, "Parent.qml");
-    QObject* parent = parentComponent.create();
-    QQmlComponent* component = theme.createStyleComponent("TestStyle.qml", parent);
+    QScopedPointer<QQuickView> view(loadTest("TestThemeTestStyle.qml"));
+    QVERIFY(view);
+
+    UCTheme *theme = UCTheme::instance();
+    QVERIFY(theme);
+
+    QQmlEngine *engine = view->engine();
+    QQmlComponent parentComponent(engine, "Parent.qml");
+    QScopedPointer<QObject> parent(parentComponent.create());
+    QQmlComponent* component = theme->createStyleComponent("TestStyle.qml", parent.data());
 
     QCOMPARE(component != NULL, true);
-    QCOMPARE(component->status(), QQmlComponent::Ready);}
+    QCOMPARE(component->status(), QQmlComponent::Ready);
+}
 
 QTEST_MAIN(tst_UCTheme)
 

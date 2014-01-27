@@ -76,6 +76,8 @@ const QString THEME_FOLDER_FORMAT("%1/%2/");
 const QString PARENT_THEME_FILE("parent_theme");
 const char *ENV_PATH = "UBUNTU_UI_TOOLKIT_THEMES_PATH";
 
+UCTheme *UCTheme::m_themeEngine = 0;
+
 QStringList themeSearchPath() {
     QString envPath = QLatin1String(getenv("UBUNTU_UI_TOOLKIT_THEMES_PATH"));
     QStringList pathList = envPath.split(':', QString::SkipEmptyParts);
@@ -97,23 +99,29 @@ QStringList themeSearchPath() {
 }
 
 UCTheme::UCTheme(QObject *parent) :
-    QObject(parent),
+    QObject(0),
     m_palette(NULL),
-    m_engine(NULL),
-    m_engineUpdated(false)
+    m_engine(static_cast<QQmlEngine*>(parent))
 {
+    m_themeEngine = this;
     m_name = m_themeSettings.themeName();
     QObject::connect(&m_themeSettings, &UCThemeSettings::themeNameChanged,
                      this, &UCTheme::onThemeNameChanged);
     updateThemePaths();
+    loadPalette();
 
     QObject::connect(this, SIGNAL(nameChanged()),
                      this, SLOT(loadPalette()), Qt::UniqueConnection);
 }
 
+UCTheme::~UCTheme()
+{
+    m_themeEngine = 0;
+}
+
 void UCTheme::updateEnginePaths()
 {
-    if (!m_engine || m_engineUpdated) {
+    if (!m_engine) {
         return;
     }
 
@@ -123,7 +131,6 @@ void UCTheme::updateEnginePaths()
             m_engine->addImportPath(path);
         }
     }
-    m_engineUpdated = true;
 }
 
 void UCTheme::onThemeNameChanged()
@@ -190,11 +197,8 @@ void UCTheme::setName(const QString& name)
 
     The palette of the current theme.
 */
-QObject* UCTheme::palette()
+QObject* UCTheme::palette() const
 {
-    if (!m_palette) {
-        loadPalette(false);
-    }
     return m_palette;
 }
 
@@ -238,8 +242,9 @@ QQmlComponent* UCTheme::createStyleComponent(const QString& styleName, QObject* 
     if (parent != NULL) {
         QQmlEngine* engine = qmlEngine(parent);
         if (engine != m_engine && !m_engine) {
-            m_engine = engine;
-            updateEnginePaths();
+            qmlInfo(parent) <<
+               UbuntuI18n::instance().tr(QString("ERROR: %1 component to be created in a different QQmlEngine instance.").arg(styleName));
+            return NULL;
         }
         // make sure we have the paths
         if (engine != NULL) {
@@ -261,32 +266,14 @@ QQmlComponent* UCTheme::createStyleComponent(const QString& styleName, QObject* 
     return component;
 }
 
-void UCTheme::registerToContext(QQmlContext* context)
+void UCTheme::loadPalette()
 {
-    // add paths to engine search folder
-    m_engine = context->engine();
-    updateEnginePaths();
-
-    // register Theme
-    context->setContextProperty("Theme", this);
-
-    ContextPropertyChangeListener *themeChangeListener =
-        new ContextPropertyChangeListener(context, "Theme");
-    QObject::connect(this, SIGNAL(nameChanged()),
-                     themeChangeListener, SLOT(updateContextProperty()));
-
-}
-
-void UCTheme::loadPalette(bool notify)
-{
-    if (!m_engine) {
+    if (!m_engine || m_themePaths.isEmpty()) {
         return;
     }
     if (m_palette != NULL) {
         delete m_palette;
     }
     m_palette = QuickUtils::instance().createQmlObject(styleUrl("Palette.qml"), m_engine);
-    if (notify) {
-        Q_EMIT paletteChanged();
-    }
+    Q_EMIT paletteChanged();
 }

@@ -34,20 +34,19 @@ class UCTheme : public QObject
     Q_PROPERTY(QString name READ name WRITE setName NOTIFY nameChanged)
     Q_PROPERTY(QObject* palette READ palette NOTIFY paletteChanged)
 public:
-    static UCTheme& instance() {
-        static UCTheme instance;
-        return instance;
+    static UCTheme* instance() {
+        return m_themeEngine;
     }
 
     explicit UCTheme(QObject *parent = 0);
+    ~UCTheme();
 
     // getter/setters
     QString name() const;
     void setName(const QString& name);
-    QObject* palette();
+    QObject* palette() const;
 
     Q_INVOKABLE QQmlComponent* createStyleComponent(const QString& styleName, QObject* parent);
-    void registerToContext(QQmlContext* context);
 
 Q_SIGNALS:
     void nameChanged();
@@ -60,15 +59,15 @@ private Q_SLOTS:
     void updateThemePaths();
     QUrl styleUrl(const QString& styleName);
     QString parentThemeName(const QString& themeName);
-    void loadPalette(bool notify = true);
+    void loadPalette();
 
 private:
     QString m_name;
     QObject* m_palette;
     QQmlEngine *m_engine;
+    static UCTheme *m_themeEngine;
     QList<QUrl> m_themePaths;
     UCThemeSettings m_themeSettings;
-    bool m_engineUpdated;
 };
 
 #endif // UCTHEME_H
