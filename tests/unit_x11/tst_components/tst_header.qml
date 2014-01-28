@@ -30,6 +30,7 @@ Item {
         anchors.fill: parent
 
         Page {
+            // this Page is automatically made active in MainView.onCompleted
             id: page
             title: "listview"
 
@@ -59,6 +60,7 @@ Item {
                 id: wrappedPage
                 title: "listview"
 
+                visible: true
                 ListView {
                     anchors.fill: parent
                     id: wrappedListView
@@ -87,8 +89,10 @@ Item {
         }
 
         function test_WrappedListViewHeaderAlignment_bug1261907() {
+            wrappedPage.active = true;
             compare(wrappedListView.contentY, -root.listViewHeaderHeight - mainViewHeader.__propagated.header.height,
                     "ListView header inside wrapped Page is aligned with the MainView header");
+            wrappedPage.active = false;
         }
     }
 }
