@@ -78,6 +78,7 @@ MainView {
                 target: mainPage
                 width: units.gu(40)
                 clip: true
+                active: true
             }
             AnchorChanges {
                 target: mainPage
@@ -86,6 +87,7 @@ MainView {
             PropertyChanges {
                 target: contentPage
                 clip: true
+                active: true
             }
             AnchorChanges {
                 target: contentPage

@@ -127,10 +127,11 @@ PageTreeNode {
     onActiveChanged: {
         internal.updateHeaderAndToolbar();
         internal.updateActions();
-        if (internal.firstTimeActive) {
-            internal.firstTimeActive = false;
-//            if (page.active) internal.updateFlickablePosition();
-        }
+//        if (internal.firstTimeActive) {
+//            // FIXME TIM: this property does not exist
+//            internal.firstTimeActive = false;
+////            if (page.active) internal.updateFlickablePosition();
+//        }
     }
     /*! \internal */
     onTitleChanged: internal.updateHeaderAndToolbar()
@@ -140,7 +141,7 @@ PageTreeNode {
     onPageStackChanged: internal.updateHeaderAndToolbar()
     /*! \internal */
     onFlickableChanged: {
-        internal.firstTimeActive = true;
+//        internal.firstTimeActive = true;
         internal.updateHeaderAndToolbar();
 //        internal.initializeFlickablePosition();
     }
