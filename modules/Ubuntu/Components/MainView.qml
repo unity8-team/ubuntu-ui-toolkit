@@ -419,7 +419,8 @@ PageTreeNode {
         }
     }
 
-    /*! \internal
+    /*!
+      \internal
       If no child is active, activate the first child.
      */
     Component.onCompleted: PageTree.activateOneChildNode(contents)
