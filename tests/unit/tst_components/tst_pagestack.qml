@@ -82,7 +82,7 @@ TestCase {
         pageStack.clear();
     }
 
-    function test_tabs_inside_stack_bug1187850_bugbug1260116() {
+    function test_tabs_inside_stack_bug1187850_bug1260116() {
         compare(tabs.active, false, "Tabs not active before pushed on PageStack");
         pageStack.push(tabs);
         compare(pageStack.currentPage, tabs, "Tabs can be pushed on a PageStack");
