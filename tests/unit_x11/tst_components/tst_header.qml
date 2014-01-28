@@ -60,7 +60,6 @@ Item {
                 id: wrappedPage
                 title: "listview"
 
-                visible: true
                 ListView {
                     anchors.fill: parent
                     id: wrappedListView
