@@ -71,19 +71,26 @@ StyledItem {
     property QtObject __propagated: node.parentNode ? node.parentNode.__propagated : null
 
     /*!
+      This page tree node represents a splitting of branches, so it can have multiple
+      page tree nodes as children. When setting this to true in a component, a mechanism
+      must exist to select one of the child nodes as the active one.
+    */
+    property bool isSplit: false
+
+    /*!
       At any time, there is exactly one path from the root node to a Page leaf node
       where all nodes are active. All other nodes are not active. This is used by
       \l Tabs and \l PageStack to determine which of multiple nodes in the Tabs or
       PageStack is the currently active one.
 
-      Default value is false, but \l PageStack and \l Tab will create
-      a binding that makes the page active when it is on top of the \l PageStack, or the
-      selected \l Tab.
+      This defaults to the active value of the parent node, except if the parent node is
+      a split (\l PageStack, \l Tabs or \l MainView), in which case the parent node has a mechanism
+      to update the active property of its children.
 
       If \l MainView has no active children, it will automatically set the active property
       for its first child that is a PageTreeNode.
      */
-    property bool active: false
+    property bool active: node.parentNode && !node.parentNode.isSplit ? node.parentNode.active : false
 
     /*!
       The \l PageStack that this Page has been pushed on, or null if it is not

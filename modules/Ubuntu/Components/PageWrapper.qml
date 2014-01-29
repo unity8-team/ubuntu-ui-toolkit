@@ -55,12 +55,12 @@ PageTreeNode {
      */
     active: false
 
-    Binding {
-        target: object
-        property: "active"
-        value: pageWrapper.active
-        when: object && object.hasOwnProperty("active")
-    }
+//    Binding {
+//        target: object
+//        property: "active"
+//        value: pageWrapper.active
+//        when: object && object.hasOwnProperty("active")
+//    }
 
     /*!
       \internal

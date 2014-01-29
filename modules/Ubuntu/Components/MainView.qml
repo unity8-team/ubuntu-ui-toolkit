@@ -210,6 +210,12 @@ PageTreeNode {
     active: true
 
     /*!
+      MainView can have several page tree node children, but only one of
+      them must be active.
+     */
+    isSplit: true
+
+    /*!
       \preliminary
       Sets whether the application will be automatically rotating when the
       device is.

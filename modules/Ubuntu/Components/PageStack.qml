@@ -118,6 +118,8 @@ PageTreeNode {
      */
     property Item currentPage: null
 
+    isSplit: true
+
     /*!
       \preliminary
       Push a page to the stack, and apply the given (optional) properties to the page.
