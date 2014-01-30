@@ -118,6 +118,7 @@ PageTreeNode {
      */
     property Item currentPage: null
 
+    // PageStack has multiple child nodes, and only the one on top of the stack is active.
     isSplit: true
 
     /*!

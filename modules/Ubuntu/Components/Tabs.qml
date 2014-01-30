@@ -162,6 +162,8 @@ PageTreeNode {
       The initial value is 0 if Tabs has contents, or -1 otherwise.
      */
     property alias selectedTabIndex: bar.selectedIndex
+
+    // Tabs can have multiple child nodes (Tab), and only the selected tab is active.
     isSplit: true
 
     /*!

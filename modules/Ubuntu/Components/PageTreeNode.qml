@@ -29,7 +29,6 @@ import "pageTree.js" as PageTree
 */
 StyledItem {
     id: node
-
     visible: active
 
     /*!

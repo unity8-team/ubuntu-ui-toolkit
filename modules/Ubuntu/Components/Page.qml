@@ -127,11 +127,6 @@ PageTreeNode {
     onActiveChanged: {
         internal.updateHeaderAndToolbar();
         internal.updateActions();
-//        if (internal.firstTimeActive) {
-//            // FIXME TIM: this property does not exist
-//            internal.firstTimeActive = false;
-////            if (page.active) internal.updateFlickablePosition();
-//        }
     }
     /*! \internal */
     onTitleChanged: internal.updateHeaderAndToolbar()
@@ -140,11 +135,7 @@ PageTreeNode {
     /*! \internal */
     onPageStackChanged: internal.updateHeaderAndToolbar()
     /*! \internal */
-    onFlickableChanged: {
-//        internal.firstTimeActive = true;
-        internal.updateHeaderAndToolbar();
-//        internal.initializeFlickablePosition();
-    }
+    onFlickableChanged: internal.updateHeaderAndToolbar()
 
     /*!
       Local actions. These actions will be made available outside the application
