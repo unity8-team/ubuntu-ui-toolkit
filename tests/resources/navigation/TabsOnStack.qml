@@ -36,7 +36,6 @@ MainView {
         }
         Tabs {
             id: tabsOnStack
-            active: false
             Tab {
                 title: "Tab 1"
                 page: Page {
