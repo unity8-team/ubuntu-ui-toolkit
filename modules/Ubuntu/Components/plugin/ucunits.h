@@ -23,6 +23,7 @@
 #include <QtCore/QHash>
 #include <QtCore/QUrl>
 
+class QGSettings;
 class UCUnits : public QObject
 {
     Q_OBJECT
@@ -48,12 +49,16 @@ public:
 Q_SIGNALS:
     void gridUnitChanged();
 
+protected Q_SLOTS:
+    void onGSettingsChanged(const QString &key);
+
 protected:
     QString suffixForGridUnit(float gridUnit);
     float gridUnitSuffixFromFileName(const QString &fileName);
 
 private:
     float m_gridUnit;
+    QGSettings* m_gsettings;
 };
 
 #endif // UBUNTU_COMPONENTS_UNITS_H

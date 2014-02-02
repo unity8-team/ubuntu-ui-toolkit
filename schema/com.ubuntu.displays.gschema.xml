@@ -1,0 +1,9 @@
+<schemalist>
+    <schema id="com.ubuntu.displays" path="/com/ubuntu/displays/">
+        <key name="grid-unit-px" type="i">
+            <default>8</default>
+            <summary>DOCME</summary>
+            <description>DOCME</description>
+        </key>
+    </schema>
+</schemalist>

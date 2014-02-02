@@ -24,17 +24,11 @@
 #include <QtCore/QDir>
 #include <QtCore/QRegularExpression>
 #include <QtCore/qmath.h>
+#include <QGSettings>
 
-#define ENV_GRID_UNIT_PX "GRID_UNIT_PX"
+#define GRID_UNIT_PX_SCHEMA "com.ubuntu.displays"
+#define GRID_UNIT_PX_KEY "gridUnitPx"
 #define DEFAULT_GRID_UNIT_PX 8
-
-static float getenvFloat(const char* name, float defaultValue)
-{
-    QByteArray stringValue = qgetenv(name);
-    bool ok;
-    float value = stringValue.toFloat(&ok);
-    return ok ? value : defaultValue;
-}
 
 
 /*!
@@ -63,9 +57,11 @@ static float getenvFloat(const char* name, float defaultValue)
     \sa {Resolution Independence}
 */
 UCUnits::UCUnits(QObject *parent) :
-    QObject(parent)
+    QObject(parent),
+    m_gsettings(new QGSettings(GRID_UNIT_PX_SCHEMA, QByteArray(), this))
 {
-    m_gridUnit = getenvFloat(ENV_GRID_UNIT_PX, DEFAULT_GRID_UNIT_PX);
+    QObject::connect(m_gsettings, &QGSettings::changed, this, &UCUnits::onGSettingsChanged);
+    m_gridUnit = m_gsettings->get(GRID_UNIT_PX_KEY).toFloat();
 }
 
 /*!
@@ -181,6 +177,14 @@ QString UCUnits::resolveResource(const QUrl& url)
     }
 
     return QString();
+}
+
+void UCUnits::onGSettingsChanged(const QString &key)
+{
+    if (key == GRID_UNIT_PX_KEY) {
+        m_gridUnit = m_gsettings->get(GRID_UNIT_PX_KEY).toFloat();
+        Q_EMIT gridUnitChanged();
+    }
 }
 
 QString UCUnits::suffixForGridUnit(float gridUnit)
