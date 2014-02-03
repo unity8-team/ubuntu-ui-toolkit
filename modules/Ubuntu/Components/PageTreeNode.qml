@@ -86,10 +86,13 @@ StyledItem {
       a split (\l PageStack, \l Tabs or \l MainView), in which case the parent node has a mechanism
       to update the active property of its children.
 
-      If \l MainView has no active children, it will automatically set the active property
-      for its first child that is a PageTreeNode.
+      By default, the first child of a split node that is a page node will be active, and the others
+      will not be active.
      */
-    property bool active: node.parentNode && !node.parentNode.isSplit ? node.parentNode.active : false
+    property bool active: node.parentNode &&
+                          (!node.parentNode.isSplit || node === PageTree.getFirstChildNode(node.parentNode)) ?
+                              node.parentNode.active : false
+//    property bool active: node.parentNode ? node.parentNode.active : false
 
     /*!
       The \l PageStack that this Page has been pushed on, or null if it is not

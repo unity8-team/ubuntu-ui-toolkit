@@ -43,28 +43,16 @@ function getParentNode(item) {
 }
 
 /*!
-  If none of the children of the item is an active PageTreeNode active,
-  make the first child that is a PageTreeNode active.
+  Return the first child that is a PageTreeNode, or null if none of the children
+  is a PageTreeNode.
  */
-function activateOneChildNode(item) {
-    var firstActiveIndex = -1;
-    var firstPageTreeNodeIndex = -1;
+function getFirstChildNode(item) {
     var child;
     for (var i=0; i < item.children.length; i++) {
         child = item.children[i];
         if (isNode(child)) {
-            if (firstPageTreeNodeIndex < 0) firstPageTreeNodeIndex = i;
-            if (child.active) {
-                firstActiveIndex = i;
-                break;
-            }
+            return child;
         }
     }
-    if (firstActiveIndex < 0) {
-        // None of the children of the MainView is an active PageTreeNode.
-        // Activate the first suitable child:
-        if (firstPageTreeNodeIndex >= 0) {
-            item.children[firstPageTreeNodeIndex].active = true;
-        }
-    }
+    return null;
 }
