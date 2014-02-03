@@ -293,6 +293,9 @@ StyledItem
 modules/Ubuntu/Components/Pickers/PickerDelegate.qml
 AbstractButton
     readonly property Picker picker
+modules/Ubuntu/Components/Pickers/PickerPanel.qml
+Object
+    function openDatePicker(caller, property, mode)
 modules/Ubuntu/Components/Popups/ActionSelectionPopover.qml
 Popover
     property Item target
@@ -721,127 +724,3 @@ plugins.qmltypes
     Parameter { name: "singular"; type: "string" }
     Parameter { name: "plural"; type: "string" }
     Parameter { name: "n"; type: "int" }
-    name: "unity::action::Action"
-    prototype: "QObject"
-    name: "Type"
-    Property { name: "name"; type: "string" }
-    Property { name: "text"; type: "string" }
-    Property { name: "iconName"; type: "string" }
-    Property { name: "description"; type: "string" }
-    Property { name: "keywords"; type: "string" }
-    Property { name: "enabled"; type: "bool" }
-    Property { name: "parameterType"; type: "unity::action::Action::Type" }
-    Signal {
-    name: "nameChanged"
-    Parameter { name: "value"; type: "string" }
-    Signal {
-    name: "textChanged"
-    Parameter { name: "value"; type: "string" }
-    Signal {
-    name: "iconNameChanged"
-    Parameter { name: "value"; type: "string" }
-    Signal {
-    name: "descriptionChanged"
-    Parameter { name: "value"; type: "string" }
-    Signal {
-    name: "keywordsChanged"
-    Parameter { name: "value"; type: "string" }
-    Signal {
-    name: "enabledChanged"
-    Parameter { name: "value"; type: "bool" }
-    Signal {
-    name: "parameterTypeChanged"
-    Parameter { name: "value"; type: "unity::action::Action::Type" }
-    Signal {
-    name: "triggered"
-    Parameter { name: "value"; type: "QVariant" }
-    Method {
-    name: "trigger"
-    Parameter { name: "value"; type: "QVariant" }
-    Method { name: "trigger" }
-    name: "unity::action::ActionContext"
-    prototype: "QObject"
-    Property { name: "active"; type: "bool" }
-    Signal {
-    name: "activeChanged"
-    Parameter { name: "value"; type: "bool" }
-    Signal { name: "actionsChanged" }
-    Method {
-    name: "addAction"
-    Parameter { name: "action"; type: "unity::action::Action"; isPointer: true }
-    Method {
-    name: "removeAction"
-    Parameter { name: "action"; type: "unity::action::Action"; isPointer: true }
-    name: "unity::action::ActionManager"
-    prototype: "QObject"
-    Property {
-    name: "globalContext"
-    Signal { name: "localContextsChanged" }
-    Signal { name: "actionsChanged" }
-    Method {
-    name: "addAction"
-    Parameter { name: "action"; type: "unity::action::Action"; isPointer: true }
-    Method {
-    name: "removeAction"
-    Parameter { name: "action"; type: "unity::action::Action"; isPointer: true }
-    Method { name: "globalContext"; type: "unity::action::ActionContext*" }
-    Method {
-    name: "addLocalContext"
-    Parameter { name: "context"; type: "unity::action::ActionContext"; isPointer: true }
-    Method {
-    name: "removeLocalContext"
-    Parameter { name: "context"; type: "unity::action::ActionContext"; isPointer: true }
-    name: "unity::action::PreviewAction"
-    prototype: "unity::action::Action"
-    Property { name: "commitLabel"; type: "string" }
-    Signal { name: "started" }
-    Signal { name: "cancelled" }
-    Signal { name: "resetted" }
-    Signal {
-    name: "commitLabelChanged"
-    Parameter { name: "value"; type: "string" }
-    Signal { name: "parametersChanged" }
-    Method {
-    name: "addParameter"
-    Parameter { name: "parameter"; type: "unity::action::PreviewParameter"; isPointer: true }
-    Method {
-    name: "removeParameter"
-    Parameter { name: "parameter"; type: "unity::action::PreviewParameter"; isPointer: true }
-    Component { name: "unity::action::PreviewParameter"; prototype: "QObject" }
-    name: "unity::action::PreviewRangeParameter"
-    prototype: "unity::action::PreviewParameter"
-    exports: ["Ubuntu.Unity.Action/PreviewRangeParameter 1.0"]
-    Property { name: "text"; type: "string" }
-    Property { name: "value"; type: "float" }
-    Property { name: "minimumValue"; type: "float" }
-    Property { name: "maximumValue"; type: "float" }
-    Signal {
-    name: "textChanged"
-    Parameter { name: "text"; type: "string" }
-    Signal {
-    name: "valueChanged"
-    Parameter { name: "value"; type: "float" }
-    Signal {
-    name: "minimumValueChanged"
-    Parameter { name: "value"; type: "float" }
-    Signal {
-    name: "maximumValueChanged"
-    Parameter { name: "value"; type: "float" }
-    name: "unity::action::qml::Action"
-    prototype: "unity::action::Action"
-    exports: ["Ubuntu.Unity.Action/Action 1.0"]
-    name: "unity::action::qml::ActionContext"
-    prototype: "unity::action::ActionContext"
-    exports: ["Ubuntu.Unity.Action/ActionContext 1.0"]
-    Property { name: "actions"; type: "unity::action::Action"; isList: true; isReadonly: true }
-    name: "unity::action::qml::ActionManager"
-    prototype: "unity::action::ActionManager"
-    exports: ["Ubuntu.Unity.Action/ActionManager 1.0"]
-    Property {
-    name: "localContexts"
-    Property { name: "actions"; type: "unity::action::Action"; isList: true; isReadonly: true }
-    name: "unity::action::qml::PreviewAction"
-    prototype: "unity::action::PreviewAction"
-    exports: ["Ubuntu.Unity.Action/PreviewAction 1.0"]
-    Property {
-    name: "parameters"
