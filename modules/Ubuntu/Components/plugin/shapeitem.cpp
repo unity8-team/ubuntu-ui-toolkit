@@ -451,6 +451,8 @@ ShapeNode::ShapeNode(ShapeItem* item)
     memcpy(geometry_.indexData(), shapeMesh.indices,
            shapeMesh.indexCount * sizeOfType(shapeMesh.indexType));
     geometry_.setDrawingMode(GL_TRIANGLE_STRIP);
+    geometry_.setIndexDataPattern(QSGGeometry::StaticPattern);
+    geometry_.setVertexDataPattern(QSGGeometry::AlwaysUploadPattern);
     setGeometry(&geometry_);
     setMaterial(&coloredMaterial_);
     setFlag(UsePreprocess, false);
@@ -510,6 +512,17 @@ void ShapeNode::setVertices(const QRectF& geometry, float radius, QQuickItem* im
         radiusCoordinateWidth = radius / width;
     }
 
+    // Scale and translate coordinates of textures packed in an atlas.
+    if (texture && texture->isAtlasTexture()) {
+        const QRectF srcSubRect = texture->normalizedTextureSubRect();
+        topCoordinate = topCoordinate * srcSubRect.height() + srcSubRect.y();
+        bottomCoordinate = bottomCoordinate * srcSubRect.height() + srcSubRect.y();
+        leftCoordinate = leftCoordinate * srcSubRect.width() + srcSubRect.x();
+        rightCoordinate = rightCoordinate * srcSubRect.width() + srcSubRect.x();
+        radiusCoordinateHeight = radiusCoordinateHeight * srcSubRect.height();
+        radiusCoordinateWidth = radiusCoordinateWidth * srcSubRect.width();
+    }
+
     // Set top row of 4 vertices.
     vertices[0].position[0] = 0.0f;
     vertices[0].position[1] = 0.0f;
@@ -521,7 +534,7 @@ void ShapeNode::setVertices(const QRectF& geometry, float radius, QQuickItem* im
     vertices[1].position[1] = 0.0f;
     vertices[1].shapeCoordinate[0] = shapeCoordinate[1][0];
     vertices[1].shapeCoordinate[1] = shapeCoordinate[1][1];
-    vertices[1].imageCoordinate[0] = radiusCoordinateWidth;
+    vertices[1].imageCoordinate[0] = leftCoordinate + radiusCoordinateWidth;
     vertices[1].imageCoordinate[1] = topCoordinate;
     vertices[2].position[0] = width - radius;
     vertices[2].position[1] = 0.0f;

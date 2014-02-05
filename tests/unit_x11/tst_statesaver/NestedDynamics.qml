@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 Canonical Ltd.
+ * Copyright 2013 Canonical Ltd.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,5 +17,17 @@
 import QtQuick 2.0
 import Ubuntu.Components 0.1
 
-Tab {
+Item {
+    id: root
+    width: 100
+    height: 100
+
+    Column {
+        id: column
+        Loader {
+            id: outerLoader
+            objectName: "outerLoader"
+            StateSaver.properties: "source"
+        }
+    }
 }

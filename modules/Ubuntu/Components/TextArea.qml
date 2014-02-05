@@ -15,6 +15,7 @@
  */
 
 import QtQuick 2.0
+import "mathUtils.js" as MathUtils
 
 /*!
     \qmltype TextArea
@@ -739,6 +740,9 @@ StyledItem {
     onWidthChanged: internal.inputAreaWidth = control.width - 2 * internal.frameSpacing
     /*!\internal */
     onHeightChanged: internal.inputAreaHeight = control.height - 2 * internal.frameSpacing
+
+    LayoutMirroring.enabled: Qt.application.layoutDirection == Qt.RightToLeft
+    LayoutMirroring.childrenInherit: true
 
     /*!\internal */
     property alias __internal: internal
