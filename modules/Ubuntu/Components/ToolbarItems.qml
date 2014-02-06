@@ -183,32 +183,32 @@ Item {
         }
     }
 
-    Item {
-        id: backContainer
-        anchors {
-            left: parent.left
-            top: parent.top
-            bottom: parent.bottom
-            leftMargin: units.gu(2)
-        }
-        width: childrenRect.width
+//    Item {
+//        id: backContainer
+//        anchors {
+//            left: parent.left
+//            top: parent.top
+//            bottom: parent.bottom
+//            leftMargin: units.gu(2)
+//        }
+//        width: childrenRect.width
 
-        // internal link to the previous back Item to unset its parent
-        // when toolbarItems.back is updated.
-        property Item previousBackItem: null
+//        // internal link to the previous back Item to unset its parent
+//        // when toolbarItems.back is updated.
+//        property Item previousBackItem: null
 
-        function updateBackItem() {
-            if (backContainer.previousBackItem) backContainer.previousBackItem.parent = null;
-            backContainer.previousBackItem = toolbarItems.back;
-            if (toolbarItems.back) toolbarItems.back.parent = backContainer;
-        }
+//        function updateBackItem() {
+//            if (backContainer.previousBackItem) backContainer.previousBackItem.parent = null;
+//            backContainer.previousBackItem = toolbarItems.back;
+//            if (toolbarItems.back) toolbarItems.back.parent = backContainer;
+//        }
 
-        Connections {
-            target: toolbarItems
-            onBackChanged: backContainer.updateBackItem()
-            Component.onCompleted: backContainer.updateBackItem()
-        }
-    }
+//        Connections {
+//            target: toolbarItems
+//            onBackChanged: backContainer.updateBackItem()
+//            Component.onCompleted: backContainer.updateBackItem()
+//        }
+//    }
 
     Row {
         id: toolsContainer

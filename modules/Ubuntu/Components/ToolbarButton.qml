@@ -84,4 +84,9 @@ ActionItem {
     width: units.gu(5)
 
     style: Theme.createStyleComponent("ToolbarButtonStyle.qml", toolbarButton)
+
+    MouseArea {
+        anchors.fill: parent
+        onClicked: toolbarButton.trigger()
+    }
 }

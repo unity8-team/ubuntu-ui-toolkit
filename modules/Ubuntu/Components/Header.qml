@@ -86,6 +86,12 @@ StyledItem {
     onContentsChanged: header.show()
 
     /*!
+      TODO: document
+     */
+    property Item tools: null
+    onToolsChanged: header.show()
+
+    /*!
       The flickable that controls the movement of the header.
       Will be set automatically by Pages inside a MainView, but can
       be overridden.

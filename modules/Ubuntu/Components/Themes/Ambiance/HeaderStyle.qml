@@ -63,10 +63,28 @@ Item {
     }
 
     Item {
-        id: foreground
+        id: backContainer
         anchors {
             left: parent.left
-            right: parent.right
+            top: parent.top
+            bottom: parent.bottom
+        }
+        width: styledItem.tools && styledItem.tools.back && styledItem.tools.back.visible ? units.gu(5) : 0
+
+        Binding {
+            target: styledItem.tools.back
+            property: "parent"
+            value: backContainer
+            when: styledItem.tools && styledItem.tools.back
+        }
+    }
+
+    Item {
+        id: foreground
+        anchors {
+            left: backContainer.right
+//            right: parent.right
+            right: toolsContainer.left
             top: parent.top
         }
         height: headerStyle.contentHeight
@@ -97,6 +115,29 @@ Item {
             property: "parent"
             value: foreground
             when: styledItem.contents
+        }
+    }
+
+    Item {
+        id: toolsContainer
+        anchors {
+            top: parent.top
+            bottom: parent.bottom
+            right: parent.right
+        }
+        width: styledItem.tools ? styledItem.tools.children.length * units.gu(6) : 0
+
+        Rectangle {
+            anchors.fill: parent
+            color: "red"
+            visible: false
+        }
+
+        Binding {
+            target: styledItem.tools
+            property: "parent"
+            value: toolsContainer
+            when: styledItem.tools
         }
     }
 }

@@ -183,12 +183,13 @@ PageTreeNode {
                 if (internal.header) {
                     internal.header.title = page.title;
                     internal.header.flickable = page.flickable;
+                    internal.header.tools = page.tools;
                 }
                 if (tools) {
                     if (tools.hasOwnProperty("pageStack")) tools.pageStack = page.pageStack;
                 }
                 if (internal.toolbar) {
-                    internal.toolbar.tools = page.tools;
+//                    internal.toolbar.tools = page.tools;
                 }
             }
         }
