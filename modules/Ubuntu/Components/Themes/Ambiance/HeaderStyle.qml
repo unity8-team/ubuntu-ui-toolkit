@@ -125,7 +125,10 @@ Item {
             bottom: parent.bottom
             right: parent.right
         }
-        width: styledItem.tools ? styledItem.tools.children.length * units.gu(6) : 0
+//        width: styledItem.tools ? styledItem.tools.children.length * units.gu(6) : 0
+//        width: 200
+        width: childrenRect.width
+        onWidthChanged: print("toolsContainer.width = "+toolsContainer.width)
 
         Rectangle {
             anchors.fill: parent

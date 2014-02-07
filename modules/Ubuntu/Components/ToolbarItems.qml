@@ -101,7 +101,8 @@ import QtQuick 2.0
 */
 Item {
     id: toolbarItems
-    anchors.fill: parent
+    height: parent ? parent.height : 0
+    width: toolsContainer.width + toolsContainer.anchors.rightMargin + toolsContainer.anchors.leftMargin
 
     /*!
       Default property, holds the content which will shown in the toolbar.
@@ -217,6 +218,7 @@ Item {
             bottom: parent.bottom
             top: parent.top
             rightMargin: units.gu(2)
+            leftMargin: units.gu(1)
         }
         spacing: units.gu(1)
     }
