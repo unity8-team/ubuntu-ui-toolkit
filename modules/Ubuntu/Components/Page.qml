@@ -86,6 +86,20 @@ PageTreeNode {
      */
     property Item tools: ToolbarItems { }
 
+    Binding {
+        target: page.tools
+        property: "visible"
+        value: page.active
+        when: tools
+    }
+
+    Binding {
+        target: page.tools.back
+        property: "visible"
+        value: false
+        when: tools && tools.back && !page.active
+    }
+
     /*!
       Optional flickable that controls the header. This property
       is automatically set to the first child of the page that is Flickable
