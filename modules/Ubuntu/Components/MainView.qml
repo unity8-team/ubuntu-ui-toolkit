@@ -265,7 +265,7 @@ PageTreeNode {
                     fill: parent
                     
                     // move the whole contents up if the toolbar is locked and opened otherwise the toolbar will obscure part of the contents
-                    bottomMargin: toolbarItem.locked && toolbarItem.opened ? toolbarItem.height + toolbarItem.triggerSize : 0
+//                    bottomMargin: toolbarItem.locked && toolbarItem.opened ? toolbarItem.height + toolbarItem.triggerSize : 0
                     // compensate so that the actual y is always 0
                     topMargin: -parent.y
                 }
@@ -281,9 +281,9 @@ PageTreeNode {
 
                 onPressed: {
                     mouse.accepted = false;
-                    if (!toolbarItem.locked) {
-                        toolbarItem.close();
-                        }
+//                    if (!toolbarItem.locked) {
+//                        toolbarItem.close();
+//                        }
                     if (headerItem.tabBar && !headerItem.tabBar.alwaysSelectionMode) {
                         headerItem.tabBar.selectionMode = false;
                     }
@@ -297,16 +297,16 @@ PageTreeNode {
          */
         property bool animate: true
 
-        Toolbar {
-            id: toolbarItem
-            onPressedChanged: {
-                if (!pressed) return;
-                if (headerItem.tabBar !== null) {
-                    headerItem.tabBar.selectionMode = false;
-                }
-            }
-            animate: canvas.animate
-        }
+//        Toolbar {
+//            id: toolbarItem
+//            onPressedChanged: {
+//                if (!pressed) return;
+//                if (headerItem.tabBar !== null) {
+//                    headerItem.tabBar.selectionMode = false;
+//                }
+//            }
+//            animate: canvas.animate
+//        }
 
         /*!
           The header of the MainView. Can be used to obtain the height of the header
@@ -338,7 +338,7 @@ PageTreeNode {
                 target: headerItem.tabBar
                 onPressedChanged: {
                     if (headerItem.tabBar.pressed) {
-                        if (!toolbarItem.locked) toolbarItem.close();
+//                        if (!toolbarItem.locked) toolbarItem.close();
                     }
                 }
             }
@@ -353,7 +353,7 @@ PageTreeNode {
                     if (headerItem.tabBar) {
                         headerItem.tabBar.selectionMode = true;
                     }
-                    if (!toolbarItem.locked) toolbarItem.open();
+//                    if (!toolbarItem.locked) toolbarItem.open();
                     canvas.animate = true;
                 }
             }
@@ -400,7 +400,7 @@ PageTreeNode {
           The toolbar that will be propagated to the children in the page tree node.
           It will be used by the active \l Page to set the toolbar actions.
          */
-        property Toolbar toolbar: toolbarItem
+//        property Toolbar toolbar: toolbarItem
 
         /*!
           \internal
