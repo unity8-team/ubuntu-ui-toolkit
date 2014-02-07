@@ -60,6 +60,7 @@ StyledItem
     function hide()
     property string title
     property Item contents
+    property Item tools
     property Flickable flickable
 modules/Ubuntu/Components/Icon.qml
 Item
@@ -546,7 +547,7 @@ QtObject
     property color field
     property color fieldText
 modules/Ubuntu/Components/ToolbarButton.qml
-ActionItem
+AbstractButton
 modules/Ubuntu/Components/ToolbarItems.qml
 Item
     default property list<Object> contents
