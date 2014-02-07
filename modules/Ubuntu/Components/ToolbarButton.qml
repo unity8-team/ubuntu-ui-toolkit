@@ -78,15 +78,10 @@ import QtQuick 2.0
         \endqml
         See \l ToolbarItems for more information on how to use ToolbarButton.
 */
-ActionItem {
+AbstractButton {
     id: toolbarButton
     height: parent ? parent.height : undefined
     width: units.gu(5)
 
     style: Theme.createStyleComponent("ToolbarButtonStyle.qml", toolbarButton)
-
-    MouseArea {
-        anchors.fill: parent
-        onClicked: toolbarButton.trigger()
-    }
 }
