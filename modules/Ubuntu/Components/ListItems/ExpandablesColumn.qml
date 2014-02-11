@@ -108,28 +108,6 @@ Flickable {
           Points to the currently expanded item. Null if no item is expanded.
          */
         property var expandedItem: null
-
-        /*! \internal
-          As the Column doesn't attach the ListView.view propert to it's
-          delegates, lets mimic the ListView's behavior ourselves.
-         */
-        function setViewToItems() {
-            for (var i = 0; i < column.data.length; ++i) {
-                if (column.data[i].hasOwnProperty("__view")) {
-                    column.data[i].__view = root;
-                }
-            }
-        }
-
-    }
-
-    /*! \internal */
-    onChildrenChanged: {
-        priv.setViewToItems();
-    }
-
-    Component.onCompleted: {
-        priv.setViewToItems();
     }
 
     Behavior on contentY {

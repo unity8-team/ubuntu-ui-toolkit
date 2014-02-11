@@ -91,12 +91,6 @@ Empty {
 
     /*!
       \internal
-      Points to the containing ExpandablesListView or ExpandablesColumn
-     */
-    property Item __view: ListView.view
-
-    /*!
-      \internal
       Reparent any content to inside the Flickable
      */
     property alias children: flickableContent.data
@@ -105,20 +99,26 @@ Empty {
     QtObject {
         id: priv
 
+        /*!
+          \internal
+          Points to the containing ExpandablesListView or ExpandablesColumn
+         */
+        property Item view: root.ListView.view ? root.ListView.view : (root.parent.parent.parent.hasOwnProperty("expandItem") ? root.parent.parent.parent : null)
+
         /*! \internal
           Gives information whether this item is inside a ExpandablesListView or ExpandablesColumn
          */
-        readonly property bool isInExpandableList: __view && __view !== undefined && __view.hasOwnProperty("expandItem") && __view.hasOwnProperty("collapse")
+        readonly property bool isInExpandableList: view && view !== undefined && view.hasOwnProperty("expandItem") && view.hasOwnProperty("collapse")
 
         /*! \internal
           Gives information if there is another item expanded in the containing ExpandablesListView or ExpandablesColumn
          */
-        readonly property bool otherExpanded: isInExpandableList && __view.expandedItem !== null && __view.expandedItem !== undefined && __view.expandedItem !== root
+        readonly property bool otherExpanded: isInExpandableList && view.expandedItem !== null && view.expandedItem !== undefined && view.expandedItem !== root
 
         /*! \internal
           Gives information about the maximum expanded height, in case that is limited by the containing ExpandablesListView or ExpandablesColumn
          */
-        readonly property real maxExpandedHeight: isInExpandableList ? Math.min(__view.height - collapsedHeight, expandedHeight) : expandedHeight
+        readonly property real maxExpandedHeight: isInExpandableList ? Math.min(view.height - collapsedHeight, expandedHeight) : expandedHeight
     }
 
     states: [
@@ -144,9 +144,9 @@ Empty {
 
         if (priv.isInExpandableList) {
             if (expanded) {
-                __view.expandItem(root);
+                priv.view.expandItem(root);
             } else {
-                __view.collapse();
+                priv.view.collapse();
             }
         }
     }

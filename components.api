@@ -111,7 +111,6 @@ Empty
     property bool expanded
     property real collapsedHeight
     property real expandedHeight
-    property Item __view
     property internal children
 modules/Ubuntu/Components/ListItems/ExpandablesColumn.qml
 Flickable
