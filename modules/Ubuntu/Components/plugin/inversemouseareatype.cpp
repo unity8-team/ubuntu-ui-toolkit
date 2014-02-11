@@ -231,7 +231,12 @@ InverseMouseAreaType::InverseMouseAreaType(QQuickItem *parent) :
     m_topmostItem(false),
     m_sensingArea(QuickUtils::instance().rootItem(this))
 {
-    QObject::connect(this, SIGNAL(enabledChanged()), this, SLOT(update()));
+    /*
+     * QQuickMouseArea overrides enabledChanged() signal, therefore we must make sure
+     * we connect to the proper signal.
+     */
+    QObject::connect(this, &QQuickMouseArea::enabledChanged,
+                     this, &InverseMouseAreaType::update);
 
     if (!m_sensingArea) {
         // get sensing area upon parent change
@@ -319,6 +324,9 @@ QEvent *InverseMouseAreaType::mapEventToArea(QObject *target, QEvent *event)
 
 bool InverseMouseAreaType::eventFilter(QObject *object, QEvent *event)
 {
+    if (!isEnabled())
+        return false;
+
     if (object != this)
     {
         bool captured = true;

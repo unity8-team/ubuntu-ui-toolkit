@@ -20,6 +20,7 @@ import unittest
 
 import autopilot
 from autopilot import input, platform
+from autopilot.introspection import dbus
 from testtools.matchers import GreaterThan, LessThan
 
 from ubuntuuitoolkit import emulators, tests
@@ -180,7 +181,8 @@ MainView {
     def setUp(self):
         super(ToolbarTestCase, self).setUp()
         self.toolbar = self.main_view.get_toolbar()
-        self.assertFalse(self.toolbar.opened)
+        # toolbar may be opened or closed now, depending on whether
+        # the application has been deactivated and resumed already
 
     def test_open_toolbar(self):
         self.toolbar.open()
@@ -203,6 +205,7 @@ MainView {
         self.assertFalse(self.toolbar.animating)
 
     def test_closed_toolbar_is_not_closed_again(self):
+        self.toolbar.close()
         with mock.patch.object(
                 self.main_view.pointing_device, 'drag') as mock_drag:
             self.toolbar.close()
@@ -211,6 +214,7 @@ MainView {
         self.assertFalse(self.toolbar.opened)
 
     def test_click_toolbar_button(self):
+        self.toolbar.close()
         label = self.app.select_single('Label', objectName='clicked_label')
         self.assertNotEqual(label.text, 'Button clicked.')
         self.toolbar.open()
@@ -226,6 +230,7 @@ MainView {
             str(error), 'Button with objectName "unexisting" not found.')
 
     def test_click_button_on_closed_toolbar(self):
+        self.toolbar.close()
         error = self.assertRaises(
             emulators.ToolkitEmulatorException, self.toolbar.click_button,
             'buttonName')
@@ -545,6 +550,131 @@ class ToggleTestCase(tests.QMLStringAppTestCase):
         self.assertThat(waiting_time, LessThan(2))
 
 
+class QQuickListViewTestCase(tests.QMLStringAppTestCase):
+
+    test_qml = ("""
+import QtQuick 2.0
+import Ubuntu.Components 0.1
+import Ubuntu.Components.ListItems 0.1 as ListItem
+
+MainView {
+    width: units.gu(48)
+    height: units.gu(20)
+
+    Page {
+
+        Column {
+            id: column
+            width: units.gu(48)
+            height: units.gu(20)
+
+            Label {
+                id: clickedLabel
+                objectName: "clickedLabel"
+                text: "No element clicked."
+            }
+
+            ListModel {
+                id: testModel
+
+                ListElement {
+                    objectName: "testListElement1"
+                    label: "test list element 1"
+                }
+                ListElement {
+                    objectName: "testListElement2"
+                    label: "test list element 2"
+                }
+                ListElement {
+                    objectName: "testListElement3"
+                    label: "test list element 3"
+                }
+                ListElement {
+                    objectName: "testListElement4"
+                    label: "test list element 4"
+                }
+                ListElement {
+                    objectName: "testListElement5"
+                    label: "test list element 5"
+                }
+                ListElement {
+                    objectName: "testListElement6"
+                    label: "test list element 6"
+                }
+                ListElement {
+                    objectName: "testListElement7"
+                    label: "test list element 7"
+                }
+                ListElement {
+                    objectName: "testListElement8"
+                    label: "test list element 8"
+                }
+                ListElement {
+                    objectName: "testListElement9"
+                    label: "test list element 9"
+                }
+            }
+
+            ListView {
+                id: testListView
+                objectName: "testListView"
+                anchors.left: parent.left
+                anchors.right: parent.right
+                height: column.height - clickedLabel.paintedHeight
+                clip: true
+                model: testModel
+
+                delegate: ListItem.Standard {
+                    text: model.label
+                    objectName: model.objectName
+                    onClicked: clickedLabel.text = model.objectName
+                    height: units.gu(5)
+                }
+            }
+        }
+    }
+}
+""")
+
+    def setUp(self):
+        super(QQuickListViewTestCase, self).setUp()
+        self.list_view = self.main_view.select_single(
+            emulators.QQuickListView, objectName='testListView')
+        self.label = self.main_view.select_single(
+            'Label', objectName='clickedLabel')
+        self.assertEqual(self.label.text, 'No element clicked.')
+
+    def test_qquicklistview_emulator(self):
+        self.assertIsInstance(self.list_view, emulators.QQuickListView)
+
+    def test_click_element(self):
+        self.list_view.click_element('testListElement1')
+        self.assertEqual(self.label.text, 'testListElement1')
+
+    def test_click_element_outside_view_below(self):
+        # Click the first element out of view to make sure we are not scrolling
+        # to the bottom at once.
+        self.assertFalse(
+            self.list_view._is_element_fully_visible('testListElement5'))
+
+        self.list_view.click_element('testListElement5')
+        self.assertEqual(self.label.text, 'testListElement5')
+
+    def test_click_element_outside_view_above(self):
+        # First we need to scroll to the 8th element in order for the 9th to be
+        # created.
+        self.list_view.click_element('testListElement8')
+        self.list_view.click_element('testListElement9')
+
+        # Click the first element out of view to make sure we are not scrolling
+        # to the top at once.
+        self.assertFalse(
+            self.list_view._is_element_fully_visible('testListElement4'))
+
+        self.list_view.click_element('testListElement4')
+        self.assertEqual(self.label.text, 'testListElement4')
+
+
 class SwipeToDeleteTestCase(tests.QMLStringAppTestCase):
 
     test_qml = ("""
@@ -555,21 +685,59 @@ import Ubuntu.Components.ListItems 0.1
 
 MainView {
     width: units.gu(48)
-    height: units.gu(300)
+    height: units.gu(60)
 
-    Column {
-        width: parent.width
+    Page {
 
-        Standard {
-            objectName: "listitem_standard"
-            confirmRemoval: true
-            removable: true
-            width: parent.width
-            text: 'Slide to remove'
+        ListModel {
+            id: testModel
+
+            ListElement {
+                name: "listitem_destroyed_on_remove_with_confirm"
+                label: "Item destroyed on remove with confirmation"
+                confirm: true
+            }
+            ListElement {
+                name: "listitem_destroyed_on_remove_without_confirm"
+                label: "Item destroyed on remove without confirmation"
+                confirm: false
+            }
         }
-        Empty {
-            objectName: "listitem_empty"
-            width: parent.width
+
+        Column {
+            anchors { fill: parent }
+
+            Standard {
+                objectName: "listitem_standard"
+                confirmRemoval: true
+                removable: true
+                text: 'Slide to remove'
+            }
+
+            Empty {
+                objectName: "listitem_empty"
+            }
+
+            Standard {
+                objectName: "listitem_without_confirm"
+                confirmRemoval: false
+                removable: true
+                text: "Item without delete confirmation"
+            }
+
+            ListView {
+                anchors { left: parent.left; right: parent.right }
+                height: childrenRect.height
+                model: testModel
+
+                delegate: Standard {
+                    removable: true
+                    confirmRemoval: confirm
+                    onItemRemoved: testModel.remove(index)
+                    text: label
+                    objectName: name
+                }
+            }
         }
     }
 }
@@ -579,6 +747,7 @@ MainView {
         super(SwipeToDeleteTestCase, self).setUp()
         self._item = self.main_view.select_single(
             emulators.Standard, objectName='listitem_standard')
+        self.assertTrue(self._item.exists())
 
     def test_supported_class(self):
         self.assertTrue(issubclass(
@@ -619,12 +788,12 @@ MainView {
     def test_delete_item_moving_right(self):
         self._item.swipe_to_delete('right')
         self._item.confirm_removal()
-        self.assertEqual(self._item.implicitHeight, 0)
+        self.assertFalse(self._item.exists())
 
     def test_delete_item_moving_left(self):
         self._item.swipe_to_delete('left')
         self._item.confirm_removal()
-        self.assertEqual(self._item.implicitHeight, 0)
+        self.assertFalse(self._item.exists())
 
     def test_delete_non_removable_item(self):
         self._item = self.main_view.select_single(
@@ -635,6 +804,27 @@ MainView {
     def test_confirm_removal_when_item_was_not_swiped(self):
         self.assertRaises(
             emulators.ToolkitEmulatorException, self._item.confirm_removal)
+
+    def test_delete_item_without_confirm(self):
+        item = self.main_view.select_single(
+            emulators.Standard, objectName='listitem_without_confirm')
+        item.swipe_to_delete()
+        self.assertFalse(item.exists())
+
+    def test_delete_item_with_confirmation_that_will_be_destroyed(self):
+        item = self.main_view.select_single(
+            emulators.Standard,
+            objectName='listitem_destroyed_on_remove_with_confirm')
+        item.swipe_to_delete()
+        item.confirm_removal()
+        self.assertFalse(item.exists())
+
+    def test_delete_item_without_confirmation_that_will_be_destroyed(self):
+        item = self.main_view.select_single(
+            emulators.Standard,
+            objectName='listitem_destroyed_on_remove_without_confirm')
+        item.swipe_to_delete()
+        self.assertFalse(item.exists())
 
 
 class PageStackTestCase(tests.QMLStringAppTestCase):
@@ -690,3 +880,151 @@ MainView {
         self._go_to_page1()
         self.main_view.go_back()
         self.assertEqual(self.header.title, 'Page 0')
+
+
+class TextFieldTestCase(tests.QMLStringAppTestCase):
+
+    test_qml = ("""
+import QtQuick 2.0
+import Ubuntu.Components 0.1
+
+MainView {
+    width: units.gu(48)
+    height: units.gu(60)
+
+    Item {
+        TextField {
+            id: simpleTextField
+            objectName: "simple_text_field"
+        }
+        TextField {
+            id: textFieldWithoutClearButton
+            objectName: "text_field_without_clear_button"
+            hasClearButton: false
+            anchors.top: simpleTextField.bottom
+        }
+    }
+}
+""")
+
+    def setUp(self):
+        super(TextFieldTestCase, self).setUp()
+        self.simple_text_field = self.main_view.select_single(
+            emulators.TextField, objectName='simple_text_field')
+
+    def test_text_field_emulator(self):
+        self.assertIsInstance(self.simple_text_field, emulators.TextField)
+
+    def test_write(self):
+        self.simple_text_field.write('test')
+        self.assertEqual(self.simple_text_field.text, 'test')
+
+    def test_clear_with_clear_button(self):
+        self.simple_text_field.write('test')
+        self.simple_text_field.clear()
+        self.assertEqual(self.simple_text_field.text, '')
+
+    def test_clear_without_clear_button(self):
+        text_field = self.main_view.select_single(
+            emulators.TextField, objectName='text_field_without_clear_button')
+        text_field.write('test')
+        text_field.clear()
+        self.assertEqual(text_field.text, '')
+
+    def test_clear_and_write(self):
+        self.simple_text_field.write('test1')
+        self.simple_text_field.write('test2')
+        self.assertEqual(self.simple_text_field.text, 'test2')
+
+    def test_write_without_clear(self):
+        self.simple_text_field.write('test1')
+        self.simple_text_field.write('test2', clear=False)
+        self.assertEqual(self.simple_text_field.text, 'test1test2')
+
+    def test_write_without_clear_writes_at_the_end(self):
+        self.simple_text_field.write(
+            'long text that will fill more than half of the text field.')
+        self.simple_text_field.write('append', clear=False)
+        self.assertEqual(
+            self.simple_text_field.text,
+            'long text that will fill more than half of the text field.append')
+
+    def test_is_empty(self):
+        self.assertTrue(self.simple_text_field.is_empty())
+        self.simple_text_field.write('test')
+        self.assertFalse(self.simple_text_field.is_empty())
+
+
+class ComposerSheetTestCase(tests.QMLStringAppTestCase):
+
+    test_qml = ("""
+import QtQuick 2.0
+import Ubuntu.Components 0.1
+import Ubuntu.Components.Popups 0.1
+
+MainView {
+    width: units.gu(48)
+    height: units.gu(60)
+
+    Button {
+        objectName: "openComposerSheetButton"
+        text: "Open Composer Sheet"
+        onClicked: PopupUtils.open(testComposerSheet);
+    }
+
+    Label {
+        id: "label"
+        objectName: "actionLabel"
+        anchors.centerIn: parent
+        text: "No action taken."
+    }
+
+    Component {
+        id: testComposerSheet
+        ComposerSheet {
+            id: sheet
+            objectName: "testComposerSheet"
+            onCancelClicked: {
+                label.text = "Cancel selected."
+            }
+            onConfirmClicked: {
+                label.text = "Confirm selected."
+            }
+        }
+    }
+}
+""")
+
+    def setUp(self):
+        super(ComposerSheetTestCase, self).setUp()
+        self.label = self.main_view.select_single(
+            'Label', objectName='actionLabel')
+        self.assertEqual(self.label.text, 'No action taken.')
+        self._open_composer_sheet()
+        self.composer_sheet = self._select_composer_sheet()
+
+    def _open_composer_sheet(self):
+        button = self.main_view.select_single(
+            'Button', objectName='openComposerSheetButton')
+        self.pointing_device.click_object(button)
+
+    def _select_composer_sheet(self):
+        return self.main_view.select_single(
+            emulators.ComposerSheet, objectName='testComposerSheet')
+
+    def test_select_composer_sheet_custom_emulator(self):
+        self.assertIsInstance(self.composer_sheet, emulators.ComposerSheet)
+
+    def test_confirm_composer_sheet(self):
+        self.composer_sheet.confirm()
+        self.assertEqual(self.label.text, 'Confirm selected.')
+        self._assert_composer_sheet_is_closed()
+
+    def _assert_composer_sheet_is_closed(self):
+        self.assertRaises(
+            dbus.StateNotFoundError, self._select_composer_sheet)
+
+    def test_cancel_composer_sheet(self):
+        self.composer_sheet.cancel()
+        self.assertEqual(self.label.text, 'Cancel selected.')
+        self._assert_composer_sheet_is_closed()

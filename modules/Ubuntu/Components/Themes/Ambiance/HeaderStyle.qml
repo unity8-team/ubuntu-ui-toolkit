@@ -72,6 +72,8 @@ Item {
         height: headerStyle.contentHeight
 
         Label {
+            LayoutMirroring.enabled: Qt.application.layoutDirection == Qt.RightToLeft
+
             anchors {
                 left: parent.left
                 verticalCenter: parent.verticalCenter
@@ -84,6 +86,12 @@ Item {
             color: headerStyle.textColor
         }
 
+        Binding {
+            target: styledItem.contents
+            property: "anchors.fill"
+            value: foreground
+            when: styledItem.contents
+        }
         Binding {
             target: styledItem.contents
             property: "parent"
