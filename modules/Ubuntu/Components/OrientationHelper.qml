@@ -86,7 +86,7 @@ Item {
 
       Calculates the current orientation angle.
      */
-    property int orientationAngle: automaticOrientation ? Screen.angleBetween(Screen.primaryOrientation, Screen.orientation) : 0
+    property int orientationAngle: automaticOrientation ? Screen.angleBetween(Screen.primaryOrientation, Screen.orientation) : 90
 
     anchors.fill: parent
 
