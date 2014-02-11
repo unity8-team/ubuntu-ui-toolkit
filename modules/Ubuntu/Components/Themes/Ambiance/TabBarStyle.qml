@@ -68,26 +68,19 @@ Item {
         target: styledItem
 
         onSelectionModeChanged: {
-            if (styledItem.selectionMode) {
-                activatingTimer.restart();
-            } else {
+            if (!styledItem.selectionMode) {
                 buttonView.selectButton(styledItem.selectedIndex);
             }
         }
     }
 
-    /*!
-      \internal
-      Avoid interpreting a click to enter selection mode as a button click.
-     */
-    Timer {
-        id: activatingTimer
-        interval: 800 // same as pressAndHold time
-    }
-
     Connections {
         target: styledItem
         onSelectedIndexChanged: buttonView.selectButton(styledItem.selectedIndex)
+    }
+
+    MouseArea {
+        anchors.fill: parent
     }
 
     Component {
@@ -207,15 +200,11 @@ Item {
                     }
 
                     onClicked: {
-                        if (!activatingTimer.running) {
-                            styledItem.selectedIndex = index;
-                            if (!styledItem.alwaysSelectionMode) {
-                                styledItem.selectionMode = false;
-                            }
-                            button.select();
-                        } else {
-                            activatingTimer.stop();
+                        styledItem.selectedIndex = index;
+                        if (!styledItem.alwaysSelectionMode) {
+                            styledItem.selectionMode = false;
                         }
+                        button.select();
                     }
 
                     onPressedChanged: {
@@ -366,8 +355,11 @@ Item {
         //  so that press events are detected and tabBarStyle.pressed is updated.
         onPressed: {
             mouseArea.interacting = true;
-            styledItem.selectionMode = true;
-            mouse.accepted = false;
+            if (styledItem.selectionMode) {
+                mouse.accepted = false;
+            } else {
+                styledItem.selectionMode = true;
+            }
         }
     }
 
