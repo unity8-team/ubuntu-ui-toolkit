@@ -56,7 +56,7 @@ Rectangle {
         compare(child.objectName,"myMouseArea");
 
         child = findChild(root,"NoSuchChildHere");
-        compare(child===null,true,"When there is no child, function should return undefined");
+        compare(child===null,true,"When there is no child, function should return null");
     }
  }
 }
