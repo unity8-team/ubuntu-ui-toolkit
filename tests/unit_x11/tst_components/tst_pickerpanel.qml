@@ -152,6 +152,7 @@ Item {
         // forced panel tests
         // these should be executed as last ones
         function test_2_clickOndefaultMode() {
+            waitForRendering(PickerPanel);
             // force panel - this is private specific!!!
             var privates = findChild(PickerPanel, "PickerPanel_Internals");
             privates.isPhone = true;
