@@ -58,6 +58,7 @@ Item {
         when: windowShown
 
         function test_expanding_collapsing() {
+            waitForRendering(expandable);
             // expand it and make sure it eventually reaches the expandedHeight
             expandable.expanded = true;
             tryCompare(expandable, "height", contentColumn.height);
