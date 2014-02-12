@@ -218,6 +218,16 @@ PageTreeNode {
       \qmlproperty bool automaticOrientation
      */
     property alias automaticOrientation: canvas.automaticOrientation
+    
+    /*!
+      \preliminary
+      Set to override the native orientation angle for when automaticOrientation disabled
+
+      The default value is 90 (for landscape support only really).
+
+      \qmlproperty int nativeOrientationAngle
+    */
+    property alias nativeOrientationAngle: canvas.nativeOrientationAngle
 
     /*!
       \internal

@@ -86,7 +86,14 @@ Item {
 
       Calculates the current orientation angle.
      */
-    property int orientationAngle: automaticOrientation ? Screen.angleBetween(Screen.primaryOrientation, Screen.orientation) : 90
+    property int orientationAngle: automaticOrientation ? Screen.angleBetween(Screen.primaryOrientation, Screen.orientation) : nativeOrientationAngle
+
+    /*!
+      \qmlproperty int nativeOrientationAngle
+
+      Degree rotation from Qt::PrimaryOrientation that should be considered the default orientation if automaticOrientation disabled.
+    */
+    property int nativeOrientationAngle: 90
 
     anchors.fill: parent
 
