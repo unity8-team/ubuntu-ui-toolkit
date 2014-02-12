@@ -162,7 +162,7 @@ Empty {
         id: contentFlickable
         objectName: "__expandableContentFlickable"
         anchors { fill: parent; leftMargin: root.__contentsMargins; rightMargin: __contentsMargins; bottomMargin: divider.height }
-        interactive: root.expanded && flickableContent.height > height
+        interactive: root.expanded && contentHeight > height + root.divider.height
         contentHeight: root.expandedHeight
         flickableDirection: Flickable.VerticalFlick
         clip: true
