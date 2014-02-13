@@ -90,6 +90,12 @@ Empty {
     property real expandedHeight: collapsedHeight
 
     /*!
+      If set to true, the item will collapse again when the user clicks somewhere in the always
+      visible (when collapsed) area.
+     */
+    property bool collapseOnClick: false
+
+    /*!
       \internal
       Reparent any content to inside the Flickable
      */
@@ -179,5 +185,12 @@ Empty {
             }
             height: childrenRect.height
         }
+    }
+
+    MouseArea {
+        anchors { left: parent.left; top: parent.top; right: parent.right }
+        enabled: root.collapseOnClick && root.expanded
+        height: root.collapsedHeight
+        onClicked: root.expanded = false;
     }
 }

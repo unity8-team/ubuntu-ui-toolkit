@@ -286,8 +286,9 @@ Template {
             Repeater {
                 model: 8
                 ListItem.Expandable {
-                    id: expandingColumnItem1
+                    id: expandingColumnItem
                     expandedHeight: contentColumn1.height + units.gu(1)
+                    collapseOnClick: index % 2 == 0
 
                     onClicked: {
                         expanded = true;
@@ -298,10 +299,10 @@ Template {
                         anchors { left: parent.left; right: parent.right }
                         Item {
                             anchors { left: parent.left; right: parent.right}
-                            height: expandingColumnItem1.collapsedHeight
+                            height: expandingColumnItem.collapsedHeight
                             Toolkit.Label {
                                 anchors { left: parent.left; right: parent.right; verticalCenter: parent.verticalCenter}
-                                text: "Item " + index
+                                text: "Item " + index + (expandingColumnItem.collapseOnClick ? " (with collapseOnClick)" : "")
                             }
                         }
 
