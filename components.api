@@ -178,6 +178,7 @@ PageTreeNode
     property color backgroundColor
     property color footerColor
     property bool automaticOrientation
+    property int nativeOrientationAngle
     default property internal contentsItem
     property list<Action> actions
     property UnityActions.ActionManager actionManager
@@ -215,6 +216,7 @@ Item
     property alias rotating
     property int __orientationAngle
     property int orientationAngle
+    property int nativeOrientationAngle
 modules/Ubuntu/Components/Page.qml
 PageTreeNode
     property string title
