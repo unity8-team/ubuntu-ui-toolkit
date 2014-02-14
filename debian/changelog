@@ -1,8 +1,9 @@
-ubuntu-ui-toolkit (0.1.46+0ubuntu2) UNRELEASED; urgency=medium
+ubuntu-ui-toolkit (0.1.46+demostuff0) trusty; urgency=medium
 
+  [ Kevin Gunn ]
   * n7 rotate hack, do not release into wild
 
- -- Kevin Gunn <kevin.gunn@canonical.com>  Thu, 13 Feb 2014 21:53:51 -0600
+ -- Gerry Boland <gerry.boland@canonical.com>  Fri, 14 Feb 2014 16:15:35 +0000
 
 ubuntu-ui-toolkit (0.1.46+14.04.20131216-0ubuntu1) trusty; urgency=low
 
