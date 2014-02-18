@@ -645,6 +645,10 @@ plugins.qmltypes
     name: "quitWithError"
     Parameter { name: "errorMessage"; type: "string" }
     Method { name: "quitWithError" }
+    name: "UCNativeOrientation"
+    prototype: "QObject"
+    exports: ["NativeOrientation 0.1"]
+    Property { name: "nativeOrientation"; type: "Qt::ScreenOrientation"; isReadonly: true }
     name: "UCQQuickImageExtension"
     prototype: "QQuickImageBase"
     exports: ["QQuickImageBase 0.1"]

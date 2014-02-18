@@ -27,6 +27,7 @@
 #include <QtQml/QQmlContext>
 #include "i18n.h"
 #include "listener.h"
+#include "ucnativeorientation.h"
 #include "ucunits.h"
 #include "ucscalingimageprovider.h"
 #include "ucqquickimageextension.h"
@@ -91,6 +92,15 @@ static QObject *registerUriHandler(QQmlEngine *engine, QJSEngine *scriptEngine)
 
     UCUriHandler *uriHandler = new UCUriHandler();
     return uriHandler;
+}
+
+static QObject *registerUCNativeOrientation(QQmlEngine *engine, QJSEngine *scriptEngine)
+{
+    Q_UNUSED(engine)
+    Q_UNUSED(scriptEngine)
+
+    UCNativeOrientation *orientation = new UCNativeOrientation();
+    return orientation;
 }
 
 static QObject *registerUbuntuColors(QQmlEngine *engine, QJSEngine *scriptEngine)
@@ -163,6 +173,7 @@ void UbuntuComponentsPlugin::registerTypes(const char *uri)
     qmlRegisterUncreatableType<UCUnits>(uri, 0, 1, "UCUnits", "Not instantiable");
     qmlRegisterType<ShapeItem>(uri, 0, 1, "Shape");
     qmlRegisterType<InverseMouseAreaType>(uri, 0, 1, "InverseMouseArea");
+    qmlRegisterSingletonType<UCNativeOrientation>(uri, 0, 1, "NativeOrientation", registerUCNativeOrientation);
     qmlRegisterType<QQuickMimeData>(uri, 0, 1, "MimeData");
     qmlRegisterSingletonType<QQuickClipboard>(uri, 0, 1, "Clipboard", registerClipboard);
     qmlRegisterSingletonType<UCUbuntuAnimation>(uri, 0, 1, "UbuntuAnimation", registerUCUbuntuAnimation);

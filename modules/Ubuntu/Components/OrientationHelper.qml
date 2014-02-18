@@ -93,8 +93,8 @@ Item {
 
       Degree rotation from Qt::PrimaryOrientation that should be considered the default orientation if automaticOrientation disabled.
     */
-    property int nativeOrientationAngle: 90
-
+    property int nativeOrientationAngle: internal.orientationToAngle(Ubuntu.NativeOrientation.nativeOrientation)
+    
     anchors.fill: parent
 
     Component.onCompleted: orientationTransition.enabled = transitionEnabled
@@ -113,6 +113,21 @@ Item {
     */
     Item {
         id: internal
+
+        /*!
+          \internal
+         */
+        function orientationToAngle(input) {
+            if (input == Qt.LandscapeOrientation) {
+                return 270;
+            } else if (input == Qt.InvertedPortraitOrientation) {
+                return 180;
+            } else if (input == Qt.InvertedLandscapeOrientation) {
+                return 90;
+            } else {
+                return 0;
+            }
+        }
 
         /*!
           'window' is defined by QML between startup and showing on the screen.
