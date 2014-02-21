@@ -80,6 +80,12 @@ private Q_SLOTS:
 
     void testCase_Settings()
     {
+        /* Ensure we start afresh */
+        QString xdgDataHome(QProcessEnvironment::systemEnvironment().value("XDG_DATA_HOME",
+            QProcessEnvironment::systemEnvironment().value("HOME") + "/.local/share"));
+        QDir testDataFolder(xdgDataHome + "/tst_settings");
+        testDataFolder.remove("settings.db");
+
         QQuickView *view = loadTestCase("Settings.qml");
         QQuickItem *root = view->rootObject();
 
