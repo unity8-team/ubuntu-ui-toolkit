@@ -15,10 +15,11 @@
  */
 
 import QtQuick 2.0
-import QtTest 1.0
 import Ubuntu.Components 0.1
+import QtTest 1.0
+import Ubuntu.Test 0.1
 
-TestCase {
+UbuntuTestCase {
     name: "Settings"
 
     MainView {
@@ -72,12 +73,19 @@ TestCase {
         }
     }
 
+    SignalSpy {
+        id: changeSpy
+        target: findInvisibleChild('settingsInternalDocument')
+        signalName: "contentsChanged"
+    }
+
     function test_defaults () {
         var expected = ['boolFalse', 'boolTrue', 'stringEmpty', 'stringUrl', 'intMax', 'intZero']
-        for(var name in expected) {
+        for(var i in expected) {
             var found = false
+            var name = expected[i]
             for(var item in appSettings.options) {
-                var option = options[item]
+                var option = appSettings.options[item]
                 if (option.name != name)
                     continue
                 found = true
@@ -86,14 +94,18 @@ TestCase {
                 fail('Expected setting %1 not found in options'.arg(name))
         }
         for(var item in appSettings.options) {
-            var option = options[item]
+            var option = appSettings.options[item]
             compare(option.value, option.defaultValue)
         }
+        var internalDocument = findInvisibleChild('settingsInternalDocument')
+        compare(internalDocument.create, true)
     }
 
     function change_values () {
         stringUrl.value = "http://www.canonical.com"
+        changeSpy.wait()
         intMax.value = 13
+        changeSpy.wait()
     }
 
     function verify_values () {

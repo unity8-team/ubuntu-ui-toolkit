@@ -16,6 +16,7 @@
 
 import QtQuick 2.0
 import U1db 1.0 as U1db
+import Ubuntu.Components 0.1 as Toolkit
 
 /*!
     \qmltype Settings
@@ -82,7 +83,7 @@ Item {
       \internal
       */
     onOptionsChanged: {
-        if (!SettingsStorage.addGroup(group, settings)) {
+        if (!Toolkit.SettingsStorage.addGroup(group, settings)) {
             console.log("Non-unique Settings declared with the group '%1'".arg(group));
             return;
         }
@@ -103,6 +104,7 @@ Item {
 
     U1db.Document {
         id: __doc
+        objectName: "settingsInternalDocument"
         docId: group
         create: false
         onContentsChanged: {
