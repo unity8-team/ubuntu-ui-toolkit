@@ -25,7 +25,9 @@ TestCase {
         applicationName: "tst_settings"
 
         Settings {
+            id: appSettings
             objectName: "settings"
+
             Option {
                 id: boolFalse
                 name: "boolFalse"
@@ -59,17 +61,33 @@ TestCase {
                 defaultValue: 65535
             }
         }
-        TextField {
-            id: textFieldUrl
-            action: stringUrl
+
+        Page {
+            title: "Settings"
+
+            TextField {
+                id: textFieldUrl
+                action: stringUrl
+            }
         }
     }
 
     function test_defaults () {
-        for(var item in resources) {
-            var child = resources[item]
-            if (child.hasOwnProperty("defaultValue"))
-                compare(child.value, child.defaultValue)
+        var expected = ['boolFalse', 'boolTrue', 'stringEmpty', 'stringUrl', 'intMax', 'intZero']
+        for(var name in expected) {
+            var found = false
+            for(var item in appSettings.options) {
+                var option = options[item]
+                if (option.name != name)
+                    continue
+                found = true
+            }
+            if (!found)
+                fail('Expected setting %1 not found in options'.arg(name))
+        }
+        for(var item in appSettings.options) {
+            var option = options[item]
+            compare(option.value, option.defaultValue)
         }
     }
 
