@@ -370,8 +370,6 @@ StyledItem
 modules/Ubuntu/Components/Settings.qml
 Item
     property string group
-    property bool sync
-    property bool persistent
     property list<Option> couldntGetListToWorkWithoutAlias
     default property internal options
 modules/Ubuntu/Components/Slider.qml

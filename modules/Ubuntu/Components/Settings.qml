@@ -44,7 +44,6 @@ import U1db 1.0 as U1db
         Settings {
             group: "tablet"
             sync: false
-            persistent: !isPrivateMode // variable defined in the application
             Option {
                 name: "bigLayout"
                 defaultValue: false
@@ -67,18 +66,6 @@ Item {
         if (__doc.create)
             console.log('Settings groups must not change after declaration!');
     }
-
-    /*!
-      By default all settings transparently store on disk and sync to the cloud
-      if a U1 account is setup. Set to false to keep settings local.
-      */
-    property bool sync: true
-    /*!
-      By default values are stored on disk and updated as needed. Set to false
-      to prevent that behavior - for example for a private mode use case. This
-      doesn't interfere with sync behavior.
-      */
-    property bool persistent: true
 
     /*!
       \internal
@@ -127,7 +114,7 @@ Item {
             }
         }
         database: U1db.Database {
-            path: persistent ? "settings.db" : ":memory:"
+            path: "settings.db"
         }
     }
 }
