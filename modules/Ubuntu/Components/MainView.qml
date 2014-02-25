@@ -15,7 +15,8 @@
  */
 
 import QtQuick 2.0
-import Ubuntu.Unity.Action 1.0 as UnityActions
+import Ubuntu.Unity.Action 1.1 as UnityActions
+import Ubuntu.PerformanceMetrics 0.1
 import "pageTree.js" as PageTree
 
 /*!
@@ -391,6 +392,10 @@ PageTreeNode {
         id: internal
         UnityActions.ActionManager {
             id: unityActionManager
+            onQuit: {
+               // FIXME Wire this up to the application lifecycle management API instead of quit().
+               Qt.quit()
+            }
         }
     }
 
@@ -423,5 +428,10 @@ PageTreeNode {
             i18n.domain = applicationName;
             UbuntuApplication.applicationName = applicationName
         }
+    }
+
+    PerformanceOverlay {
+        id: performanceOverlay
+        active: false
     }
 }
