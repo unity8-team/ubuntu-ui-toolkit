@@ -80,14 +80,9 @@ Item {
     }
 
     /*
-        The mouse events were always caught by the MouseArea present in the MainView *if*
-        no tab button was there to catch them. That MouseArea is resetting the selectionMode
-        of the tabs to false when clicked. The reason the smaller font size triggers the bug
-        is that the tab buttons are less wide and clicking in the middle of the Tabs like the
-        autopilot tests do end up not clicking on a tab button anymore.
-
-        This MouseArea always catches all mouse events.
-      */
+      Prevent events that are not accepted by tab buttons or mouseArea below
+      from passing through the TabBar.
+     */
     MouseArea {
         anchors.fill: parent
     }
