@@ -365,6 +365,9 @@ Item {
                 styledItem.selectionMode = true;
             }
         }
+        onReleased: {
+            mouseArea.interacting = false;
+        }
     }
 
     Component.onCompleted: {
