@@ -102,6 +102,10 @@ private Q_SLOTS:
         i = root->metaObject()->indexOfMethod("change_values()");
         root->metaObject()->method(i).invoke(root, Qt::DirectConnection);
 
+        // Database written?
+        QString databaseFile(testDataFolder.path() + QString("/settings.db"));
+        QVERIFY(QFile::exists(databaseFile));
+
         // Delete and re-load the view as if it was an app being restarted
         delete view;
 

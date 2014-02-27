@@ -20,6 +20,7 @@ import QtTest 1.0
 import Ubuntu.Test 0.1
 
 UbuntuTestCase {
+    id: test
     name: "Settings"
 
     MainView {
@@ -74,8 +75,12 @@ UbuntuTestCase {
     }
 
     SignalSpy {
+        id: valueSpy
+        signalName: "valueChanged"
+    }
+
+    SignalSpy {
         id: changeSpy
-        target: findInvisibleChild('settingsInternalDocument')
         signalName: "contentsChanged"
     }
 
@@ -97,18 +102,34 @@ UbuntuTestCase {
             var option = appSettings.options[item]
             compare(option.value, option.defaultValue)
         }
-        var internalDocument = findInvisibleChild('settingsInternalDocument')
+        var internalDocument = findInvisibleChild(appSettings, 'settingsInternalDocument')
         compare(internalDocument.create, true)
     }
 
     function change_values () {
+        var internalDocument = findInvisibleChild(appSettings, 'settingsInternalDocument')
+        // changeSpy.target = internalDocument
+        valueSpy.target = stringUrl
         stringUrl.value = "http://www.canonical.com"
-        changeSpy.wait()
+        valueSpy.wait()
+        compare(internalDocument.defaults.stringUrl, stringUrl.defaultValue)
+        // changeSpy.wait()
+        valueSpy.target = intMax
         intMax.value = 13
-        changeSpy.wait()
+        valueSpy.wait()
+        compare(internalDocument.defaults.intMax, intMax.defaultValue)
+        // changeSpy.wait()
+        compare(internalDocument.contents.stringUrl, stringUrl.value)
+        compare(internalDocument.contents.intMax, intMax.value)
     }
 
     function verify_values () {
+        var internalDocument = findInvisibleChild(appSettings, 'settingsInternalDocument')
+        compare(internalDocument.defaults.stringUrl, stringUrl.defaultValue)
+        compare(internalDocument.defaults.intMax, intMax.defaultValue)
+
+        valueSpy.target = stringUrl
+        valueSpy.wait()
         compare(stringUrl.value, "http://www.canonical.com")
         compare(intMax.value, 13)
 
