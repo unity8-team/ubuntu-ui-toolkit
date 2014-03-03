@@ -81,6 +81,10 @@ void UCQQuickImageExtension::reloadSource()
         // Regular image file
         m_image->setSource(QUrl("image://scaling/" + resolved));
     } else {
+        /* FIXME: workaround for https://bugreports.qt-project.org/browse/QTBUG-37206 */
+        float windowPixelRatio = UCUnits::instance().gridUnit() / DEFAULT_GRID_UNIT_PX;
+        scaleFactor = QString::number(scaleFactor.toFloat() / windowPixelRatio);
+
         // .sci image file. Rewrite the .sci file into a temporary file.
         bool rewritten = true;
         QTemporaryFile* rewrittenSciFile;
