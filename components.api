@@ -588,6 +588,7 @@ TestCase
     function findChild(obj,objectName)
     function findInvisibleChild(obj,objectName)
     function mouseMoveSlowly(item,x,y,dx,dy,steps,stepdelay)
+    function tryCompareFunction(func, expectedResult, timeout)
 plugins.qmltypes
     name: "InverseMouseAreaType"
     prototype: "QQuickMouseArea"
