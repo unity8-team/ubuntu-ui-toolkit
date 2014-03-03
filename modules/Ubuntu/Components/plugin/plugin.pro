@@ -59,7 +59,9 @@ HEADERS += plugin.h \
     statesaverbackend_p.h \
     ucstatesaver_p.h \
     ucurihandler.h \
-    ucnativeorientation.h
+    ucnativeorientation.h \
+    ucinversemouse.h \
+    ucmouse.h
 
 SOURCES += plugin.cpp \
     uctheme.cpp \
@@ -89,7 +91,8 @@ SOURCES += plugin.cpp \
     ucstatesaver.cpp \
     statesaverbackend_p.cpp \
     ucurihandler.cpp \
-    ucnativeorientation.cpp
+    ucnativeorientation.cpp \
+    ucmousefilters.cpp
 
 # adapters
 SOURCES += adapters/alarmsadapter_organizer.cpp
