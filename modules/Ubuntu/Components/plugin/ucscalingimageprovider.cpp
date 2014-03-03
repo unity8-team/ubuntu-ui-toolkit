@@ -30,10 +30,6 @@
     - 'scale' is the scaling factor applied to the image
     - 'path' is the full path of the image on the filesystem
 
-    If the scaling factor is bigger than 1.0 then do not scale: UCScalingImageProvider
-    never upscales but instead set the devicePixelRatio appropriately so that upscaling
-    is done in the GPU.
-
     Example:
      * image://scaling/0.5/arrow.png
 */
@@ -55,11 +51,7 @@ QImage UCScalingImageProvider::requestImage(const QString &id, QSize *size, cons
         QSize scaledSize = realSize;
         QSize constrainedSize;
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
-        if (!qFuzzyCompare(scaleFactor, (float)1.0) && scaleFactor < 1.0) {
-#else
         if (!qFuzzyCompare(scaleFactor, (float)1.0)) {
-#endif
             scaledSize = realSize * scaleFactor;
         }
         if (requestedSize.isValid() && (requestedSize.width() < realSize.width() || requestedSize.height() < realSize.height())) {
@@ -76,13 +68,7 @@ QImage UCScalingImageProvider::requestImage(const QString &id, QSize *size, cons
         *size = scaledSize;
 #if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
         float windowPixelRatio = UCUnits::instance().gridUnit() / DEFAULT_GRID_UNIT_PX;
-        if (scaleFactor < 1.0) {
-            image.setDevicePixelRatio(windowPixelRatio);
-        } else {
-            /* When image needs to be upscaled, do not upscale it here but set its
-               devicePixelRatio appropriately so that upscaling is done when rendering. */
-            image.setDevicePixelRatio(windowPixelRatio / scaleFactor);
-        }
+        image.setDevicePixelRatio(windowPixelRatio);
 #endif
         return image;
     } else {
