@@ -17,6 +17,7 @@
  */
 
 #include "unitythemeiconprovider.h"
+#include "ucunits.h"
 
 #include <QIcon>
 
@@ -33,8 +34,10 @@ QPixmap UnityThemeIconProvider::requestPixmap(const QString &id, QSize *realSize
         icon = QIcon::fromTheme(name);
         if (!icon.isNull()) {
             if (requestedSize.isValid()) {
-                *realSize =requestedSize;
-                return icon.pixmap(requestedSize);
+                /* Convert from device independent pixels to pixels into actual pixels */
+                float windowPixelRatio = UCUnits::instance().gridUnit() / DEFAULT_GRID_UNIT_PX;
+                *realSize = requestedSize * windowPixelRatio;
+                return icon.pixmap(*realSize);
             } else {
                 QList<QSize> sizes = icon.availableSizes();
                 if (sizes.count() > 0 && sizes.last().isValid()) {
