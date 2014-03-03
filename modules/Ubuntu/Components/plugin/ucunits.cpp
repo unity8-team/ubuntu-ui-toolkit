@@ -25,6 +25,7 @@
 #include <QtCore/QRegularExpression>
 #include <QtCore/qmath.h>
 #include <QtCore/QDebug>
+#include <QtGui/QGuiApplication>
 
 #define ENV_GRID_UNIT_PX "GRID_UNIT_PX"
 
@@ -36,6 +37,7 @@ static float getenvFloat(const char* name, float defaultValue)
     return ok ? value : defaultValue;
 }
 
+bool UCUnits::useDevicePixelRatio = (QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)) && QGuiApplication::platformName() == "ubuntu";
 
 /*!
     \qmltype Units
@@ -66,6 +68,7 @@ UCUnits::UCUnits(QObject *parent) :
     QObject(parent)
 {
     m_gridUnit = getenvFloat(ENV_GRID_UNIT_PX, DEFAULT_GRID_UNIT_PX);
+    qDebug() << QGuiApplication::platformName() << (QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)) << UCUnits::useDevicePixelRatio;
 }
 
 /*!
@@ -80,14 +83,13 @@ float UCUnits::gridUnit()
 
 void UCUnits::setGridUnit(float gridUnit)
 {
-#if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
     /* Implementation of resolution independence is spread accross
        the toolkit and qtubuntu. The number of pixels for a grid unit
        is read by both from the environment variable GRID_UNIT_PX.
        Setting the 'gridUnit' property here has no effect.
     */
     qWarning() << "UCUnits::setGridUnit is deprecated.";
-#endif
+
     m_gridUnit = gridUnit;
     Q_EMIT gridUnitChanged();
 }
@@ -99,17 +101,17 @@ void UCUnits::setGridUnit(float gridUnit)
 */
 float UCUnits::dp(float value)
 {
-#if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
-    return qRound(value);
-#else
-    const float ratio = m_gridUnit / DEFAULT_GRID_UNIT_PX;
-    if (value <= 2.0) {
-        // for values under 2dp, return only multiples of the value
-        return qRound(value * qFloor(ratio));
+    if (UCUnits::useDevicePixelRatio) {
+        return qRound(value);
     } else {
-        return qRound(value * ratio);
+        const float ratio = m_gridUnit / DEFAULT_GRID_UNIT_PX;
+        if (value <= 2.0) {
+            // for values under 2dp, return only multiples of the value
+            return qRound(value * qFloor(ratio));
+        } else {
+            return qRound(value * ratio);
+        }
     }
-#endif
 }
 
 /*!
@@ -119,11 +121,11 @@ float UCUnits::dp(float value)
 */
 float UCUnits::gu(float value)
 {
-#if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
-    return qRound(value * DEFAULT_GRID_UNIT_PX);
-#else
-    return qRound(value * m_gridUnit);
-#endif
+    if (UCUnits::useDevicePixelRatio) {
+        return qRound(value * DEFAULT_GRID_UNIT_PX);
+    } else {
+        return qRound(value * m_gridUnit);
+    }
 }
 
 QString UCUnits::resolveResource(const QUrl& url)

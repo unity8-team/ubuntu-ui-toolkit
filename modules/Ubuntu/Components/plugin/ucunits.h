@@ -47,6 +47,8 @@ public:
     // setters
     void setGridUnit(float gridUnit);
 
+    static bool useDevicePixelRatio;
+
 Q_SIGNALS:
     void gridUnitChanged();
 

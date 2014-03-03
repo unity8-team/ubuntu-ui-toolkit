@@ -146,13 +146,13 @@ ShapeItem::ShapeItem(QQuickItem* parent)
     setFlag(ItemHasContents);
     QObject::connect(&UCUnits::instance(), SIGNAL(gridUnitChanged()), this,
                      SLOT(gridUnitChanged()));
-#if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
-    setImplicitWidth(8 * DEFAULT_GRID_UNIT_PX);
-    setImplicitHeight(8 * DEFAULT_GRID_UNIT_PX);
-#else
-    setImplicitWidth(8 * gridUnit_);
-    setImplicitHeight(8 * gridUnit_);
-#endif
+    if (UCUnits::useDevicePixelRatio) {
+        setImplicitWidth(8 * DEFAULT_GRID_UNIT_PX);
+        setImplicitHeight(8 * DEFAULT_GRID_UNIT_PX);
+    } else {
+        setImplicitWidth(8 * gridUnit_);
+        setImplicitHeight(8 * gridUnit_);
+    }
     update();
 }
 
@@ -329,13 +329,13 @@ void ShapeItem::setVerticalAlignment(VAlignment vAlignment)
 void ShapeItem::gridUnitChanged()
 {
     gridUnit_ = UCUnits::instance().gridUnit();
-#if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
-    setImplicitWidth(8 * DEFAULT_GRID_UNIT_PX);
-    setImplicitHeight(8 * DEFAULT_GRID_UNIT_PX);
-#else
-    setImplicitWidth(8 * gridUnit_);
-    setImplicitHeight(8 * gridUnit_);
-#endif
+    if (UCUnits::useDevicePixelRatio) {
+        setImplicitWidth(8 * DEFAULT_GRID_UNIT_PX);
+        setImplicitHeight(8 * DEFAULT_GRID_UNIT_PX);
+    } else {
+        setImplicitWidth(8 * gridUnit_);
+        setImplicitHeight(8 * gridUnit_);
+    }
     dirtyFlags_ |= ShapeItem::DirtyGridUnit;
     update();
 }
@@ -400,11 +400,12 @@ QSGNode* ShapeItem::updatePaintNode(QSGNode* old_node, UpdatePaintNodeData* data
     // is less than 2 radii, the radius is scaled down anyhow.
     float radius = (radius_ == ShapeItem::SmallRadius) ?
         textureData->smallRadius : textureData->mediumRadius;
-#if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
-    const float scaleFactor = DEFAULT_GRID_UNIT_PX / textureData->gridUnit;
-#else
-    const float scaleFactor = gridUnit_ / textureData->gridUnit;
-#endif
+    float scaleFactor;
+    if (UCUnits::useDevicePixelRatio) {
+        scaleFactor = DEFAULT_GRID_UNIT_PX / textureData->gridUnit;
+    } else {
+        scaleFactor = gridUnit_ / textureData->gridUnit;
+    }
     radius *= scaleFactor;
     int scaledDown = 0;
     if (scaleFactor != 1.0f) {

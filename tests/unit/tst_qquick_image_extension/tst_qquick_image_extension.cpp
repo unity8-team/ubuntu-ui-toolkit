@@ -18,6 +18,7 @@
 
 #include <QtTest/QtTest>
 #include <QtQuick/private/qquickimagebase_p.h>
+#include "ucunits.h"
 
 // Make protected methods of QQuickImageExtension public in order to test them
 #define protected public
@@ -55,11 +56,12 @@ private Q_SLOTS:
     void scaledBorderDouble() {
         UCQQuickImageExtension image;
         QString border = "border: 13";
-#if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
-        QString expected = "border: 13";
-#else
-        QString expected = "border: 26";
-#endif
+        QString expected;
+        if (UCUnits::useDevicePixelRatio) {
+            expected = "border: 13";
+        } else {
+            expected = "border: 26";
+        }
         QString result = image.scaledBorder(border, "2");
         QCOMPARE(result, expected);
     }

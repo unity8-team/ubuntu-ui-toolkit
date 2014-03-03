@@ -66,10 +66,11 @@ QImage UCScalingImageProvider::requestImage(const QString &id, QSize *size, cons
 
         imageReader.read(&image);
         *size = scaledSize;
-#if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
-        float windowPixelRatio = UCUnits::instance().gridUnit() / DEFAULT_GRID_UNIT_PX;
-        image.setDevicePixelRatio(windowPixelRatio);
-#endif
+
+        if (UCUnits::useDevicePixelRatio) {
+            float windowPixelRatio = UCUnits::instance().gridUnit() / DEFAULT_GRID_UNIT_PX;
+            image.setDevicePixelRatio(windowPixelRatio);
+        }
         return image;
     } else {
         return QImage();
