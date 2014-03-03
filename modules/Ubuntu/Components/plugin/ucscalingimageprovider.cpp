@@ -21,7 +21,6 @@
 
 #include <QtCore/QFile>
 #include <QtGui/QImageReader>
-#include <QtCore/QDebug>
 
 /*!
     \internal
