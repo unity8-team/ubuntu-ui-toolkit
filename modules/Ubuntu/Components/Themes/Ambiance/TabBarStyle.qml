@@ -162,11 +162,11 @@ Item {
                         source: indicatorImageSource
                         anchors {
                             bottom: parent.bottom
-                            bottomMargin: headerTextBottomMargin
+                            bottomMargin: headerTextBottomMargin - units.dp(3)
                         }
                         x: button.width - width
                         // FIXME: temporary hack for the chevron's height to match the font size
-                        height: 0.82*sourceSize.height
+                        height: units.dp(25)
 
                         // The indicator image must be visible after the selected tab button, when the
                         // tab bar is not in selection mode, or after the "last" button (starting with
