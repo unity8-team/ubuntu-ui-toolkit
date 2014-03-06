@@ -26,8 +26,8 @@ PickerModelBase {
 
         clear();
         from = minimum.getSeconds();
-        var distance = (!maximum.isValid() || (minimum.daysTo(maximum) > 1) || (minimum.secondsTo(maximum) >= 60)) ? 59 : minimum.secondsTo(maximum);
-        for (var i = 0; i <= distance; i++) {
+        var distance = (!maximum.isValid() || (minimum.secondsTo(maximum) >= 60)) ? 60 : minimum.secondsTo(maximum);
+        for (var i = 0; i < distance; i++) {
             append({"seconds": (from + i) % 60});
         }
 
