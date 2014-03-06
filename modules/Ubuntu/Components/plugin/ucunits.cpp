@@ -37,7 +37,10 @@ static float getenvFloat(const char* name, float defaultValue)
     return ok ? value : defaultValue;
 }
 
-bool UCUnits::useDevicePixelRatio = (QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)) && QGuiApplication::platformName() == "ubuntu";
+bool UCUnits::useDevicePixelRatio = (QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)) &&
+                                     (QGuiApplication::platformName() == "ubuntu" ||
+                                      QGuiApplication::platformName() == "ubuntumirserver" ||
+                                      QGuiApplication::platformName() == "ubuntumirclient");
 
 /*!
     \qmltype Units
@@ -68,6 +71,7 @@ UCUnits::UCUnits(QObject *parent) :
     QObject(parent)
 {
     m_gridUnit = getenvFloat(ENV_GRID_UNIT_PX, DEFAULT_GRID_UNIT_PX);
+    qDebug() << UCUnits::useDevicePixelRatio << QGuiApplication::platformName();
 }
 
 /*!
