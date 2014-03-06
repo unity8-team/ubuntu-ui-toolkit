@@ -71,7 +71,6 @@ UCUnits::UCUnits(QObject *parent) :
     QObject(parent)
 {
     m_gridUnit = getenvFloat(ENV_GRID_UNIT_PX, DEFAULT_GRID_UNIT_PX);
-    qDebug() << UCUnits::useDevicePixelRatio << QGuiApplication::platformName();
 }
 
 /*!
