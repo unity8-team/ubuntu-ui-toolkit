@@ -42,7 +42,8 @@ bool UCUnits::useDevicePixelRatio = (QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)) &&
                                      (QGuiApplication::platformName() == "ubuntu" ||
                                       QGuiApplication::platformName() == "ubuntumirserver" ||
                                       QGuiApplication::platformName() == "ubuntumirclient") &&
-                                     QCoreApplication::applicationName() == "webbrowser-app";
+                                     (QCoreApplication::applicationName() == "webbrowser-app" ||
+                                      QCoreApplication::applicationName() == "webapp-container");
 
 /*!
     \qmltype Units
