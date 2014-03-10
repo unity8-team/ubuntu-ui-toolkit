@@ -45,7 +45,7 @@ QImage AlbumArtGenerator::requestImage(const QString &id, QSize *realSize,
     std::string album(url.path().toUtf8().data());
     try {
         ThumbnailSize desiredSize = TN_SIZE_ORIGINAL;
-        ThumbnailPolicy policy = TN_REMOTE;
+        ThumbnailPolicy policy = TN_REMOTE; // FIXME: check whether we are allowed to use the network.
         std::string tgt_path = tn.get_album_art(artist, album, desiredSize, policy);
         if(!tgt_path.empty()) {
             QString tgt(tgt_path.c_str());
