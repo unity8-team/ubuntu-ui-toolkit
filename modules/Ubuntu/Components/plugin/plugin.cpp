@@ -37,6 +37,7 @@
 #include "qquickmimedata.h"
 #include "bottombarvisibilitycommunicator.h"
 #include "thumbnailgenerator.h"
+#include "albumartgenerator.h"
 #include "ucubuntuanimation.h"
 #include "ucfontutils.h"
 #include "ucarguments.h"
@@ -236,6 +237,11 @@ void UbuntuComponentsPlugin::initializeEngine(QQmlEngine *engine, const char *ur
         engine->addImageProvider(QLatin1String("thumbnailer"), new ThumbnailGenerator);
     } catch(std::runtime_error &e) {
         qDebug() << "Could not create thumbnailer: " << e.what();
+    }
+    try {
+        engine->addImageProvider(QLatin1String("albumart"), new AlbumArtGenerator);
+    } catch(std::runtime_error &e) {
+        qDebug() << "Could not create albumart: " << e.what();
     }
 
     // Necessary for Screen.orientation (from import QtQuick.Window 2.0) to work

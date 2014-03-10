@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Canonical Ltd.
+ * Copyright 2014 Canonical Ltd.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,22 +16,21 @@
  * Authors: Jussi Pakkanen <jussi.pakkanen@canonical.com>
 */
 
-#include "thumbnailgenerator.h"
+#include "albumartgenerator.h"
 #include <stdexcept>
 #include <QDebug>
 #include <QMimeDatabase>
 #include <QUrl>
 
-static const char *DEFAULT_VIDEO_ART = "/usr/share/unity/icons/video_missing.png";
 static const char *DEFAULT_ALBUM_ART = "/usr/share/unity/icons/album_missing.png";
 
-ThumbnailGenerator::ThumbnailGenerator() : QQuickImageProvider(QQuickImageProvider::Image,
+AlbumArtGenerator::AlbumArtGenerator() : QQuickImageProvider(QQuickImageProvider::Image,
         QQmlImageProviderBase::ForceAsynchronousImageLoading) {
 
 }
 
-QImage ThumbnailGenerator::requestImage(const QString &id, QSize *realSize,
-        const QSize &requestedSize) {
+QImage AlbumArtGenerator::requestImage(const QString &id, QSize *realSize,
+        const QSize &/*requestedSize*/) {
     /* Allow appending a query string (e.g. ?something=timestamp)
      * to the id and then ignore it.
      * This is workaround to force reloading a thumbnail when it has
@@ -41,20 +40,13 @@ QImage ThumbnailGenerator::requestImage(const QString &id, QSize *realSize,
      * The only "solution" is setting Image.cache = false, but in some
      * cases we don't want to do that for performance reasons, so this
      * is the only way around the issue for now. */
-    std::string src_path(QUrl(id).path().toUtf8().data());
-    std::string tgt_path;
+    QUrl url(id);
+    std::string artist(url.host().toUtf8().data());
+    std::string album(url.path().toUtf8().data());
     try {
-        ThumbnailSize desiredSize;
-        const int large_cutoff = 256;
-        const int small_cutoff = 128;
-        if(requestedSize.width() > large_cutoff || requestedSize.height() > large_cutoff) {
-            desiredSize = TN_SIZE_ORIGINAL;
-        } else if(requestedSize.width() > small_cutoff || requestedSize.height() > small_cutoff) {
-            desiredSize = TN_SIZE_LARGE;
-        } else {
-            desiredSize = TN_SIZE_SMALL;
-        }
-        tgt_path = tn.get_thumbnail(src_path, desiredSize);
+        ThumbnailSize desiredSize = TN_SIZE_ORIGINAL;
+        ThumbnailPolicy policy = TN_REMOTE;
+        std::string tgt_path = tn.get_album_art(artist, album, desiredSize, policy);
         if(!tgt_path.empty()) {
             QString tgt(tgt_path.c_str());
             QImage image;
@@ -63,12 +55,15 @@ QImage ThumbnailGenerator::requestImage(const QString &id, QSize *realSize,
             return image;
         }
     } catch(std::runtime_error &e) {
-        qDebug() << "Thumbnail generator failed: " << e.what();
+        qDebug() << "AlbumArt generator failed: " << e.what();
     }
-    return getFallbackImage(id, realSize, requestedSize);
+    QImage fallback;
+    fallback.load(DEFAULT_ALBUM_ART);
+    *realSize = fallback.size();
+    return fallback;
 }
-
-QImage ThumbnailGenerator::getFallbackImage(const QString &id, QSize *size,
+/*
+QImage AlbumArtGenerator::getFallbackImage(const QString &id, QSize *size,
         const QSize &requestedSize) {
     Q_UNUSED(requestedSize);
     QMimeDatabase db;
@@ -82,3 +77,5 @@ QImage ThumbnailGenerator::getFallbackImage(const QString &id, QSize *size,
     *size = result.size();
     return result;
 }
+*/
+

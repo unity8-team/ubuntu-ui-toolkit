@@ -52,6 +52,7 @@ HEADERS += plugin.h \
     ucalarmmodel.h \
     unitythemeiconprovider.h \
     thumbnailgenerator.h \
+    albumartgenerator.h \
     alarmrequest_p.h \
     alarmrequest_p_p.h \
     adapters/alarmsadapter_p.h \
@@ -86,6 +87,7 @@ SOURCES += plugin.cpp \
     ucalarmmodel.cpp \
     unitythemeiconprovider.cpp \
     thumbnailgenerator.cpp \
+    albumartgenerator.cpp \
     alarmrequest_p.cpp \
     ucstatesaver.cpp \
     statesaverbackend_p.cpp \
