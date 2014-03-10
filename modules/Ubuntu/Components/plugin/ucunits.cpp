@@ -26,6 +26,7 @@
 #include <QtCore/qmath.h>
 #include <QtCore/QDebug>
 #include <QtGui/QGuiApplication>
+#include <QtCore/QCoreApplication>
 
 #define ENV_GRID_UNIT_PX "GRID_UNIT_PX"
 
@@ -40,7 +41,8 @@ static float getenvFloat(const char* name, float defaultValue)
 bool UCUnits::useDevicePixelRatio = (QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)) &&
                                      (QGuiApplication::platformName() == "ubuntu" ||
                                       QGuiApplication::platformName() == "ubuntumirserver" ||
-                                      QGuiApplication::platformName() == "ubuntumirclient");
+                                      QGuiApplication::platformName() == "ubuntumirclient") &&
+                                     QCoreApplication::applicationName() == "webbrowser-app";
 
 /*!
     \qmltype Units
