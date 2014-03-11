@@ -150,6 +150,13 @@ Item {
                         return false;
                     }
 
+                    // update the offset of the buttonRow
+                    onOffsetChanged: {
+                        if (selected) {
+                            buttonView.updateOffset(button.offset);
+                        }
+                    }
+
                     Behavior on opacity {
                         NumberAnimation {
                             duration: headerTextFadeDuration
