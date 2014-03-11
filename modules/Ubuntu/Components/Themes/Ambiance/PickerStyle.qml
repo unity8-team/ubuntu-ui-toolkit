@@ -24,7 +24,7 @@ Item {
     /*!
       Specifies the background color
       */
-    property color backgroundColor: "#0A000000"
+    property color backgroundColor: Theme.palette.normal.field
     /*!
       Background color for highlight.
       */

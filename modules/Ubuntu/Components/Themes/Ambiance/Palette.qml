@@ -39,6 +39,8 @@ Palette {
         backgroundText: "#888888"
         foreground: "#DD4814"
         foregroundText: "#F3F3E7"
+        overlay: "#FDFDFD"
+        overlayText: "#81888888"
         field: "#FFFFFF"
         fieldText: "#888888"
     }

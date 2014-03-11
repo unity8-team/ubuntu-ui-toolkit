@@ -82,8 +82,9 @@ SheetBase {
     signal doneClicked
 
     __leftButton: Button {
-        text: i18n.dtr("ubuntu-sdk", "close")
+        text: i18n.dtr("ubuntu-sdk", "Close")
         visible: !doneButton
+        color: "gray"
         /*! \internal */
         onClicked: {
             sheet.closeClicked();
@@ -92,8 +93,7 @@ SheetBase {
     }
 
     __rightButton: Button {
-        text: i18n.dtr("ubuntu-sdk", "done")
-        color: UbuntuColors.orange
+        text: i18n.dtr("ubuntu-sdk", "Done")
         visible: doneButton
         /*! \internal */
         onClicked: {

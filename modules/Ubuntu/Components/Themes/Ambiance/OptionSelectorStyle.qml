@@ -24,6 +24,7 @@ Item {
     property url chevron: "../../artwork/chevron_down@30.png"
     property url tick: "../../artwork/tick@30.png"
     property bool colourComponent: true
+    property color backgroundColor: Theme.palette.normal.field
 
     UbuntuShape {
         id: background
@@ -31,5 +32,6 @@ Item {
         width: styledItem.width
         height: styledItem.height
         radius: "medium"
+        color: backgroundColor
     }
 }

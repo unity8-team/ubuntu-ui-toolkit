@@ -65,7 +65,7 @@ Item {
             }
             PropertyChanges {
                 target: background
-                color: Theme.palette.normal.foreground
+                color: Theme.palette.normal.field
             }
         }
     ]
