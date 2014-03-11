@@ -65,7 +65,7 @@ Item {
             }
             PropertyChanges {
                 target: background
-                color: Theme.palette.normal.field
+                color: Qt.rgba(0,0,0,0.2)
             }
         }
     ]
