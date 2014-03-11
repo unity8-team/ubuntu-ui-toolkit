@@ -28,7 +28,7 @@ Palette {
         overlay: "#F2F2F2"
         overlayText: "#888888"
         field: "#19000000"
-        fieldText: "#7F7F7F7F"
+        fieldText: baseText
     }
     selected: PaletteValues {
         background: "#88D6D6D6" // FIXME: not from design
