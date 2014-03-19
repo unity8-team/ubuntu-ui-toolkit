@@ -20,7 +20,7 @@ import tempfile
 
 import fixtures
 
-from ubuntuuitoolkit import base
+from ubuntuuitoolkit import base, emulators
 
 
 DEFAULT_QML_FILE_CONTENTS = ("""
@@ -101,10 +101,13 @@ class LaunchFakeApplication(FakeApplication):
 
     def __init__(
             self, autopilot_test_case,
+            emulator_base=emulators.UbuntuUIToolkitEmulatorBase,
             qml_file_contents=DEFAULT_QML_FILE_CONTENTS,
             desktop_file_dict=None):
-        super(LaunchFakeApplication, self).__init__()
+        super(LaunchFakeApplication, self).__init__(
+            qml_file_contents, desktop_file_dict)
         self.autopilot_test_case = autopilot_test_case
+        self.emulator_base = emulator_base
 
     def setUp(self):
         super(LaunchFakeApplication, self).setUp()
@@ -112,4 +115,5 @@ class LaunchFakeApplication(FakeApplication):
             base.get_qmlscene_launch_command(),
             self.qml_file_path,
             '--desktop_file_hint={0}'.format(self.desktop_file_path),
+            emulator_base=self.emulator_base,
             app_type='qt')

@@ -79,18 +79,10 @@ MainView {
         self.launch_application()
 
     def launch_application(self):
-        fake_application = fixture_setup.FakeApplication(
-            qml_file_contents=self.test_qml)
-        self.useFixture(fake_application)
-
-        self.app = self.launch_test_application(
-            base.get_qmlscene_launch_command(),
-            '-I' + _get_module_include_path(),
-            fake_application.qml_file_path,
-            '--desktop_file_hint={0}'.format(
-                fake_application.desktop_file_path),
-            emulator_base=emulators.UbuntuUIToolkitEmulatorBase,
-            app_type='qt')
+        launch_fake_application = fixture_setup.LaunchFakeApplication(
+            self, qml_file_contents=self.test_qml)
+        self.useFixture(launch_fake_application)
+        self.app = launch_fake_application.application
 
         self.assertThat(
             self.main_view.visible, Eventually(Equals(True)))
