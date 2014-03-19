@@ -95,3 +95,21 @@ class FakeApplication(fixtures.Fixture):
     def _get_local_desktop_file_directory(self):
         return os.path.join(
             os.environ.get('HOME'), '.local', 'share', 'applications')
+
+
+class LaunchFakeApplication(FakeApplication):
+
+    def __init__(
+            self, autopilot_test_case,
+            qml_file_contents=DEFAULT_QML_FILE_CONTENTS,
+            desktop_file_dict=None):
+        super(LaunchFakeApplication, self).__init__()
+        self.autopilot_test_case = autopilot_test_case
+
+    def setUp(self):
+        super(LaunchFakeApplication, self).setUp()
+        self.application = self.autopilot_test_case.launch_test_application(
+            base.get_qmlscene_launch_command(),
+            self.qml_file_path,
+            '--desktop_file_hint={0}'.format(self.desktop_file_path),
+            app_type='qt')

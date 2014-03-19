@@ -26,7 +26,7 @@ import testtools
 from autopilot import testcase as autopilot_testcase
 from testtools.matchers import Contains, Not, FileExists
 
-from ubuntuuitoolkit import base, fixture_setup
+from ubuntuuitoolkit import fixture_setup
 
 
 class FakeApplicationTestCase(testtools.TestCase):
@@ -154,15 +154,24 @@ class FakeApplicationTestCase(testtools.TestCase):
 class LaunchFakeApplicationTestCase(autopilot_testcase.AutopilotTestCase):
 
     def test_launch_fake_application_with_qmlscene(self):
-        fake_application = fixture_setup.FakeApplication()
-        self.useFixture(fake_application)
+        result = testtools.TestResult()
 
-        self.application = self.launch_test_application(
-            base.get_qmlscene_launch_command(),
-            fake_application.qml_file_path,
-            '--desktop_file_hint={0}'.format(
-                fake_application.desktop_file_path),
-            app_type='qt')
+        def inner_test():
+            class TestWithFakeApplicationLaunched(
+                    autopilot_testcase.AutopilotTestCase):
+                def test_it(self):
+                    launch_application = fixture_setup.LaunchFakeApplication(
+                        autopilot_test_case=self)
 
-        # We can select a component from the application.
-        self.application.select_single('Label', objectName='testLabel')
+                    self.useFixture(launch_application)
+                    # We can select a component from the application.
+                    launch_application.application.select_single(
+                        'Label', objectName='testLabel')
+
+            return TestWithFakeApplicationLaunched('test_it')
+
+        inner_test().run(result)
+
+        self.assertTrue(
+            result.wasSuccessful(), 'Failed to launch the fake application.')
+        # TODO check that the application was closed.
