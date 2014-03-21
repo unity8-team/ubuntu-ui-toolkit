@@ -20,4 +20,5 @@ OTHER_FILES += \
     InverseMouseAreaInPage.qml \
     InverseMouseAreaInFlickable.qml \
     InverseMouseAreaParentClipped.qml \
-    InverseMouseAreaClip.qml
+    InverseMouseAreaClip.qml \
+    InvisibleMouseArea.qml

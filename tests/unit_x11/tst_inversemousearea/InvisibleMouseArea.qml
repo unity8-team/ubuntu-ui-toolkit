@@ -19,36 +19,23 @@ import Ubuntu.Components 0.1
 
 Item {
     id: root
-    width: units.gu(50)
-    height: units.gu(50)
+    width: units.gu(40)
+    height: units.gu(71)
 
-    property string log: ""
-
-    Item {
-        id: nil
-        width: 0
-        height: 0
-    }
-
-    InverseMouseArea {
-        anchors.fill: nil
-        onClicked: {
-            color.color = "red"
-            root.log = "IMA" // FAIL
-        }
+    MouseArea {
+        objectName: "MouseArea"
+        anchors.fill: parent
+        onClicked: color.color = "green"
     }
 
     Rectangle {
         id: color
         anchors.fill: parent
+        anchors.margins: units.gu(10)
         color: "blue"
-        MouseArea {
-            objectName: "MouseArea"
-            onClicked: {
-                parent.color = "green"
-                root.log = "MA" // PASS
-            }
+        InverseMouseArea {
             anchors.fill: parent
+            onClicked: color.color = "red"
         }
     }
 }

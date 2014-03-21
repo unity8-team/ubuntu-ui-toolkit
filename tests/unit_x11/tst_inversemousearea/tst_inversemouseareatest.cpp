@@ -523,6 +523,56 @@ private Q_SLOTS:
         QCOMPARE(imaSpy.count(), 1);
     }
 
+    void test_disabled_cases_data()
+    {
+        QTest::addColumn<QString>("document");
+        QTest::addColumn<bool>("enabled");
+        QTest::addColumn<bool>("visible");
+        QTest::addColumn<int>("maClickCount1");
+        QTest::addColumn<int>("imaClickCount1");
+        QTest::addColumn<int>("maClickCount2");
+        QTest::addColumn<int>("imaClickCount2");
+
+        QTest::newRow("Disabled InverseMouseArea") << "InvisibleMouseArea.qml"
+                                                   << true << false << 1 << 0 << 1 << 0;
+        QTest::newRow("Hidden InverseMouseArea") << "InvisibleMouseArea.qml"
+                                                 << false << true << 1 << 0 << 1 << 0;
+        QTest::newRow("Enabled InverseMouseArea") << "InvisibleMouseArea.qml"
+                                                 << true << true << 1 << 0 << 0 << 1;
+    }
+
+    void test_disabled_cases()
+    {
+        QFETCH(QString, document);
+        QFETCH(bool, enabled);
+        QFETCH(bool, visible);
+        QFETCH(int, maClickCount1);
+        QFETCH(int, imaClickCount1);
+        QFETCH(int, maClickCount2);
+        QFETCH(int, imaClickCount2);
+        InverseMouseAreaType *area = testArea(document);
+        QVERIFY(area);
+        quickView->show();
+        QQuickItem *mouseArea = quickView->rootObject()->findChild<QQuickItem*>();
+
+        QSignalSpy imaSpy(area, SIGNAL(clicked(QQuickMouseEvent*)));
+        QSignalSpy maSpy(mouseArea, SIGNAL(clicked(QQuickMouseEvent*)));
+
+        area->setEnabled(enabled);
+        area->setVisible(visible);
+        // click in blue rectangle
+        QTest::mouseClick(quickView, Qt::LeftButton, 0, guPoint(20, 15));
+        QTest::waitForEvents();
+        QCOMPARE(maSpy.count(), maClickCount1);
+        QCOMPARE(imaSpy.count(), imaClickCount1);
+
+        // click in the frame around rectangle
+        maSpy.clear();
+        QTest::mouseClick(quickView, Qt::LeftButton, 0, QPoint(20, 5));
+        QTest::waitForEvents();
+        QCOMPARE(maSpy.count(), maClickCount2);
+        QCOMPARE(imaSpy.count(), imaClickCount2);
+    }
 };
 
 QTEST_MAIN(tst_InverseMouseAreaTest)

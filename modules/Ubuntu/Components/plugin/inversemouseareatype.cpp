@@ -237,8 +237,6 @@ InverseMouseAreaType::InverseMouseAreaType(QQuickItem *parent) :
      */
     QObject::connect(this, &QQuickMouseArea::enabledChanged,
                      this, &InverseMouseAreaType::update);
-    QObject::connect(this, &QQuickMouseArea::visibleChanged,
-                     this, &InverseMouseAreaType::update);
     /*
      * Also connect to windowChanged() to get the proper window to filter.
      * This is needed as the window is set later than the component completes.
@@ -291,7 +289,7 @@ void InverseMouseAreaType::update()
     if (!m_sensingArea) {
         m_sensingArea = QuickUtils::instance().rootItem(this);
     }
-    updateEventFilter(isEnabled() && isVisible() && m_topmostItem);
+    updateEventFilter(isEnabled() && m_topmostItem);
 }
 /*!
   \internal
