@@ -80,7 +80,7 @@ QImage AlbumArtGenerator::requestImage(const QString &id, QSize *realSize,
         image.load(&file, NULL);
         *realSize = image.size();
         return image;
-    } catch (std::exception &e) {
+    } catch (const std::exception &e) {
         qDebug() << "Album art loader failed: " << e.what();
     } catch (...) {
         qDebug() << "Unknown error when generating image.";
