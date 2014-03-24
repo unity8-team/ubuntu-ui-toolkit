@@ -60,7 +60,8 @@ HEADERS += plugin.h \
     ucstatesaver_p.h \
     ucurihandler.h \
     ucinversemouse.h \
-    ucmouse.h
+    ucmouse.h \
+    unixsignalhandler_p.h
 
 SOURCES += plugin.cpp \
     uctheme.cpp \
@@ -90,7 +91,8 @@ SOURCES += plugin.cpp \
     ucstatesaver.cpp \
     statesaverbackend_p.cpp \
     ucurihandler.cpp \
-    ucmousefilters.cpp
+    ucmousefilters.cpp \
+    unixsignalhandler_p.cpp
 
 # adapters
 SOURCES += adapters/alarmsadapter_organizer.cpp
