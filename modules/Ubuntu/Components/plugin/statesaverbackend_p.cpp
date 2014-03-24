@@ -24,6 +24,8 @@
 #include <QtQml/qqml.h>
 #include <QtCore/QCoreApplication>
 #include <QtCore/QFile>
+#include <QtCore/QDir>
+#include <QtCore/QFileInfo>
 #include <QtCore/QStringList>
 #include "i18n.h"
 #include "quickutils.h"
@@ -35,15 +37,14 @@ StateSaverBackend::StateSaverBackend(QObject *parent)
     : QObject(parent)
     , m_archive(0)
     , m_globalEnabled(true)
+    , m_permanent(true)
 {
-    // connect to application quit signal so when that is called, we can clean the states saved
-    QObject::connect(QCoreApplication::instance(), &QCoreApplication::aboutToQuit,
-                     this, &StateSaverBackend::cleanup);
-    QObject::connect(&QuickUtils::instance(), &QuickUtils::activated,
-                     this, &StateSaverBackend::reset);
+    // disable permanent state saving by default
+    setPermanent(false);
+    // save state when application is deactivated
     QObject::connect(&QuickUtils::instance(), &QuickUtils::deactivated,
                      this, &StateSaverBackend::initiateStateSaving);
-    if (!qgetenv("APP_ID").isEmpty() || !UCApplication::instance().applicationName().isEmpty()) {
+    if (isBackendReady()) {
         initialize();
     } else {
         QObject::connect(&UCApplication::instance(), &UCApplication::applicationNameChanged,
@@ -63,16 +64,62 @@ StateSaverBackend::~StateSaverBackend()
     }
 }
 
-void StateSaverBackend::initialize()
+bool StateSaverBackend::isBackendReady()
 {
+    return !qgetenv("APP_ID").isEmpty() || !UCApplication::instance().applicationName().isEmpty();
+}
+
+bool StateSaverBackend::moveStateFile(bool permanentLocation)
+{
+    if (!isBackendReady()) {
+        return false;
+    }
+
+    QString location = QStandardPaths::writableLocation(
+                (permanentLocation) ? QStandardPaths::DataLocation : QStandardPaths::TempLocation);
+    if (location.isEmpty()) {
+        qFatal("StateSaver cannot save property states!");
+        return false;
+    }
+
     QString applicationName(qgetenv("APP_ID"));
     if (applicationName.isEmpty()) {
         applicationName = UCApplication::instance().applicationName();
     }
-    m_archive = new QSettings(QString("%1/%2.state")
-                              .arg(QStandardPaths::standardLocations(QStandardPaths::TempLocation)[0])
-                              .arg(applicationName), QSettings::NativeFormat);
+    QString fileName = QString("%1/%2.state")
+            .arg(location)
+            .arg(applicationName);
+    if (m_archive) {
+        // move file
+        QString oldFile = m_archive->fileName();
+        if (oldFile == fileName) {
+            // no change occurred, leave
+            return true;
+        }
+
+        // transfer all data from the old file to new
+        QSettings newSettings(fileName, QSettings::NativeFormat);
+        m_archive->sync();
+        QStringList keys = m_archive->allKeys();
+        Q_FOREACH(const QString &key, keys) {
+            newSettings.setValue(key, m_archive->value(key));
+        }
+        newSettings.sync();
+        // clear previous state data
+        delete m_archive;
+        m_archive = 0;
+        QFile::remove(oldFile);
+    }
+    // (re)create the settings object
+    m_archive = new QSettings(fileName, QSettings::NativeFormat);
     m_archive->setFallbacksEnabled(false);
+    return true;
+}
+
+
+void StateSaverBackend::initialize()
+{
+    moveStateFile(m_permanent);
 }
 
 void StateSaverBackend::cleanup()
@@ -119,6 +166,42 @@ bool StateSaverBackend::registerId(const QString &id)
 void StateSaverBackend::removeId(const QString &id)
 {
     m_register.remove(id);
+}
+
+bool StateSaverBackend::permanent() const
+{
+    return m_permanent;
+}
+/*
+ * Return true if the setting got changed, false otherwise
+ */
+bool StateSaverBackend::setPermanent(bool permanent)
+{
+    if (m_permanent != permanent) {
+        m_permanent = permanent;
+        if (m_permanent) {
+            // don't clean anymore
+            QObject::disconnect(QCoreApplication::instance(), &QCoreApplication::aboutToQuit,
+                             this, &StateSaverBackend::cleanup);
+            QObject::disconnect(&QuickUtils::instance(), &QuickUtils::activated,
+                             this, &StateSaverBackend::reset);
+            // connect quit to save state
+            QObject::connect(QCoreApplication::instance(), &QCoreApplication::aboutToQuit,
+                             this, &StateSaverBackend::initiateStateSaving);
+        } else {
+            // disconnect quit from state saving
+            QObject::disconnect(QCoreApplication::instance(), &QCoreApplication::aboutToQuit,
+                                this, &StateSaverBackend::initiateStateSaving);
+            // do cleanup on exit
+            QObject::connect(QCoreApplication::instance(), &QCoreApplication::aboutToQuit,
+                             this, &StateSaverBackend::cleanup);
+            QObject::connect(&QuickUtils::instance(), &QuickUtils::activated,
+                             this, &StateSaverBackend::reset);
+        }
+        moveStateFile(m_permanent);
+        return true;
+    }
+    return false;
 }
 
 int StateSaverBackend::load(const QString &id, QObject *item, const QStringList &properties)

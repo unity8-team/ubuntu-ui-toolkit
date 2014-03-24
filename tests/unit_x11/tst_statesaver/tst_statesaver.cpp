@@ -74,11 +74,18 @@ private:
         view.reset(createView(file, spy));
     }
 
-    QString stateFile(const QString &appId)
+    QString stateFile(const QString &appId, bool permanent = false)
     {
-        return QString("%1/%2.state")
-                .arg(QStandardPaths::standardLocations(QStandardPaths::TempLocation)[0])
-                .arg(appId);
+        QString path;
+        if (permanent) {
+            path = QStandardPaths::writableLocation(QStandardPaths::DataLocation);
+            int pos = path.lastIndexOf('/');
+            path.remove(pos, path.length() - pos);
+            path.append('/').append(appId);
+        } else {
+            path = QStandardPaths::writableLocation(QStandardPaths::TempLocation);
+        }
+        return QString("%1/%2.state").arg(path).arg(appId);
     }
 
 private Q_SLOTS:
@@ -576,6 +583,19 @@ private Q_SLOTS:
         QVERIFY(QFile(fileName).exists());
         // clean the file
         QFile::remove(fileName);
+    }
+
+    void test_PermanentStateSaving()
+    {
+        QProcess testApp;
+        QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+        env.insert("APP_ID", "PermanentStates");
+        testApp.setProcessEnvironment(env);
+        testApp.start("qmlscene -I ../../../modules PermanentStates.qml");
+        testApp.waitForFinished();
+
+        QString fileName = stateFile("PermanentStates", true);
+        QVERIFY(QFile(fileName).exists());
     }
 };
 

@@ -49,6 +49,7 @@
 #include "ucurihandler.h"
 #include "ucmouse.h"
 #include "ucinversemouse.h"
+#include "ucstatesaverconfig.h"
 
 #include <sys/types.h>
 #include <unistd.h>
@@ -84,6 +85,15 @@ static QObject *registerUCUbuntuAnimation(QQmlEngine *engine, QJSEngine *scriptE
 
     UCUbuntuAnimation *animation = new UCUbuntuAnimation();
     return animation;
+}
+
+static QObject * registerStateSaverConfig(QQmlEngine *engine, QJSEngine *scriptEngine)
+{
+    Q_UNUSED(engine)
+    Q_UNUSED(scriptEngine)
+
+    UCStateSaverConfig *config = new UCStateSaverConfig;
+    return config;
 }
 
 static QObject *registerUriHandler(QQmlEngine *engine, QJSEngine *scriptEngine)
@@ -178,6 +188,7 @@ void UbuntuComponentsPlugin::registerTypes(const char *uri)
     qmlRegisterSingletonType<UCUriHandler>(uri, 0, 1, "UriHandler", registerUriHandler);
     qmlRegisterType<UCMouse>(uri, 0, 1, "Mouse");
     qmlRegisterType<UCInverseMouse>(uri, 0, 1, "InverseMouse");
+    qmlRegisterSingletonType<UCStateSaverConfig>(uri, 0, 1, "StateSaverConfig", registerStateSaverConfig);
     // Needed for unit tests
     qRegisterMetaType<QList <QQmlError> >();
     // register QML singletons

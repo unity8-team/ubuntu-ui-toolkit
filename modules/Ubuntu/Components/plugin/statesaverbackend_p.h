@@ -43,6 +43,9 @@ public:
     bool registerId(const QString &id);
     void removeId(const QString &id);
 
+    bool permanent() const;
+    bool setPermanent(bool permanent);
+
     int load(const QString &id, QObject *item, const QStringList &properties);
     int save(const QString &id, QObject *item, const QStringList &properties);
 
@@ -56,6 +59,9 @@ Q_SIGNALS:
 protected:
     explicit StateSaverBackend(QObject *parent = 0);
 
+    bool isBackendReady();
+    bool moveStateFile(bool permanentLocation);
+
 private Q_SLOTS:
     void initialize();
     void cleanup();
@@ -65,7 +71,8 @@ private:
     QPointer<QSettings> m_archive;
     QSet<QString> m_register;
     QStack<QString> m_groupStack;
-    bool m_globalEnabled;
+    bool m_globalEnabled:1;
+    bool m_permanent:1;
 };
 
 #endif // STATESAVERBACKEND_P_H
