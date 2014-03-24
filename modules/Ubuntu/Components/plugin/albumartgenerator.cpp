@@ -19,48 +19,72 @@
 #include "albumartgenerator.h"
 #include <stdexcept>
 #include <QDebug>
-#include <QMimeDatabase>
-#include <QUrl>
+#include <QFile>
+#include <QUrlQuery>
+#include <QDBusUnixFileDescriptor>
+#include <QDBusReply>
 
-static const char *DEFAULT_ALBUM_ART = "/usr/share/unity/icons/album_missing.png";
+static const char DEFAULT_ALBUM_ART[] = "/usr/share/unity/icons/album_missing.png";
 
-AlbumArtGenerator::AlbumArtGenerator() : QQuickImageProvider(QQuickImageProvider::Image,
-        QQmlImageProviderBase::ForceAsynchronousImageLoading) {
+static const char BUS_NAME[] = "com.canonical.Thumbnailer";
+static const char BUS_PATH[] = "/com/canonical/Thumbnailer";
+static const char THUMBNAILER_IFACE[] = "com.canonical.Thumbnailer";
 
+AlbumArtGenerator::AlbumArtGenerator()
+    : QQuickImageProvider(QQuickImageProvider::Image, QQmlImageProviderBase::ForceAsynchronousImageLoading),
+      iface(BUS_NAME, BUS_PATH, THUMBNAILER_IFACE) {
 }
 
-QImage AlbumArtGenerator::requestImage(const QString &id, QSize *realSize,
-        const QSize &/*requestedSize*/) {
-    /* Allow appending a query string (e.g. ?something=timestamp)
-     * to the id and then ignore it.
-     * This is workaround to force reloading a thumbnail when it has
-     * the same file name on disk but we know the content has changed.
-     * It is necessary because in such a situation the QML image cache
-     * will kick in and this ImageProvider will never get called.
-     * The only "solution" is setting Image.cache = false, but in some
-     * cases we don't want to do that for performance reasons, so this
-     * is the only way around the issue for now. */
-    QUrl url(id);
-    std::string artist(url.host().toUtf8().data());
-    std::string album(url.path().toUtf8().data());
-    try {
-        ThumbnailSize desiredSize = TN_SIZE_ORIGINAL;
-        ThumbnailPolicy policy = TN_REMOTE; // FIXME: check whether we are allowed to use the network.
-        std::string tgt_path = tn.get_album_art(artist, album, desiredSize, policy);
-        if(!tgt_path.empty()) {
-            QString tgt(tgt_path.c_str());
-            QImage image;
-            image.load(tgt);
-            *realSize = image.size();
-            return image;
-        }
-    } catch(std::runtime_error &e) {
-        qDebug() << "AlbumArt generator failed: " << e.what();
-    }
+static QImage fallbackImage(QSize *realSize) {
     QImage fallback;
     fallback.load(DEFAULT_ALBUM_ART);
     *realSize = fallback.size();
     return fallback;
+}
+
+QImage AlbumArtGenerator::requestImage(const QString &id, QSize *realSize,
+        const QSize &requestedSize) {
+    QUrlQuery query(id);
+    if (!query.hasQueryItem("artist") || !query.hasQueryItem("album")) {
+        qWarning() << "Invalid albumart uri:" << id;
+        return fallbackImage(realSize);
+    }
+
+    const QString artist = query.queryItemValue("artist", QUrl::FullyDecoded);
+    const QString album = query.queryItemValue("album", QUrl::FullyDecoded);
+
+    QString desiredSize = "original";
+    int size = requestedSize.width() > requestedSize.height() ? requestedSize.width() : requestedSize.height();
+    if (size < 128) {
+        desiredSize = "small";
+    } else if (size < 256) {
+        desiredSize = "large";
+    } else if (size < 512) {
+        desiredSize = "xlarge";
+    }
+
+    // perform dbus call
+    QDBusReply<QDBusUnixFileDescriptor> reply = iface.call(
+        "GetCoverArt", artist, album, desiredSize);
+    if (!reply.isValid()) {
+        qWarning() << "D-Bus error: " << reply.error().message();
+        return fallbackImage(realSize);
+    }
+
+    try {
+        QFile file;
+        file.open(reply.value().fileDescriptor(), QIODevice::ReadOnly);
+        QImage image;
+        image.load(&file, NULL);
+        *realSize = image.size();
+        return image;
+    } catch (std::exception &e) {
+        qDebug() << "Album art loader failed: " << e.what();
+    } catch (...) {
+        qDebug() << "Unknown error when generating image.";
+    }
+
+    return fallbackImage(realSize);
 }
 /*
 QImage AlbumArtGenerator::getFallbackImage(const QString &id, QSize *size,

@@ -19,13 +19,13 @@
 #ifndef ALBUMART_GENERATOR_H
 #define ALBUMART_GENERATOR_H
 
+#include <QDBusInterface>
 #include <QQuickImageProvider>
-#include <thumbnailer.h>
 
 class AlbumArtGenerator: public QQuickImageProvider
 {
 private:
-    Thumbnailer tn;
+    QDBusInterface iface;
 
 public:
     AlbumArtGenerator();
