@@ -14,6 +14,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  * Authors: Jussi Pakkanen <jussi.pakkanen@canonical.com>
+ *          James Henstridge <james.henstridge@canonical.com>
 */
 
 #include "albumartgenerator.h"
@@ -29,6 +30,7 @@ static const char DEFAULT_ALBUM_ART[] = "/usr/share/unity/icons/album_missing.pn
 static const char BUS_NAME[] = "com.canonical.Thumbnailer";
 static const char BUS_PATH[] = "/com/canonical/Thumbnailer";
 static const char THUMBNAILER_IFACE[] = "com.canonical.Thumbnailer";
+static const char GET_ALBUM_ART[] = "GetAlbumArt";
 
 AlbumArtGenerator::AlbumArtGenerator()
     : QQuickImageProvider(QQuickImageProvider::Image, QQmlImageProviderBase::ForceAsynchronousImageLoading),
@@ -65,7 +67,7 @@ QImage AlbumArtGenerator::requestImage(const QString &id, QSize *realSize,
 
     // perform dbus call
     QDBusReply<QDBusUnixFileDescriptor> reply = iface.call(
-        "GetCoverArt", artist, album, desiredSize);
+        GET_ALBUM_ART, artist, album, desiredSize);
     if (!reply.isValid()) {
         qWarning() << "D-Bus error: " << reply.error().message();
         return fallbackImage(realSize);
@@ -86,20 +88,3 @@ QImage AlbumArtGenerator::requestImage(const QString &id, QSize *realSize,
 
     return fallbackImage(realSize);
 }
-/*
-QImage AlbumArtGenerator::getFallbackImage(const QString &id, QSize *size,
-        const QSize &requestedSize) {
-    Q_UNUSED(requestedSize);
-    QMimeDatabase db;
-    QMimeType mime = db.mimeTypeForFile(id);
-    QImage result;
-    if(mime.name().contains("audio")) {
-        result.load(DEFAULT_ALBUM_ART);
-    } else if(mime.name().contains("video")) {
-        result.load(DEFAULT_VIDEO_ART);
-    }
-    *size = result.size();
-    return result;
-}
-*/
-

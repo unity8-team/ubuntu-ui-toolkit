@@ -14,6 +14,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  * Authors: Jussi Pakkanen <jussi.pakkanen@canonical.com>
+ *          James Henstridge <james.henstridge@canonical.com>
 */
 
 #ifndef ALBUMART_GENERATOR_H
