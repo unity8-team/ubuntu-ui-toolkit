@@ -723,6 +723,10 @@ plugins.qmltypes
     prototype: "QObject"
     Property { name: "enabled"; type: "bool" }
     Property { name: "properties"; type: "string" }
+    name: "UCStateSaverConfig"
+    prototype: "QObject"
+    exports: ["StateSaverConfig 0.1"]
+    Property { name: "permanent"; type: "bool" }
     name: "UCUbuntuAnimation"
     prototype: "QObject"
     exports: ["UbuntuAnimation 0.1"]
