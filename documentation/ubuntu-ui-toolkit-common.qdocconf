@@ -12,7 +12,6 @@ exampledirs += snippets
 imagedirs = images
 sources.fileextensions = "*.qml *.qdoc *.cpp"
 headers.fileextensions = "*.h"
-outputdir = html
 outputformats = HTML
 version = 0.1
 syntaxhighlighting = true

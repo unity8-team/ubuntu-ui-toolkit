@@ -1,7 +1,7 @@
 include(ubuntu-ui-toolkit-offline.qdocconf)
 include(ubuntu-appdev-site-header.qdocconf)
 include(ubuntu-appdev-site-footer.qdocconf)
-
+outputdir = online
 HTML.nobreadcrumbs = "false"
 
 HTML.headerstyles = \
