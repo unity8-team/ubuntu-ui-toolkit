@@ -574,6 +574,12 @@ private Q_SLOTS:
 
         // make sure we are not killing the parent
         QVERIFY(testApp.pid() != QCoreApplication::applicationPid());
+        // skip tests if the application PID is zero => the child app PID seems to be zero as well
+        if (!testApp.pid()) {
+            // kill child process
+            testApp.close();
+            QSKIP("This test requires valid PID");
+        }
         // send SIGINT
         ::kill(testApp.pid(), SIGINT);
         testApp.waitForFinished();
