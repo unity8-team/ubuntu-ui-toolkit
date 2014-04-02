@@ -60,6 +60,12 @@ MainView {
             objectName: "intMax"
             defaultValue: 65535
         }
+        Option {
+            id: doubleAgent
+            name: "doubleAgent"
+            objectName: "doubleAgent"
+            defaultValue: 5.5
+        }
     }
 
     Page {
@@ -88,6 +94,10 @@ MainView {
         TextField {
             objectName: "intMaxComponent"
             action: intMax
+        }
+        TextField {
+            objectName: "doubleAgentComponent"
+            action: doubleAgent
         }
     }
 }

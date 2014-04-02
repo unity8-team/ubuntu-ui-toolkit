@@ -54,16 +54,23 @@ private Q_SLOTS:
         QTest::addColumn<QString>("stringUrl");
         QTest::addColumn<int>("intMax");
         QTest::addColumn<int>("intZero");
+        QTest::addColumn<double>("doubleAgent");
         QTest::newRow("Defaults") << "reset"
-            << false << true << "" << "http://www.ubuntu.com" << 0 << 65535;
+            << false << true << "" << "http://www.ubuntu.com" << 0 << 65535 << 5.5;
         QTest::newRow("Double-check") << ""
-            << false << true << "" << "http://www.ubuntu.com" << 0 << 65535;
+            << false << true << "" << "http://www.ubuntu.com" << 0 << 65535 << 5.5;
         QTest::newRow("Changes") << "change"
-            << true << false << "worldOfPain" << "http://example.com" << 333 << 666;
+            << true << false << "worldOfPain" << "http://example.com" << 333 << 666 << 0.33;
         QTest::newRow("Verify") << ""
-            << true << false << "worldOfPain" << "http://example.com" << 333 << 666;
-        QTest::newRow("Components") << "components"
-            << true << false << "worldOfPain" << "http://example.com" << 333 << 666;
+            << true << false << "worldOfPain" << "http://example.com" << 333 << 666 << 0.33;
+        QTest::newRow("Verify components") << "components"
+            << true << false << "worldOfPain" << "http://example.com" << 333 << 666 << 0.33;
+        QTest::newRow("GUI changes") << "change components"
+            << false << false << "islandOfSolitude" << "file:///home/Downloads" << 111 << 222 << 86.86;
+        QTest::newRow("Verify GUI changes") << ""
+            << false << false << "islandOfSolitude" << "file:///home/Downloads" << 111 << 222 << 86.86;
+        QTest::newRow("Verify components") << "components"
+            << false << false << "islandOfSolitude" << "file:///home/Downloads" << 111 << 222 << 86.86;
     }
 
     void testCase_Settings()
@@ -90,12 +97,24 @@ private Q_SLOTS:
             QFETCH(QString, stringUrl);
             QFETCH(int, intMax);
             QFETCH(int, intZero);
-            testCase->findItem<QObject*>("boolFalse")->setProperty("value", boolFalse);
-            testCase->findItem<QObject*>("boolTrue")->setProperty("value", boolTrue);
-            testCase->findItem<QObject*>("stringEmpty")->setProperty("value", stringEmpty);
-            testCase->findItem<QObject*>("stringUrl")->setProperty("value", stringUrl);
-            testCase->findItem<QObject*>("intMax")->setProperty("value", intMax);
-            testCase->findItem<QObject*>("intZero")->setProperty("value", intZero);
+            QFETCH(double, doubleAgent);
+            if (flags.contains("components")) {
+                testCase->findItem<QObject*>("boolFalseComponent")->setProperty("checked", boolFalse);
+                testCase->findItem<QObject*>("boolTrueComponent")->setProperty("checked", boolTrue);
+                testCase->findItem<QObject*>("stringEmptyComponent")->setProperty("text", stringEmpty);
+                testCase->findItem<QObject*>("stringUrlComponent")->setProperty("text", stringUrl);
+                testCase->findItem<QObject*>("intMaxComponent")->setProperty("text", intMax);
+                testCase->findItem<QObject*>("intZeroComponent")->setProperty("text", intZero);
+                testCase->findItem<QObject*>("doubleAgentComponent")->setProperty("text", doubleAgent);
+            } else {
+                testCase->findItem<QObject*>("boolFalse")->setProperty("value", boolFalse);
+                testCase->findItem<QObject*>("boolTrue")->setProperty("value", boolTrue);
+                testCase->findItem<QObject*>("stringEmpty")->setProperty("value", stringEmpty);
+                testCase->findItem<QObject*>("stringUrl")->setProperty("value", stringUrl);
+                testCase->findItem<QObject*>("intMax")->setProperty("value", intMax);
+                testCase->findItem<QObject*>("intZero")->setProperty("value", intZero);
+                testCase->findItem<QObject*>("doubleAgent")->setProperty("value", doubleAgent);
+            }
         } else if (flags.contains("components")) {
             QTEST(testCase->findItem<QObject*>("boolFalseComponent")->property("checked").toBool(), "boolFalse");
             QTEST(testCase->findItem<QObject*>("boolTrueComponent")->property("checked").toBool(), "boolTrue");
@@ -103,6 +122,7 @@ private Q_SLOTS:
             QTEST(testCase->findItem<QObject*>("stringUrlComponent")->property("text").toString(), "stringUrl");
             QTEST(testCase->findItem<QObject*>("intMaxComponent")->property("text").toInt(), "intMax");
             QTEST(testCase->findItem<QObject*>("intZeroComponent")->property("text").toInt(), "intZero");
+            QTEST(testCase->findItem<QObject*>("doubleAgentComponent")->property("text").toDouble(), "doubleZero");
         } else {
             QTEST(testCase->findItem<QObject*>("boolFalse")->property("value").toBool(), "boolFalse");
             QTEST(testCase->findItem<QObject*>("boolTrue")->property("value").toBool(), "boolTrue");
@@ -110,6 +130,7 @@ private Q_SLOTS:
             QTEST(testCase->findItem<QObject*>("stringUrl")->property("value").toString(), "stringUrl");
             QTEST(testCase->findItem<QObject*>("intMax")->property("value").toInt(), "intMax");
             QTEST(testCase->findItem<QObject*>("intZero")->property("value").toInt(), "intZero");
+            QTEST(testCase->findItem<QObject*>("doubleAgent")->property("value").toDouble(), "doubleAgent");
         }
 
         // Database written?
