@@ -45,7 +45,7 @@ AbstractButton {
       Specifies whether the checkbox is checked or not. By default the property
       is set to false.
     */
-    property bool checked: action && action.hasOwnProperty("value") ? action.value : false
+    property bool checked: action && action.hasOwnProperty("value") && action.value ? action.value : false
 
     /*!
       \internal

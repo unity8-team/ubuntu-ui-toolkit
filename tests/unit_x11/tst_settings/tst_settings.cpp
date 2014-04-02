@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2013 Canonical Ltd.
+ * Copyright 2012-2014 Canonical Ltd.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -28,46 +28,13 @@
 #include <QtCore/QDir>
 
 #include "ucunits.h"
+#include "uctestcase.h"
 
 class tst_Settings : public QObject
 {
     Q_OBJECT
 public:
     tst_Settings() { }
-
-    QQuickView *loadTestCase(const QString &filename, QSignalSpy **spy = 0)
-    {
-        QQuickView *view = new QQuickView(0);
-        view->setGeometry(0,0, UCUnits::instance().gu(40), UCUnits::instance().gu(30));
-        if (spy) {
-            *spy = new QSignalSpy(view->engine(), SIGNAL(warnings(QList<QQmlError>)));
-            (*spy)->setParent(view);
-        }
-
-        QDir modules("../../../modules");
-        Q_ASSERT(modules.exists());
-        QString modulePath(modules.absolutePath());
-        view->engine()->addImportPath(modulePath);
-
-        view->setSource(QUrl::fromLocalFile(filename));
-        Q_ASSERT(view->rootObject());
-        view->show();
-        QTest::qWaitForWindowExposed(view);
-
-        // No warnings from QML
-        Q_ASSERT((*spy)->count() == 0);
-
-        return view;
-    }
-
-    QQuickItem *testItem(QQuickItem *that, const QString &identifier)
-    {
-        if (that->property(identifier.toLocal8Bit()).isValid())
-            return that->property(identifier.toLocal8Bit()).value<QQuickItem*>();
-
-        return that->findChild<QQuickItem*>(identifier);
-    }
-
 
 private Q_SLOTS:
     void initTestCase()
@@ -78,49 +45,78 @@ private Q_SLOTS:
     {
     }
 
+    void testCase_Settings_data()
+    {
+        QTest::addColumn<QString>("flags");
+        QTest::addColumn<bool>("boolFalse");
+        QTest::addColumn<bool>("boolTrue");
+        QTest::addColumn<QString>("stringEmpty");
+        QTest::addColumn<QString>("stringUrl");
+        QTest::addColumn<int>("intMax");
+        QTest::addColumn<int>("intZero");
+        QTest::newRow("Defaults") << "reset"
+            << false << true << "" << "http://www.ubuntu.com" << 0 << 65535;
+        QTest::newRow("Double-check") << ""
+            << false << true << "" << "http://www.ubuntu.com" << 0 << 65535;
+        QTest::newRow("Changes") << "change"
+            << true << false << "worldOfPain" << "http://example.com" << 333 << 666;
+        QTest::newRow("Verify") << ""
+            << true << false << "worldOfPain" << "http://example.com" << 333 << 666;
+        QTest::newRow("Components") << "components"
+            << true << false << "worldOfPain" << "http://example.com" << 333 << 666;
+    }
+
     void testCase_Settings()
     {
-        /* Ensure we start afresh */
         QString xdgDataHome(QProcessEnvironment::systemEnvironment().value("XDG_DATA_HOME",
             QProcessEnvironment::systemEnvironment().value("HOME") + "/.local/share"));
         QDir testDataFolder(xdgDataHome + "/tst_settings");
-        testDataFolder.remove("settings.db");
+        QString databaseFilename("settings.db");
 
-        QQuickView *view = loadTestCase("Settings.qml");
-        QQuickItem *root = view->rootObject();
+        QFETCH(QString, flags);
+        if (flags.contains("reset"))
+            QVERIFY(testDataFolder.remove(databaseFilename));
 
-        /* The following doesn't work with Option, so we need to test in QML
-        QQuickItem *item = testItem(settings, "boolFalse");
-        QVERIFY(item);
-        QCOMPARE(item->property("value").toBool(), false); */
+        QScopedPointer<UbuntuTestCase> testCase(new UbuntuTestCase("Settings.qml"));
+        QObject *settings = testCase->findItem<QObject*>("settings");
+        QVERIFY(settings);
 
-        // Run QML test case
-        int i(root->metaObject()->indexOfMethod("test_defaults()"));
-        root->metaObject()->method(i).invoke(root, Qt::DirectConnection);
+        QTest::qWait(1000);
 
-        // Modify some values in QML
-        i = root->metaObject()->indexOfMethod("change_values()");
-        root->metaObject()->method(i).invoke(root, Qt::DirectConnection);
+        if (flags.contains("change")) {
+            QFETCH(bool, boolFalse);
+            QFETCH(bool, boolTrue);
+            QFETCH(QString, stringEmpty);
+            QFETCH(QString, stringUrl);
+            QFETCH(int, intMax);
+            QFETCH(int, intZero);
+            testCase->findItem<QObject*>("boolFalse")->setProperty("value", boolFalse);
+            testCase->findItem<QObject*>("boolTrue")->setProperty("value", boolTrue);
+            testCase->findItem<QObject*>("stringEmpty")->setProperty("value", stringEmpty);
+            testCase->findItem<QObject*>("stringUrl")->setProperty("value", stringUrl);
+            testCase->findItem<QObject*>("intMax")->setProperty("value", intMax);
+            testCase->findItem<QObject*>("intZero")->setProperty("value", intZero);
+        } else if (flags.contains("components")) {
+            QTEST(testCase->findItem<QObject*>("boolFalseComponent")->property("checked").toBool(), "boolFalse");
+            QTEST(testCase->findItem<QObject*>("boolTrueComponent")->property("checked").toBool(), "boolTrue");
+            QTEST(testCase->findItem<QObject*>("stringEmptyComponent")->property("text").toString(), "stringEmpty");
+            QTEST(testCase->findItem<QObject*>("stringUrlComponent")->property("text").toString(), "stringUrl");
+            QTEST(testCase->findItem<QObject*>("intMaxComponent")->property("text").toInt(), "intMax");
+            QTEST(testCase->findItem<QObject*>("intZeroComponent")->property("text").toInt(), "intZero");
+        } else {
+            QTEST(testCase->findItem<QObject*>("boolFalse")->property("value").toBool(), "boolFalse");
+            QTEST(testCase->findItem<QObject*>("boolTrue")->property("value").toBool(), "boolTrue");
+            QTEST(testCase->findItem<QObject*>("stringEmpty")->property("value").toString(), "stringEmpty");
+            QTEST(testCase->findItem<QObject*>("stringUrl")->property("value").toString(), "stringUrl");
+            QTEST(testCase->findItem<QObject*>("intMax")->property("value").toInt(), "intMax");
+            QTEST(testCase->findItem<QObject*>("intZero")->property("value").toInt(), "intZero");
+        }
 
         // Database written?
-        QString databaseFile(testDataFolder.path() + QString("/settings.db"));
+        QString databaseFile(testDataFolder.path() + QString("/") + databaseFilename);
         QVERIFY(QFile::exists(databaseFile));
 
-        // Delete and re-load the view as if it was an app being restarted
-        delete view;
-
-        QSignalSpy *spy;
-        view = loadTestCase("Settings.qml", &spy);
-        root = view->rootObject();
-
-        // Verifiy that the changed values were saved
-        i = root->metaObject()->indexOfMethod("verify_values()");
-        root->metaObject()->method(i).invoke(root, Qt::DirectConnection);
-
-        /* No warnings from QML: disabled as long as unrelated bugs aren't fixed:
-        qt5/qml/QtTest/TestCase.qml:702: ReferenceError: qtest is not defined
-        modules/Ubuntu/Components/MainView.qml:257: TypeError: Cannot call method 'hasOwnProperty' of null
-        QCOMPARE(spy->count(), 0); */
+        QTest::qWait(1000);
     }
 };
 

@@ -16,124 +16,79 @@
 
 import QtQuick 2.0
 import Ubuntu.Components 0.1
-import QtTest 1.0
-import Ubuntu.Test 0.1
 
-UbuntuTestCase {
-    id: test
-    name: "Settings"
+MainView {
+    applicationName: "tst_settings"
 
-    MainView {
-        applicationName: "tst_settings"
+    Settings {
+        id: appSettings
+        objectName: "settings"
 
-        Settings {
-            id: appSettings
-            objectName: "settings"
-
-            Option {
-                id: boolFalse
-                name: "boolFalse"
-                objectName: "boolFalse"
-                defaultValue: false
-            }
-            Option {
-                id: boolTrue
-                name: "boolTrue"
-                objectName: "boolTrue"
-                defaultValue: true
-            }
-            Option {
-                id: stringEmpty
-                name: "stringEmpty"
-                defaultValue: ""
-            }
-            Option {
-                id: stringUrl
-                name: "stringUrl"
-                defaultValue: "http://www.ubuntu.com"
-            }
-            Option {
-                id: intZero
-                name: "intZero"
-                defaultValue: 0
-            }
-            Option {
-                id: intMax
-                name: "intMax"
-                defaultValue: 65535
-            }
+        Option {
+            id: boolFalse
+            name: "boolFalse"
+            objectName: "boolFalse"
+            defaultValue: false
         }
-
-        Page {
-            title: "Settings"
-
-            TextField {
-                id: textFieldUrl
-                action: stringUrl
-            }
+        Option {
+            id: boolTrue
+            name: "boolTrue"
+            objectName: "boolTrue"
+            defaultValue: true
+        }
+        Option {
+            id: stringEmpty
+            name: "stringEmpty"
+            objectName: "stringEmpty"
+            defaultValue: ""
+        }
+        Option {
+            id: stringUrl
+            name: "stringUrl"
+            objectName: "stringUrl"
+            defaultValue: "http://www.ubuntu.com"
+        }
+        Option {
+            id: intZero
+            name: "intZero"
+            objectName: "intZero"
+            defaultValue: 0
+        }
+        Option {
+            id: intMax
+            name: "intMax"
+            objectName: "intMax"
+            defaultValue: 65535
         }
     }
 
-    SignalSpy {
-        id: valueSpy
-        signalName: "valueChanged"
-    }
+    Page {
+        title: "Settings"
 
-    SignalSpy {
-        id: changeSpy
-        signalName: "contentsChanged"
-    }
-
-    function test_defaults () {
-        var expected = ['boolFalse', 'boolTrue', 'stringEmpty', 'stringUrl', 'intMax', 'intZero']
-        for(var i in expected) {
-            var found = false
-            var name = expected[i]
-            for(var item in appSettings.options) {
-                var option = appSettings.options[item]
-                if (option.name != name)
-                    continue
-                found = true
-            }
-            if (!found)
-                fail('Expected setting %1 not found in options'.arg(name))
+        Switch {
+            objectName: "boolFalseComponent"
+            action: boolFalse
         }
-        for(var item in appSettings.options) {
-            var option = appSettings.options[item]
-            compare(option.value, option.defaultValue)
+        Switch {
+            objectName: "boolTrueComponent"
+            action: boolTrue
         }
-        var internalDocument = findInvisibleChild(appSettings, 'settingsInternalDocument')
-        compare(internalDocument.create, true)
-    }
-
-    function change_values () {
-        var internalDocument = findInvisibleChild(appSettings, 'settingsInternalDocument')
-        // changeSpy.target = internalDocument
-        valueSpy.target = stringUrl
-        stringUrl.value = "http://www.canonical.com"
-        valueSpy.wait()
-        compare(internalDocument.defaults.stringUrl, stringUrl.defaultValue)
-        // changeSpy.wait()
-        valueSpy.target = intMax
-        intMax.value = 13
-        valueSpy.wait()
-        compare(internalDocument.defaults.intMax, intMax.defaultValue)
-        // changeSpy.wait()
-        compare(internalDocument.contents.stringUrl, stringUrl.value)
-        compare(internalDocument.contents.intMax, intMax.value)
-    }
-
-    function verify_values () {
-        var internalDocument = findInvisibleChild(appSettings, 'settingsInternalDocument')
-        compare(internalDocument.defaults.stringUrl, stringUrl.defaultValue)
-        compare(internalDocument.defaults.intMax, intMax.defaultValue)
-
-        valueSpy.target = stringUrl
-        valueSpy.wait()
-        compare(stringUrl.value, "http://www.canonical.com")
-        compare(intMax.value, 13)
-
-        // Components bound to settings should default to their value
-        compare(textFieldUrl.text, stringUrl.value)
+        TextField {
+            objectName: "stringEmptyComponent"
+            action: stringEmpty
+        }
+        TextField {
+            objectName: "stringUrlComponent"
+            action: stringUrl
+        }
+        TextField {
+            objectName: "intZeroComponent"
+            action: intZero
+        }
+        TextField {
+            objectName: "intMaxComponent"
+            action: intMax
+        }
     }
 }
+
