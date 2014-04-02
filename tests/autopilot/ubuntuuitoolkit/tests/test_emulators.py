@@ -121,6 +121,42 @@ MainView {
             str(error), 'The MainView has no Tabs.')
 
 
+class SettingsTestCase(tests.QMLStringAppTestCase):
+
+    test_qml = ("""
+import QtQuick 2.0
+import Ubuntu.Components 0.1
+
+MainView {
+    width: units.gu(48)
+    height: units.gu(60)
+
+    Settings {
+        objectName: 'settings'
+        Option {
+            id: optionVibrate
+            name: "vibrate"
+            defaultValue: false
+        }
+    }
+
+    Switch {
+        action: optionVibrate
+    }
+}
+""")
+
+    def setUp(self):
+        super(SettingsTestCase, self).setUp()
+        self.settings = self.main_view.select_single(emulators.Settings, objectName='settings')
+
+    def test_settings_custom_emulator(self):
+        self.assertIsInstance(self.settings, emulators.Settings)
+
+    def test_check_defaults(self):
+        self.assertEqual(self.settings.get_option('vibrate').value, False)
+
+
 class PageTestCase(tests.QMLStringAppTestCase):
 
     test_qml = ("""

@@ -335,6 +335,13 @@ class Tabs(UbuntuUIToolkitEmulatorBase):
         return len(self._get_tabs())
 
 
+class Settings(UbuntuUIToolkitEmulatorBase):
+    """Settings Autopilot emulator."""
+
+    def get_option(self, optionName):
+        return self.select_single('Option', name=optionName)
+
+
 class TabBar(UbuntuUIToolkitEmulatorBase):
     """TabBar Autopilot emulator."""
 
