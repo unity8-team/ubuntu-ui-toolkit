@@ -142,6 +142,8 @@ MainView {
 
     Switch {
         action: optionVibrate
+        objectName: "vibrateSwitch"
+        property string val: action.value
     }
 }
 """)
@@ -154,7 +156,17 @@ MainView {
         self.assertIsInstance(self.settings, emulators.Settings)
 
     def test_check_defaults(self):
-        self.assertEqual(self.settings.get_option('vibrate').value, False)
+        # FIXME: bug #1273956
+        # self.assertEqual(self.settings.get_option('vibrate').value, False)
+        self.assertEqual(self.main_view.select_single(objectName='vibrateSwitch').val, False)
+        self.assertEqual(self.main_view.select_single(objectName='vibrateSwitch').checked, False)
+
+    def test_flip_switches(self):
+        self.main_view.select_single(objectName='vibrateSwitch').check()
+
+    def test_confirm_switches(self):
+        self.assertEqual(self.main_view.select_single(objectName='vibrateSwitch').val, True)
+        self.assertEqual(self.main_view.select_single(objectName='vibrateSwitch').checked, True)
 
 
 class PageTestCase(tests.QMLStringAppTestCase):
