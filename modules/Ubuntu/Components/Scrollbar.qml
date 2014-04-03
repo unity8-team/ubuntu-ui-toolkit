@@ -92,6 +92,8 @@ StyledItem {
     implicitWidth: internals.vertical ? units.gu(4) : flickableItem.width
     implicitHeight: !internals.vertical ? units.gu(4) : flickableItem.height
 
+    Accessible.role: Accessible.ScrollBar
+
     anchors {
         left: internals.leftAnchor(flickableItem)
         right: internals.rightAnchor(flickableItem)

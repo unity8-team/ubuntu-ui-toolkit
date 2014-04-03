@@ -63,6 +63,15 @@ import QtQuick 2.0
 */
 AbstractButton {
     id: button
+    Accessible.role: Accessible.Button
+    Accessible.name: text
+
+    /*!
+        Called by assistive technologies to activate the button.
+    */
+    function accessiblePressAction() {
+        button.clicked()
+    }
 
     /*!
        The background color of the button.

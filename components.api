@@ -29,6 +29,7 @@ AnimatedItem
     property bool running
 modules/Ubuntu/Components/Button.qml
 AbstractButton
+    function accessiblePressAction()
     property color color
     property Gradient gradient
     property string iconPosition

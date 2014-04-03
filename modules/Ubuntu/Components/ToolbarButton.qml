@@ -82,6 +82,14 @@ ActionItem {
     id: toolbarButton
     height: parent ? parent.height : undefined
     width: units.gu(5)
+    Accessible.role: Accessible.Button
+
+    /*!
+        Called by assistive technologies to activate the button.
+    */
+    function accessiblePressAction() {
+        button.clicked()
+    }
 
     style: Theme.createStyleComponent("ToolbarButtonStyle.qml", toolbarButton)
 }

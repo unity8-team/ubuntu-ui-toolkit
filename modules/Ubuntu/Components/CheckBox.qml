@@ -39,6 +39,7 @@ import QtQuick 2.0
 */
 AbstractButton {
     id: checkBox
+    Accessible.role: Accessible.CheckBox
 
     /*!
       \preliminary

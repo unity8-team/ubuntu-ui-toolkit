@@ -79,6 +79,8 @@ StyledItem {
     id: control
     implicitWidth: units.gu(30)
     implicitHeight: (autoSize) ? internal.minimumSize : internal.linesHeight(4)
+    Accessible.role: Accessible.EditableText
+    Accessible.name: internal.displayText
 
     // new properties
     /*!

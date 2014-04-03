@@ -40,6 +40,9 @@ import QtQuick 2.0
 Text {
     id: label
 
+    Accessible.role: Accessible.StaticText
+    Accessible.name: text
+
     /*!
       The size of the text. One of the following strings (from smallest to largest):
         \list

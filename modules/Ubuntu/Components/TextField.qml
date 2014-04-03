@@ -596,6 +596,9 @@ ActionItem {
     }
 
 
+    Accessible.role: Accessible.EditableText
+    Accessible.name: editor.displayText
+
     /*!
       Copies the currently selected text to the system clipboard.
     */
