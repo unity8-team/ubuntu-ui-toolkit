@@ -130,6 +130,7 @@ import Ubuntu.Components 0.1
 MainView {
     width: units.gu(48)
     height: units.gu(60)
+    applicationName: 'once.upon.a.time'
 
     Settings {
         objectName: 'settings'
@@ -143,7 +144,7 @@ MainView {
     Switch {
         action: optionVibrate
         objectName: "vibrateSwitch"
-        property string val: action.value
+        property bool val: action.value
     }
 }
 """)
@@ -155,6 +156,9 @@ MainView {
     def test_settings_custom_emulator(self):
         self.assertIsInstance(self.settings, emulators.Settings)
 
+    def test_clear(self):
+        self.settings.clear()
+
     def test_check_defaults(self):
         # FIXME: bug #1273956
         # self.assertEqual(self.settings.get_option('vibrate').value, False)
@@ -163,6 +167,8 @@ MainView {
 
     def test_flip_switches(self):
         self.main_view.select_single(objectName='vibrateSwitch').check()
+        self.assertEqual(self.main_view.select_single(objectName='vibrateSwitch').checked, True)
+        self.assertEqual(self.main_view.select_single(objectName='vibrateSwitch').val, True)
 
     def test_confirm_switches(self):
         self.assertEqual(self.main_view.select_single(objectName='vibrateSwitch').val, True)

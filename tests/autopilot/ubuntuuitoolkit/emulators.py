@@ -14,6 +14,8 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+import os
+
 import logging
 from distutils import version
 
@@ -337,6 +339,20 @@ class Tabs(UbuntuUIToolkitEmulatorBase):
 
 class Settings(UbuntuUIToolkitEmulatorBase):
     """Settings Autopilot emulator."""
+
+    def __init__(self, *args):
+        super(Settings, self).__init__(*args)
+
+    def _get_database_filename(self):
+        data_home = os.environ.get('XDG_DATA_HOME', os.path.join(os.environ['HOME'], '.local', 'share'))
+        root = self.get_root_instance()
+        main_view = root.select_single(MainView)
+        app_name = main_view.applicationName
+        return os.path.join(data_home, app_name, 'settings.db')
+
+    @autopilot_logging.log_action(logger.info)
+    def clear(self):
+        os.remove(self._get_database_filename())
 
     def get_option(self, optionName):
         return self.select_single('Option', name=optionName)
