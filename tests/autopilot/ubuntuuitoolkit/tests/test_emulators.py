@@ -190,6 +190,8 @@ MainView {
     def test_updated_values_must_be_kept_after_app_restart(self):
         self.get_switch().check()
 
+        # TODO update this once the restart helpers are implemented in
+        # autopilot. See http://pad.lv/1302618 --elopio - 2014-04-04
         os.killpg(self.app.pid, signal.SIGTERM)
         self.launch_application()
         self.assertThat(self.get_switch().val, Equals(True))
