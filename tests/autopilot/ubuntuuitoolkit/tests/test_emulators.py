@@ -21,6 +21,8 @@ import autopilot
 from autopilot import input, platform
 from autopilot.introspection import dbus
 from testtools.matchers import GreaterThan, LessThan
+from autopilot.matchers import Eventually
+from testtools.matchers import Equals
 try:
     from unittest import mock
 except ImportError:
@@ -123,6 +125,10 @@ MainView {
 
 class SettingsTestCase(tests.QMLStringAppTestCase):
 
+    scenarios = [
+        ('vibrate', dict(vibrate=False)),
+    ]
+
     test_qml = ("""
 import QtQuick 2.0
 import Ubuntu.Components 0.1
@@ -151,28 +157,33 @@ MainView {
 
     def setUp(self):
         super(SettingsTestCase, self).setUp()
-        self.settings = self.main_view.select_single(emulators.Settings, objectName='settings')
-
-    def test_settings_custom_emulator(self):
         self.assertIsInstance(self.settings, emulators.Settings)
+
+    @property
+    def settings(self):
+        return self.main_view.select_single(emulators.Settings, objectName='settings')
+
+    @property
+    def switch(self):
+        return self.main_view.select_single(objectName='vibrateSwitch')
 
     def test_clear(self):
         self.settings.clear()
 
-    def test_check_defaults(self):
+    def test_defaults(self):
         # FIXME: bug #1273956
         # self.assertEqual(self.settings.get_option('vibrate').value, False)
-        self.assertEqual(self.main_view.select_single(objectName='vibrateSwitch').val, False)
-        self.assertEqual(self.main_view.select_single(objectName='vibrateSwitch').checked, False)
+        self.assertThat(self.switch.val, Eventually(Equals(False)))
+        self.assertThat(self.switch.checked, Eventually(Equals(False)))
 
     def test_flip_switches(self):
-        self.main_view.select_single(objectName='vibrateSwitch').check()
-        self.assertEqual(self.main_view.select_single(objectName='vibrateSwitch').checked, True)
-        self.assertEqual(self.main_view.select_single(objectName='vibrateSwitch').val, True)
+        self.switch.check()
+        self.assertThat(self.switch.checked, Eventually(Equals(True)))
+        self.assertThat(self.switch.val, Eventually(Equals(True)))
 
-    def test_confirm_switches(self):
-        self.assertEqual(self.main_view.select_single(objectName='vibrateSwitch').val, True)
-        self.assertEqual(self.main_view.select_single(objectName='vibrateSwitch').checked, True)
+    def test_verify_switches(self):
+        self.assertThat(self.switch.val, Eventually(Equals(True)))
+        self.assertThat(self.switch.checked, Eventually(Equals(True)))
 
 
 class PageTestCase(tests.QMLStringAppTestCase):
