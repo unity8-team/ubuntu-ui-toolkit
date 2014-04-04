@@ -99,13 +99,13 @@ Item {
             }
         }
         __doc.defaults = defaultValues;
+        __doc.docId = group;
         __doc.create = true;
     }
 
     U1db.Document {
         id: __doc
         objectName: "settingsInternalDocument"
-        docId: group
         create: false
         onContentsChanged: {
             if (!__doc.contents)
