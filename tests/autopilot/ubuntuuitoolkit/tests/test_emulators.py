@@ -14,6 +14,8 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+import os
+import signal
 import time
 import unittest
 
@@ -156,34 +158,44 @@ MainView {
 """)
 
     def setUp(self):
+        # Make sure we start with the default settings.
+        emulators.Settings.clear('once.upon.a.time')
         super(SettingsTestCase, self).setUp()
-        self.assertIsInstance(self.settings, emulators.Settings)
 
-    @property
-    def settings(self):
-        return self.main_view.select_single(emulators.Settings, objectName='settings')
+    def get_settings(self):
+        return self.main_view.select_single(
+            emulators.Settings, objectName='settings')
 
-    @property
-    def switch(self):
+    def get_switch(self):
         return self.main_view.select_single(objectName='vibrateSwitch')
 
-    def test_clear(self):
-        self.settings.clear()
+    def test_select_settings_must_return_custom_proxy_object(self):
+        self.assertIsInstance(self.get_settings(), emulators.Settings)
 
-    def test_defaults(self):
+    def test_application_must_start_with_default_values(self):
         # FIXME: bug #1273956
-        # self.assertEqual(self.settings.get_option('vibrate').value, False)
-        self.assertThat(self.switch.val, Eventually(Equals(False)))
-        self.assertThat(self.switch.checked, Eventually(Equals(False)))
+        #self.assertEqual(self.settings.get_option('vibrate').value, False)
+        switch = self.get_switch()
 
-    def test_flip_switches(self):
-        self.switch.check()
-        self.assertThat(self.switch.checked, Eventually(Equals(True)))
-        self.assertThat(self.switch.val, Eventually(Equals(True)))
+        self.assertThat(switch.val, Eventually(Equals(False)))
+        self.assertThat(switch.checked, Eventually(Equals(False)))
 
-    def test_verify_switches(self):
-        self.assertThat(self.switch.val, Eventually(Equals(True)))
-        self.assertThat(self.switch.checked, Eventually(Equals(True)))
+    def test_check_switch_must_update_option_value(self):
+        switch = self.get_switch()
+        switch.check()
+
+        self.assertThat(switch.checked, Eventually(Equals(True)))
+        self.assertThat(switch.val, Eventually(Equals(True)))
+
+    def test_updated_values_must_be_kept_after_app_restart(self):
+        self.get_switch().check()
+
+        # TODO update this once the restart helpers are implemented in
+        # autopilot. See http://pad.lv/1302618 --elopio - 2014-04-04
+        os.killpg(self.app.pid, signal.SIGTERM)
+        self.launch_application()
+        self.assertThat(self.get_switch().val, Equals(True))
+        self.assertThat(self.get_switch().checked, Equals(True))
 
 
 class PageTestCase(tests.QMLStringAppTestCase):

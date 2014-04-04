@@ -340,19 +340,19 @@ class Tabs(UbuntuUIToolkitEmulatorBase):
 class Settings(UbuntuUIToolkitEmulatorBase):
     """Settings Autopilot emulator."""
 
-    def __init__(self, *args):
-        super(Settings, self).__init__(*args)
-
-    def _get_database_filename(self):
-        data_home = os.environ.get('XDG_DATA_HOME', os.path.join(os.environ['HOME'], '.local', 'share'))
-        root = self.get_root_instance()
-        main_view = root.select_single(MainView)
-        app_name = main_view.applicationName
-        return os.path.join(data_home, app_name, 'settings.db')
-
+    @classmethod
     @autopilot_logging.log_action(logger.info)
-    def clear(self):
-        os.remove(self._get_database_filename())
+    def clear(cls, application_name):
+        database_file = cls._get_database_filename(application_name)
+        if os.path.exists(database_file):
+            os.remove(database_file)
+
+    @classmethod
+    def _get_database_filename(self, application_name):
+        data_home = os.environ.get(
+            'XDG_DATA_HOME',
+            os.path.join(os.environ['HOME'], '.local', 'share'))
+        return os.path.join(data_home, application_name, 'settings.db')
 
     def get_option(self, optionName):
         return self.select_single('Option', name=optionName)
