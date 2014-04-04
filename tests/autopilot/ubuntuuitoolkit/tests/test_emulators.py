@@ -187,7 +187,7 @@ MainView {
         self.assertThat(switch.checked, Eventually(Equals(True)))
         self.assertThat(switch.val, Eventually(Equals(True)))
 
-    def test_flip_switches_are_kept_after_app_restart(self):
+    def test_updated_values_must_be_kept_after_app_restart(self):
         self.get_switch().check()
 
         os.killpg(self.app.pid, signal.SIGTERM)
