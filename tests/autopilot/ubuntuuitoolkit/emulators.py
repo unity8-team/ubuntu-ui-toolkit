@@ -355,6 +355,7 @@ class Settings(UbuntuUIToolkitEmulatorBase):
         os.remove(self._get_database_filename())
 
     def get_option(self, optionName):
+        import pdb; pdb.set_trace()
         return self.select_single('Option', name=optionName)
 
 
