@@ -147,12 +147,24 @@ MainView {
             name: "vibrate"
             defaultValue: false
         }
+        Option {
+            id: optionHomepage
+            name: "homepage"
+            defaultValue: "http://www.canonical.com"
+        }
     }
 
-    Switch {
-        action: optionVibrate
-        objectName: "vibrateSwitch"
-        property bool val: action.value
+    Column {
+        Switch {
+            action: optionVibrate
+            objectName: "vibrateSwitch"
+            property bool val: action.value
+        }
+        TextField {
+            action: optionHomepage
+            objectName: "homepageEntry"
+            property string val: action.value
+        }
     }
 }
 """)
@@ -169,6 +181,9 @@ MainView {
     def get_switch(self):
         return self.main_view.select_single(objectName='vibrateSwitch')
 
+    def get_entry(self):
+        return self.main_view.select_single(objectName='homepageEntry')
+
     def test_select_settings_must_return_custom_proxy_object(self):
         self.assertIsInstance(self.get_settings(), emulators.Settings)
 
@@ -178,20 +193,28 @@ MainView {
         switch = self.get_switch()
 
         self.assertThat(switch.checked, Eventually(Equals(False)))
-        self.assertThat(switch.val, Eventually(Equals(False)))
+        self.assertThat(switch.val, Equals(switch.checked))
 
     def test_check_switch_must_update_option_value(self):
         switch = self.get_switch()
         switch.check()
 
         self.assertThat(switch.checked, Eventually(Equals(True)))
-        self.assertThat(switch.val, Eventually(Equals(True)))
+        self.assertThat(switch.val, Equals(switch.checked))
 
     def test_updated_values_must_be_kept_after_app_restart(self):
         switch = self.get_switch()
         switch.check()
         self.assertThat(switch.checked, Eventually(Equals(True)))
-        self.assertThat(switch.val, Eventually(Equals(True)))
+        self.assertThat(switch.val, Equals(switch.checked))
+        entry = self.get_entry()
+        entry.clear()
+        entry.write('http://www.ubuntu.com')
+        self.keyboard.press_and_release('Return')
+        self.assertThat(switch.checked, Eventually(Equals(True)))
+        self.assertThat(switch.val, Equals(switch.checked))
+        self.assertThat(entry.text, Eventually(Equals("http://www.ubuntu.com")))
+        self.assertThat(entry.text, Equals(entry.val))
         assert(os.path.exists(emulators.Settings._get_database_filename('once.upon.a.time')))
 
         # TODO update this once the restart helpers are implemented in
@@ -200,7 +223,7 @@ MainView {
         self.launch_application()
         switch = self.get_switch()
         self.assertThat(switch.checked, Eventually(Equals(True)))
-        self.assertThat(switch.val, Eventually(Equals(True)))
+        self.assertThat(switch.val, Equals(switch.checked))
 
 
 class PageTestCase(tests.QMLStringAppTestCase):
