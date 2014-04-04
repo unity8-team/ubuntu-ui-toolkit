@@ -158,9 +158,9 @@ MainView {
 """)
 
     def setUp(self):
-        super(SettingsTestCase, self).setUp()
         # Make sure we start with the default settings.
-        self.get_settings().clear()
+        emulators.Settings.clear('once.upon.a.time')
+        super(SettingsTestCase, self).setUp()
 
     def get_settings(self):
         return self.main_view.select_single(
