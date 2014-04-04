@@ -177,8 +177,8 @@ MainView {
         #self.assertEqual(self.settings.get_option('vibrate').value, False)
         switch = self.get_switch()
 
-        self.assertThat(switch.val, Eventually(Equals(False)))
         self.assertThat(switch.checked, Eventually(Equals(False)))
+        self.assertThat(switch.val, Eventually(Equals(False)))
 
     def test_check_switch_must_update_option_value(self):
         switch = self.get_switch()
@@ -188,14 +188,19 @@ MainView {
         self.assertThat(switch.val, Eventually(Equals(True)))
 
     def test_updated_values_must_be_kept_after_app_restart(self):
-        self.get_switch().check()
+        switch = self.get_switch()
+        switch.check()
+        self.assertThat(switch.checked, Eventually(Equals(True)))
+        self.assertThat(switch.val, Eventually(Equals(True)))
+        assert(os.path.exists(emulators.Settings._get_database_filename('once.upon.a.time')))
 
         # TODO update this once the restart helpers are implemented in
         # autopilot. See http://pad.lv/1302618 --elopio - 2014-04-04
         os.killpg(self.app.pid, signal.SIGTERM)
         self.launch_application()
-        self.assertThat(self.get_switch().val, Equals(True))
-        self.assertThat(self.get_switch().checked, Equals(True))
+        switch = self.get_switch()
+        self.assertThat(switch.checked, Eventually(Equals(True)))
+        self.assertThat(switch.val, Eventually(Equals(True)))
 
 
 class PageTestCase(tests.QMLStringAppTestCase):
