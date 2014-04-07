@@ -152,6 +152,11 @@ MainView {
             name: "homepage"
             defaultValue: "http://www.canonical.com"
         }
+        Option {
+            id: optionHair
+            name: "hairColor"
+            defaultValue: 0
+        }
     }
 
     Column {
@@ -164,6 +169,13 @@ MainView {
             action: optionHomepage
             objectName: "homepageEntry"
             property string val: action.value
+        }
+        OptionSelector {
+            action: optionHair
+            objectName: "hairColorSelector"
+            model: [ "Black", "Ginger", "Peroxided", "White" ]
+            property int val: action.value
+            expanded: true
         }
     }
 }
@@ -183,6 +195,9 @@ MainView {
 
     def get_entry(self):
         return self.main_view.select_single(objectName='homepageEntry')
+
+    def get_selector(self):
+        return self.main_view.select_single(objectName='hairColorSelector')
 
     def test_select_settings_must_return_custom_proxy_object(self):
         self.assertIsInstance(self.get_settings(), emulators.Settings)
@@ -207,23 +222,39 @@ MainView {
         switch.check()
         self.assertThat(switch.checked, Eventually(Equals(True)))
         self.assertThat(switch.val, Equals(switch.checked))
+
         entry = self.get_entry()
         entry.clear()
         entry.write('http://www.ubuntu.com')
         self.keyboard.press_and_release('Return')
-        self.assertThat(switch.checked, Eventually(Equals(True)))
-        self.assertThat(switch.val, Equals(switch.checked))
         self.assertThat(entry.text, Eventually(Equals("http://www.ubuntu.com")))
         self.assertThat(entry.text, Equals(entry.val))
+
+        selector = self.get_selector()
+        option = selector.select_single('Label', text='Ginger')
+        self.pointing_device.click_object(selector)
+        self.pointing_device.click_object(option)
+        self.assertThat(selector.selectedIndex, Eventually(Equals(1)))
+        self.assertThat(selector.selectedIndex, Equals(selector.val))
+
         assert(os.path.exists(emulators.Settings._get_database_filename('once.upon.a.time')))
 
         # TODO update this once the restart helpers are implemented in
         # autopilot. See http://pad.lv/1302618 --elopio - 2014-04-04
         os.killpg(self.app.pid, signal.SIGTERM)
         self.launch_application()
+
         switch = self.get_switch()
         self.assertThat(switch.checked, Eventually(Equals(True)))
         self.assertThat(switch.val, Equals(switch.checked))
+        entry = self.get_entry()
+        self.assertThat(entry.text, Eventually(Equals("http://www.ubuntu.com")))
+        self.assertThat(entry.text, Equals(entry.val))
+        selector = self.get_selector()
+        list = selector.select_single('QQuickListView')
+        self.assertThat(list.currentIndex, Eventually(Equals(selector.selectedIndex)))
+        self.assertThat(selector.selectedIndex, Eventually(Equals(1)))
+        self.assertThat(selector.selectedIndex, Equals(selector.val))
 
 
 class PageTestCase(tests.QMLStringAppTestCase):

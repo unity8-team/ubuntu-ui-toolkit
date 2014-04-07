@@ -103,6 +103,8 @@ Template {
 
             OptionSelector {
                 action: optionHairColor
+                expanded: true
+                height: units.gu(20)
                 model: [ "Black", "Ginger", "Peroxided", "White" ]
             }
         }
