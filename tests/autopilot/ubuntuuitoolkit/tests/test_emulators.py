@@ -124,14 +124,7 @@ MainView {
         self.assertEqual(
             str(error), 'The MainView has no Tabs.')
 
-
-class SettingsTestCase(tests.QMLStringAppTestCase):
-
-    scenarios = [
-        ('vibrate', dict(vibrate=False)),
-    ]
-
-    test_qml = ("""
+defaultGroup = ("""
 import QtQuick 2.0
 import Ubuntu.Components 0.1
 
@@ -180,6 +173,71 @@ MainView {
     }
 }
 """)
+
+multipleGroups = ("""
+import QtQuick 2.0
+import Ubuntu.Components 0.1
+
+MainView {
+    width: units.gu(48)
+    height: units.gu(60)
+    applicationName: 'once.upon.a.time'
+
+    Settings {
+        objectName: 'settings'
+        group: "general"
+        Option {
+            id: optionVibrate
+            name: "vibrate"
+            defaultValue: false
+        }
+    }
+    Settings {
+        group: "MiscellaneousOptions"
+        Option {
+            id: optionHomepage
+            name: "homepage"
+            defaultValue: "http://www.canonical.com"
+        }
+    }
+    Settings {
+        group: "userProfile"
+        Option {
+            id: optionHair
+            name: "hairColor"
+            defaultValue: 0
+        }
+    }
+
+    Column {
+        Switch {
+            action: optionVibrate
+            objectName: "vibrateSwitch"
+            property bool val: action.value
+        }
+        TextField {
+            action: optionHomepage
+            objectName: "homepageEntry"
+            property string val: action.value
+        }
+        OptionSelector {
+            action: optionHair
+            objectName: "hairColorSelector"
+            model: [ "Black", "Ginger", "Peroxided", "White" ]
+            property int val: action.value
+            expanded: true
+        }
+    }
+}
+""")
+
+
+class SettingsTestCase(tests.QMLStringAppTestCase):
+
+    scenarios = [
+        ('defaultGroup', dict(test_qml=defaultGroup)),
+        ('multipleGroups', dict(test_qml=multipleGroups)),
+    ]
 
     def setUp(self):
         # Make sure we start with the default settings.
