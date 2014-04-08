@@ -281,11 +281,12 @@ class SettingsTestCase(tests.QMLStringAppTestCase):
         self.assertThat(switch.checked, Eventually(Equals(True)))
         self.assertThat(switch.val, Equals(switch.checked))
 
+        domain = 'http://www.ubuntu.com'
         entry = self.get_entry()
         entry.clear()
-        entry.write('http://www.ubuntu.com')
+        entry.write(domain)
         self.keyboard.press_and_release('Return')
-        self.assertThat(entry.text, Eventually(Equals("http://www.ubuntu.com")))
+        self.assertThat(entry.text, Eventually(Equals(domain)))
         self.assertThat(entry.text, Equals(entry.val))
 
         selector = self.get_selector()
@@ -295,7 +296,8 @@ class SettingsTestCase(tests.QMLStringAppTestCase):
         self.assertThat(selector.selectedIndex, Eventually(Equals(1)))
         self.assertThat(selector.selectedIndex, Equals(selector.val))
 
-        assert(os.path.exists(emulators.Settings._get_database_filename('once.upon.a.time')))
+        db_file = emulators.Settings._get_database_filename('once.upon.a.time')
+        assert(os.path.exists(db_file))
 
         # TODO update this once the restart helpers are implemented in
         # autopilot. See http://pad.lv/1302618 --elopio - 2014-04-04
@@ -306,13 +308,14 @@ class SettingsTestCase(tests.QMLStringAppTestCase):
         self.assertThat(switch.checked, Eventually(Equals(True)))
         self.assertThat(switch.val, Equals(switch.checked))
         entry = self.get_entry()
-        self.assertThat(entry.text, Eventually(Equals("http://www.ubuntu.com")))
+        self.assertThat(entry.text, Eventually(Equals(domain)))
         self.assertThat(entry.text, Equals(entry.val))
         selector = self.get_selector()
+        index = selector.selectedIndex
         list = selector.select_single('QQuickListView')
-        self.assertThat(list.currentIndex, Eventually(Equals(selector.selectedIndex)))
-        self.assertThat(selector.selectedIndex, Eventually(Equals(1)))
-        self.assertThat(selector.selectedIndex, Equals(selector.val))
+        self.assertThat(list.currentIndex, Eventually(Equals(index)))
+        self.assertThat(index, Eventually(Equals(1)))
+        self.assertThat(index, Equals(selector.val))
 
 
 class PageTestCase(tests.QMLStringAppTestCase):
