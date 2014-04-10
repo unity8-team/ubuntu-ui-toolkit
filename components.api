@@ -201,10 +201,10 @@ QtObject
     default property internal children
 modules/Ubuntu/Components/Option.qml
 Action
-    property string name
+    property var name
     property var defaultValue
     property var value
-    property var __doc
+    property var __internal
 modules/Ubuntu/Components/OptionSelector.qml
 ListItem.Empty
     property var model

@@ -101,13 +101,6 @@ static QObject *registerUbuntuColors(QQmlEngine *engine, QJSEngine *scriptEngine
            "Ubuntu.Components", "Colors/UbuntuColors.qml");
 }
 
-static QObject *registerSettingsStorage(QQmlEngine *engine, QJSEngine *scriptEngine)
-{
-    Q_UNUSED(scriptEngine)
-    return UbuntuComponentsPlugin::registerQmlSingletonType(engine,
-           "Ubuntu.Components", "SettingsStorage.qml");
-}
-
 QUrl UbuntuComponentsPlugin::baseUrl(const QStringList& importPathList, const char* uri)
 {
     /* FIXME: remove when migrating to Qt 5.1 and use QQmlExtensionPlugin::baseUrl()
@@ -165,7 +158,6 @@ void UbuntuComponentsPlugin::registerTypes(const char *uri)
 {
     Q_ASSERT(uri == QLatin1String("Ubuntu.Components"));
 
-    qmlRegisterSingletonType<QObject>(uri, 0, 1, "SettingsStorage", registerSettingsStorage);
     qmlRegisterSingletonType<QObject>(uri, 0, 1, "UbuntuColors", registerUbuntuColors);
     qmlRegisterUncreatableType<UbuntuI18n>(uri, 0, 1, "i18n", "Singleton object");
     qmlRegisterExtendedType<QQuickImageBase, UCQQuickImageExtension>(uri, 0, 1, "QQuickImageBase");

@@ -282,7 +282,7 @@ ListItem.Empty {
                 onDelegateClicked: optionSelector.delegateClicked(index);
                 interactive: listContainer.height !== list.contentHeight && listContainer.currentlyExpanded ? true : false
                 clip: true
-                currentIndex: action && action.hasOwnProperty("value") ? action.value : 0
+                currentIndex: action && action.hasOwnProperty("value") && typeof action.value == "number" ? action.value : 0
                 model: optionSelector.model
                 anchors.fill: parent
 

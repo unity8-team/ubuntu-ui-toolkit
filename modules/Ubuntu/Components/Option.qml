@@ -74,7 +74,7 @@ Action {
     /*!
       A name for the setting that is unique in the group.
       */
-    property string name: null
+    property var name: null
     /*!
       The default value. Any basic type is allowed. After the first time an
       option is used on one particular device, the default is ignored unless
@@ -85,21 +85,6 @@ Action {
       The current value, either a default, locally saved state or synchronized.
       */
     property var value: defaultValue
-    /*!
-      Store the value in the document.
-      */
-    onValueChanged: {
-        if (__doc && __doc.contents) {
-            var ct = __doc.contents;
-            ct[name] = value;
-            __doc.contents = ct;
-        }
-    }
-    /*!
-      \internal
-      The document to propagate changes to.
-      */
-    property var __doc: null
 
     /*!
       \internal
@@ -120,7 +105,35 @@ Action {
       \internal
       Store the new value when the action is triggered.
       */
-    onTriggered: {
-        option.value = value
+    onTriggered: option.value = value
+
+    /* Can't declare anonymous Object because parent class is no Item */
+    property var __internal: Item {
+        property string group: ""
+        onGroupChanged: {
+            if (name == null || defaultValue == null)
+                console.log("Incomplete Option declaration %1 in %2".arg(objectName).arg(group));
+            else
+                state = "valid";
+        }
+        states: [ State {
+            name: "valid"
+            PropertyChanges {
+                target: doc
+                docId: "%1-%2".arg(__internal.group).arg(name)
+            }
+            PropertyChanges {
+                target: option
+                value: doc.contents.value
+                onValueChanged: doc.contents = { "value": value }
+            }
+        } ]
+        U1db.Document {
+            id: doc
+            database: U1db.Database {
+                path: "settings.db"
+            }
+        }
     }
 }
+
