@@ -285,7 +285,7 @@ class SettingsTestCase(tests.QMLStringAppTestCase):
         entry = self.get_entry()
         entry.clear()
         entry.write(domain)
-        self.keyboard.press_and_release('Return')
+        self.keyboard.press_and_release('Enter')
         self.assertThat(entry.text, Eventually(Equals(domain)))
         self.assertThat(entry.text, Equals(entry.val))
 
