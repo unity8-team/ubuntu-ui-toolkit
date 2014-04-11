@@ -141,6 +141,11 @@ MainView {
             defaultValue: false
         }
         Option {
+            id: optionYear
+            name: "year"
+            defaultValue: 1960
+        }
+        Option {
             id: optionHomepage
             name: "homepage"
             defaultValue: "http://www.canonical.com"
@@ -162,6 +167,11 @@ MainView {
             action: optionHomepage
             objectName: "homepageEntry"
             property string val: action.value
+        }
+        TextField {
+            action: optionYear
+            objectName: "yearEntry"
+            property int val: action.value
         }
         OptionSelector {
             action: optionHair
@@ -191,6 +201,11 @@ MainView {
             name: "vibrate"
             defaultValue: false
         }
+        Option {
+            id: optionYear
+            name: "year"
+            defaultValue: 1960
+        }
     }
     Settings {
         group: "MiscellaneousOptions"
@@ -219,6 +234,11 @@ MainView {
             action: optionHomepage
             objectName: "homepageEntry"
             property string val: action.value
+        }
+        TextField {
+            action: optionYear
+            objectName: "yearEntry"
+            property int val: action.value
         }
         OptionSelector {
             action: optionHair
@@ -254,6 +274,9 @@ class SettingsTestCase(tests.QMLStringAppTestCase):
     def get_entry(self):
         return self.main_view.select_single(objectName='homepageEntry')
 
+    def get_year_entry(self):
+        return self.main_view.select_single(objectName='yearEntry')
+
     def get_selector(self):
         return self.main_view.select_single(objectName='hairColorSelector')
 
@@ -281,6 +304,12 @@ class SettingsTestCase(tests.QMLStringAppTestCase):
         self.assertThat(switch.checked, Eventually(Equals(True)))
         self.assertThat(switch.val, Equals(switch.checked))
 
+        ubuntuBirth = '2004'
+        year = self.get_year_entry()
+        year.clear()
+        year.write(ubuntuBirth)
+        # Leave it as-is for now
+
         domain = 'http://www.ubuntu.com'
         entry = self.get_entry()
         entry.clear()
@@ -288,6 +317,10 @@ class SettingsTestCase(tests.QMLStringAppTestCase):
         self.keyboard.press_and_release('Enter')
         self.assertThat(entry.text, Eventually(Equals(domain)))
         self.assertThat(entry.text, Equals(entry.val))
+
+        # Now check that the focus change made the year save
+        self.assertThat(year.text, Eventually(Equals(ubuntuBirth)))
+        self.assertThat(year.text, Equals(str(year.val)))
 
         selector = self.get_selector()
         option = selector.select_single('Label', text='Ginger')
@@ -307,6 +340,9 @@ class SettingsTestCase(tests.QMLStringAppTestCase):
         switch = self.get_switch()
         self.assertThat(switch.checked, Eventually(Equals(True)))
         self.assertThat(switch.val, Equals(switch.checked))
+        year = self.get_year_entry()
+        self.assertThat(year.text, Eventually(Equals(ubuntuBirth)))
+        self.assertThat(year.text, Equals(str(year.val)))
         entry = self.get_entry()
         self.assertThat(entry.text, Eventually(Equals(domain)))
         self.assertThat(entry.text, Equals(entry.val))

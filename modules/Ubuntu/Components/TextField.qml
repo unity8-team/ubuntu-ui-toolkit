@@ -589,11 +589,14 @@ ActionItem {
 
     /*!
       \internal
-      If used with an action or Option accepting propagates the new text.
+      If used with action or Option losing focus saves the value.
     */
-    onAccepted: {
-        control.triggered(control.text)
-    }
+    onFocusChanged: control.triggered(control.text)
+    /*!
+      \internal
+      If used with action or Option pressing Enter saves the value.
+    */
+    onAccepted: control.triggered(control.text)
 
 
     /*!
