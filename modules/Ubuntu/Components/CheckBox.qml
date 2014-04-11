@@ -49,7 +49,7 @@ AbstractButton {
 
     /*!
       \internal
-      Pass the real value, ActionItem.trigger otherwise causes a type mismatch error.
+      Override ActionItem.trigger because AbstractButton doesn't pass a value
       */
     function trigger() {
         if (enabled)
