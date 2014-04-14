@@ -389,7 +389,7 @@ StyledItem
 modules/Ubuntu/Components/Settings.qml
 Item
     property string group
-    default property internal options
+    default property list<Option> options
 modules/Ubuntu/Components/Slider.qml
 StyledItem
     property real minimumValue

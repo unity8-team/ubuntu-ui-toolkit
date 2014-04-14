@@ -62,6 +62,8 @@ Item {
     /*!
       The list of options. Most of the time it's enough to simply declare
       each Option within the Settings.
+
+      \qmlproperty list<Option> options
       */
     default property alias options: internal.realOptions
 
