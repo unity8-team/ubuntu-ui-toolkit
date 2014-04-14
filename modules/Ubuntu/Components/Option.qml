@@ -124,7 +124,7 @@ Action {
             }
             PropertyChanges {
                 target: option
-                value: doc.contents.value
+                value: doc.contents["value"]
                 onValueChanged: doc.contents = { "value": value }
             }
         } ]

@@ -44,7 +44,6 @@ import Ubuntu.Components 0.1 as Toolkit
         }
         Settings {
             group: "tablet"
-            sync: false
             Option {
                 name: "bigLayout"
                 defaultValue: false
