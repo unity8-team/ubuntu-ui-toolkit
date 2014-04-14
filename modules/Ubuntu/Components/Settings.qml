@@ -60,15 +60,17 @@ Item {
     property string group: "default"
 
     /*!
-      \internal
-      */
-    property list<Option> couldntGetListToWorkWithoutAlias
-
-    /*!
       The list of options. Most of the time it's enough to simply declare
       each Option within the Settings.
       */
-    default property alias options: settings.couldntGetListToWorkWithoutAlias
+    default property alias options: internal.realOptions
+
+    Object {
+        id: internal
+
+        /* For some reason a default property cannot be a list, but an alias works */
+        property list<Option> realOptions
+    }
 
     /*!
       \internal
