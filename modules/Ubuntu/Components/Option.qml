@@ -116,7 +116,7 @@ Action {
             else
                 state = "valid";
         }
-        states: [ State {
+        states: State {
             name: "valid"
             PropertyChanges {
                 target: doc
@@ -127,7 +127,7 @@ Action {
                 value: doc.contents["value"]
                 onValueChanged: doc.contents = { "value": value }
             }
-        } ]
+        }
         U1db.Document {
             id: doc
             database: U1db.Database {
