@@ -78,7 +78,8 @@ Item {
       \internal
       */
     Component.onCompleted: {
-        for(var item in options)
+        for (var item in options) {
             options[item].__internal.group = group;
+        }
     }
 }

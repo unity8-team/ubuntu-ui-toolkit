@@ -91,14 +91,15 @@ Action {
       The default value changed. From this we assume the value type.
       */
     onDefaultValueChanged: {
-        if (typeof defaultValue == "string")
+        if (typeof defaultValue == "string") {
             parameterType = UnityActions.Action.String;
-        else if (typeof defaultValue == "number")
+        } else if (typeof defaultValue == "number") {
             parameterType = UnityActions.Action.Real; // Javascript doesn't distinguish int and real
-        else if (typeof defaultValue == "boolean")
+        } else if (typeof defaultValue == "boolean") {
             parameterType = UnityActions.Action.Bool;
-        else
+        } else {
             parameterType = UnityActions.Action.None;
+        }
     }
 
     /*!
@@ -111,10 +112,11 @@ Action {
     property var __internal: Item {
         property string group: ""
         onGroupChanged: {
-            if (name == null || defaultValue == null)
+            if (name == null || defaultValue == null) {
                 console.log("Incomplete Option declaration %1 in %2".arg(objectName).arg(group));
-            else
+            } else {
                 state = "valid";
+            }
         }
         states: State {
             name: "valid"
