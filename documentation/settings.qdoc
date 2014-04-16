@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Canonical Ltd.
+ * Copyright 2014 Canonical Ltd.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -27,6 +27,8 @@
 
     MainView {
         applicationName: "example"
+        width: units.gu(80)
+        height: units.gu(60)
 
         Settings {
             Option {
@@ -54,6 +56,8 @@
 
     MainView {
         applicationName: "example"
+        width: units.gu(80)
+        height: units.gu(60)
 
         Settings {
             Option {
@@ -68,77 +72,63 @@
             }
         }
 
-        TextField {
-            action: optionName
-        }
-        TextField {
-            action: optionAge
-        }
+		Page {
+			title: i18n.tr('Fill in user profile')
+			Column {
+				TextField {
+					action: optionName
+				}
+				TextField {
+					action: optionAge
+				}
+			}
+		}
     }
   \endqml
 
-  Again all we need to define is a name and a default value. The id is used to
-  be able to bind the options to UI components.
+  Again all we need to define is a name and a default value and rely on the fact
+  that every Option is an Action.
 
-  How about using those values in the app code?
+  How about using those values now to decide if the user is old enough to play a
+  hypothetical game? In this example we assume the age of majority is 18.
 
   \qml
     import QtQuick 2.0
     import Ubuntu.Components 0.1
 
-    Column {
-        Label {
-            text: i18n.tr("Name: %1").arg(optionName.value)
-        }
-        Label {
-            text: i18n.tr("Age: %1").arg(optionAge.value)
-        }
-        Button {
-            text: i18n.tr("Start playing")
-            onClicked: {
-                if (optionAge.value < 18)
-                    console.log("Sorry but this game is for adults.")
-                else
-                    console.log("Game started by the looks of it")
-            }
-        }
-    }
-  \endqml
-
-  Note that there's no need to worry about the default values in most cases - the
-  value reflects the saved or default automatically. If you need to ensure that
-  a value was given by the user you can however check it easily.
-
-  Let's try choosing a value from several choices where the user must choose one.
-
-  \qml
     import QtQuick 2.0
     import Ubuntu.Components 0.1
 
-    Column {
-        Settings {
-            Option {
-                name: "plan"
-                defaultValue: 0
-            }
-            OptionSelector {
-                action: optionPlan
-                model: [ "Undecided", "Phone only", "500G", "1G is enough" ]
-            }
-        }
-        Button {
-            text: i18n.tr("Start playing")
-            onClicked: {
-                if (optionPlan.value == 0)
-                    console.log("You must pick a data plan to continue.")
-                else
-                    console.log("Good choice, sir")
-            }
-        }
-    }
+    MainView {
+        applicationName: "example"
+        width: units.gu(80)
+        height: units.gu(60)
+
+		Column {
+			Label {
+				text: i18n.tr("Name: %1").arg(optionName.value)
+			}
+			Label {
+				text: i18n.tr("Age: %1").arg(optionAge.value)
+			}
+			Button {
+				text: i18n.tr("Start playing")
+				onClicked: {
+					if (optionAge.value < 18)
+						console.log("Sorry but this game is for adults.")
+					else
+						console.log("Game started by the looks of it")
+				}
+			}
+		}
+	}
   \endqml
 
-  As our app is starting to get really big let's use some grouping.
+  Note that there's no need to worry about the default values here - the
+  value reflects the saved or default automatically.
+
+  Let's try choosing a value from several choices where the user must choose
+  among mobile data options, of course we make the most expensive the default.
 
   \qml
     import QtQuick 2.0
@@ -146,10 +136,45 @@
 
     MainView {
         applicationName: "example"
+        width: units.gu(80)
+        height: units.gu(60)
+
+        Settings {
+            Option {
+                name: "plan"
+                defaultValue: 2
+            }
+            OptionSelector {
+                action: optionPlan
+                model: [ "500M", "5G data", "unlimited (really 10G data)" ]
+            }
+        }
+        Button {
+            text: i18n.tr("Start p(l)aying")
+            onClicked: {
+                if (optionPlan.value == 0)
+                    console.log("Are you sure you don't need more?")
+                else
+                    console.log("Good choice, sir")
+            }
+        }
+    }
+  \endqml
+
+  As our app is starting to get really big let's use some grouping. We didn't
+  set a group before so everything went into the "default" group.
+
+  \qml
+    import QtQuick 2.0
+    import Ubuntu.Components 0.1
+
+    MainView {
+        applicationName: "example"
+        width: units.gu(80)
+        height: units.gu(60)
 
         Settings {
             group: "browser"
-            persistent: false
             Option {
                 id: optionUrl
                 name: "homepage"
@@ -157,16 +182,71 @@
             }
         }
 
-        TextField {
-            action: optionUrl
-        }
+		Page {
+			title: i18n.tr("Set the homepage")
+			TextField {
+				action: optionUrl
+			}
+		}
     }
   \endqml
 
-  Grouping of settings is entirely optional. Without a group name all options
-  are considered part of the "default" group.
+  As we have more specialized use cases we find that there's no standard
+  component for choosing a type of noodles, so let's invent a PastaPicker:
 
-  We also just unset the persistant property, which means nothing will be saved
-  until the property is set to true.
+  \qml
+    import QtQuick 2.0
+    import Ubuntu.Components 0.1
+
+    MainView {
+        applicationName: "example"
+        width: units.gu(80)
+        height: units.gu(60)
+
+        Settings {
+            group: "pasta"
+            Option {
+                id: optionNoodles
+                name: "noodles"
+                defaultValue: "rigatoni"
+			}
+		}
+
+		Page {
+			title: i18n.tr("Preferred type of pasta")
+
+			PastaPicker {
+				action: optionNoodles
+			}
+		}
+    }
+  \endqml
+
+  Now for the implementation of the component:
+
+  \qml
+    import QtQuick 2.0
+    import Ubuntu.Components 0.1
+
+    ActionItem {
+        id: picker
+
+        Column {
+            id: col
+            property string choice: action && action.hasOwnProperty("value") && typeof action.value != "undefined" ? action.value : ""
+
+            Label {
+                text: i18n.tr('Recommendation: %1'.arg(action.value))
+            }
+            Label {
+                text: i18n.tr('As long as possible')
+            }
+            Switch {
+                checked: col.choice == 'spaghetti'
+                onTriggered: picker.action.value = checked ? 'spaghetti' : 'penne'
+            }
+        }
+    }
+  \endqml
 */
 
