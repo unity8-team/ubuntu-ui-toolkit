@@ -178,7 +178,6 @@ MainView {
             objectName: "hairColorSelector"
             model: [ "Black", "Ginger", "Peroxided", "White" ]
             property int val: action.value
-            expanded: true
         }
     }
 }
@@ -245,7 +244,6 @@ MainView {
             objectName: "hairColorSelector"
             model: [ "Black", "Ginger", "Peroxided", "White" ]
             property int val: action.value
-            expanded: true
         }
     }
 }
@@ -278,7 +276,8 @@ class SettingsTestCase(tests.QMLStringAppTestCase):
         return self.main_view.select_single(objectName='yearEntry')
 
     def get_selector(self):
-        return self.main_view.select_single(objectName='hairColorSelector')
+        return self.main_view.select_single(emulators.OptionSelector,
+                                            objectName='hairColorSelector')
 
     def test_select_settings_must_return_custom_proxy_object(self):
         self.assertIsInstance(self.get_settings(), emulators.Settings)
@@ -323,11 +322,12 @@ class SettingsTestCase(tests.QMLStringAppTestCase):
         self.assertThat(year.text, Equals(str(year.val)))
 
         selector = self.get_selector()
-        option = selector.select_single('Label', text='Ginger')
-        self.pointing_device.click_object(selector)
-        self.pointing_device.click_object(option)
-        self.assertThat(selector.selectedIndex, Eventually(Equals(1)))
-        self.assertThat(selector.selectedIndex, Equals(selector.val))
+        favouriteHairColor = 'Ginger'
+        selector.select_option('Label', text=favouriteHairColor)
+        index = selector.get_selected_index()
+        self.assertThat(index, Eventually(Equals(selector.val)))
+        self.assertThat(selector.get_selected_text(),
+                        Eventually(Equals(favouriteHairColor)))
 
         db_file = emulators.Settings._get_database_filename('once.upon.a.time')
         assert(os.path.exists(db_file))
@@ -347,11 +347,10 @@ class SettingsTestCase(tests.QMLStringAppTestCase):
         self.assertThat(entry.text, Eventually(Equals(domain)))
         self.assertThat(entry.text, Equals(entry.val))
         selector = self.get_selector()
-        index = selector.selectedIndex
-        list = selector.select_single('QQuickListView')
-        self.assertThat(list.currentIndex, Eventually(Equals(index)))
-        self.assertThat(index, Eventually(Equals(1)))
-        self.assertThat(index, Equals(selector.val))
+        index = selector.get_selected_index()
+        self.assertThat(index, Eventually(Equals(selector.val)))
+        self.assertThat(selector.get_selected_text(),
+                        Eventually(Equals(favouriteHairColor)))
 
 
 class PageTestCase(tests.QMLStringAppTestCase):
