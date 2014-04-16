@@ -426,14 +426,10 @@ PageTreeNode {
         var tab = tabsModel.get(index).tab;
         var activeIndex = (selectedTabIndex >= index) ? MathUtils.clamp(selectedTabIndex, 0, count - 2) : -1;
 
-        // remove from Tabs; Tabs children change will remove the tab from the model
-        tab.parent = null;
+        // move tab to the trashbin; Tabs children change will remove the tab from the model
+        tab.parent = trashedTabs;
         if (tab.__protected.dynamic) {
             tab.destroy();
-        } else {
-            // pre-declared tab, mark it as removed, so we don't update it next time
-            // the tabs stack children is updated
-            tab.parent = trashedTabs;
         }
 
         // move active tab if needed
@@ -461,6 +457,8 @@ PageTreeNode {
 
         property bool updateDisabled: false
 
+//        onRowsMoved: reindex()//print("ROWMOVED", start, "->", row)
+
         function listModel(tab) {
             return {"title": tab.title, "tab": tab};
         }
@@ -485,9 +483,18 @@ PageTreeNode {
                     // always makes sure that tabsModel has the same order as tabsList
                     // but move only if there is more than one item in the list
                     if (count > 1) {
-                        move(tab.__protected.index, tabIndex, 1);
+                        if (tab.__protected.index !== tabIndex) {
+                            move(tab.__protected.index, tabIndex, 1);
+                            reindex();
+                            tab.__protected.index = tabIndex;
+                            print("MOVED", tab.title, "to", tab.index)
+                        } else {
+                            print("NO MOVE,", tab.title)
+                            for (var k = tabIndex; k < count; k++)
+                                print("TAB", k, "/", get(k).tab.index, "::", get(k).tab.title)
+//                            reindex(tabIndex);
+                        }
                     }
-                    reindex();
                 } else {
                     // keep track of children that are not tabs so that we compute
                     // the right index for actual tabs
@@ -502,6 +509,7 @@ PageTreeNode {
         }
 
         function reindex(from) {
+            print("reindex()")
             var start = 0;
             if (from !== undefined) {
                 start = from + 1;
@@ -512,11 +520,11 @@ PageTreeNode {
                 // FIXME: introduce an idle timer to get the model updated properly. This small delay
                 // is needed for arm64 unit tests, as the move() seems to update the model asynchronously.
                 // fixes bug #1308086
-                if (!tab) wait(0);
-                tab = get(i).tab;
+                if (!tab) tab = get(i).tab;
 
                 if (tab) {
                     tab.__protected.index = i;
+                    print("NEW IDX " + tab.title, ':', tab.index, i);
                 } else {
                     console.error("Invalid Tab at index", i, get(i).title)
                 }
