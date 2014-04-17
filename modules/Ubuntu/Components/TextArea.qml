@@ -338,6 +338,23 @@ StyledItem {
     property alias inputMethodHints: editor.inputMethodHints
 
     /*!
+      Provides extended properties to the input method allowing to change de default visual of the action Key
+
+      \qml
+      TextField {
+          text: "Text"
+
+          inputMethodExtensions: {
+            'enterKeyText': 'My Enter',
+            'enterKeyEnabled': true,
+            'enterKeyHighlighted': true,
+          }
+      }
+      \endqml
+    */
+    property alias inputMethodExtensions: editor.__inputMethodExtensions
+
+    /*!
       Returns the total number of plain text characters in the TextArea item.
 
       As this number doesn't include any formatting markup it may not be the
@@ -952,6 +969,9 @@ StyledItem {
         // Images are not shown when text contains <img> tags
         // bug to watch: https://bugreports.qt-project.org/browse/QTBUG-27071
         TextEdit {
+            // maliit extensions
+            property variant __inputMethodExtensions: null
+
             readOnly: false
             id: editor
             focus: true

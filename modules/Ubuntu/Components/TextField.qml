@@ -366,6 +366,24 @@ ActionItem {
     */
     property alias inputMethodHints: editor.inputMethodHints
 
+
+    /*!
+      Provides extended properties to the input method allowing to change de default visual of the action Key
+
+      \qml
+      TextField {
+          text: "Text"
+
+          inputMethodExtensions: {
+            'enterKeyText': 'My Enter',
+            'enterKeyEnabled': true,
+            'enterKeyHighlighted': true,
+          }
+      }
+      \endqml
+    */
+    property alias inputMethodExtensions: editor.__inputMethodExtensions
+
     /*!
       Returns the total number of characters in the TextField item.
 
@@ -1001,6 +1019,8 @@ ActionItem {
     // text input
     TextInput {
         id: editor
+        // maliit extensions
+        property variant __inputMethodExtensions: null
         // FocusScope will forward focus to this component
         focus: true
         anchors {

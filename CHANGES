@@ -85,6 +85,8 @@ API Changes
 * ADDED IN: Empty: property bool waitingConfirmationForRemoval
 * ADDED IN: Empty: function cancelItemRemoval()
 * CHANGED in CrossFadeImage: readonly property size sourceSize TO property size sourceSize
+* ADDED IN: TextArea: alias inputMethodExtensions: editor.__inputMethodExtensions 
+* ADDED IN: TextField: alias inputMethodExtensions: editor.__inputMethodExtensions
 
 Compatibility Breaks
 ********************
