@@ -447,6 +447,7 @@ StyledItem
     property enumeration horizontalAlignment
     property bool inputMethodComposing
     property enumeration inputMethodHints
+    property var inputMethodExtensions
     property int length
     property int lineCount
     property enumeration mouseSelectionMode
@@ -511,6 +512,7 @@ ActionItem
     property string inputMask
     property bool inputMethodComposing
     property enumeration inputMethodHints
+    property var inputMethodExtensions
     property int length
     property int maximumLength
     property enumeration mouseSelectionMode
