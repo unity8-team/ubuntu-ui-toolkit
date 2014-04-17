@@ -351,6 +351,8 @@ StyledItem {
           }
       }
       \endqml
+
+      \qmlproperty var inputMethodExtensions
     */
     property alias inputMethodExtensions: editor.__inputMethodExtensions
 
