@@ -338,7 +338,13 @@ StyledItem {
     property alias inputMethodHints: editor.inputMethodHints
 
     /*!
-      Provides extended properties to the input method allowing to change de default visual of the action Key
+      Provides extended properties to the input method allowing to change de default visual of the action Key,
+      the value is a dictonary and the valid keys for the dictionary are:
+      \list
+      \li - enterKeyText (string) - The text to be displayed in the "Enter" key of the virtual keyboard
+      \li - enterKeyEnabled (boolean) - If the "Enter" key of the virtual keyboard should be enabled or not
+      \li - enterKeyHighlighted (boolean) - If the "Enter" key of the virtual keyboard should be highlighted or not
+      \endlist
 
       \qml
       TextField {
