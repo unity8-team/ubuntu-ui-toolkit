@@ -200,7 +200,7 @@ PageTreeNode
 Object 0.1 1.0
 QtObject
     default property internal children
-Option 0.1
+Option 1.1
 Action
     property var name
     property var defaultValue
@@ -387,7 +387,7 @@ StyledItem
     property int align
     property bool __interactive
     property internal __private
-Settings 0.1
+Settings 1.1
 Item
     property string group
     default property list<Option> options
