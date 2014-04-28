@@ -88,3 +88,9 @@ StyledItem 1.0 StyledItem.qml
 ColorUtils 1.0 colorUtils.js
 DateUtils 1.0 dateUtils.js
 UbuntuListView 1.0 UbuntuListView.qml
+
+
+#version 1.1
+TextField 1.1 TextField11.qml
+TextArea 1.1 TextArea11.qml
+

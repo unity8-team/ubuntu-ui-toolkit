@@ -338,31 +338,6 @@ StyledItem {
     property alias inputMethodHints: editor.inputMethodHints
 
     /*!
-      Provides extended properties to the input method allowing to change the default visual of the action Key,
-      the value is a dictonary and the valid keys for the dictionary are:
-      \list
-      \li - enterKeyText (string) - The text to be displayed in the "Enter" key of the virtual keyboard
-      \li - enterKeyEnabled (boolean) - If the "Enter" key of the virtual keyboard should be enabled or not
-      \li - enterKeyHighlighted (boolean) - If the "Enter" key of the virtual keyboard should be highlighted or not
-      \endlist
-
-      \qml
-      TextField {
-          text: "Text"
-
-          inputMethodExtensions: {
-            'enterKeyText': 'My Enter',
-            'enterKeyEnabled': true,
-            'enterKeyHighlighted': true,
-          }
-      }
-      \endqml
-
-      \qmlproperty var inputMethodExtensions
-    */
-    property alias inputMethodExtensions: editor.__inputMethodExtensions
-
-    /*!
       Returns the total number of plain text characters in the TextArea item.
 
       As this number doesn't include any formatting markup it may not be the
@@ -534,6 +509,9 @@ StyledItem {
        \qmlproperty enumeration wrapMode
       */
     property alias wrapMode:editor.wrapMode
+
+    /*!\internal */
+    property alias __editor: editor
 
     // signals
     /*!
