@@ -795,3 +795,80 @@ class ComposerSheet(UbuntuUIToolkitEmulatorBase):
         button = self.select_single('Button', objectName='cancelButton')
         self.pointing_device.click_object(button)
         self.wait_until_destroyed()
+
+
+class UIApplication():
+class ShortsApp():
+    """App class"""
+    local_location = ""
+    installed_location = ""
+    click_package = ""
+    app = None
+    test_type = None
+
+    def __init__(self, test_obj, local_location="", installed_location="", click_package=""):
+        """Constructor
+
+        :param test_obj: An AutopilotTestCase object.
+        
+        :param local_location: Relative path to application. Optional.
+
+        :param installed_location: System path to application. Optional.
+
+        :param click_package: Click package name. Optional.
+        """
+        self.test_obj = test_obj
+        self.local_location = local_location
+        self.installed_location = self.installed_location
+        self.click_package = click_package
+        ## TODO: Check that at least local, installed or click package
+        ## argument is passed.
+
+    def launch():
+        """Launches the application"""
+        launch, self.test_type = self.setup_environment()
+        launch()
+
+    def setup_environment(self):
+        """Selects the way to launch the application"""
+        if os.path.exists(self.local_location):
+            logger.debug("Running via local installation")
+            launch = self.launch_test_local
+            test_type = 'local'
+        elif os.path.exists(self.installed_location):
+            logger.debug("Running via installed debian package")
+            launch = self.launch_test_installed
+            test_type = 'deb'
+        else:
+            logger.debug("Running via click package")
+            launch = self.launch_test_click
+            test_type = 'click'
+        return launch, test_type
+
+    def launch_test_local(self):
+        """Launch the application using a relative path"""
+        self.app = self.test_obj.launch_test_application(
+            base.get_qmlscene_launch_command(),
+            self.local_location,
+            app_type='qt',
+            emulator_base=toolkit_emulators.UbuntuUIToolkitEmulatorBase)
+
+    def launch_test_installed(self):
+        """Launch the application using the system path"""
+        self.app = self.test_obj.launch_test_application(
+            base.get_qmlscene_launch_command(),
+            self.installed_location,
+            app_type='qt',
+            emulator_base=toolkit_emulators.UbuntuUIToolkitEmulatorBase)
+
+    def launch_test_click(self):
+        """Launch the application using click package"""
+        self.app = self.test_obj.launch_click_package(
+            self.click_package,
+            emulator_base=toolkit_emulators.UbuntuUIToolkitEmulatorBase)
+
+    @property
+    def main_view(self):
+        """Return MainView object"""
+        return self.app.select_single(MainView)
+
