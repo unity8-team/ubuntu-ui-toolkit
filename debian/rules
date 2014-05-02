@@ -10,7 +10,7 @@ DEB_HOST_MULTI_ARCH ?= $(shell dpkg-architecture -qDEB_BUILD_MULTIARCH)
 
 override_dh_auto_test:
 	# Only run tests on the archs they are known to pass with current configuration
-	testrun_architectures := armhf i386 amd64   
+	testrun_architectures := armhf i386 amd64 arm64 
 	ifeq ($(DEB_HOST_ARCH),$(findstring $(DEB_HOST_ARCH), $(testrun_architectures)))
 		flake8 tests/autopilot/ubuntuuitoolkit/
 		ifeq (,$(findstring nocheck,$(DEB_BUILD_OPTIONS)))
