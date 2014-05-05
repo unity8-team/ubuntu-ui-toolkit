@@ -797,8 +797,7 @@ class ComposerSheet(UbuntuUIToolkitEmulatorBase):
         self.wait_until_destroyed()
 
 
-class UIApplication():
-class ShortsApp():
+class Application():
     """App class"""
     local_location = ""
     installed_location = ""
@@ -806,11 +805,17 @@ class ShortsApp():
     app = None
     test_type = None
 
-    def __init__(self, test_obj, local_location="", installed_location="", click_package=""):
+    def __init__(
+        self,
+        test_obj,
+        local_location="",
+        installed_location="",
+        click_package=""
+    ):
         """Constructor
 
         :param test_obj: An AutopilotTestCase object.
-        
+
         :param local_location: Relative path to application. Optional.
 
         :param installed_location: System path to application. Optional.
@@ -871,4 +876,3 @@ class ShortsApp():
     def main_view(self):
         """Return MainView object"""
         return self.app.select_single(MainView)
-
