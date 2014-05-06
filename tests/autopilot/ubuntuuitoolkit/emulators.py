@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+import os
 import logging
 from distutils import version
 
@@ -25,6 +26,7 @@ from autopilot import (
 )
 from autopilot.introspection import dbus
 
+import base
 
 _NO_TABS_ERROR = 'The MainView has no Tabs.'
 
@@ -829,7 +831,7 @@ class Application():
         ## TODO: Check that at least local, installed or click package
         ## argument is passed.
 
-    def launch():
+    def launch(self):
         """Launches the application"""
         launch, self.test_type = self.setup_environment()
         launch()
@@ -856,7 +858,7 @@ class Application():
             base.get_qmlscene_launch_command(),
             self.local_location,
             app_type='qt',
-            emulator_base=toolkit_emulators.UbuntuUIToolkitEmulatorBase)
+            emulator_base=UbuntuUIToolkitEmulatorBase)
 
     def launch_test_installed(self):
         """Launch the application using the system path"""
@@ -864,13 +866,13 @@ class Application():
             base.get_qmlscene_launch_command(),
             self.installed_location,
             app_type='qt',
-            emulator_base=toolkit_emulators.UbuntuUIToolkitEmulatorBase)
+            emulator_base=UbuntuUIToolkitEmulatorBase)
 
     def launch_test_click(self):
         """Launch the application using click package"""
         self.app = self.test_obj.launch_click_package(
             self.click_package,
-            emulator_base=toolkit_emulators.UbuntuUIToolkitEmulatorBase)
+            emulator_base=UbuntuUIToolkitEmulatorBase)
 
     @property
     def main_view(self):
