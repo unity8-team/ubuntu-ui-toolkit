@@ -3,7 +3,7 @@
 # Instead add a 'make check' manually.
 
 # Xvfb doesn't run on armhf/qemu
-!contains(QMAKE_HOST.arch,armv7l) {
+#!contains(QMAKE_HOST.arch,armv7l) {
     check.target = check
     check.commands = ../../unit/runtest.sh $${TARGET} $${TARGET};
-}
+#}
