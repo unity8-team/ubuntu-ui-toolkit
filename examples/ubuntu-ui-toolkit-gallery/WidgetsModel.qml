@@ -25,6 +25,11 @@ ListModel {
     }
 
     ListElement {
+        objectName: "localizationElement"
+        label: "Localization"
+        source: "Localization.qml"
+    }
+    ListElement {
         objectName: "togglesElement"
         label: "Toggles"
         source: "Toggles.qml"
