@@ -38,6 +38,11 @@ class GenericTests(gallery.GalleryTestCase):
         self.loadItem(item)
         self.checkPageHeader(item)
 
+    def test_localization(self):
+        item = "Localization"
+        self.loadItem(item)
+        self.checkPageHeader(item)
+
     def test_slider(self):
         item = "Slider"
         self.loadItem(item)
