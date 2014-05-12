@@ -86,6 +86,7 @@ Template {
             delegate: ListItem.Subtitled {
                 text: eval(a)
                 subText: i18n.tr(b)
+                objectName: b.replace(' ', '_')
             }
         }
     }

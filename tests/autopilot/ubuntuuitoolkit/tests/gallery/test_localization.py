@@ -17,31 +17,57 @@
 """Tests for the Ubuntu UI Toolkit Gallery - TextInput components"""
 
 from ubuntuuitoolkit.tests.gallery import GalleryTestCase
-# import locale
+import subprocess, os, signal
 
 
 class LocalizationTestCase(GalleryTestCase):
 
+    example_text = 'Hello world'
+
     scenarios = [
         ('English', dict(
-            lang='en_US.utf8', back='Back')),
+            lang='en_US.utf8', back='Back', hello='Hello world')),
         ('Spanish', dict(
-            lang='es_ES.utf8', back='Atrás')),
+            lang='es_ES.utf8', back='Atrás', hello='Hola al mundo')),
+        ('French', dict(
+            lang='fr_FR.utf8', back='Retour', hello='Salut la monde')),
     ]
 
+    def is_locale_installed(self, lang):
+        locales = str(subprocess.check_output(['locale','-a']))
+        return lang in locales
 
-def setUp(self):
-    super(LocalizationTestCase, self).setUp()
-    # Apply the user locale from the environment
-    # The UITK does the same, so the test must be localized
-    # locale.setlocale(locale.LC_ALL, "")
-    item = 'Localization'
-    self.loadItem(item)
-    self.checkPageHeader(item)
+    def setUp(self):
+        super(LocalizationTestCase, self).setUp()
 
+        if self.is_locale_installed(self.lang):
+            os.environ["LANGUAGE"] = self.lang
+            # TODO update this once the restart helpers are implemented in
+            # autopilot. See http://pad.lv/1302618 --elopio - 2014-04-04
+            os.killpg(self.app.pid, signal.SIGTERM)
+            self.launch_application()
 
-def test_translated_toolkit_string(self):
-    if False:
-        self.skipTest('System locale not available for testing')
+        item = 'Localization'
+        self.loadItem(item)
+        self.checkPageHeader(item)
 
-    self.main_view.select_single('Subtitled', text=self.back)
+    def test_translated_toolkit_string(self):
+        if not self.is_locale_installed(self.lang):
+            self.skipTest('Locale {} not installed'.format(self.lang))
+
+        item = self.main_view.select_single(objectName='Different_domain')
+        self.assertEqual(item.text, self.back)
+
+    def test_untranslated(self):
+        if not self.is_locale_installed(self.lang):
+            self.skipTest('Locale {} not installed'.format(self.lang))
+
+        item = self.main_view.select_single(objectName='Untranslated')
+        self.assertEqual(item.text, example_text)
+
+    def test_translated_hello_world(self):
+        if not self.is_locale_installed(self.lang):
+            self.skipTest('Locale {} not installed'.format(self.lang))
+
+        item = self.main_view.select_single(objectName='Translated')
+        self.assertEqual(item.text, self.hello)
