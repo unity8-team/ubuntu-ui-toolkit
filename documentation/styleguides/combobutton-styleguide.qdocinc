@@ -1,0 +1,9 @@
+\section2 Styleguide
+
+\image simple-layout1.png
+
+\section3 This is a section3 headline
+
+\section4 This is a section4 headline
+
+\l {http://qt-project.org/doc/qt-5/27-qdoc-commands-alphabetical.html}{Link to QDoc tags}

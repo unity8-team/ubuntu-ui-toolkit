@@ -2,6 +2,7 @@ project = UbuntuUserInterfaceToolkit
 url = http://developer.ubuntu.com/api/ubuntu-12.10/qml/mobile/
 description = Ubuntu User Interface Toolkit Documentation
 sourcedirs = ./
+sourcedirs += ./styleguides
 sourcedirs += ../modules/Ubuntu/Components
 headerdirs = ../modules/Ubuntu/Components/plugin
 sourcedirs += ../modules/Ubuntu/Layouts

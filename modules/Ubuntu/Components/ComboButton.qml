@@ -160,6 +160,8 @@ import "mathUtils.js" as MathUtils
 
     \section2 Styling
     The style of the component is defined in \l ComboButtonStyle.
+
+    \include styleguides/combobutton-styleguide.qdocinc
   */
 Button {
     id: combo
