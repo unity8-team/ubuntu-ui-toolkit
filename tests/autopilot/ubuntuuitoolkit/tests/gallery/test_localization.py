@@ -33,6 +33,8 @@ class LocalizationTestCase(GalleryTestCase):
             lang='es_ES.utf8', back='Atrás', hello='Hola al mundo')),
         ('French', dict(
             lang='fr_FR.utf8', back='Retour', hello='Salut la monde')),
+        ('German', dict(
+            lang='de_DE.utf8', back='Zurück', hello='Hallo Welt')),
     ]
 
     def is_locale_installed(self, lang):
