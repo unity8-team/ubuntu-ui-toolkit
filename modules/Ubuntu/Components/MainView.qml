@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2013 Canonical Ltd.
+ * Copyright 2012-2014 Canonical Ltd.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,12 +16,12 @@
 
 import QtQuick 2.0
 import Ubuntu.Unity.Action 1.1 as UnityActions
-import Ubuntu.PerformanceMetrics 0.1
+import Ubuntu.PerformanceMetrics 1.0
 import QtQuick.Window 2.0
 
 /*!
     \qmltype MainView
-    \inqmlmodule Ubuntu.Components 0.1
+    \inqmlmodule Ubuntu.Components 1.1
     \ingroup ubuntu
     \brief MainView is the root Item that should be used for all applications.
         It automatically adds a header and toolbar for its contents and can
@@ -30,7 +30,7 @@ import QtQuick.Window 2.0
     The simplest way to use a MainView is to include a \l Page object inside the MainView:
     \qml
         import QtQuick 2.0
-        import Ubuntu.Components 0.1
+        import Ubuntu.Components 1.1
 
         MainView {
             width: units.gu(48)
@@ -57,7 +57,7 @@ import QtQuick.Window 2.0
     will automatically hide and show when the user scrolls up or down:
     \qml
         import QtQuick 2.0
-        import Ubuntu.Components 0.1
+        import Ubuntu.Components 1.1
 
         MainView {
             width: units.gu(48)
@@ -89,7 +89,7 @@ import QtQuick.Window 2.0
     A toolbar can be added to the application by setting the tools property of the \l Page:
     \qml
         import QtQuick 2.0
-        import Ubuntu.Components 0.1
+        import Ubuntu.Components 1.1
 
         MainView {
             width: units.gu(48)
@@ -169,7 +169,7 @@ PageTreeNode {
       the content:
       \qml
           import QtQuick 2.0
-          import Ubuntu.Components 0.1
+          import Ubuntu.Components 1.1
 
           MainView {
               width: units.gu(40)
@@ -262,14 +262,7 @@ PageTreeNode {
             // only clip when necessary
             // ListView headers may be positioned at the top, independent from
             // flickable.contentY, so do not clip depending on activePage.flickable.contentY.
-            clip: headerItem.bottomY > 0 && activePage && activePage.flickable
-
-            property Page activePage: isPage(mainView.activeLeafNode) ? mainView.activeLeafNode : null
-
-            function isPage(item) {
-                return item && item.hasOwnProperty("__isPageTreeNode") && item.__isPageTreeNode &&
-                        item.hasOwnProperty("title") && item.hasOwnProperty("tools");
-            }
+            clip: headerItem.bottomY > 0 && internal.activePage && internal.activePage.flickable
 
             Item {
                 id: contents
@@ -324,6 +317,7 @@ PageTreeNode {
                     }
                 }
                 animate: canvas.animate
+                tools: internal.activePage ? internal.activePage.tools : null
             }
         }
 
@@ -345,16 +339,25 @@ PageTreeNode {
             property real bottomY: headerItem.y + headerItem.height
             animate: canvas.animate
 
+            title: internal.activePage ? internal.activePage.title : ""
+            flickable: internal.activePage ? internal.activePage.flickable : null
+            pageStack: internal.activePage ? internal.activePage.pageStack : null
+            __customBackAction: internal.activePage && internal.activePage.tools &&
+                          internal.activePage.tools.hasOwnProperty("back") &&
+                          internal.activePage.tools.back &&
+                          internal.activePage.tools.back.hasOwnProperty("action") ?
+                              internal.activePage.tools.back.action : null
+
+            contents: internal.activePage ?
+                          internal.activePage.__customHeaderContents : null
+
             property Item tabBar: null
             Binding {
                 target: headerItem
                 property: "tabBar"
-                value: headerItem.contents
-                when: headerItem.contents &&
-                      headerItem.contents.hasOwnProperty("selectionMode") &&
-                      headerItem.contents.hasOwnProperty("alwaysSelectionMode") &&
-                      headerItem.contents.hasOwnProperty("selectedIndex") &&
-                      headerItem.contents.hasOwnProperty("pressed")
+                value: headerItem.__styleInstance.__tabBar
+                when: headerItem.__styleInstance &&
+                      headerItem.__styleInstance.hasOwnProperty("__tabBar")
             }
 
             Connections {
@@ -383,6 +386,30 @@ PageTreeNode {
                         window.title = headerItem.title
                 }
             }
+
+            useDeprecatedToolbar: mainView.useDeprecatedToolbar
+
+            function getActionsFromTools(tools) {
+                if (!tools || !tools.hasOwnProperty("contents")) {
+                    // tools is not of type ToolbarActions. Not supported.
+                    return null;
+                }
+
+                var actionList = [];
+                for (var i in tools.contents) {
+                    var item = tools.contents[i];
+                    if (item && item.hasOwnProperty("action") && item.action !== null) {
+                        var action = item.action;
+                        if (action.hasOwnProperty("iconName") && action.hasOwnProperty("text")) {
+                            // it is likely that the action is of type Action.
+                            actionList.push(action);
+                        }
+                    }
+                }
+                return actionList;
+            }
+            actions: internal.activePage ?
+                         getActionsFromTools(internal.activePage.tools) : null
         }
 
         Connections {
@@ -425,6 +452,14 @@ PageTreeNode {
 
     Object {
         id: internal
+
+        property Page activePage: isPage(mainView.activeLeafNode) ? mainView.activeLeafNode : null
+
+        function isPage(item) {
+            return item && item.hasOwnProperty("__isPageTreeNode") && item.__isPageTreeNode &&
+                    item.hasOwnProperty("title") && item.hasOwnProperty("tools");
+        }
+
         UnityActions.ActionManager {
             id: unityActionManager
             onQuit: {
@@ -438,16 +473,22 @@ PageTreeNode {
         /*!
           \internal
           The header that will be propagated to the children in the page tree node.
-          It will be used by the active \l Page to set the title.
+          It is used by Tabs to bind header's tabsModel.
          */
         property Header header: headerItem
 
         /*!
           \internal
+          \deprecated
           The toolbar that will be propagated to the children in the page tree node.
-          It will be used by the active \l Page to set the toolbar actions.
          */
         property Toolbar toolbar: toolbarLoader.item
+
+        /*!
+          \internal
+          Tabs needs to know whether to use a TabBar or the new header.
+         */
+        property alias useDeprecatedToolbar: mainView.useDeprecatedToolbar
 
         /*!
           \internal
