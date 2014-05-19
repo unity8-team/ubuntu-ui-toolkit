@@ -1,0 +1,287 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: Christian Dywan <christian.dywan@canonical.com>\n"
+"Language-Team: \n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Activity Indicator"
+msgstr "Aktivitätsanzeiger"
+
+msgid "Basic"
+msgstr "Grundlagen"
+
+msgid "Button"
+msgstr "Schaltfläche"
+
+msgid "Buttons"
+msgstr "Schaltflächen"
+
+msgid "Call"
+msgstr "Anrufen"
+
+msgid "Captions and Dividers"
+msgstr "Überschriften und Trennbalken"
+
+msgid "Check Box"
+msgstr "Kontrollfeld"
+
+msgid "Checked"
+msgstr "Ausgewählt"
+
+msgid "Colors"
+msgstr "Farben"
+
+msgid "Content"
+msgstr "Inhalt"
+
+msgid "Controls"
+msgstr "Steuerelemente"
+
+msgid "Custom icon"
+msgstr "Benutzerdefiniertes Symbol"
+
+msgid "Date Picker"
+msgstr "Datumwähler"
+
+msgid "Default"
+msgstr "Voreinstellung"
+
+msgid "Disabled"
+msgstr "Abgeschaltet"
+
+msgid "Expanded"
+msgstr "Ausgeklappt"
+
+msgid "External page"
+msgstr "Externe Seite"
+
+msgid "First page"
+msgstr "Erste Seite"
+
+msgid "Grid View"
+msgstr "Rasteransicht"
+
+msgid "Grouped List"
+msgstr "Gruppierte Liste"
+
+msgid "Icon"
+msgstr "Symbol"
+
+msgid "Idle"
+msgstr "Ruhend"
+
+msgid "It also works well with icons and progression."
+msgstr "Es funktioniert ebenfalls gut mit Symbolen und Fortschrittsbalken."
+
+msgid "Item"
+msgstr "Element"
+
+msgid "Known"
+msgstr "Bekannt"
+
+msgid "Label"
+msgstr "Beschriftung"
+
+msgid "Large button clicked"
+msgstr "Große Schaltfläche angeklickt"
+
+msgid "List Items"
+msgstr "Listelemente"
+
+msgid "Live"
+msgstr "Live"
+
+msgid "Mixed"
+msgstr "Gemischt"
+
+msgid "Multiple lines"
+msgstr "Mehrere Zeilen"
+
+msgid "Multiple values"
+msgstr "Mehrere Werte"
+
+msgid "My custom page"
+msgstr "Meine benutzerdefinierte Seite"
+
+msgid "On Screen Keyboard"
+msgstr "Bildschirmtastatur"
+
+msgid "Overlaid"
+msgstr "Überlagert"
+
+msgid "Page one"
+msgstr "Seite eins"
+
+msgid "Page Stack"
+msgstr "Seitenstapel"
+
+msgid "Page two (external)"
+msgstr "Seite zwei (extern)"
+
+msgid "Password"
+msgstr "Kennwort"
+
+msgid "password echo on editing"
+msgstr "kennwort ausgeben beim bearbeiten"
+
+msgid "password with echo"
+msgstr "kennwort mit ausgabe"
+
+msgid "Popovers"
+msgstr "Aufklappfenster"
+
+msgid "Progress Bar"
+msgstr "Fortschrittsbalken"
+
+msgid "Progression"
+msgstr "Fortschritt"
+
+msgid "Red rectangle"
+msgstr "Rotes Rechteck"
+
+msgid "Root page"
+msgstr "Stammseite"
+
+msgid "Root page (again)"
+msgstr "Stammseite (nochmal)"
+
+msgid "sample text"
+msgstr "beispieltext"
+
+msgid "Scalability"
+msgstr "Skalierbarkeit"
+
+msgid "Scrollbar"
+msgstr "Bildlaufleiste"
+
+msgid "Secondary label"
+msgstr "Sekundäre Beschriftung"
+
+msgid "Selected"
+msgstr "Ausgewählt"
+
+msgid "Sheets & Dialogues"
+msgstr "Blätter und Dialoge"
+
+msgid "Show"
+msgstr "Anzeigen"
+
+msgid "simple text field"
+msgstr "einfaches textfeld"
+
+msgid "Single control"
+msgstr "Einzelnes Steuerelement"
+
+msgid "Single value"
+msgstr "Einzelner Wert"
+
+msgid "Slider"
+msgstr "Schieber"
+
+msgid "Split"
+msgstr "Geteilt"
+
+msgid "Standard"
+msgstr "Standard"
+
+msgid "Subtitled"
+msgstr "Untertitelt"
+
+msgid "Switch"
+msgstr "Schalter"
+
+msgid "Tab"
+msgstr "Reiter"
+
+msgid "Tabs"
+msgstr "Reiter"
+
+msgid "Tabs (Non Segmented)"
+msgstr "Reiter (nicht unterteilt)"
+
+msgid "Tabs (Segmented)"
+msgstr "Reiter (unterteilt)"
+
+msgid "Text Input"
+msgstr "Texteingabe"
+
+msgid ""
+"This is a multi-line subText.\n"
+"Up to 5 lines are supported."
+msgstr ""
+"Dies ist ein mehrzeiliger Text.\n"
+"Bis zu 5 Zeilen werden unterstützt."
+
+msgid "This is an external page."
+msgstr "Dies ist eine externe Seite."
+
+msgid "This is the first tab."
+msgstr "Dies ist der erste Reiter."
+
+msgid "This is the second tab."
+msgstr "Dies ist der zweite Reiter."
+
+msgid "Time Picker"
+msgstr "Zeitwähler"
+
+msgid "Toolbars"
+msgstr "Werkzeugleisten"
+
+msgid "Types of list items"
+msgstr "Unterschiedliche Listenelemente"
+
+msgid "type to show clear button"
+msgstr "unterschiedliche arten von löschschaltflächen"
+
+msgid "Unchecked"
+msgstr "Abgewählt"
+
+msgid "Unknown"
+msgstr "Unbekannt"
+
+msgid "Value"
+msgstr "Wert"
+
+msgid "Value selector"
+msgstr "Wertwähler"
+
+msgid "Value selectors"
+msgstr "Wertwähler"
+
+msgid "Parsley"
+msgstr "Petersilie"
+
+msgid "fruit"
+msgstr "frucht"
+
+msgid "Orange"
+msgstr "Apfelsine"
+
+msgid "Apple"
+msgstr "Apfel"
+
+msgid "Tomato"
+msgstr "Tomate"
+
+msgid "veg"
+msgstr "gemüse"
+
+msgid "Carrot"
+msgstr "Karotte"
+
+msgid "Potato"
+msgstr "Kartoffel"
+
+msgid "Hide"
+msgstr "Verbergen"
+
+#: Localization.qml:24
+msgid "Hello world"
+msgstr "Hallo Welt"
+
