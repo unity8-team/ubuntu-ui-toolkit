@@ -17,7 +17,9 @@
 """Tests for the Ubuntu UI Toolkit Gallery - TextInput components"""
 
 from ubuntuuitoolkit.tests.gallery import GalleryTestCase
-import subprocess, os, signal
+import subprocess
+import os
+import signal
 
 
 class LocalizationTestCase(GalleryTestCase):
@@ -34,7 +36,7 @@ class LocalizationTestCase(GalleryTestCase):
     ]
 
     def is_locale_installed(self, lang):
-        locales = str(subprocess.check_output(['locale','-a']))
+        locales = str(subprocess.check_output(['locale', '-a']))
         return lang in locales
 
     def setUp(self):
@@ -63,7 +65,7 @@ class LocalizationTestCase(GalleryTestCase):
             self.skipTest('Locale {} not installed'.format(self.lang))
 
         item = self.main_view.select_single(objectName='Untranslated')
-        self.assertEqual(item.text, example_text)
+        self.assertEqual(item.text, self.example_text)
 
     def test_translated_hello_world(self):
         if not self.is_locale_installed(self.lang):
