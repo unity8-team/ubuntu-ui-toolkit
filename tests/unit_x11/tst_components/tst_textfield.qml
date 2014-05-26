@@ -654,7 +654,7 @@ Item {
             flick(longText, 0, y, units.gu(8), 0, handler.selectionModeTimeout + 50);
             waitForRendering(longText);
             compare(handler.state, "", "The input has not returned to default state.");
-            expectFail("", "Fails on ARM.");
+            skip("https://bugs.launchpad.net/ubuntu-ui-toolkit/+bug/1323281");
             verify(longText.selectedText !== "");
 
             mouseLongPress(longText, units.gu(7), y);
