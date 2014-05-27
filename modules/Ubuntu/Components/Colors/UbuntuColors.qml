@@ -79,4 +79,22 @@ QtObject {
         GradientStop { position: 0.0; color: "#888888" }
         GradientStop { position: 1.0; color: "#BBBBBB" }
     }
+    /*!
+       Ubuntu dark-grey gradient
+
+       \sa Button::gradient
+    */
+    property Gradient darkgreyGradient: Gradient {
+        GradientStop { position: 0.0; color: "#534E4B" }
+        GradientStop { position: 1.0; color: "#5D5856" }
+    }
+    /*!
+       Ubuntu green gradient
+
+       \sa Button::gradient
+    */
+    property Gradient greenGradient: Gradient {
+        GradientStop { position: 0.0; color: "#39B44A" }
+        GradientStop { position: 1.0; color: "#50BE61" }
+    }
 }
