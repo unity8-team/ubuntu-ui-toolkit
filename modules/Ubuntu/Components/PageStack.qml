@@ -93,6 +93,8 @@ PageTreeNode {
     id: pageStack
     anchors.fill: parent
 
+    Accessible.role: Accessible.PageTabList
+
     /*!
       \internal
       Please do not use this property any more. \l MainView now has a header
