@@ -33,6 +33,8 @@ Panel {
     }
     height: background.height
 
+    Accessible.role: Accessible.ToolBar
+
     LayoutMirroring.enabled: Qt.application.layoutDirection == Qt.RightToLeft
     LayoutMirroring.childrenInherit: true
 
