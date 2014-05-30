@@ -44,6 +44,8 @@ import QtQuick 2.0
 AnimatedItem {
     id: progressBar
 
+    Accessible.role: Accessible.ProgressBar
+
     /*!
       \preliminary
       Specifies whether the progress interval is unknown. When set, altering
