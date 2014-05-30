@@ -145,6 +145,8 @@ import Ubuntu.Components 1.1 as Toolkit
 Item {
     id: panel
 
+    Accessible.role: Accessible.Pane
+
     /*!
       Default property, holds the content which will be swiped in and out.
       \qmlproperty list<Object> contents
