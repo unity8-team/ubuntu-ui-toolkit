@@ -15,7 +15,7 @@
  */
 
 import QtQuick 2.0
-import Ubuntu.Components 1.0
+import Ubuntu.Components 1.1
 import Ubuntu.Components.ListItems 1.0
 import Ubuntu.Components.Popups 1.0
 
@@ -113,7 +113,7 @@ MainView {
             id: days
             text: "Occurence"
             values: getValues()
-            visible: recurence.selectedIndex == 2
+            visible: recurence.selectedIndex !== 1
             onClicked: {
                 PopupUtils.open(Qt.resolvedUrl("AlarmDays.qml"), days, {"alarm": alarm});
             }

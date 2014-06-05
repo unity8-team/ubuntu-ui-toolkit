@@ -15,16 +15,19 @@
  */
 
 import QtQuick 2.0
-import Ubuntu.Components 1.0
+import Ubuntu.Components 1.1
 
 MainView {
     objectName: "pageStack"
     applicationName: "once.upon.a.time"
 
     PageStack {
+	id: stack
         objectName: "stack"
+	Component.onCompleted: stack.push(pageOnStack)
 
         Page {
+	    id: pageOnStack
             objectName: "page"
             title: 'Far far away'
         }

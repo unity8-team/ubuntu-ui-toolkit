@@ -15,7 +15,7 @@
  */
 
 import QtQuick 2.0
-import Ubuntu.Components 1.0
+import Ubuntu.Components 1.1
 
 /*!
     ****DEPRECATED! PLEASE USE ITEM SELECTOR OR FOR THE UBUNTU SHAPE VERSION THE OPTION SELECTOR.****
@@ -78,32 +78,6 @@ Empty {
       \qmlproperty variant icon
     */
     property alias icon: selectorMain.icon
-
-    /*!
-      The image shown in the list item.
-      \qmlproperty url iconSource
-
-      This is a URL to any image file.
-      In order to use an icon from the Ubuntu theme, use the iconName property instead.
-     */
-    property url iconSource: iconName ? "image://theme/" + iconName : ""
-
-    /*!
-      The icon shown in the list item.
-
-      \qmlproperty string iconName
-
-      If both iconSource and iconName are defined, iconName will be ignored.
-
-      \note The complete list of icons available in Ubuntu is not published yet.
-            For now please refer to the folders where the icon themes are installed:
-            \list
-              \li Ubuntu Touch: \l file:/usr/share/icons/ubuntu-mobile
-              \li Ubuntu Desktop: \l file:/usr/share/icons/ubuntu-mono-dark
-            \endlist
-            These 2 separate icon themes will be merged soon.
-    */
-    property string iconName
 
     /*!
       \preliminary

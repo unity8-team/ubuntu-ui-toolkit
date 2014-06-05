@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Canonical Ltd.
+ * Copyright 2013-2014 Canonical Ltd.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -20,7 +20,7 @@ import Ubuntu.Components 1.0
 /*!
     \internal
     \qmltype Header
-    \inqmlmodule Ubuntu.Components 1.0
+    \inqmlmodule Ubuntu.Components 1.1
     \ingroup ubuntu
 */
 StyledItem {
@@ -78,21 +78,52 @@ StyledItem {
     }
 
     /*!
-      \deprecated
       The contents of the header. If this is set, \l title will be ignored.
-      This property is now DEPRECATED. Set tabsModel to show tabs navigation in header.
      */
     property Item contents: null
     onContentsChanged: {
-        print("Header.contents property is now DEPRECATED. Set tabsModel to show tabs navigation.");
         header.show();
     }
 
     /*!
+      \preliminary
       A model of tabs to represent in the header.
       This is automatically set by \l Tabs.
      */
     property var tabsModel: null
+
+    /*!
+      \preliminary
+      If it is possible to pop this PageStack, a back button will be
+      shown in the header.
+     */
+    property var pageStack: null
+
+    /*!
+      \preliminary
+      \qmlproperty list<Action> actions
+      The list of actions actions that will be shown in the header
+     */
+    property var actions: null
+
+    /*!
+      \internal
+      Action shown before the title. Setting this will disable the back
+      button and tabs drawer button in the new header and replace it with a button
+      representing the action below.
+     */
+    property var __customBackAction: null
+
+    // FIXME: Currently autopilot can only get visual items, but once bug #1273956
+    //  is fixed to support non-visual items, a QtObject may be used.
+    //  --timp - 2014-03-20
+    Item {
+        // FIXME: This is a workaround to be able to get the properties of
+        //  tabsModel in an autopilot test.
+        objectName: "tabsModelProperties"
+        property int count: tabsModel ? tabsModel.count : 0
+        property int selectedIndex: tabsModel ? tabsModel.selectedIndex : -1
+    }
 
     /*!
       The flickable that controls the movement of the header.
@@ -105,6 +136,11 @@ StyledItem {
         internal.connectFlickable();
         header.show();
     }
+
+    /*!
+      Set by \l MainView
+     */
+    property bool useDeprecatedToolbar: true
 
     QtObject {
         id: internal
@@ -193,5 +229,6 @@ StyledItem {
         }
     }
 
-    style: Theme.createStyleComponent("HeaderStyle.qml", header)
+    style: header.useDeprecatedToolbar ? Theme.createStyleComponent("HeaderStyle.qml", header) :
+                                         Theme.createStyleComponent("NewHeaderStyle.qml", header)
 }

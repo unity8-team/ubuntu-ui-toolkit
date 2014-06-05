@@ -17,7 +17,7 @@
 import QtQuick 2.0
 import QtTest 1.0
 import Ubuntu.Test 1.0
-import Ubuntu.Components 1.0
+import Ubuntu.Components 1.1
 import Ubuntu.Components.Pickers 1.0
 
 Item {
@@ -59,7 +59,7 @@ Item {
         function getPickerLabel(picker, name) {
             var pickerItem = findChild(picker, name);
             var pickerCurrent = findChild(pickerItem, "Picker_ViewLoader");
-            return findChild(pickerCurrent.item.currentItem, "PickerRow_PickerLabel");
+            return pickerCurrent.item.currentItem.children[2];
         }
         function getPickerModel(picker, name) {
             var pickerItem = findInvisibleChild(picker, name);
@@ -538,6 +538,9 @@ Item {
         }
 
         function test_4_linearSecondsPicker() {
+            // skip the test temporaily
+            // https://bugs.launchpad.net/ubuntu-ui-toolkit/+bug/1315241
+            skip("Disabled due to flakyness on ppc64el target");
             picker.mode = "Hours|Minutes|Seconds";
             var date = setHMS(new Date(), 12, 10, 45);
             var minDate = setHMS(new Date(), 12, 10, 1);
@@ -552,6 +555,8 @@ Item {
             var minutesPicker = findChild(picker, "PickerRow_MinutesPicker");
             compare(minutesPicker.enabled, false, "minutes picker should be disabled");
             var secondsPickerModel = getPickerModel(picker, "PickerRow_SecondsPicker");
+            tryCompare(secondsPickerModel, "resetting", false);
+            tryCompare(secondsPickerModel, "count", maxDate.getSeconds() - minDate.getSeconds() + 1);
             compare(secondsPickerModel.circular, false, "day picker should be linear");
         }
 

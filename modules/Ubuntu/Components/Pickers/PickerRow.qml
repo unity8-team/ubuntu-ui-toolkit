@@ -15,7 +15,7 @@
  */
 
 import QtQuick 2.0
-import Ubuntu.Components 1.0
+import Ubuntu.Components 1.1
 
 Row {
     id: row
@@ -96,7 +96,7 @@ Row {
             }
             delegate: PickerDelegate {
                 Label {
-                    objectName: "PickerRow_PickerLabel"
+                    objectName: "PickerRow_PickerLabel" + (pickerModel ? modelData : "")
                     text: pickerModel ? pickerModel.text(modelData) : ""
                     anchors.fill: parent
                     verticalAlignment: Text.AlignVCenter

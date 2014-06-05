@@ -16,7 +16,7 @@
 
 import QtQuick 2.0
 import QtTest 1.0
-import Ubuntu.Components 1.0
+import Ubuntu.Components 1.1
 
 /*!
     \qmlabstract UbuntuTestCase
@@ -65,6 +65,28 @@ TestCase {
 		}
 		return null;
 	}
+
+    /*!
+      Finds a visible child of an \a item having a given \a property with a given
+      \a value.
+      */
+    function findChildWithProperty(item, property, value) {
+        var childs = new Array(0);
+        childs.push(item)
+        while (childs.length > 0) {
+            var child = childs[0];
+            if (child.hasOwnProperty(property) && (child[property] === value)) {
+                return child;
+            }
+            for (var i in childs[0].children) {
+                childs.push(childs[0].children[i])
+            }
+            childs.splice(0, 1);
+        }
+        return null;
+    }
+
+
 
 	/*!
 		Move Mouse from x,y to distance of dx, dy divided to steps with a stepdelay (ms).
@@ -125,6 +147,7 @@ TestCase {
         if (pressTimeout !== undefined && pressTimeout > 0) {
             wait(pressTimeout);
         }
+        mouseMove(item, x, y, button, modifiers, delay);
         for (var i = 1; i <= steps; i++) {
             // mouse moves are all processed immediately, without delay in between events
             mouseMove(item, x + i * ddx, y + i * ddy, -1, button);
@@ -151,8 +174,9 @@ TestCase {
       */
     function mouseLongPress(item, x, y, button, modifiers, delay) {
         mousePress(item, x, y, button, modifiers, delay);
-        // the delay is taken from QQuickMouseArea
-        wait(800);
+        // the delay is taken from QQuickMouseArea, add few miliseconds to it to make sure we have
+        // the long press triggered
+        wait(900);
     }
 
     /*!

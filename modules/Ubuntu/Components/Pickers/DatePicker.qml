@@ -15,7 +15,7 @@
  */
 
 import QtQuick 2.0
-import Ubuntu.Components 1.0
+import Ubuntu.Components 1.1
 
 /*!
     \qmltype DatePicker
@@ -36,13 +36,13 @@ import Ubuntu.Components 1.0
 
     \qml
     import QtQuick 2.0
-    import Ubuntu.Components 1.0
+    import Ubuntu.Components 1.1
     import Ubuntu.Components.Pickers 1.0
 
     Column {
         Label {
             text: "Selected date: W" + datePicker.week + " - " +
-                    Qt.formatDate(datePicker.date, "dddd, dd-mmmm-yyyy")
+                    Qt.formatDate(datePicker.date, "dddd, dd-MMMM-yyyy")
         }
         DatePicker {
             id: datePicker
@@ -56,12 +56,12 @@ import Ubuntu.Components 1.0
     which shows only year and month date units would look as follows:
     \qml
     import QtQuick 2.0
-    import Ubuntu.Components 1.0
+    import Ubuntu.Components 1.1
     import Ubuntu.Components.Pickers 1.0
 
     Column {
         Label {
-            text: "Selected month: " + Qt.formatDate(datePicker.date, "mmmm-yyyy")
+            text: "Selected month: " + Qt.formatDate(datePicker.date, "MMMM-yyyy")
         }
         DatePicker {
             id: datePicker
@@ -75,7 +75,7 @@ import Ubuntu.Components 1.0
     The following example demonstrates how to use DatePicker for time picking.
     \qml
     import QtQuick 2.0
-    import Ubuntu.Components 1.0
+    import Ubuntu.Components 1.1
     import Ubuntu.Components.Pickers 1.0
 
     Column {
@@ -112,12 +112,12 @@ import Ubuntu.Components 1.0
     \endlist
     \qml
     import QtQuick 2.0
-    import Ubuntu.Components 1.0
+    import Ubuntu.Components 1.1
     import Ubuntu.Components.Pickers 1.0
 
     Column {
         Label {
-            text: "Selected date: " + Qt.formatDate(datePicker.date, "dddd, dd-mmmm-yyyy")
+            text: "Selected date: " + Qt.formatDate(datePicker.date, "dddd, dd-MMMM-yyyy")
         }
         DatePicker {
             id: datePicker
@@ -523,7 +523,8 @@ StyledItem {
         function updatePickers() {
             if (completed) {
                 // check mode flags first
-                var modes = datePicker.mode.split(/\W/g);
+                // FIXME: The js split(/\W/g) terminates the process on armhf with Qt 5.3 (v4 js) (https://bugreports.qt-project.org/browse/QTBUG-39255)
+                var modes = datePicker.mode.match(/\w+/g);
 
                 showYearPicker = showMonthPicker = showDayPicker =
                 showHoursPicker = showMinutesPicker = showSecondsPicker = false;
@@ -607,7 +608,8 @@ StyledItem {
             completed = false;
 
             // use short format to exclude any extra characters
-            var format = datePicker.locale.dateFormat(Locale.ShortFormat).split(/\W/g);
+            // FIXME: The js split(/\W/g) terminates the process on armhf with Qt 5.3 (v4 js) (https://bugreports.qt-project.org/browse/QTBUG-39255)
+            var format = datePicker.locale.dateFormat(Locale.ShortFormat).match(/\w+/g);
             // loop through the format to decide the position of the tumbler
             var formatIndex = 0;
             for (var i in format) {
@@ -667,5 +669,3 @@ StyledItem {
         }
     }
 }
-
-
