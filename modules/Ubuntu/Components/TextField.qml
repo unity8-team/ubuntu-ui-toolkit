@@ -975,8 +975,6 @@ ActionItem {
         Ubuntu.Mouse.forwardTo: [inputHandler]
 
         clip: true
-        // If action is an Option we want to prefill the text from its value
-        text: action && action.hasOwnProperty("value") && typeof action.value != "undefined" ? action.value : ""
         contentWidth: editor.contentWidth
         contentHeight: editor.contentHeight
 
@@ -996,6 +994,8 @@ ActionItem {
             // forward keys to the root element so it can be captured outside of it
             // as well as to InputHandler to handle PageUp/PageDown keys
             Keys.forwardTo: [control, inputHandler]
+            // If action is an Option we want to prefill the text from its value
+            text: action && action.hasOwnProperty("value") && typeof action.value != "undefined" ? action.value : ""
 
             // overrides
             selectByMouse: false

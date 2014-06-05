@@ -14,36 +14,6 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-import os
-
-class Settings(UbuntuUIToolkitEmulatorBase):
-    """Settings Autopilot emulator."""
-
-    @classmethod
-    @autopilot_logging.log_action(logger.info)
-    def clear(cls, application_name):
-        database_file = cls._get_database_filename(application_name)
-        if os.path.exists(database_file):
-            os.remove(database_file)
-
-    @classmethod
-    def _get_database_filename(self, application_name):
-        data_home = os.environ.get(
-            'XDG_DATA_HOME',
-            os.path.join(os.environ['HOME'], '.local', 'share'))
-        return os.path.join(data_home, application_name, 'settings.db')
-
-    def get_option(self, optionName):
-        return self.select_single('Option', name=optionName)
-
-
-    def _select_all(self):
-        self.pointing_device.click_object(self, press_duration=1)
-        root = self.get_root_instance()
-        main_view = root.select_single(MainView)
-        popover = main_view.get_action_selection_popover('text_input_popover')
-        popover.click_button_by_text('Select All')
-
 """Ubuntu UI Toolkit Autopilot custom proxy objects."""
 
 
@@ -60,6 +30,7 @@ __all__ = [
     'popups',
     'QQuickFlickable',
     'QQuickListView',
+    'Settings',
     'TabBar',
     'Tabs',
     'TextField',
