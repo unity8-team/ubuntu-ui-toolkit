@@ -30,6 +30,7 @@ __all__ = [
     'popups',
     'QQuickFlickable',
     'QQuickListView',
+    'Slider',
     'TabBar',
     'Tabs',
     'TextField',
@@ -58,6 +59,7 @@ from ubuntuuitoolkit._custom_proxy_objects import popups
 from ubuntuuitoolkit._custom_proxy_objects._qquicklistview import (
     QQuickListView
 )
+from ubuntuuitoolkit._custom_proxy_objects._slider import Slider
 from ubuntuuitoolkit._custom_proxy_objects._tabbar import TabBar
 from ubuntuuitoolkit._custom_proxy_objects._tabs import Tabs
 from ubuntuuitoolkit._custom_proxy_objects._textfield import TextField

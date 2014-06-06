@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Canonical Ltd.
+ * Copyright 2013, 2014 Canonical Ltd.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -35,6 +35,8 @@ Item {
 
     UbuntuShape {
         id: background
+        objectName: 'sliderBar'
+
         anchors {
             verticalCenter: parent.verticalCenter
             right: parent.right
@@ -56,6 +58,7 @@ Item {
 
     UbuntuShape {
         id: thumb
+        objectName: 'sliderThumb'
 
         anchors {
             verticalCenter: parent.verticalCenter
