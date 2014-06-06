@@ -61,9 +61,3 @@ class Slider(_common.UbuntuUIToolkitCustomProxyObjectBase):
         bar_start = half_thumb_width
         bar_end = bar.globalRect.width - half_thumb_width
         return bar_start, bar_end
-
-    def _drag_thumb(self, thumb, x, y):
-        thumb_x = thumb.globalRect.x + (thumb.globalRect.width // 2)
-        thumb_y = thumb.globalRect.y + (thumb.globalRect.height // 2)
-        self.pointing_device.drag(thumb_x, thumb_y, x, y)
-        thumb.positionReached.wait_for(True)
