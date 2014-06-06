@@ -35,7 +35,6 @@ class SliderTestCase(ubuntuuitoolkit.tests.QMLFileAppTestCase):
         super(SliderTestCase, self).setUp()
         # The test slider has a minimum value = -10, maximum value = 10 and
         # starts with value = 0.
-
         self.slider = self.main_view.select_single(
             ubuntuuitoolkit.Slider, objectName='testSlider')
 
@@ -90,6 +89,7 @@ class SliderTestCase(ubuntuuitoolkit.tests.QMLFileAppTestCase):
 
     # TODO test set minimum.
     # TODO test set maximum.
-    # TODO file a bug because the docs doesn't say if min and max are exclusive or inclusive.
+    # TODO file a bug because the docs doesn't say if min and max are
+    # exclusive or inclusive.
     # TODO test set a value that's not selectable with the mouse
     # TODO send Julia the test double post.
