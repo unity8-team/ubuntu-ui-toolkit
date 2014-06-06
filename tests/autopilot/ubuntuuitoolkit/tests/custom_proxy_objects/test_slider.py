@@ -24,7 +24,7 @@ except ImportError:
 import ubuntuuitoolkit
 
 
-class SliderTestCase(ubuntuuitoolkit.tests.QMLFileAppTestCase):
+class BaseSliderTestCase(ubuntuuitoolkit.tests.QMLFileAppTestCase):
 
     path = os.path.abspath(__file__)
     dir_path = os.path.dirname(path)
@@ -32,11 +32,14 @@ class SliderTestCase(ubuntuuitoolkit.tests.QMLFileAppTestCase):
         dir_path, 'test_slider.SliderTestCase.qml')
 
     def setUp(self):
-        super(SliderTestCase, self).setUp()
+        super(BaseSliderTestCase, self).setUp()
         # The test slider has a minimum value = -10, maximum value = 10 and
         # starts with value = 0.
         self.slider = self.main_view.select_single(
             ubuntuuitoolkit.Slider, objectName='testSlider')
+
+
+class SliderCustomProxyObjectTestCase(BaseSliderTestCase):
 
     def test_get_slider_must_return_custom_proxy_object(self):
         """Test the type of the returned object after selecting the slider.
@@ -82,14 +85,33 @@ class SliderTestCase(ubuntuuitoolkit.tests.QMLFileAppTestCase):
         self.assertFalse(mock_device.called)
         self.assertEqual(self.slider.value, 0)
 
+    def test_set_value_not_selectable_must_raise_exception(self):
+        """Test setting a value that's not selectable with the thumb.
+
+        It must raise a ubuntuuitoolkit.ToolkitException.
+
+        """
+        error = self.assertRaises(
+            ubuntuuitoolkit.ToolkitException, self.slider.set_value, 2.2222)
+        self.assertEqual(
+            'The value is not selectable on the slider.', str(error))
+
+
+class SetSliderValueTestCase(BaseSliderTestCase):
+
+    scenarios = [
+        ('positive value', {'value': 5}),
+        ('negative value', {'value': -5}),
+        ('minimum value', {'value': -10}),
+        ('maximum value', {'value': 10}),
+        ('float value', {'value': 2.152777777777777}),
+    ]
+
     def test_set_valid_value_must_update_slider_value(self):
         """Test that setting a valid value on the slider must update it."""
-        self.slider.set_value(5)
-        self.assertEqual(self.slider.value, 5)
+        self.slider.set_value(self.value)
+        self.assertEqual(self.slider.value, self.value)
 
-    # TODO test set minimum.
-    # TODO test set maximum.
     # TODO file a bug because the docs doesn't say if min and max are
     # exclusive or inclusive.
-    # TODO test set a value that's not selectable with the mouse
     # TODO send Julia the test double post.
