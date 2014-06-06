@@ -14,8 +14,8 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-import ubuntuuitoolkit
 from ubuntuuitoolkit import tests
+from ubuntuuitoolkit._custom_proxy_objects._settings import Settings
 
 import os
 import signal
@@ -158,7 +158,7 @@ class SettingsTestCase(tests.QMLStringAppTestCase):
 
     def setUp(self):
         # Make sure we start with the default settings.
-        ubuntuuitoolkit.Settings.clear('once.upon.a.time')
+        Settings.clear('once.upon.a.time')
         super(SettingsTestCase, self).setUp()
 
     def get_settings(self):
@@ -179,7 +179,7 @@ class SettingsTestCase(tests.QMLStringAppTestCase):
                                             objectName='hairColorSelector')
 
     def test_select_settings_must_return_custom_proxy_object(self):
-        self.assertIsInstance(self.get_settings(), ubuntuuitoolkit.Settings)
+        self.assertIsInstance(self.get_settings(), Settings)
 
     def test_application_must_start_with_default_values(self):
         # FIXME: bug #1273956
@@ -228,8 +228,7 @@ class SettingsTestCase(tests.QMLStringAppTestCase):
         self.assertThat(selector.get_selected_text(),
                         Eventually(Equals(favouriteHairColor)))
 
-        db_file = ubuntuuitoolkit.Settings._get_database_filename(
-            'once.upon.a.time')
+        db_file = Settings._get_database_filename('once.upon.a.time')
         assert(os.path.exists(db_file))
 
         # TODO update this once the restart helpers are implemented in
