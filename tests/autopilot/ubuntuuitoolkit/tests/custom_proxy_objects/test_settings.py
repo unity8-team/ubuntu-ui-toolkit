@@ -14,15 +14,6 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-import time
-
-from autopilot import input
-from testtools.matchers import GreaterThan, LessThan
-try:
-    from unittest import mock
-except ImportError:
-    import mock
-
 import ubuntuuitoolkit
 from ubuntuuitoolkit import tests
 
@@ -237,7 +228,8 @@ class SettingsTestCase(tests.QMLStringAppTestCase):
         self.assertThat(selector.get_selected_text(),
                         Eventually(Equals(favouriteHairColor)))
 
-        db_file = ubuntuuitoolkit.Settings._get_database_filename('once.upon.a.time')
+        db_file = ubuntuuitoolkit.Settings._get_database_filename(
+            'once.upon.a.time')
         assert(os.path.exists(db_file))
 
         # TODO update this once the restart helpers are implemented in
@@ -259,5 +251,3 @@ class SettingsTestCase(tests.QMLStringAppTestCase):
         self.assertThat(index, Eventually(Equals(selector.val)))
         self.assertThat(selector.get_selected_text(),
                         Eventually(Equals(favouriteHairColor)))
-
-

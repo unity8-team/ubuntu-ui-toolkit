@@ -14,9 +14,15 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+import logging
 import os
 
+from autopilot import logging as autopilot_logging
 from ubuntuuitoolkit._custom_proxy_objects import _common
+
+
+logger = logging.getLogger(__name__)
+
 
 class Settings(_common.UbuntuUIToolkitCustomProxyObjectBase):
     """Settings Autopilot emulator."""
@@ -38,12 +44,9 @@ class Settings(_common.UbuntuUIToolkitCustomProxyObjectBase):
     def get_option(self, optionName):
         return self.select_single('Option', name=optionName)
 
-
     def _select_all(self):
         self.pointing_device.click_object(self, press_duration=1)
         root = self.get_root_instance()
-        main_view = root.select_single(MainView)
+        main_view = root.select_single('MainView')
         popover = main_view.get_action_selection_popover('text_input_popover')
         popover.click_button_by_text('Select All')
-
-
