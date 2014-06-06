@@ -104,7 +104,8 @@ class SelectSliderValueTestCase(BaseSliderTestCase):
         ('negative value', {'value': -5}),
         ('minimum value', {'value': -10}),
         ('maximum value', {'value': 10}),
-        ('float value', {'value': 2.152777777777777}),
+        ('positive float value', {'value': 2.152777777777777}),
+        ('negative float value', {'value': -1.1805555555555554}),
     ]
 
     def test_select_valid_value_must_update_slider_value(self):
