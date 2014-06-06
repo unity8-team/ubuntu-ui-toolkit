@@ -111,7 +111,3 @@ class SelectSliderValueTestCase(BaseSliderTestCase):
         """Test that selecting a valid value on the slider must update it."""
         self.slider.select_value(self.value)
         self.assertEqual(self.slider.value, self.value)
-
-    # TODO file a bug because the docs doesn't say if min and max are
-    # exclusive or inclusive.
-    # TODO send Julia the test double post.
