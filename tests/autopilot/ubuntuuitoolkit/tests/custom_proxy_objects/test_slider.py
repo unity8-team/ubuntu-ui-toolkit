@@ -49,55 +49,55 @@ class SliderCustomProxyObjectTestCase(BaseSliderTestCase):
         """
         self.assertIsInstance(self.slider, ubuntuuitoolkit.Slider)
 
-    def test_set_value_below_minimum_must_raise_exception(self):
-        """Test to set a value that is below the slider minimum.
+    def test_select_value_below_minimum_must_raise_exception(self):
+        """Test to select a value that is below the slider minimum.
 
         It must raise a ToolkitException.
 
         """
         error = self.assertRaises(
-            ubuntuuitoolkit.ToolkitException, self.slider.set_value, -15)
+            ubuntuuitoolkit.ToolkitException, self.slider.select_value, -15)
         self.assertEqual(
             'The value is lower than the minimum permitted by the slider.',
             str(error))
 
-    def test_set_value_above_maximum_must_raise_exception(self):
-        """Test to set a value that is above the slider maximum.
+    def test_select_value_above_maximum_must_raise_exception(self):
+        """Test to select a value that is above the slider maximum.
 
         It must raise a ToolkitException.
 
         """
         error = self.assertRaises(
-            ubuntuuitoolkit.ToolkitException, self.slider.set_value, 15)
+            ubuntuuitoolkit.ToolkitException, self.slider.select_value, 15)
         self.assertEqual(
             'The value is higher than the maximum permitted by the slider.',
             str(error))
 
-    def test_set_current_value_must_do_nothing(self):
-        """Test setting the current value on the slider.
+    def test_select_current_value_must_do_nothing(self):
+        """Test selecting the current value on the slider.
 
         The value must be kept the same and the slider should not be touched.
 
         """
         with mock.patch.object(self.slider, 'pointing_device') as mock_device:
-            self.slider.set_value(0)
+            self.slider.select_value(0)
 
         self.assertFalse(mock_device.called)
         self.assertEqual(self.slider.value, 0)
 
-    def test_set_value_not_selectable_must_raise_exception(self):
-        """Test setting a value that's not selectable with the thumb.
+    def test_select_value_not_selectable_must_raise_exception(self):
+        """Test selecting a value that's not selectable with the thumb.
 
         It must raise a ubuntuuitoolkit.ToolkitException.
 
         """
         error = self.assertRaises(
-            ubuntuuitoolkit.ToolkitException, self.slider.set_value, 2.2222)
+            ubuntuuitoolkit.ToolkitException, self.slider.select_value, 2.2222)
         self.assertEqual(
             'The value is not selectable on the slider.', str(error))
 
 
-class SetSliderValueTestCase(BaseSliderTestCase):
+class SelectSliderValueTestCase(BaseSliderTestCase):
 
     scenarios = [
         ('positive value', {'value': 5}),
@@ -107,9 +107,9 @@ class SetSliderValueTestCase(BaseSliderTestCase):
         ('float value', {'value': 2.152777777777777}),
     ]
 
-    def test_set_valid_value_must_update_slider_value(self):
-        """Test that setting a valid value on the slider must update it."""
-        self.slider.set_value(self.value)
+    def test_select_valid_value_must_update_slider_value(self):
+        """Test that selecting a valid value on the slider must update it."""
+        self.slider.select_value(self.value)
         self.assertEqual(self.slider.value, self.value)
 
     # TODO file a bug because the docs doesn't say if min and max are

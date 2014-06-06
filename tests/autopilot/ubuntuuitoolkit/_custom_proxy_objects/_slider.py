@@ -14,13 +14,28 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+import logging
+
+import autopilot.logging
+
 from ubuntuuitoolkit._custom_proxy_objects import _common
+
+
+logger = logging.getLogger(__name__)
 
 
 class Slider(_common.UbuntuUIToolkitCustomProxyObjectBase):
     """Autopilot helper for the Slider."""
 
-    def set_value(self, value):
+    @autopilot.logging.log_action(logger.info)
+    def select_value(self, value):
+        """Select a value from the slider.
+
+        :param value: The value to select.
+        :raises ubuntuuitoolkit.ToolkitException: if the value is below the
+           minimum or above the minimum, and if the value is not selectable.
+
+        """
         if value < self.minimumValue:
             raise _common.ToolkitException(
                 'The value is lower than the minimum permitted by the slider.')
