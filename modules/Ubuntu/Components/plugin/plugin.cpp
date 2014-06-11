@@ -197,8 +197,28 @@ void UbuntuComponentsPlugin::registerTypes(const char *uri)
     qmlRegisterUncreatableType<SortBehavior>(uri, 1, 1, "SortBehavior", "Not instantiable");
 }
 
+class MyNetworkAccessManagerFactory : public QQmlNetworkAccessManagerFactory
+{
+public:
+    virtual QNetworkAccessManager *create(QObject *parent);
+};
+
+QNetworkAccessManager *MyNetworkAccessManagerFactory::create(QObject *parent)
+{
+    QNetworkAccessManager *manager = new QNetworkAccessManager(parent);
+    QNetworkDiskCache *diskCache = new QNetworkDiskCache(parent);
+    diskCache->setCacheDirectory("cacheDir");
+    manager->setCache(diskCache);
+    qDebug() << "Created QNetworkAccessManager";
+
+    return manager;
+}
+
 void UbuntuComponentsPlugin::initializeEngine(QQmlEngine *engine, const char *uri)
 {
+    qDebug() << "Created";
+    engine->setNetworkAccessManagerFactory(new MyNetworkAccessManagerFactory);
+
     QQmlExtensionPlugin::initializeEngine(engine, uri);
     QQmlContext* context = engine->rootContext();
 
