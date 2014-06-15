@@ -171,6 +171,12 @@ Item {
       */
     property int align: Qt.AlignBottom
 
+    /* !
+      The property defines the swipe in/out speed of the panel.
+      The default value is \b UbuntuAnimation.FastDuration.
+     */
+    property int animateDuration: Toolkit.UbuntuAnimation.FastDuration
+
     /*!
       When opened, the panel is visible, otherwise it is hidden.
       Use edge swipes to open/close the panel.
@@ -402,7 +408,7 @@ Item {
           The duration in milliseconds of sliding in or out transitions when opening, closing, and showing the hint.
           Default value: 250
          */
-        property real transitionDuration: panel.animate ? Toolkit.UbuntuAnimation.FastDuration : 0
+        property real transitionDuration: panel.animate ? panel.animateDuration : 0
 
         property string previousState: ""
         property int movingDelta
