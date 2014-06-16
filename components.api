@@ -256,7 +256,6 @@ Panel 0.1 1.0
 Item
     default property list<Object> contents
     property int align
-	property int animationDuration
     property bool opened
     function open()
     function close()
@@ -270,6 +269,9 @@ Item
     property bool __closeOnContentsClicks
     property bool __openOnHover
     property bool pressed
+Panel 1.1
+Panel
+	property int animationDuration
 DatePicker 0.1 1.0
 StyledItem
     property string mode
