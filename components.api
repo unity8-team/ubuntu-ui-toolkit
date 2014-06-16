@@ -256,7 +256,7 @@ Panel 0.1 1.0
 Item
     default property list<Object> contents
     property int align
-	property int animateDuration
+	property int animationDuration
     property bool opened
     function open()
     function close()
