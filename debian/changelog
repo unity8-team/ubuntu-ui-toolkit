@@ -1,3 +1,28 @@
+ubuntu-ui-toolkit (0.1.47+14.10.20140618-0ubuntu2) UNRELEASED; urgency=medium
+
+  [ Florian Boucault ]
+  * OrientationHelper: made rotation animation visually smoother.
+  * Icon: remove warning when Icon.visible is set to false:
+    ShaderEffect: Property 'source' is not assigned a valid 
+    texture provider (QQuickImage*).
+  * OrientationHelper: prevent unnecessary changes of width 
+    and height with a workaround.
+
+  [ Tim Peeters ]
+  * Fix empty toolbar bug with Qt 5.3. 
+    Fixes: https://bugs.launchpad.net/bugs/1327189.* 
+
+  [ Zsombor Egri]
+  * Default font for the toolkit: Ubuntu, medium sized and light 
+    weight. Fixes: https://bugs.launchpad.net/bugs/1263963.
+  * Extend launcher to convert mouse to touch events. 
+    MouseTouchAdaptor taken from unity8 launcher.
+
+  [ Christian Dywan ]   
+  * Multi-arch aware alternative launcher.
+
+ -- Zoltán Balogh <zoltan@bakter.hu>  Fri, 20 Jun 2014 08:07:56 +0200
+
 ubuntu-ui-toolkit (0.1.47+14.10.20140618-0ubuntu1) utopic; urgency=medium
 
   [Leo Arias ]
