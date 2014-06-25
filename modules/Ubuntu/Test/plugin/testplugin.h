@@ -1,8 +1,5 @@
 /*
- * Copyright (C) 2014 Canonical, Ltd.
- *
- * Authors:
- *   Christian Dywan <christian.dywan@canonical.com>
+ * Copyright 2014 Canonical Ltd.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,39 +14,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "sortbehavior.h"
+#ifndef TESTPLUGIN_H
+#define TESTPLUGIN_H
 
-SortBehavior::SortBehavior(QObject *parent)
-    : QObject(parent)
-    , m_property(QString())
-    , m_order(Qt::AscendingOrder)
+#include <QQmlExtensionPlugin>
+
+class TestPlugin : public QQmlExtensionPlugin
 {
+    Q_OBJECT
+    Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QQmlExtensionInterface")
 
-}
+public:
+    void registerTypes(const char *uri);
+};
 
-QString
-SortBehavior::property() const
-{
-    return m_property;
-}
-
-Qt::SortOrder
-SortBehavior::order() const
-{
-    return m_order;
-}
-
-void
-SortBehavior::setProperty(const QString& property)
-{
-    m_property = property;
-    Q_EMIT propertyChanged();
-}
-
-void
-SortBehavior::setOrder(Qt::SortOrder order)
-{
-    m_order = order;
-    Q_EMIT orderChanged();
-}
-
+#endif // TESTPLUGIN_H

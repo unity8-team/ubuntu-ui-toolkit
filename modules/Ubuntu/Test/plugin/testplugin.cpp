@@ -1,8 +1,5 @@
 /*
- * Copyright (C) 2014 Canonical, Ltd.
- *
- * Authors:
- *   Christian Dywan <christian.dywan@canonical.com>
+ * Copyright 2014 Canonical Ltd.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,39 +14,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "filterbehavior.h"
+#include "testplugin.h"
+#include <QtQml>
+#include "uctestextras.h"
 
-FilterBehavior::FilterBehavior(QObject *parent)
-    : QObject(parent)
-    , m_property(QString())
-    , m_pattern(QRegExp())
+static QObject *registerExtras(QQmlEngine *engine, QJSEngine *scriptEngine)
 {
+    Q_UNUSED(engine)
+    Q_UNUSED(scriptEngine)
 
+    return new UCTestExtras;
 }
 
-QString
-FilterBehavior::property() const
+void TestPlugin::registerTypes(const char *uri)
 {
-    return m_property;
+    qmlRegisterSingletonType<UCTestExtras>(uri, 1, 0, "TestExtras", registerExtras);
 }
-
-void
-FilterBehavior::setProperty(const QString& property)
-{
-    m_property = property;
-    Q_EMIT propertyChanged();
-}
-
-QRegExp
-FilterBehavior::pattern() const
-{
-    return m_pattern;
-}
-
-void
-FilterBehavior::setPattern(QRegExp pattern)
-{
-    m_pattern = pattern;
-    Q_EMIT patternChanged();
-}
-
