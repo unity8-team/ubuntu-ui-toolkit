@@ -48,11 +48,11 @@ class Slider(_common.UbuntuUIToolkitCustomProxyObjectBase):
 
     def _set_valid_value(self, value):
         x, y = self._get_value_point_in_bar(value)
-        if x != int(x):
+        self.pointing_device.move(round(x), round(y))
+        self.pointing_device.click()
+        if self.value != value:
             raise _common.ToolkitException(
                 'The value is not selectable on the slider.')
-        self.pointing_device.move(x, y)
-        self.pointing_device.click()
 
     def _get_value_point_in_bar(self, value):
         bar_start, bar_end = self._get_bar_start_and_end()
