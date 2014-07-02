@@ -55,7 +55,7 @@ Template {
                     subText: modelData
                     onClicked: {
                         i18n.language = modelData
-                        // FIXME: language only doesn't trigger reload
+                        // FIXME: bug #1336732 language only doesn't trigger reload
                         i18n.domain = i18n.domain
                     }
                 }
