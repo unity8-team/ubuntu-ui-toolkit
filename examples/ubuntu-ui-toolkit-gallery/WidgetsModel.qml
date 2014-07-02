@@ -23,6 +23,11 @@ ListModel {
         label: "Navigation"
         source: "Navigation.qml"
     }
+    ListElement {
+        objectName: "stylesElement"
+        label: "Styles"
+        source: "Styles.qml"
+    }
 
     ListElement {
         objectName: "localizationElement"
@@ -33,6 +38,11 @@ ListModel {
         objectName: "togglesElement"
         label: "Toggles"
         source: "Toggles.qml"
+    }
+    ListElement {
+        objectName: "toolbarElement"
+        label: "Toolbar"
+        source: "Toolbar.qml"
     }
     ListElement {
         objectName: "buttonsElement"
@@ -89,6 +99,12 @@ ListModel {
         label: "List Items"
         source: "ListItems.qml"
     }
+    ListElement {
+        objectName: "ubuntuListViewElement"
+        label: "Ubuntu ListView"
+        source: "UbuntuListViews.qml"
+    }
+
     ListElement {
         objectName: "dialogsElement"
         label: "Dialog"

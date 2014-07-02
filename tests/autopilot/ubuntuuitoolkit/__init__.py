@@ -18,6 +18,7 @@
 
 
 __all__ = [
+    'AppHeader',
     'base',
     'check_autopilot_version',
     'CheckBox',
@@ -30,6 +31,7 @@ __all__ = [
     'listitems',
     'MainView',
     'OptionSelector',
+    'pickers',
     'popups',
     'QQuickFlickable',
     'QQuickListView',
@@ -39,6 +41,7 @@ __all__ = [
     'TextField',
     'Toolbar',
     'ToolkitException',
+    'UbuntuListView11',
     'UbuntuUIToolkitCustomProxyObjectBase',
 ]
 
@@ -51,6 +54,7 @@ from ubuntuuitoolkit import (
     tests,
 )
 from ubuntuuitoolkit._custom_proxy_objects import (
+    AppHeader,
     check_autopilot_version,
     CheckBox,
     get_keyboard,
@@ -59,6 +63,7 @@ from ubuntuuitoolkit._custom_proxy_objects import (
     listitems,
     MainView,
     OptionSelector,
+    pickers,
     popups,
     QQuickFlickable,
     QQuickListView,
@@ -68,4 +73,5 @@ from ubuntuuitoolkit._custom_proxy_objects import (
     Toolbar,
     ToolkitException,
     UbuntuUIToolkitCustomProxyObjectBase,
+    UbuntuListView11,
 )
