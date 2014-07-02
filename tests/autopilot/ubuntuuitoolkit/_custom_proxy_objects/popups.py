@@ -28,13 +28,22 @@ logger = logging.getLogger(__name__)
 class ActionSelectionPopover(_common.UbuntuUIToolkitCustomProxyObjectBase):
     """ActionSelectionPopover Autopilot emulator."""
 
-    def click_button_by_text(self, text):
+
+    def click_button(self, object_name):
         """Click a button on the popover.
 
-        XXX We are receiving the text because there's no way to set the
-        objectName on the action. This is reported at
-        https://bugs.launchpad.net/ubuntu-ui-toolkit/+bug/1205144
-        --elopio - 2013-07-25
+        :parameter object_name: The QML objectName property of the button.
+        :raise ToolkitException: If the object is not found.
+
+        """
+        if not self.visible:
+            raise _common.ToolkitException('The popover is not open.')
+        button = self._get_button(object_name)
+        self._click_button(button)
+
+
+    def click_button_by_text(self, text):
+        """Click a button on the popover.
 
         :parameter text: The text of the button.
         :raise ToolkitException: If the popover is not open.
@@ -42,24 +51,37 @@ class ActionSelectionPopover(_common.UbuntuUIToolkitCustomProxyObjectBase):
         """
         if not self.visible:
             raise _common.ToolkitException('The popover is not open.')
-        button = self._get_button(text)
+        button = self._get_button_by_text(text)
+        self._click_button(button)
+
+    def _get_button_by_text(self, text):
+        buttons = self.select_many('Empty')
+        for obj in buttons:
+            if obj.text == text:
+                button = obj
+                break
         if button is None:
             raise _common.ToolkitException(
                 'Button with text "{0}" not found.'.format(text))
+        return button
+
+    def _get_button(self, object_name):
+        button = self.select_single('Standard', objectName=object_name)
+        if button is None:
+            raise _common.ToolkitException(
+                'Button with text "{0}" not found.'.format(text))
+        return button
+
+    def _click_button(self, button):
         self.pointing_device.click_object(button)
         if self.autoClose:
             try:
+                #currently this fails due to
+                #https://bugs.launchpad.net/ubuntu-ui-toolkit/+bug/1336945
                 self.visible.wait_for(False)
             except dbus.StateNotFoundError:
                 # The popover was removed from the tree.
                 pass
-
-    def _get_button(self, text):
-        buttons = self.select_many('Empty')
-        for button in buttons:
-            if button.text == text:
-                return button
-
 
 class ComposerSheet(_common.UbuntuUIToolkitCustomProxyObjectBase):
     """ComposerSheet Autopilot emulator."""
