@@ -118,6 +118,13 @@ void UbuntuI18n::setLanguage(const QString &lang) {
     m_language = lang;
 
     /*
+     Qt uses both fr-FR and fr_FR style locale names.
+     gettext only understands Posix: language[_territory][.codeset][@modifier].
+     */
+    QString posixLocale(lang);
+    posixLocale.replace("-", "_");
+
+    /*
      This is needed for LP: #1263163.
 
      LANGUAGE may be set to one or more languages for example "fi" or
@@ -129,13 +136,13 @@ void UbuntuI18n::setLanguage(const QString &lang) {
      This only affects the current process. It does not override the
      user's session LANGUAGE.
      */
-    setenv("LANGUAGE", lang.toUtf8().constData(), 1);
+    setenv("LANGUAGE", posixLocale.toUtf8().constData(), 1);
 
     /*
      The inverse form of setlocale as used in the constructor, passing
      a valid locale string updates all category type defaults.
      */
-    setlocale(LC_ALL, lang.toUtf8());
+    setlocale(LC_ALL, posixLocale.toUtf8().constData());
     Q_EMIT languageChanged();
 }
 
