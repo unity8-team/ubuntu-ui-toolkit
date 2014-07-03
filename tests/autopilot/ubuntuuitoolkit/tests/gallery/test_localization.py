@@ -51,9 +51,11 @@ class LocalizationTestCase(GalleryTestCase):
             os.killpg(self.app.pid, signal.SIGTERM)
             self.launch_application()
 
-        item = 'Localization'
-        self.loadItem(item)
-        self.checkPageHeader(item)
+        item = 'localizationElement'
+        self.open_page(item)
+        element = self.main_view.select_single(
+            'Standard', objectName=item)
+        self.checkPageHeader(element.text)
 
     def test_translated_toolkit_string(self):
         if not self.is_locale_installed(self.lang):
