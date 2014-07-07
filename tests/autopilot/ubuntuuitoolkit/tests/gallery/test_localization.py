@@ -32,7 +32,7 @@ class LocalizationTestCase(GalleryTestCase):
         ('Spanish', dict(
             lang='es_ES.utf8', back='Atrás', hello='Hola al mundo')),
         ('French', dict(
-            lang='fr_FR.utf8', back='Retour', hello='Salut la monde')),
+            lang='fr_FR.utf8', back='Retour', hello='Salut le monde')),
         ('German', dict(
             lang='de_DE.utf8', back='Zurück', hello='Hallo Welt')),
     ]

@@ -339,7 +339,7 @@ msgstr ""
 
 #: modules/Ubuntu/Components/ToolbarActions.qml:86
 msgid "Back"
-msgstr ""
+msgstr "Retour"
 
 #: tests/resources/pagestack/MyCustomPage.qml:21
 #: tests/resources/tabs/MyCustomPage.qml:21
