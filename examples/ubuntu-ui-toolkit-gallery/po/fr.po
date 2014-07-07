@@ -14,3 +14,6 @@ msgstr ""
 msgid "Hello world"
 msgstr "Salut le monde"
 
+msgid "Buttons"
+msgstr "Boutons"
+
