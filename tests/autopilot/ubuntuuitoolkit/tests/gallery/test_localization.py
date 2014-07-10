@@ -37,14 +37,12 @@ class LocalizationTestCase(GalleryTestCase):
             lang='de_DE.utf8', back='Zurück', hello='Hallo Welt')),
     ]
 
-    def is_locale_installed(self, lang):
-        locales = str(subprocess.check_output(['locale', '-a']))
-        return lang in locales
-
     def setUp(self):
         super(LocalizationTestCase, self).setUp()
 
-        if self.is_locale_installed(self.lang):
+        locales = str(subprocess.check_output(['locale', '-a']))
+        self.is_locale_installed = self.lang in locales
+        if self.is_locale_installed:
             os.environ["LANGUAGE"] = self.lang
             # TODO update this once the restart helpers are implemented in
             # autopilot. See http://pad.lv/1302618 --elopio - 2014-04-04
@@ -58,21 +56,21 @@ class LocalizationTestCase(GalleryTestCase):
         self.checkPageHeader(element.text)
 
     def test_translated_toolkit_string(self):
-        if not self.is_locale_installed(self.lang):
+        if not self.is_locale_installed:
             self.skipTest('Locale {} not installed'.format(self.lang))
 
         item = self.main_view.select_single(objectName='Different_domain')
         self.assertEqual(item.text, self.back)
 
     def test_untranslated(self):
-        if not self.is_locale_installed(self.lang):
+        if not self.is_locale_installed:
             self.skipTest('Locale {} not installed'.format(self.lang))
 
         item = self.main_view.select_single(objectName='Untranslated')
         self.assertEqual(item.text, self.example_text)
 
     def test_translated_hello_world(self):
-        if not self.is_locale_installed(self.lang):
+        if not self.is_locale_installed:
             self.skipTest('Locale {} not installed'.format(self.lang))
 
         item = self.main_view.select_single(objectName='Translated')
