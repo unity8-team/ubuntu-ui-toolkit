@@ -26,6 +26,8 @@ namespace C {
 #include <stdlib.h>
 #include <locale.h>
 
+#include <act/act.h>
+
 /*!
  * \qmltype i18n
  * \instantiates UbuntuI18n
@@ -63,6 +65,83 @@ UbuntuI18n::UbuntuI18n(QObject* parent) : QObject(parent)
      *   defines the order of multiple locales
      */
     m_language = setlocale(LC_ALL, "");
+
+    loadAccountsServiceUserManager();
+}
+
+UbuntuI18n::~UbuntuI18n()
+{
+    if (m_user) {
+        g_signal_handlers_disconnect_by_data (m_user, this);
+        g_clear_object (&m_user);
+    }
+
+    g_signal_handlers_disconnect_by_data (act_user_manager_get_default(), this);
+}
+
+void loadAccountsServiceUserManager(ActUserManager* user_manager, GParamSpec* pspec, UbuntuI18n* that);
+void loadAccountsServiceUser(ActUser* user, GParamSpec* pspec, UbuntuI18n* that);
+void loadAccountsServiceLanguage(ActUser* user, GParamSpec* pspec, UbuntuI18n* that);
+
+void UbuntuI18n::loadAccountsServiceUserManager() {
+    ActUserManager* user_manager = act_user_manager_get_default();
+
+    gboolean is_loaded;
+    g_object_get(user_manager, "is-loaded", &is_loaded, NULL);
+
+    if (is_loaded) {
+        loadAccountsServiceUser(user_manager);
+    } else {
+        g_signal_connect(user_manager, "notify::is-loaded", G_CALLBACK(::loadAccountsServiceUserManager), this);
+    }
+}
+
+void loadAccountsServiceUserManager(ActUserManager* user_manager, GParamSpec* pspec, UbuntuI18n* that) {
+    Q_UNUSED(pspec);
+
+    gboolean is_loaded;
+    g_object_get(user_manager, "is-loaded", &is_loaded, NULL);
+
+    if (is_loaded) {
+        g_signal_handlers_disconnect_by_data(user_manager, that);
+        that->loadAccountsServiceUser(user_manager);
+    }
+}
+
+void UbuntuI18n::loadAccountsServiceUser(ActUserManager* user_manager) {
+    m_user = act_user_manager_get_user(user_manager, qgetenv("USER").constData());
+
+    if (m_user) {
+        if (act_user_is_loaded(m_user)) {
+            finishLoadingAccountsServiceUser(m_user);
+        } else {
+            g_signal_connect(m_user, "notify::is-loaded", G_CALLBACK(::loadAccountsServiceUser), this);
+        }
+    }
+}
+
+void loadAccountsServiceUser(ActUser* user, GParamSpec* pspec, UbuntuI18n* that) {
+    Q_UNUSED(pspec);
+
+    if (act_user_is_loaded(user)) {
+        g_signal_handlers_disconnect_by_data(user, that);
+        that->finishLoadingAccountsServiceUser(user);
+    }
+}
+
+void UbuntuI18n::finishLoadingAccountsServiceUser(ActUser* user) {
+    g_signal_connect(user, "notify::language", G_CALLBACK(::loadAccountsServiceLanguage), this);
+    loadAccountsServiceLanguage(user);
+}
+
+void loadAccountsServiceLanguage(ActUser* user, GParamSpec* pspec, UbuntuI18n* that) {
+    Q_UNUSED(pspec);
+
+    that->loadAccountsServiceLanguage(user);
+}
+
+void UbuntuI18n::loadAccountsServiceLanguage(ActUser* user) {
+    setLanguage(act_user_get_language(user));
 }
 
 /*!

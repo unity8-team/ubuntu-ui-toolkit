@@ -24,6 +24,10 @@
 class QQmlContext;
 class QQmlEngine;
 
+typedef struct _GParamSpec GParamSpec;
+typedef struct _ActUserManager ActUserManager;
+typedef struct _ActUser ActUser;
+
 class UbuntuI18n : public QObject
 {
     Q_OBJECT
@@ -33,7 +37,7 @@ class UbuntuI18n : public QObject
 private:
     Q_DISABLE_COPY(UbuntuI18n)
     explicit UbuntuI18n(QObject* parent = 0);
-
+    virtual ~UbuntuI18n();
 
 public:
     static UbuntuI18n& instance() {
@@ -60,8 +64,18 @@ Q_SIGNALS:
     void languageChanged();
 
 private:
+    ActUser* m_user;
     QString m_domain;
     QString m_language;
+
+private:
+    void loadAccountsServiceUserManager();
+    friend void loadAccountsServiceUserManager(ActUserManager* user_manager, GParamSpec* pspec, UbuntuI18n* that);
+    void loadAccountsServiceUser(ActUserManager* user_manager);
+    friend void loadAccountsServiceUser(ActUser* user, GParamSpec* pspec, UbuntuI18n* that);
+    void finishLoadingAccountsServiceUser(ActUser* user);
+    friend void loadAccountsServiceLanguage(ActUser* user, GParamSpec* pspec, UbuntuI18n* that);
+    void loadAccountsServiceLanguage(ActUser* user);
 };
 
 #endif // UBUNTU_COMPONENTS_I18N_H
