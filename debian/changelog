@@ -1,0 +1,78 @@
+ubuntu-ui-toolkit-gles (0.1.49+14.10.20140715-0ubuntu1) utopic; urgency=medium
+
+  * Sync package with ubuntu-ui-toolkit - 0.1.49+14.10.20140715-0ubuntu1
+
+ -- Ricardo Salveti de Araujo <ricardo.salveti@canonical.com>  Tue, 15 Jul 2014 13:41:23 -0300
+
+ubuntu-ui-toolkit-gles (0.1.49+14.10.20140707-0ubuntu1) utopic; urgency=medium
+
+  * Sync package with ubuntu-ui-toolkit - 0.1.49+14.10.20140707-0ubuntu1
+
+ -- Ricardo Salveti de Araujo <ricardo.salveti@canonical.com>  Tue, 08 Jul 2014 12:40:38 -0300
+
+ubuntu-ui-toolkit-gles (0.1.48+14.10.20140704-0ubuntu1) utopic; urgency=medium
+
+  * Sync package with ubuntu-ui-toolkit - 0.1.48+14.10.20140704-0ubuntu1 
+
+ -- Zoltán Balogh <zoltan@bakter.hu>  Mon, 07 Jul 2014 12:38:05 +0300
+
+ubuntu-ui-toolkit-gles (0.1.48+14.10.20140701.2-0ubuntu1) utopic; urgency=medium
+
+  * Sync package with ubuntu-ui-toolkit - 0.1.48+14.10.20140701.2-0ubuntu1
+
+ -- Ricardo Salveti de Araujo <ricardo.salveti@canonical.com>  Thu, 03 Jul 2014 15:56:22 +0800
+
+ubuntu-ui-toolkit-gles (0.1.47+14.10.20140619-0ubuntu1) utopic; urgency=medium
+
+  * Sync package with ubuntu-ui-toolkit - 0.1.47+14.10.20140619-0ubuntu1
+
+ -- Timo Jyrinki <timo-jyrinki@ubuntu.com>  Thu, 19 Jun 2014 07:52:30 +0000
+
+ubuntu-ui-toolkit-gles (0.1.47+14.10.20140618-0ubuntu1) utopic; urgency=medium
+
+  * Sync package with ubuntu-ui-toolkit - 0.1.47+14.10.20140618-0ubuntu1
+
+ -- Ricardo Salveti de Araujo <ricardo.salveti@canonical.com>  Thu, 19 Jun 2014 01:35:35 -0300
+
+ubuntu-ui-toolkit-gles (0.1.46+14.10.20140602-0ubuntu1) utopic; urgency=medium
+
+  * Sync package with ubuntu-ui-toolkit - 0.1.46+14.10.20140602-0ubuntu1
+
+ -- Ricardo Salveti de Araujo <ricardo.salveti@canonical.com>  Thu, 05 Jun 2014 00:42:44 +0200
+
+ubuntu-ui-toolkit-gles (0.1.46+14.10.20140527-0ubuntu1) utopic; urgency=medium
+
+  * Sync package with ubuntu-ui-toolkit - 0.1.46+14.10.20140527-0ubuntu1
+
+ -- Ricardo Salveti de Araujo <ricardo.salveti@canonical.com>  Thu, 29 May 2014 00:51:28 +0200
+
+ubuntu-ui-toolkit-gles (0.1.46+14.10.20140520-0ubuntu1) utopic; urgency=medium
+
+  * Sync package with ubuntu-ui-toolkit - 0.1.46+14.10.20140520-0ubuntu1
+
+ -- Ricardo Salveti de Araujo <ricardo.salveti@canonical.com>  Wed, 21 May 2014 11:33:03 -0300
+
+ubuntu-ui-toolkit-gles (0.1.46+14.10.20140512-0ubuntu1) utopic; urgency=medium
+
+  * Sync package with ubuntu-ui-toolkit - 0.1.46+14.10.20140512-0ubuntu1
+
+ -- Ricardo Salveti de Araujo <ricardo.salveti@canonical.com>  Mon, 12 May 2014 23:31:17 -0300
+
+ubuntu-ui-toolkit-gles (0.1.46+14.10.20140508-0ubuntu1) utopic; urgency=medium
+
+  * Sync package with ubuntu-ui-toolkit - 0.1.46+14.10.20140508-0ubuntu1
+
+ -- Ricardo Salveti de Araujo <ricardo.salveti@canonical.com>  Sat, 10 May 2014 15:35:03 -0300
+
+ubuntu-ui-toolkit-gles (0.1.46+14.10.20140502.6-0ubuntu2) utopic; urgency=medium
+
+  * debian/control: adding missing replaces/provides for the qml module
+
+ -- Ricardo Salveti de Araujo <ricardo.salveti@canonical.com>  Sat, 10 May 2014 15:11:44 -0300
+
+ubuntu-ui-toolkit-gles (0.1.46+14.10.20140502.6-0ubuntu1) utopic; urgency=medium
+
+  * Repackging for building gles variants for i386 and amd64.
+    - Based on ubuntu-ui-toolkit 0.1.46+14.10.20140502.6-0ubuntu1
+
+ -- Ricardo Salveti de Araujo <ricardo.salveti@canonical.com>  Tue, 06 May 2014 15:54:00 -0300

@@ -1,0 +1,71 @@
+Source: ubuntu-ui-toolkit-gles
+Priority: optional
+Section: libs
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Build-Depends: debhelper (>= 9.0.0),
+               devscripts,
+               libgles2-mesa-dev,
+               libglib2.0-dev,
+               python3:any,
+               python:any,
+               qml-module-qtgraphicaleffects | libqt5qml-graphicaleffects,
+               qtbase5-gles-dev,
+               qtchooser,
+               qt5-default,
+               qt5-qmake-gles,
+               qtbase5-dev-tools,
+               qtbase5-private-gles-dev,
+               qttools5-dev-tools,
+               libqt5sql5-sqlite,
+               libqt5quick5-gles,
+               qtdeclarative5-dev-tools,
+               qtdeclarative5-private-dev,
+               qml-module-qtquick2 | qtdeclarative5-qtquick2-plugin,
+               qml-module-qttest | qtdeclarative5-test-plugin,
+               qml-module-qtquick-window2 | qtdeclarative5-window-plugin,
+               qtdeclarative5-qtfeedback-plugin,
+               qtdeclarative5-unity-action-plugin (>= 1.1.0),
+               qml-module-qtquick-localstorage | qtdeclarative5-localstorage-plugin,
+               qtdeclarative5-doc-html,
+               qtwebkit5-doc-html,
+               qtsvg5-doc-html,
+               qtscript5-doc-html,
+               qtmultimedia5-doc-html,
+               unity-action-doc,
+               devscripts,
+               libqt5organizer5,
+               qtpim5-dev,
+               language-pack-en-base,
+               libthumbnailer-dev,
+               libdbus-1-dev,
+               libnih-dbus-dev,
+               xvfb,
+               libgl1-mesa-dri,
+               locales,
+Standards-Version: 3.9.4
+Homepage: https://launchpad.net/ubuntu-ui-toolkit
+
+Package: qtdeclarative5-ubuntu-ui-toolkit-plugin-gles
+Architecture: i386 amd64
+Conflicts: qtdeclarative5-ubuntu-ui-toolkit-plugin
+Replaces: qtdeclarative5-ubuntu-ui-toolkit-plugin
+Provides: qtdeclarative5-ubuntu-ui-toolkit-plugin
+Multi-Arch: same
+Pre-Depends: dpkg (>= 1.15.6~), ${misc:Pre-Depends}
+Depends: libqt5qml-graphicaleffects | libqt5graphicaleffects5,
+         libqt5svg5,
+         qtdeclarative5-qtquick2-plugin,
+         qtdeclarative5-window-plugin,
+         qtdeclarative5-qtfeedback-plugin,
+         qtdeclarative5-unity-action-plugin (>= 1.1.0),
+         suru-icon-theme,
+         ttf-ubuntu-font-family,
+         ubuntu-ui-toolkit-theme,
+         ${misc:Depends},
+         ${shlibs:Depends},
+Description: Qt Components for Ubuntu - QML plugin - OpenGLES
+ Qt Components for Ubuntu offers a set of reusable user interface
+ components for Qt Quick 2 / QML.
+ .
+ This package contains the Ubuntu Components QML plugin (built with
+ the OpenGLES backend).
