@@ -18,6 +18,7 @@
 
 
 __all__ = [
+    'AppHeader',
     'base',
     'check_autopilot_version',
     'CheckBox',
@@ -41,6 +42,8 @@ __all__ = [
     'TextField',
     'Toolbar',
     'ToolkitException',
+    'ubuntu_scenarios',
+    'UbuntuListView11',
     'UbuntuUIToolkitCustomProxyObjectBase',
 ]
 
@@ -51,8 +54,10 @@ from ubuntuuitoolkit import (
     environment,
     fixture_setup,
     tests,
+    ubuntu_scenarios
 )
 from ubuntuuitoolkit._custom_proxy_objects import (
+    AppHeader,
     check_autopilot_version,
     CheckBox,
     get_keyboard,
@@ -72,4 +77,5 @@ from ubuntuuitoolkit._custom_proxy_objects import (
     Toolbar,
     ToolkitException,
     UbuntuUIToolkitCustomProxyObjectBase,
+    UbuntuListView11,
 )
