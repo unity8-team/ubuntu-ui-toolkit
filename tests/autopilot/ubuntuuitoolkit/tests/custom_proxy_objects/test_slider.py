@@ -21,7 +21,12 @@ try:
 except ImportError:
     import mock
 
+import testscenarios
+from autopilot.matchers import Eventually
+from testtools.matchers import Equals
+
 import ubuntuuitoolkit
+from ubuntuuitoolkit import fixture_setup, ubuntu_scenarios
 
 
 class BaseSliderTestCase(ubuntuuitoolkit.tests.QMLFileAppTestCase):
@@ -99,7 +104,7 @@ class SliderCustomProxyObjectTestCase(BaseSliderTestCase):
 
 class SelectSliderValueTestCase(BaseSliderTestCase):
 
-    scenarios = [
+    value_scenarios = [
         ('positive value', {'value': 5}),
         ('negative value', {'value': -5}),
         ('minimum value', {'value': -10}),
@@ -107,6 +112,48 @@ class SelectSliderValueTestCase(BaseSliderTestCase):
         ('positive float value', {'value': 2.152777777777777}),
         ('negative float value', {'value': -1.1805555555555554}),
     ]
+    scenarios = testscenarios.multiply_scenarios(
+        ubuntu_scenarios.get_device_simulation_scenarios(),
+        value_scenarios)
+
+    def setUp(self):
+        if self.should_simulate_device():
+            # Hide the Unity7 launcher because it takes space that might be
+            # needed by the app with the simulated size.
+            self.useFixture(fixture_setup.HideUnity7Launcher())
+            # This sets the grid units, so it should be called before launching
+            # the app.
+            self.simulate_device()
+        super(SelectSliderValueTestCase, self).setUp()
+
+        if self.should_simulate_device():
+            # XXX Currently we have no way to launch the application with a
+            # specific size, so we must resize it after it's launched.
+            # --elopio - 2014-06-25
+            self.resize_window()
+
+    def should_simulate_device(self):
+        return (hasattr(self, 'app_width') and hasattr(self, 'app_height') and
+                hasattr(self, 'grid_unit_px'))
+
+    def simulate_device(self):
+        simulate_device_fixture = self.useFixture(fixture_setup.SimulateDevice(
+            self.app_width, self.app_height, self.grid_unit_px))
+        self.app_width = simulate_device_fixture.app_width
+        self.app_height = simulate_device_fixture.app_height
+
+    def resize_window(self):
+        application = self.process_manager.get_running_applications()[0]
+        window = application.get_windows()[0]
+        window.resize(self.app_width, self.app_height)
+
+        def get_window_size():
+            _, _, window_width, window_height = window.geometry
+            return window_width, window_height
+
+        self.assertThat(
+            get_window_size,
+            Eventually(Equals((self.app_width, self.app_height))))
 
     def test_select_valid_value_must_update_slider_value(self):
         """Test that selecting a valid value on the slider must update it."""
