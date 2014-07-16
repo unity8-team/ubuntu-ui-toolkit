@@ -142,6 +142,7 @@ void loadAccountsServiceLanguage(ActUser* user, GParamSpec* pspec, UbuntuI18n* t
 
 void UbuntuI18n::loadAccountsServiceLanguage(ActUser* user) {
     setLanguage(act_user_get_language(user));
+    setDomain(domain());
 }
 
 /*!
