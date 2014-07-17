@@ -109,8 +109,8 @@ Panel {
             if (internal.visibleTools !== toolbar.tools) {
                 if (internal.visibleTools) internal.visibleTools.parent = null;
                 internal.visibleTools = toolbar.tools;
-                if (internal.visibleTools) internal.visibleTools.parent = visibleToolsContainer;
             }
+            if (internal.visibleTools) internal.visibleTools.parent = visibleToolsContainer;
         }
     }
 
