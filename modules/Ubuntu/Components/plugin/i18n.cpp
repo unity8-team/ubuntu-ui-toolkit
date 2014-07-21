@@ -16,6 +16,7 @@
  * Author: Tim Peeters <tim.peeters@canonical.om>
  */
 
+#include <gio/gio.h>
 #include "i18n.h"
 #include <QtCore/QDir>
 
@@ -25,6 +26,13 @@ namespace C {
 
 #include <stdlib.h>
 #include <locale.h>
+
+extern "C" {
+#include <SystemSettings/service.h>
+}
+
+void setSystemSettings(GObject* object, GAsyncResult* result, gpointer that);
+void systemSettingsChanged(USSSettings* settings, GParamSpec* pspec, UbuntuI18n* that);
 
 /*!
  * \qmltype i18n
@@ -63,6 +71,74 @@ UbuntuI18n::UbuntuI18n(QObject* parent) : QObject(parent)
      *   defines the order of multiple locales
      */
     m_language = setlocale(LC_ALL, "");
+
+    m_cancellable = g_cancellable_new();
+    uss_settings_proxy_new_for_bus(G_BUS_TYPE_SESSION,
+                                   G_DBUS_PROXY_FLAGS_GET_INVALIDATED_PROPERTIES,
+                                   "com.canonical.UbuntuSystemSettings",
+                                   "/com/canonical/UbuntuSystemSettings",
+                                   m_cancellable,
+                                   ::setSystemSettings,
+                                   this);
+
+    connect(this, SIGNAL(systemLanguageChanged()), SLOT(systemSettingsChanged()), Qt::UniqueConnection);
+}
+
+UbuntuI18n::~UbuntuI18n()
+{
+    if (m_settings) {
+        g_signal_handlers_disconnect_by_data(m_settings, this);
+        g_object_unref(m_settings);
+    }
+
+    if (m_cancellable) {
+        GCancellable* cancellable = m_cancellable;
+        m_cancellable = NULL;
+        g_cancellable_cancel(cancellable);
+        g_object_unref(cancellable);
+    }
+}
+
+void setSystemSettings(GObject* object, GAsyncResult* result, gpointer that)
+{
+    Q_UNUSED(object);
+
+    GError* error = NULL;
+    USSSettings* settings = uss_settings_proxy_new_for_bus_finish(result, &error);
+
+    if (settings) {
+        UbuntuI18n* i18n = static_cast<UbuntuI18n*>(that);
+        i18n->setSystemSettings(settings);
+        g_object_unref(settings);
+    } else {
+        qWarning("No system settings proxy: %s", error->message);
+        g_error_free(error);
+    }
+}
+
+void UbuntuI18n::setSystemSettings(USSSettings* settings)
+{
+    m_settings = USS_SETTINGS(g_object_ref(settings));
+    g_signal_connect(m_settings, "notify", G_CALLBACK(::systemSettingsChanged), this);
+}
+
+void systemSettingsChanged(USSSettings* settings, GParamSpec* pspec, UbuntuI18n* that)
+{
+    Q_UNUSED(settings);
+
+    const gchar* name = g_param_spec_get_name(pspec);
+
+    if (strcmp(name, "language") == 0) {
+        Q_EMIT that->systemLanguageChanged();
+    } else if (strcmp(name, "locale") == 0) {
+        Q_EMIT that->systemLocaleChanged();
+    }
+}
+
+void UbuntuI18n::systemSettingsChanged()
+{
+    setLanguage(systemLanguage());
+    setDomain(domain());
 }
 
 /*!
@@ -85,6 +161,24 @@ QString UbuntuI18n::domain() const {
  */
 QString UbuntuI18n::language() const {
     return m_language;
+}
+
+/*!
+ * \qmlproperty string i18n::systemLanguage
+ * The language derived from Ubuntu System Settings. If it cannot be obtained,
+ * it falls back to the value from language().
+ */
+QString UbuntuI18n::systemLanguage() const {
+    return m_settings ? uss_settings_get_language(m_settings) : language();
+}
+
+/*!
+ * \qmlproperty string i18n::systemLocale
+ * The locale derived from Ubuntu System Settings. If it cannot be obtained,
+ * it falls back to the value from language().
+ */
+QString UbuntuI18n::systemLocale() const {
+    return m_settings ? uss_settings_get_locale(m_settings) : language();
 }
 
 /**

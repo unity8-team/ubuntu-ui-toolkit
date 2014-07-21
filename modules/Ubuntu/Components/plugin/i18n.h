@@ -21,6 +21,13 @@
 
 #include <QtCore/QObject>
 
+typedef void* gpointer;
+typedef struct _GObject GObject;
+typedef struct _GParamSpec GParamSpec;
+typedef struct _GAsyncResult GAsyncResult;
+typedef struct _GCancellable GCancellable;
+typedef struct _USSSettings USSSettings;
+
 class QQmlContext;
 class QQmlEngine;
 
@@ -29,11 +36,13 @@ class UbuntuI18n : public QObject
     Q_OBJECT
     Q_PROPERTY(QString domain READ domain WRITE setDomain NOTIFY domainChanged)
     Q_PROPERTY(QString language READ language WRITE setLanguage NOTIFY languageChanged)
+    Q_PROPERTY(QString systemLanguage READ systemLanguage NOTIFY systemLanguageChanged)
+    Q_PROPERTY(QString systemLocale READ systemLocale NOTIFY systemLocaleChanged)
 
 private:
     Q_DISABLE_COPY(UbuntuI18n)
     explicit UbuntuI18n(QObject* parent = 0);
-
+    virtual ~UbuntuI18n();
 
 public:
     static UbuntuI18n& instance() {
@@ -50,6 +59,8 @@ public:
     // getter
     QString domain() const;
     QString language() const;
+    QString systemLanguage() const;
+    QString systemLocale() const;
 
     // setter
     void setDomain(const QString& domain);
@@ -58,10 +69,19 @@ public:
 Q_SIGNALS:
     void domainChanged();
     void languageChanged();
+    void systemLanguageChanged();
+    void systemLocaleChanged();
 
 private:
     QString m_domain;
     QString m_language;
+    USSSettings* m_settings;
+    GCancellable* m_cancellable;
+
+    friend void setSystemSettings(GObject* object, GAsyncResult* result, gpointer that);
+    void setSystemSettings(USSSettings* settings);
+    friend void systemSettingsChanged(USSSettings* settings, GParamSpec* pspec, UbuntuI18n* that);
+    Q_SLOT void systemSettingsChanged();
 };
 
 #endif // UBUNTU_COMPONENTS_I18N_H
