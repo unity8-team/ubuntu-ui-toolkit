@@ -21,6 +21,7 @@
 
 #include <QtCore/QObject>
 
+typedef char gchar;
 typedef void* gpointer;
 typedef struct _GObject GObject;
 typedef struct _GParamSpec GParamSpec;
@@ -36,8 +37,8 @@ class UbuntuI18n : public QObject
     Q_OBJECT
     Q_PROPERTY(QString domain READ domain WRITE setDomain NOTIFY domainChanged)
     Q_PROPERTY(QString language READ language WRITE setLanguage NOTIFY languageChanged)
-    Q_PROPERTY(QString systemLanguage READ systemLanguage NOTIFY systemLanguageChanged)
-    Q_PROPERTY(QString systemLocale READ systemLocale NOTIFY systemLocaleChanged)
+    Q_PROPERTY(QString sessionLanguage READ sessionLanguage NOTIFY sessionLanguageChanged)
+    Q_PROPERTY(QString sessionLocale READ sessionLocale NOTIFY sessionLocaleChanged)
 
 private:
     Q_DISABLE_COPY(UbuntuI18n)
@@ -59,8 +60,8 @@ public:
     // getter
     QString domain() const;
     QString language() const;
-    QString systemLanguage() const;
-    QString systemLocale() const;
+    QString sessionLanguage() const;
+    QString sessionLocale() const;
 
     // setter
     void setDomain(const QString& domain);
@@ -69,19 +70,24 @@ public:
 Q_SIGNALS:
     void domainChanged();
     void languageChanged();
-    void systemLanguageChanged();
-    void systemLocaleChanged();
+    void sessionLanguageChanged();
+    void sessionLocaleChanged();
 
 private:
     QString m_domain;
     QString m_language;
+    QString m_sessionLanguage;
+    QString m_sessionLocale;
     USSSettings* m_settings;
     GCancellable* m_cancellable;
 
-    friend void setSystemSettings(GObject* object, GAsyncResult* result, gpointer that);
-    void setSystemSettings(USSSettings* settings);
-    friend void systemSettingsChanged(USSSettings* settings, GParamSpec* pspec, UbuntuI18n* that);
-    Q_SLOT void systemSettingsChanged();
+    friend void setSettings(GObject* object, GAsyncResult* result, gpointer that);
+    void setSettings(USSSettings* settings);
+    friend void setSessionLanguage(GObject* object, GAsyncResult* result, gpointer user_data);
+    friend void setSessionLocale(GObject* object, GAsyncResult* result, gpointer user_data);
+    friend void sessionLanguageChanged(USSSettings* settings, const gchar* language, UbuntuI18n* that);
+    friend void sessionLocaleChanged(USSSettings* settings, const gchar* locale, UbuntuI18n* that);
+    Q_SLOT void updateLanguage();
 };
 
 #endif // UBUNTU_COMPONENTS_I18N_H

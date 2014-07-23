@@ -872,8 +872,8 @@ plugins.qmltypes
     exports: ["i18n 0.1", "i18n 1.0"]
     Property { name: "domain"; type: "string" }
     Property { name: "language"; type: "string" }
-    Property { name: "systemLanguage"; type: "string" }
-    Property { name: "systemLocale"; type: "string" }
+    Property { name: "sessionLanguage"; type: "string" }
+    Property { name: "sessionLocale"; type: "string" }
     Method {
     name: "bindtextdomain"
     Parameter { name: "domain_name"; type: "string" }

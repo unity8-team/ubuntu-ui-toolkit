@@ -31,8 +31,11 @@ extern "C" {
 #include <SystemSettings/service.h>
 }
 
-void setSystemSettings(GObject* object, GAsyncResult* result, gpointer that);
-void systemSettingsChanged(USSSettings* settings, GParamSpec* pspec, UbuntuI18n* that);
+void setSettings(GObject* object, GAsyncResult* result, gpointer user_data);
+void setSessionLanguage(GObject* object, GAsyncResult* result, gpointer user_data);
+void setSessionLocale(GObject* object, GAsyncResult* result, gpointer user_data);
+void sessionLanguageChanged(USSSettings* settings, const gchar* language, UbuntuI18n* that);
+void sessionLocaleChanged(USSSettings* settings, const gchar* locale, UbuntuI18n* that);
 
 /*!
  * \qmltype i18n
@@ -72,34 +75,31 @@ UbuntuI18n::UbuntuI18n(QObject* parent) : QObject(parent)
      */
     m_language = setlocale(LC_ALL, "");
 
+    m_settings = NULL;
     m_cancellable = g_cancellable_new();
     uss_settings_proxy_new_for_bus(G_BUS_TYPE_SESSION,
-                                   G_DBUS_PROXY_FLAGS_GET_INVALIDATED_PROPERTIES,
+                                   G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
                                    "com.canonical.UbuntuSystemSettings",
                                    "/com/canonical/UbuntuSystemSettings",
                                    m_cancellable,
-                                   ::setSystemSettings,
+                                   ::setSettings,
                                    this);
 
-    connect(this, SIGNAL(systemLanguageChanged()), SLOT(systemSettingsChanged()), Qt::UniqueConnection);
+    connect(this, SIGNAL(sessionLanguageChanged()), SLOT(updateLanguage()), Qt::UniqueConnection);
+    connect(this, SIGNAL(sessionLocaleChanged()), SLOT(updateLanguage()), Qt::UniqueConnection);
 }
 
 UbuntuI18n::~UbuntuI18n()
 {
-    if (m_settings) {
-        g_signal_handlers_disconnect_by_data(m_settings, this);
-        g_object_unref(m_settings);
-    }
+    setSettings(NULL);
 
     if (m_cancellable) {
-        GCancellable* cancellable = m_cancellable;
-        m_cancellable = NULL;
-        g_cancellable_cancel(cancellable);
-        g_object_unref(cancellable);
+        g_cancellable_cancel(m_cancellable);
+        g_object_unref(m_cancellable);
     }
 }
 
-void setSystemSettings(GObject* object, GAsyncResult* result, gpointer that)
+void setSettings(GObject* object, GAsyncResult* result, gpointer user_data)
 {
     Q_UNUSED(object);
 
@@ -107,37 +107,86 @@ void setSystemSettings(GObject* object, GAsyncResult* result, gpointer that)
     USSSettings* settings = uss_settings_proxy_new_for_bus_finish(result, &error);
 
     if (settings) {
-        UbuntuI18n* i18n = static_cast<UbuntuI18n*>(that);
-        i18n->setSystemSettings(settings);
+        UbuntuI18n* that = static_cast<UbuntuI18n*>(user_data);
+        that->setSettings(settings);
         g_object_unref(settings);
     } else {
-        qWarning("No system settings proxy: %s", error->message);
+        qWarning("No settings proxy: %s", error->message);
         g_error_free(error);
     }
 }
 
-void UbuntuI18n::setSystemSettings(USSSettings* settings)
+void UbuntuI18n::setSettings(USSSettings* settings)
 {
-    m_settings = USS_SETTINGS(g_object_ref(settings));
-    g_signal_connect(m_settings, "notify", G_CALLBACK(::systemSettingsChanged), this);
-}
+    if (settings != m_settings) {
+        if (m_settings) {
+            g_signal_handlers_disconnect_by_data(m_settings, this);
+            g_object_unref(m_settings);
+        }
 
-void systemSettingsChanged(USSSettings* settings, GParamSpec* pspec, UbuntuI18n* that)
-{
-    Q_UNUSED(settings);
+        m_settings = settings;
 
-    const gchar* name = g_param_spec_get_name(pspec);
-
-    if (strcmp(name, "language") == 0) {
-        Q_EMIT that->systemLanguageChanged();
-    } else if (strcmp(name, "locale") == 0) {
-        Q_EMIT that->systemLocaleChanged();
+        if (m_settings) {
+            g_object_ref(m_settings);
+            g_signal_connect(m_settings, "language-changed", G_CALLBACK(::sessionLanguageChanged), this);
+            g_signal_connect(m_settings, "locale-changed", G_CALLBACK(::sessionLocaleChanged), this);
+            uss_settings_call_get_language(m_settings, m_cancellable, ::setSessionLanguage, this);
+            uss_settings_call_get_locale(m_settings, m_cancellable, ::setSessionLocale, this);
+        }
     }
 }
 
-void UbuntuI18n::systemSettingsChanged()
+void setSessionLanguage(GObject* object, GAsyncResult* result, gpointer user_data)
 {
-    setLanguage(systemLanguage());
+    USSSettings* settings = USS_SETTINGS(object);
+    gchar* language;
+    GError* error = NULL;
+
+    if (uss_settings_call_get_language_finish(settings, &language, result, &error)) {
+        UbuntuI18n* that = static_cast<UbuntuI18n*>(user_data);
+        that->m_sessionLanguage = language;
+        g_free(language);
+    } else {
+        qWarning("GetLanguage() call failed: %s", error->message);
+        g_error_free(error);
+    }
+}
+
+void setSessionLocale(GObject* object, GAsyncResult* result, gpointer user_data)
+{
+    USSSettings* settings = USS_SETTINGS(object);
+    gchar* locale;
+    GError* error = NULL;
+
+    if (uss_settings_call_get_language_finish(settings, &locale, result, &error)) {
+        UbuntuI18n* that = static_cast<UbuntuI18n*>(user_data);
+        that->m_sessionLocale = locale;
+        g_free(locale);
+    } else {
+        qWarning("GetLocale() call failed: %s", error->message);
+        g_error_free(error);
+    }
+}
+
+void sessionLanguageChanged(USSSettings* settings, const gchar* language, UbuntuI18n* that)
+{
+    Q_UNUSED(settings);
+
+    that->m_sessionLanguage = language;
+    Q_EMIT that->sessionLanguageChanged();
+}
+
+void sessionLocaleChanged(USSSettings* settings, const gchar* locale, UbuntuI18n* that)
+{
+    Q_UNUSED(settings);
+
+    that->m_sessionLocale = locale;
+    Q_EMIT that->sessionLocaleChanged();
+}
+
+void UbuntuI18n::updateLanguage()
+{
+    setLanguage(sessionLanguage());
     setDomain(domain());
 }
 
@@ -164,21 +213,21 @@ QString UbuntuI18n::language() const {
 }
 
 /*!
- * \qmlproperty string i18n::systemLanguage
+ * \qmlproperty string i18n::sessionLanguage
  * The language derived from Ubuntu System Settings. If it cannot be obtained,
  * it falls back to the value from language().
  */
-QString UbuntuI18n::systemLanguage() const {
-    return m_settings ? uss_settings_get_language(m_settings) : language();
+QString UbuntuI18n::sessionLanguage() const {
+    return !m_sessionLanguage.isEmpty() ? m_sessionLanguage : language();
 }
 
 /*!
- * \qmlproperty string i18n::systemLocale
+ * \qmlproperty string i18n::sessionLocale
  * The locale derived from Ubuntu System Settings. If it cannot be obtained,
  * it falls back to the value from language().
  */
-QString UbuntuI18n::systemLocale() const {
-    return m_settings ? uss_settings_get_locale(m_settings) : language();
+QString UbuntuI18n::sessionLocale() const {
+    return !m_sessionLocale.isEmpty() ? m_sessionLocale : language();
 }
 
 /**
