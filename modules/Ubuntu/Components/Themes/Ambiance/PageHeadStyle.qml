@@ -72,7 +72,7 @@ Style.PageHeadStyle {
                     anchors.verticalCenter: parent ? parent.verticalCenter : undefined
                     objectName: "section_button_" + index
                     enabled: sectionsRow.enabled
-                    width: label.width + units.gu(4)
+                    width: label.width + units.gu(3)
                     height: sectionsRow.height + units.gu(2)
                     property bool selected: index === separator.sections.selectedIndex
                     onClicked: separator.sections.selectedIndex = index;
