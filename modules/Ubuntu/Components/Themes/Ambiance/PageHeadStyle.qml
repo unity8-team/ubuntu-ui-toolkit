@@ -241,7 +241,8 @@ Style.PageHeadStyle {
             visible: styledItem.pageStack !== null &&
                      styledItem.pageStack !== undefined &&
                      styledItem.pageStack.depth > 1 &&
-                     !customBackButton.visible
+                     !customBackButton.visible &&
+                     !styledItem.config.backAction
 
             text: "back"
 
