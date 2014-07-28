@@ -74,14 +74,7 @@ for line in fileinput.input():
         inputfiles.append(fileinput.filename())
         fileinput.nextfile()
 
-
-# Sort filenames to maintain a consistent order
-# Get un/versioned files in the same order
-def skipversion(filename):
-    for v in ['10', '11']:
-        filename = filename.replace(v + '/', '')
-    return filename
-inputfiles.sort(key=skipversion)
+inputfiles.sort()
 
 hook = fileinput.hook_encoded('utf-8')
 for line in fileinput.input(inputfiles, openhook=hook):
