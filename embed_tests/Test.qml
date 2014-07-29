@@ -13,11 +13,11 @@ MainView {
             text: "Push me"
             width: units.gu(15)
         }
-        Switch {
-            anchors.centerIn: parent
-        }
-        Scrollbar {
-            anchors.centerIn: parent
-        }
+        // Switch {
+        //     anchors.centerIn: parent
+        // }
+        // Scrollbar {
+        //     anchors.centerIn: parent
+        // }
     }
 }
