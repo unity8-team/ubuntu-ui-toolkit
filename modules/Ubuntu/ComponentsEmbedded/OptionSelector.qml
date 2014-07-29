@@ -15,8 +15,8 @@
  */
 
 import QtQuick 2.0
-import "ListItems" as ListItem
 import Ubuntu.Components 1.1 as Toolkit
+import Ubuntu.Components.ListItems 1.0 as ListItem
 
 /*!
     \qmltype OptionSelector
@@ -210,14 +210,14 @@ ListItem.Empty {
             right: parent.right
         }
 
-        Label {
+        Toolkit.Label {
             id : label
 
             text: optionSelector.text
             visible: optionSelector.text !== "" ? true : false
         }
 
-        StyledItem {
+        Toolkit.StyledItem {
             id: listContainer
             objectName: "listContainer"
 

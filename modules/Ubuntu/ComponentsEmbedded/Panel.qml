@@ -357,7 +357,7 @@ Item {
         Transition {
             id: transitionToAll
             to: ""
-            UbuntuNumberAnimation {
+            Toolkit.UbuntuNumberAnimation {
                 target: bar
                 properties: "position"
                 duration: internal.transitionDuration
@@ -366,7 +366,7 @@ Item {
         Transition {
             id: transitionToHint
             to: "hint"
-            UbuntuNumberAnimation {
+            Toolkit.UbuntuNumberAnimation {
                 target: bar
                 properties: "position"
                 duration: internal.transitionDuration
@@ -375,7 +375,7 @@ Item {
         Transition {
             id: transitionToSpread
             to: "spread"
-            UbuntuNumberAnimation {
+            Toolkit.UbuntuNumberAnimation {
                 target: bar
                 properties: "position"
                 duration: internal.transitionDuration
@@ -384,7 +384,7 @@ Item {
         Transition {
             id: transitionToMoving
             to: "moving"
-            UbuntuNumberAnimation {
+            Toolkit.UbuntuNumberAnimation {
                 target: bar
                 properties: "position"
                 duration: panel.animate ? Toolkit.UbuntuAnimation.SnapDuration : 0
@@ -482,7 +482,7 @@ Item {
     // is not visible.
     property alias pressed: draggingArea.pressed
 
-    DraggingArea {
+    Toolkit.DraggingArea {
         id: draggingArea
         orientation: internal.orientation === Qt.Horizontal ? Qt.Vertical : Qt.Horizontal
         zeroVelocityCounts: true

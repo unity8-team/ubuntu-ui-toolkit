@@ -101,7 +101,7 @@ import Ubuntu.Components 1.1 as Ubuntu
     \note During text selection all interactive parent Flickables are turned off.
 */
 
-ActionItem {
+Ubuntu.ActionItem {
     id: control
 
     implicitWidth: units.gu(25)
@@ -901,7 +901,7 @@ ActionItem {
         }
     }
 
-    AbstractButton {
+    Ubuntu.AbstractButton {
         id: clearButton
         objectName: "clear_button"
         property url iconSource: control.__styleInstance.iconSource
@@ -928,7 +928,7 @@ ActionItem {
     }
 
     // hint text
-    Label {
+    Ubuntu.Label {
         id: hint
         verticalAlignment: Text.AlignVCenter
         horizontalAlignment: editor.horizontalAlignment
@@ -974,7 +974,7 @@ ActionItem {
             // FocusScope will forward focus to this component
             focus: true
             anchors.verticalCenter: parent.verticalCenter
-            cursorDelegate: TextCursor {
+            cursorDelegate: Ubuntu.TextCursor {
                 handler: inputHandler
             }
             color: control.__styleInstance.color
@@ -992,7 +992,7 @@ ActionItem {
 
             // input selection and navigation handling
             Ubuntu.Mouse.forwardTo: [inputHandler]
-            InputHandler {
+            Ubuntu.InputHandler {
                 id: inputHandler
                 anchors.fill: parent
                 main: control

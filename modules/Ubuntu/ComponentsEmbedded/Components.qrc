@@ -1,0 +1,209 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource>
+
+  <!-- <file>ListItems/artwork/delete@8.png</file> -->
+  <!-- <file>ListItems/artwork/ListItemDivider24px@8.png</file> -->
+  <!-- <file>ListItems/artwork/ListItemDivider6px@8.png</file> -->
+  <!-- <file>Themes/Ambiance/artwork/ScrollbarBottomIdle@8.png</file> -->
+  <!-- <file>Themes/Ambiance/artwork/bubble_arrow@30.png</file> -->
+  <!-- <file>Themes/Ambiance/artwork/spinner@8.png</file> -->
+  <!-- <file>Themes/Ambiance/artwork/ScrollbarTopPressed@8.png</file> -->
+  <!-- <file>Themes/Ambiance/artwork/ScrollbarLeftIdle@8.png</file> -->
+  <!-- <file>Themes/Ambiance/artwork/toolbar_dropshadow@20.png</file> -->
+  <!-- <file>Themes/Ambiance/artwork/PageHeaderBaseDividerBottom@18.png</file> -->
+  <!-- <file>Themes/Ambiance/artwork/bubble_shadow@20.png</file> -->
+  <!-- <file>Themes/Ambiance/artwork/teardrop-right@20.png</file> -->
+  <!-- <file>Themes/Ambiance/artwork/progression_divider@18.png</file> -->
+  <!-- <file>Themes/Ambiance/artwork/chevron@27.png</file> -->
+  <!-- <file>Themes/Ambiance/artwork/ScrollbarBottomPressed@8.png</file> -->
+  <!-- <file>Themes/Ambiance/artwork/PageHeaderBaseDividerLight@18.png</file> -->
+  <!-- <file>Themes/Ambiance/artwork/ScrollbarLeftPressed@8.png</file> -->
+  <!-- <file>Themes/Ambiance/artwork/spinner@30.png</file> -->
+  <!-- <file>Themes/Ambiance/artwork/background_paper@27.png</file> -->
+  <!-- <file>Themes/Ambiance/artwork/ScrollbarRightIdle@8.png</file> -->
+  <!-- <file>Themes/Ambiance/artwork/bubble_arrow@8.png</file> -->
+  <!-- <file>Themes/Ambiance/artwork/tick@30.png</file> -->
+  <!-- <file>Themes/Ambiance/artwork/ScrollbarRightPressed@8.png</file> -->
+  <!-- <file>Themes/Ambiance/artwork/ScrollbarTopIdle@8.png</file> -->
+  <!-- <file>Themes/Ambiance/artwork/bubble_arrow@20.png</file> -->
+  <!-- <file>Themes/Ambiance/artwork/cross@30.png</file> -->
+  <!-- <file>Themes/Ambiance/artwork/bubble_shadow@30.png</file> -->
+  <!-- <file>Themes/Ambiance/artwork/teardrop-left@20.png</file> -->
+  <!-- <file>Themes/Ambiance/artwork/bubble_shadow@8.png</file> -->
+  <!-- <file>Themes/SuruGradient/artwork/chevron@27.png</file> -->
+  <!-- <file>Themes/SuruGradient/artwork/chevron_down@30.png</file> -->
+  <!-- <file>Themes/SuruGradient/artwork/tick@30.png</file> -->
+  <!-- <file>Themes/SuruDark/artwork/chevron@27.png</file> -->
+  <!-- <file>artwork/back@18.png</file> -->
+  <!-- <file>artwork/chevron_down@30.png</file> -->
+  <!-- <file>artwork/tick@30.png</file> -->
+
+  <!-- <file>Themes/Ambiance/SwitchStyle.qml</file> -->
+  <!-- <file>Themes/Ambiance/ScrollbarStyle.qml</file> -->
+  <!-- <file>Themes/Ambiance/SheetForegroundStyle.qml</file> -->
+  <!-- <file>Themes/Ambiance/TextFieldStyle.qml</file> -->
+  <!-- <file>Themes/Ambiance/ButtonStyle.qml</file> -->
+  <!-- <file>Themes/Ambiance/ProgressBarStyle.qml</file> -->
+  <!-- <file>Themes/Ambiance/SelectionCursorStyle.qml</file> -->
+  <!-- <file>Themes/Ambiance/PullToRefreshStyle.qml</file> -->
+  <!-- <file>Themes/Ambiance/CheckBoxStyle.qml</file> -->
+  <!-- <file>Themes/Ambiance/PartialColorize.qml</file> -->
+  <!-- <file>Themes/Ambiance/HeaderButtonStyle.qml</file> -->
+  <!-- <file>Themes/Ambiance/TabBarStyle.qml</file> -->
+  <!-- <file>Themes/Ambiance/ProgressionVisualStyle.qml</file> -->
+  <!-- <file>Themes/Ambiance/MainViewStyle.qml</file> -->
+  <!-- <file>Themes/Ambiance/PickerStyle.qml</file> -->
+  <!-- <file>Themes/Ambiance/TextCursorStyle.qml</file> -->
+  <!-- <file>Themes/Ambiance/Palette.qml</file> -->
+  <!-- <file>Themes/Ambiance/PartialColorizeUbuntuShape.qml</file> -->
+  <!-- <file>Themes/Ambiance/ActivityIndicatorStyle.qml</file> -->
+  <!-- <file>Themes/Ambiance/DialogForegroundStyle.qml</file> -->
+  <!-- <file>Themes/Ambiance/BubbleShape.qml</file> -->
+  <!-- <file>Themes/Ambiance/DialerStyle.qml</file> -->
+  <!-- <file>Themes/Ambiance/PickerDelegateStyle.qml</file> -->
+  <!-- <file>Themes/Ambiance/DatePickerStyle.qml</file> -->
+  <!-- <file>Themes/Ambiance/ButtonForeground.qml</file> -->
+  <!-- <file>Themes/Ambiance/HeaderStyle.qml</file> -->
+  <!-- <file>Themes/Ambiance/TextSelectionStartCursorStyle.qml</file> -->
+  <!-- <file>Themes/Ambiance/ToolbarButtonStyle.qml</file> -->
+  <!-- <file>Themes/Ambiance/OptionSelectorStyle.qml</file> -->
+  <!-- <file>Themes/Ambiance/ListItemOptionSelectorStyle.qml</file> -->
+  <!-- <file>Themes/Ambiance/TextSelectionEndCursorStyle.qml</file> -->
+  <!-- <file>Themes/Ambiance/PageHeadStyle.qml</file> -->
+  <!-- <file>Themes/Ambiance/ComboButtonStyle.qml</file> -->
+  <!-- <file>Themes/Ambiance/TextAreaStyle.qml</file> -->
+  <!-- <file>Themes/Ambiance/PopoverForegroundStyle.qml</file> -->
+  <!-- <file>Themes/Ambiance/HighlightMagnifier.qml</file> -->
+  <!-- <file>Themes/Ambiance/SliderStyle.qml</file> -->
+  <!-- <file>Themes/Ambiance/ToolbarStyle.qml</file> -->
+  <!-- <file>Themes/Ambiance/DialerHandStyle.qml</file> -->
+  <!-- <file>Themes/Palette.qml</file> -->
+  <!-- <file>Themes/SuruGradient/TabBarStyle.qml</file> -->
+  <!-- <file>Themes/SuruGradient/MainViewStyle.qml</file> -->
+  <!-- <file>Themes/SuruGradient/Palette.qml</file> -->
+  <!-- <file>Themes/SuruGradient/OptionSelectorStyle.qml</file> -->
+  <!-- <file>Themes/SuruGradient/ListItemOptionSelectorStyle.qml</file> -->
+  <!-- <file>Themes/PaletteValues.qml</file> -->
+  <!-- <file>Themes/SuruDark/TabBarStyle.qml</file> -->
+  <!-- <file>Themes/SuruDark/MainViewStyle.qml</file> -->
+  <!-- <file>Themes/SuruDark/Palette.qml</file> -->
+  <!-- <file>Themes/SuruDark/OptionSelectorStyle.qml</file> -->
+  <!-- <file>Themes/SuruDark/ListItemOptionSelectorStyle.qml</file> -->
+
+  <file>ListItems/Header.qml</file>
+  <file>ListItems/Standard.qml</file>
+  <file>ListItems/Empty.qml</file>
+  <file>ListItems/ValueSelector.qml</file>
+  <file>ListItems/Divider.qml</file>
+  <file>ListItems/SingleControl.qml</file>
+  <file>ListItems/ItemSelector.qml</file>
+  <file>ListItems/SingleValue.qml</file>
+  <file>ListItems/LabelVisual.qml</file>
+  <file>ListItems/ThinDivider.qml</file>
+  <file>ListItems/ProgressionVisual.qml</file>
+  <file>ListItems/MultiValue.qml</file>
+  <file>ListItems/Caption.qml</file>
+  <file>ListItems/Subtitled.qml</file>
+  <file>ListItems/Base.qml</file>
+  <file>ListItems/Expandable.qml</file>
+  <file>ListItems/ExpandablesColumn.qml</file>
+  <file>ListItems/IconVisual.qml</file>
+  <file>ListItems/ImageWithFallback.qml</file>
+
+  <file>Styles/PullToRefreshStyle.qml</file>
+  <file>Styles/PageHeadStyle.qml</file>
+  <file>Styles/ComboButtonStyle.qml</file>
+
+  <file>Popups/DefaultSheet.qml</file>
+  <file>Popups/SheetBase.qml</file>
+  <file>Popups/Popover.qml</file>
+  <file>Popups/Dialog.qml</file>
+  <file>Popups/PopupBase.qml</file>
+  <file>Popups/ComposerSheet.qml</file>
+  <file>Popups/ActionSelectionPopover.qml</file>
+  <file>Pickers/HoursModel.qml</file>
+  <file>Pickers/Dialer.qml</file>
+  <file>Pickers/PickerModelBase.qml</file>
+  <file>Pickers/YearModel.qml</file>
+  <file>Pickers/PickerRow.qml</file>
+  <file>Pickers/PickerDelegate.qml</file>
+  <file>Pickers/SecondsModel.qml</file>
+  <file>Pickers/DialerHandGroup.qml</file>
+  <file>Pickers/MinutesModel.qml</file>
+  <file>Pickers/PickerPanel.qml</file>
+  <file>Pickers/DatePicker.qml</file>
+  <file>Pickers/DayModel.qml</file>
+  <file>Pickers/DialerHand.qml</file>
+  <file>Pickers/MonthModel.qml</file>
+  <file>Pickers/Picker.qml</file>
+
+  <file>Colors/UbuntuColors.qml</file>
+
+  <file>CrossFadeImage10.qml</file>
+  <file>ActionItem.qml</file>
+  <file>Header.qml</file>
+  <file>Icon.qml</file>
+  <file>ComboButton.qml</file>
+  <file>CheckBox.qml</file>
+  <file>ProgressBar.qml</file>
+  <file>TextArea.qml</file>
+  <file>ActivityIndicator.qml</file>
+  <file>ToolbarButton.qml</file>
+  <file>UbuntuListView11.qml</file>
+  <file>UbuntuShape.qml</file>
+  <file>PageHeadState.qml</file>
+  <file>OptionSelectorDelegate.qml</file>
+  <file>OrientationHelper.qml</file>
+  <file>StyledItem.qml</file>
+  <file>TabBar.qml</file>
+  <file>PullToRefresh.qml</file>
+  <file>UbuntuNumberAnimation.qml</file>
+  <file>Action.qml</file>
+  <file>ActionList.qml</file>
+  <file>CrossFadeImage11.qml</file>
+  <file>OptionSelector.qml</file>
+  <file>Page11.qml</file>
+  <file>TextField.qml</file>
+  <file>Label.qml</file>
+  <file>MainView.qml</file>
+  <file>Button.qml</file>
+  <file>Object.qml</file>
+  <file>Tab.qml</file>
+  <file>PageStack.qml</file>
+  <file>UbuntuListView.qml</file>
+  <file>Tabs.qml</file>
+  <file>AbstractButton.qml</file>
+  <file>PageHeadConfiguration.qml</file>
+  <file>Slider.qml</file>
+  <file>Scrollbar.qml</file>
+  <file>Switch.qml</file>
+  <file>ToolbarItems.qml</file>
+  <file>Panel.qml</file>
+
+  <!-- INTERNAL QML -->
+  <file>DraggingArea.qml</file>
+  <file>PageTreeNode.qml</file>
+  <file>Toolbar.qml</file>
+  <file>AppHeader.qml</file>
+  <file>AnimatedItem.qml</file>
+  <file>TextCursor.qml</file>
+  <file>PageWrapper.qml</file>
+  <file>TextInputPopover.qml</file>
+  <file>InputHandler.qml</file>
+  <file>Page10.qml</file>
+
+  <!-- JS -->
+  <file>mathUtils.js</file>
+  <file>sliderUtils.js</file>
+  <file>scrollbarUtils.js</file>
+  <file>colorUtils.js</file>
+  <file>dateUtils.js</file>
+
+  <!-- JS internal -->
+  <file>stack.js</file>
+  <file>PageWrapperUtils.js</file>
+  <file>Popups/popupUtils.js</file>
+  <file>Popups/internalPopupUtils.js</file>
+
+</qresource>
+</RCC>

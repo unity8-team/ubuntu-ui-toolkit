@@ -15,6 +15,7 @@
  */
 
 import QtQuick 2.0
+import Ubuntu.Components 1.1
 import Ubuntu.Unity.Action 1.1 as UnityActions
 import Ubuntu.PerformanceMetrics 1.0
 import QtQuick.Window 2.0

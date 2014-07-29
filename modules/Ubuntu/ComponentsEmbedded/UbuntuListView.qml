@@ -105,7 +105,7 @@ ListView {
         priv.positionViewAtIndexAnimated(expandedIndex, ListView.End)
     }
 
-    UbuntuNumberAnimation {
+    Toolkit.UbuntuNumberAnimation {
         id: animation
         target: root
         property: "contentY"

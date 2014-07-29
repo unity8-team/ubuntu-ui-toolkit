@@ -15,10 +15,10 @@
  */
 
 import QtQuick 2.0
-import Ubuntu.Components 1.1 as Ubuntu
+import Ubuntu.Components 1.1
 import Ubuntu.Components.Popups 1.0
 
-Ubuntu.StyledItem {
+StyledItem {
     id: cursorItem
 
     width: units.dp(1)
@@ -158,7 +158,7 @@ Ubuntu.StyledItem {
                 draggedItem.moveToCaret(mouse.x, mouse.y);
                 draggedItem.state = "dragging";
             }
-            Ubuntu.Mouse.forwardTo: [dragger]
+            Mouse.forwardTo: [dragger]
             /*
               As we are forwarding the events to the upper mouse area, the release
               will not get into the normal MosueArea onRelease signal as the preventStealing
@@ -169,7 +169,7 @@ Ubuntu.StyledItem {
               will end up in a binding loop on the moveToCaret() next time the caret
               handler is grabbed.
               */
-            Ubuntu.Mouse.onReleased: {
+            Mouse.onReleased: {
                 if (!dragger.drag.active) {
                     draggedItem.state = "";
                 }

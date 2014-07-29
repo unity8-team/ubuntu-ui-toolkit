@@ -91,7 +91,7 @@ import "mathUtils.js" as MathUtils
     \note During text selection all interactive parent Flickables are turned off.
   */
 
-StyledItem {
+Ubuntu.StyledItem {
     id: control
     implicitWidth: units.gu(30)
     implicitHeight: (autoSize) ? internal.minimumSize : internal.linesHeight(4)
@@ -791,10 +791,10 @@ StyledItem {
     Keys.onReleased: event.accepted = (event.key === Qt.Key_Enter) || (event.key === Qt.Key_Return)
 
     // holding default values
-    Label { id: fontHolder }
+    Ubuntu.Label { id: fontHolder }
 
     //hint
-    Label {
+    Ubuntu.Label {
         id: hint
         anchors {
             fill: parent
@@ -809,11 +809,11 @@ StyledItem {
     }
 
     //scrollbars and flickable
-    Scrollbar {
+    Ubuntu.Scrollbar {
         id: rightScrollbar
         flickableItem: flicker
     }
-    Scrollbar {
+    Ubuntu.Scrollbar {
         id: bottomScrollbar
         flickableItem: flicker
         align: Qt.AlignBottom
@@ -845,7 +845,7 @@ StyledItem {
             mouseSelectionMode: TextEdit.SelectWords
             selectByMouse: true
             activeFocusOnPress: true
-            cursorDelegate: TextCursor {
+            cursorDelegate: Ubuntu.TextCursor {
                 handler: inputHandler
             }
             color: control.__styleInstance.color
@@ -861,7 +861,7 @@ StyledItem {
 
             // input selection and navigation handling
             Ubuntu.Mouse.forwardTo: [inputHandler]
-            InputHandler {
+            Ubuntu.InputHandler {
                 id: inputHandler
                 anchors.fill: parent
                 main: control

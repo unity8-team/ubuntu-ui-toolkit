@@ -15,10 +15,11 @@
  */
 
 import QtQuick 2.2
+import Ubuntu.Components 1.1
 
 /*! \internal */
 // Documentation in Page.qdoc
-Page10 {
+PageBase {
     id: page
     /*!
       \qmlproperty PageHeadConfiguration head

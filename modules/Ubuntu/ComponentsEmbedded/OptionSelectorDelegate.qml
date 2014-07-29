@@ -44,8 +44,8 @@
 */
 
 import QtQuick 2.0
-import "ListItems" as ListItem
 import Ubuntu.Components 1.1 as Toolkit
+import Ubuntu.Components.ListItems 1.0 as ListItem
 
 ListItem.Empty {
     id: option
@@ -326,10 +326,10 @@ ListItem.Empty {
             anchors {
                 verticalCenter: parent.verticalCenter
             }
-            Label {
+            Toolkit.Label {
                 text: option.text === "" ? modelData : option.text
             }
-            Label {
+            Toolkit.Label {
                 text: option.subText
                 visible: option.subText !== "" ? true : false
                 fontSize: "small"

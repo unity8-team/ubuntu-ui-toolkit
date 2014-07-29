@@ -13,6 +13,9 @@ equals(QT_MAJOR_VERSION, 5):lessThan(QT_MINOR_VERSION, 2) {
 
 CONFIG += qt plugin no_keywords
 
+RESOURCES = ../Components.qrc
+QMAKE_RESOURCE_FLAGS = -no-compress
+
 QMAKE_CXXFLAGS += -Werror
 
 # QOrganizer

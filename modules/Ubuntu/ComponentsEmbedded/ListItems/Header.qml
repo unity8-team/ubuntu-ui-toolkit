@@ -15,6 +15,7 @@
  */
 
 import QtQuick 2.0
+import Ubuntu.Components.ListItems 1.0
 
 /*!
     \qmltype Header

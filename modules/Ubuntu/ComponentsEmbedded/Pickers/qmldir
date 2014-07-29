@@ -1,17 +1,31 @@
 module Ubuntu.Components.Pickers
-Picker 0.1 Picker.qml
-PickerDelegate 0.1 PickerDelegate.qml
-Dialer 0.1 Dialer.qml
-DialerHand 0.1 DialerHand.qml
-DatePicker 0.1 DatePicker.qml
-internal YearModel YearModel.qml
-internal MonthModel MonthModel.qml
-internal DayModel DayModel.qml
-internal PickerModelBase PickerModelBase.qml
 
-#version 1.0
-Picker 1.0 Picker.qml
-PickerDelegate 1.0 PickerDelegate.qml
-Dialer 1.0 Dialer.qml
-DialerHand 1.0 DialerHand.qml
-DatePicker 1.0 DatePicker.qml
+# Version 0.1
+Picker 0.1 qrc:Pickers/Picker.qml
+PickerDelegate 0.1 qrc:Pickers/PickerDelegate.qml
+Dialer 0.1 qrc:Pickers/Dialer.qml
+DialerHand 0.1 qrc:Pickers/DialerHand.qml
+DatePicker 0.1 qrc:Pickers/DatePicker.qml
+
+# Version 1.0
+Picker 1.0 qrc:Pickers/Picker.qml
+PickerDelegate 1.0 qrc:Pickers/PickerDelegate.qml
+Dialer 1.0 qrc:Pickers/Dialer.qml
+DialerHand 1.0 qrc:Pickers/DialerHand.qml
+DatePicker 1.0 qrc:Pickers/DatePicker.qml
+
+# internal YearModel qrc:Pickers/YearModel.qml
+# internal MonthModel qrc:Pickers/MonthModel.qml
+# internal DayModel qrc:Pickers/DayModel.qml
+# internal PickerModelBase qrc:Pickers/PickerModelBase.qml
+YearModel 1.0 qrc:Pickers/YearModel.qml
+MonthModel 1.0 qrc:Pickers/MonthModel.qml
+DayModel 1.0 qrc:Pickers/DayModel.qml
+PickerModelBase 1.0 qrc:Pickers/PickerModelBase.qml
+
+# NOTE(loicm) Added for DSO embedding
+DialerHandGroup 1.0 qrc:Pickers/DialerHandGroup.qml
+HoursModel 1.0 qrc:Pickers/HoursModel.qml
+MinutesModel 1.0 qrc:Pickers/MinutesModel.qml
+SecondsModel 1.0 qrc:Pickers/SecondsModel.qml
+PickerRow 1.0 qrc:Pickers/PickerRow.qml

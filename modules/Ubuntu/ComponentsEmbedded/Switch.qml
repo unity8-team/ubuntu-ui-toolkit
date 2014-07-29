@@ -18,6 +18,7 @@
 //     that needs to be validated with designers though.
 
 import QtQuick 2.0
+import Ubuntu.Components 1.0
 
 /*!
     \qmltype Switch

@@ -1,36 +1,42 @@
 module Ubuntu.Components.ListItems
-Empty 0.1 Empty.qml
-Base 0.1 Base.qml
-Caption 0.1 Caption.qml
-Divider 0.1 Divider.qml
-Header 0.1 Header.qml
-internal IconVisual IconVisual.qml
-internal LabelVisual LabelVisual.qml
-MultiValue 0.1 MultiValue.qml
-ItemSelector 0.1 ItemSelector.qml
-internal ProgressionVisual ProgressionVisual.qml
-ValueSelector 0.1 ValueSelector.qml
-SingleValue 0.1 SingleValue.qml
-Standard 0.1 Standard.qml
-Subtitled 0.1 Subtitled.qml
-SingleControl 0.1 SingleControl.qml
-ThinDivider 0.1 ThinDivider.qml
-Expandable 0.1 Expandable.qml
-ExpandablesColumn 0.1 ExpandablesColumn.qml
+Empty 0.1 qrc:ListItems/Empty.qml
+Base 0.1 qrc:ListItems/Base.qml
+Caption 0.1 qrc:ListItems/Caption.qml
+Divider 0.1 qrc:ListItems/Divider.qml
+Header 0.1 qrc:ListItems/Header.qml
+MultiValue 0.1 qrc:ListItems/MultiValue.qml
+ItemSelector 0.1 qrc:ListItems/ItemSelector.qml
+ValueSelector 0.1 qrc:ListItems/ValueSelector.qml
+SingleValue 0.1 qrc:ListItems/SingleValue.qml
+Standard 0.1 qrc:ListItems/Standard.qml
+Subtitled 0.1 qrc:ListItems/Subtitled.qml
+SingleControl 0.1 qrc:ListItems/SingleControl.qml
+ThinDivider 0.1 qrc:ListItems/ThinDivider.qml
+Expandable 0.1 qrc:ListItems/Expandable.qml
+ExpandablesColumn 0.1 qrc:ListItems/ExpandablesColumn.qml
 
 #version 1.0
-Empty 1.0 Empty.qml
-Base 1.0 Base.qml
-Caption 1.0 Caption.qml
-Divider 1.0 Divider.qml
-Header 1.0 Header.qml
-MultiValue 1.0 MultiValue.qml
-ItemSelector 1.0 ItemSelector.qml
-ValueSelector 1.0 ValueSelector.qml
-SingleValue 1.0 SingleValue.qml
-Standard 1.0 Standard.qml
-Subtitled 1.0 Subtitled.qml
-SingleControl 1.0 SingleControl.qml
-ThinDivider 1.0 ThinDivider.qml
-Expandable 1.0 Expandable.qml
-ExpandablesColumn 1.0 ExpandablesColumn.qml
+Empty 1.0 qrc:ListItems/Empty.qml
+Base 1.0 qrc:ListItems/Base.qml
+Caption 1.0 qrc:ListItems/Caption.qml
+Divider 1.0 qrc:ListItems/Divider.qml
+Header 1.0 qrc:ListItems/Header.qml
+MultiValue 1.0 qrc:ListItems/MultiValue.qml
+ItemSelector 1.0 qrc:ListItems/ItemSelector.qml
+ValueSelector 1.0 qrc:ListItems/ValueSelector.qml
+SingleValue 1.0 qrc:ListItems/SingleValue.qml
+Standard 1.0 qrc:ListItems/Standard.qml
+Subtitled 1.0 qrc:ListItems/Subtitled.qml
+SingleControl 1.0 qrc:ListItems/SingleControl.qml
+ThinDivider 1.0 qrc:ListItems/ThinDivider.qml
+Expandable 1.0 qrc:ListItems/Expandable.qml
+ExpandablesColumn 1.0 qrc:ListItems/ExpandablesColumn.qml
+
+# internal IconVisual qrc:ListItems/IconVisual.qml
+# internal LabelVisual qrc:ListItems/LabelVisual.qml
+# internal ProgressionVisual qrc:ListItems/ProgressionVisual.qml
+IconVisual 1.0 qrc:ListItems/IconVisual.qml
+LabelVisual 1.0 qrc:ListItems/LabelVisual.qml
+ProgressionVisual 1.0 qrc:ListItems/ProgressionVisual.qml
+# NOTE(loicm) wasn't declared.
+ImageWithFallback 1.0 qrc:ListItems/ImageWithFallback.qml

@@ -17,6 +17,7 @@
 // FIXME(loicm) Add support for keyboard shortcuts (basically left/right).
 
 import QtQuick 2.0
+import Ubuntu.Components 1.0
 import "mathUtils.js" as MathUtils
 
 /*!
