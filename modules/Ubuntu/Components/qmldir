@@ -45,6 +45,9 @@ StyledItem 0.1 StyledItem.qml
 ColorUtils 0.1 colorUtils.js
 DateUtils 0.1 dateUtils.js
 UbuntuListView 0.1 UbuntuListView.qml
+Flickable 0.1 Flickable.qml
+ListView 0.1 ListView.qml
+GridView 0.1 GridView.qml
 
 internal TextCursor TextCursor.qml
 internal TextInputPopover TextInputPopover.qml
@@ -90,6 +93,9 @@ StyledItem 1.0 StyledItem.qml
 ColorUtils 1.0 colorUtils.js
 DateUtils 1.0 dateUtils.js
 UbuntuListView 1.0 UbuntuListView.qml
+Flickable 1.0 Flickable.qml
+ListView 1.0 ListView.qml
+GridView 1.0 GridView.qml
 
 #version 1.1
 ComboButton 1.1 ComboButton.qml
@@ -104,3 +110,6 @@ PageHeadConfiguration 1.1 PageHeadConfiguration.qml
 PageHeadSections 1.1 PageHeadSections.qml
 PageHeadState 1.1 PageHeadState.qml
 Icon 1.1 Icon11.qml
+Flickable 1.1 Flickable.qml
+ListView 1.1 ListView.qml
+GridView 1.1 GridView.qml
