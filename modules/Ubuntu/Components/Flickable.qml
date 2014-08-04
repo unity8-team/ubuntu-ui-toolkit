@@ -17,7 +17,7 @@
 import QtQuick 2.2 as QtQuick
 import Ubuntu.Components 0.1
 
-QtQuick.GridView {
+QtQuick.Flickable {
     flickDeceleration: 1500 * units.gridUnit / 8
     maximumFlickVelocity: 2500 * units.gridUnit / 8
 }
