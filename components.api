@@ -84,6 +84,10 @@ Item
     property string fadeStyle
     readonly property bool running
     readonly property int status
+Flickable 0.1 1.0 1.1
+QtQuick.Flickable
+GridView 0.1 1.0 1.1
+QtQuick.GridView
 Header 0.1 1.0
 AppHeader
     property string _for_autopilot
@@ -206,6 +210,8 @@ Empty
     property variant values
     property int selectedIndex
     property bool expanded
+ListView 0.1 1.0 1.1
+QtQuick.ListView
 MainView 0.1 1.0
 PageTreeNode
     property string applicationName
