@@ -1,8 +1,9 @@
-ubuntu-ui-toolkit-gles (1.1.1181+14.10.20140806-0ubuntu1) UNRELEASED; urgency=medium
+ubuntu-ui-toolkit-gles (1.1.1181+14.10.20140806-0ubuntu1) utopic; urgency=medium
 
+  [ Zoltán Balogh ]
   * Sync package with ubuntu-ui-toolkit 1.1.1181+14.10.20140806-0ubuntu1
 
- -- Zoltán Balogh <zoltan@bakter.hu>  Wed, 06 Aug 2014 19:38:08 +0300
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Thu, 07 Aug 2014 04:35:20 +0000
 
 ubuntu-ui-toolkit-gles (1.1.1179+14.10.20140804-0ubuntu2) utopic; urgency=medium
 
