@@ -42,7 +42,7 @@ Item {
     UbuntuShape {
         id: background
         anchors.fill: parent
-        color: Theme.palette.normal.base
+        color: theme.palette.normal.base
         clip: true
 
         UbuntuShape {
@@ -80,7 +80,7 @@ Item {
                     right: parent.left
                     rightMargin: switchStyle.thumbPadding * 3.0
                 }
-                rightColor: Theme.palette.normal.backgroundText
+                rightColor: theme.palette.normal.backgroundText
                 source: Image {
                     source: "artwork/cross.png"
                 }
@@ -92,7 +92,7 @@ Item {
                     left: parent.right
                     leftMargin: switchStyle.thumbPadding * 2.0
                 }
-                rightColor: Theme.palette.normal.backgroundText
+                rightColor: theme.palette.normal.backgroundText
                 source: Image {
                     source: "artwork/tick.png"
                 }
@@ -117,7 +117,7 @@ Item {
                 }
                 progress: MathUtils.clamp((thumb.x - parent.x - x) / width, 0.0, 1.0)
                 leftColor: "transparent"
-                rightColor: Theme.palette.normal.foregroundText
+                rightColor: theme.palette.normal.foregroundText
             }
         }
 
@@ -138,7 +138,7 @@ Item {
                     source: "artwork/tick.png"
                 }
                 progress: MathUtils.clamp((thumb.x + thumb.width - parent.x - x) / width, 0.0, 1.0)
-                leftColor: Theme.palette.normal.foregroundText
+                leftColor: theme.palette.normal.foregroundText
                 rightColor: "transparent"
             }
         }

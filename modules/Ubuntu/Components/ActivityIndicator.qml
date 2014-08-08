@@ -58,5 +58,5 @@ AnimatedItem {
     implicitWidth: units.gu(3)
     implicitHeight: units.gu(3)
 
-    style: Theme.createStyleComponent("ActivityIndicatorStyle.qml", indicator)
+    style: theme.createStyleComponent("ActivityIndicatorStyle.qml", indicator)
 }

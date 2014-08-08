@@ -941,7 +941,7 @@ ActionItem {
         }
         // hint is shown till user types something in the field
         visible: (editor.text == "") && !editor.inputMethodComposing
-        color: Theme.palette.normal.backgroundText
+        color: theme.palette.normal.backgroundText
         fontSize: "medium"
         elide: Text.ElideRight
     }
@@ -978,8 +978,8 @@ ActionItem {
                 handler: inputHandler
             }
             color: control.__styleInstance.color
-            selectedTextColor: Theme.palette.selected.foregroundText
-            selectionColor: Theme.palette.selected.selection
+            selectedTextColor: theme.palette.selected.foregroundText
+            selectionColor: theme.palette.selected.selection
             font.pixelSize: FontUtils.sizeToPixels("medium")
             passwordCharacter: "\u2022"
             // forward keys to the root element so it can be captured outside of it
@@ -1013,5 +1013,5 @@ ActionItem {
         cursorPosition = 0;
     }
 
-    style: Theme.createStyleComponent("TextFieldStyle.qml", control)
+    style: theme.createStyleComponent("TextFieldStyle.qml", control)
 }

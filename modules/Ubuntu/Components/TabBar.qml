@@ -96,7 +96,7 @@ StyledItem {
 
     implicitHeight: units.gu(7.5)
 
-    style: Theme.createStyleComponent("TabBarStyle.qml", tabBar)
+    style: theme.createStyleComponent("TabBarStyle.qml", tabBar)
 
     QtObject {
         id: internal

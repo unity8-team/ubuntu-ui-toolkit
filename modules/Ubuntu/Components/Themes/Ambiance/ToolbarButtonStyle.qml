@@ -51,7 +51,7 @@ Item {
             width: paintedWidth
             text: styledItem.text
             fontSize: "x-small"
-            color: Theme.palette.normal.overlayText
+            color: theme.palette.normal.overlayText
         }
     }
 

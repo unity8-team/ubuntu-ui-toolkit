@@ -182,6 +182,7 @@ void UbuntuComponentsPlugin::registerTypesToVersion(const char *uri, int major, 
     qmlRegisterSingletonType<UCUriHandler>(uri, major, minor, "UriHandler", registerUriHandler);
     qmlRegisterType<UCMouse>(uri, major, minor, "Mouse");
     qmlRegisterType<UCInverseMouse>(uri, major, minor, "InverseMouse");
+    qmlRegisterType<UCTheme>(uri, major, minor, "UbuntuTheme");
     // register QML singletons
     qmlRegisterSingletonType<QObject>(uri, major, minor, "PickerPanel", registerPickerPanel);
 }

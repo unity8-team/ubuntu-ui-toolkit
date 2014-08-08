@@ -190,5 +190,5 @@ StyledItem {
         }
     }
 
-    style: Theme.createStyleComponent("SliderStyle.qml", slider)
+    style: theme.createStyleComponent("SliderStyle.qml", slider)
 }

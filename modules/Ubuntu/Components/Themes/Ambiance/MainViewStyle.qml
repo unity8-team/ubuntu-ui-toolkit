@@ -66,7 +66,7 @@ Item {
 
     // automatically select the appropriate theme depending on the background colors
     Binding {
-        target: Theme
+        target: theme
         property: "name"
         value: "Ubuntu.Components.Themes.%1".arg(internals.theme)
         when: internals.theme !== ""

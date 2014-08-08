@@ -79,7 +79,7 @@ Style.PageHeadStyle {
                         horizontalAlignment: Text.AlignHCenter
                         color: sectionButton.selected ?
                                    UbuntuColors.orange :
-                                   Theme.palette.selected.backgroundText
+                                   theme.palette.selected.backgroundText
                     }
 
                     // vertical divider line
@@ -91,7 +91,7 @@ Style.PageHeadStyle {
                         height: units.dp(10)
                         width: units.dp(1)
                         visible: index < sectionsRepeater.model.length - 1
-                        color: Theme.palette.selected.backgroundText
+                        color: theme.palette.selected.backgroundText
                         opacity: 0.2
                     }
                 }

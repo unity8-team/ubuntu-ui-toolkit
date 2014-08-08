@@ -55,7 +55,7 @@ Text {
     property string fontSize: "medium"
 
     font.pixelSize: FontUtils.sizeToPixels(fontSize)
-    color: Theme.palette.selected.backgroundText
+    color: theme.palette.selected.backgroundText
 
     /* FIXME: workaround for QTBUG 35095 where Text's alignment is incorrect
        when the width changes and LayoutMirroring is enabled.

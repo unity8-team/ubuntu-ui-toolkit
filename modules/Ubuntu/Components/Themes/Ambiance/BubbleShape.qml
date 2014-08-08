@@ -104,7 +104,7 @@ Item {
     UbuntuShape {
         anchors.fill: parent
         borderSource: "none"
-        color: Theme.palette.normal.overlay
+        color: theme.palette.normal.overlay
         image: bubbleShape.clipContent ? shapeSource : null
         visible: !square
     }
@@ -128,7 +128,7 @@ Item {
         Rectangle {
             id: colorRect
             anchors.fill: parent
-            color: square ? Theme.palette.normal.background : Theme.palette.normal.overlay
+            color: square ? theme.palette.normal.background : theme.palette.normal.overlay
             visible: bubbleShape.clipContent
         }
     }

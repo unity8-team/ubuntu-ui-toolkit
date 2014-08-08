@@ -49,8 +49,8 @@ Item {
         anchors.fill: background
         sourceItem: background
         progress: thumb.x / thumb.barMinusThumbWidth
-        leftColor: Theme.palette.selected.foreground
-        rightColor: Theme.palette.normal.base
+        leftColor: theme.palette.selected.foreground
+        rightColor: theme.palette.normal.base
         mirror: Qt.application.layoutDirection == Qt.RightToLeft
     }
 
@@ -84,7 +84,7 @@ Item {
         width: units.gu(2)
         height: units.gu(2)
         opacity: 0.97
-        color: Theme.palette.normal.overlay
+        color: theme.palette.normal.overlay
     }
 
     BubbleShape {
@@ -117,7 +117,7 @@ Item {
             anchors.centerIn: parent
             text: styledItem.formatValue(SliderUtils.liveValue(styledItem))
             fontSize: "large"
-            color: Theme.palette.normal.overlayText
+            color: theme.palette.normal.overlayText
         }
     }
 }

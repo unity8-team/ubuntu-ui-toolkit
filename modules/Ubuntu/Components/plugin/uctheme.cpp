@@ -37,13 +37,13 @@
 #include <QtGui/QFont>
 
 /*!
-    \qmltype Theme
+    \qmltype UbuntuTheme
     \instantiates UCTheme
     \inqmlmodule Ubuntu.Components 1.1
     \ingroup theming
-    \brief The Theme class provides facilities to interact with the current theme.
+    \brief The UbuntuTheme class provides facilities to interact with the current theme.
 
-    A global instance is exposed as the \b Theme context property.
+    A global instance is exposed as the \b theme context property.
 
     The theme defines the visual aspect of the Ubuntu components.
 
@@ -55,7 +55,7 @@
 
     Item {
         Button {
-            onClicked: Theme.name = "Ubuntu.Components.Themes.Ambiance"
+            onClicked: theme.name = "Ubuntu.Components.Themes.Ambiance"
         }
     }
     \endqml
@@ -68,7 +68,7 @@
 
     StyledItem {
         id: myItem
-        style: Theme.createStyleComponent("MyItemStyle.qml", myItem)
+        style: theme.createStyleComponent("MyItemStyle.qml", myItem)
     }
     \endqml
 
@@ -284,12 +284,17 @@ void UCTheme::registerToContext(QQmlContext* context)
 
     // register Theme
     context->setContextProperty("Theme", this);
+    context->setContextProperty("theme", this);
 
-    ContextPropertyChangeListener *themeChangeListener =
+    ContextPropertyChangeListener *oldThemeChangeListener =
         new ContextPropertyChangeListener(context, "Theme");
     QObject::connect(this, SIGNAL(nameChanged()),
-                     themeChangeListener, SLOT(updateContextProperty()));
+                     oldThemeChangeListener, SLOT(updateContextProperty()));
 
+    ContextPropertyChangeListener *themeChangeListener =
+        new ContextPropertyChangeListener(context, "theme");
+    QObject::connect(this, SIGNAL(nameChanged()),
+                     themeChangeListener, SLOT(updateContextProperty()));
 }
 
 void UCTheme::loadPalette(bool notify)

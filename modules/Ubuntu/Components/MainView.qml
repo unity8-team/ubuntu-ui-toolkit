@@ -202,10 +202,10 @@ PageTreeNode {
     StyledItem {
         id: background
         anchors.fill: parent
-        style: Theme.createStyleComponent("MainViewStyle.qml", background)
+        style: theme.createStyleComponent("MainViewStyle.qml", background)
 
         property color headerColor: backgroundColor
-        property color backgroundColor: Theme.palette.normal.background
+        property color backgroundColor: theme.palette.normal.background
         property color footerColor: backgroundColor
     }
 

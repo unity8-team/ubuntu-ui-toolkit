@@ -802,7 +802,7 @@ StyledItem {
         }
         // hint is shown till user types something in the field
         visible: (editor.getText(0, editor.length) == "") && !editor.inputMethodComposing
-        color: Theme.palette.normal.backgroundText
+        color: theme.palette.normal.backgroundText
         fontSize: "medium"
         elide: Text.ElideRight
         wrapMode: Text.WordWrap
@@ -849,8 +849,8 @@ StyledItem {
                 handler: inputHandler
             }
             color: control.__styleInstance.color
-            selectedTextColor: Theme.palette.selected.foregroundText
-            selectionColor: Theme.palette.selected.selection
+            selectedTextColor: theme.palette.selected.foregroundText
+            selectionColor: theme.palette.selected.selection
             font.pixelSize: FontUtils.sizeToPixels("medium")
             // forward keys to the root element so it can be captured outside of it
             // as well as to InputHandler to handle PageUp/PageDown keys
@@ -872,5 +872,5 @@ StyledItem {
         }
     }
 
-    style: Theme.createStyleComponent("TextAreaStyle.qml", control)
+    style: theme.createStyleComponent("TextAreaStyle.qml", control)
 }

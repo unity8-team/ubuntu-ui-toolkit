@@ -68,27 +68,27 @@ Template {
             UbuntuShape {
                 objectName: "ubuntushape_radius_small"
 
-                color: Theme.palette.normal.foreground
+                color: theme.palette.normal.foreground
                 radius: "small"
 
                 Label {
                     anchors.centerIn: parent
                     text: "small"
                     fontSize: "x-small"
-                    color: Theme.palette.normal.foregroundText
+                    color: theme.palette.normal.foregroundText
                 }
             }
 
             UbuntuShape {
                 objectName: "ubuntushape_radius_medium"
-                color: Theme.palette.normal.foreground
+                color: theme.palette.normal.foreground
                 radius: "medium"
 
                 Label {
                     anchors.centerIn: parent
                     text: "medium"
                     fontSize: "x-small"
-                    color: Theme.palette.normal.foregroundText
+                    color: theme.palette.normal.foregroundText
                 }
             }
         }
@@ -100,7 +100,7 @@ Template {
 
             UbuntuShape {
                 objectName: "ubuntushape_sizes_15_6"
-                color: Theme.palette.normal.foreground
+                color: theme.palette.normal.foreground
                 width: units.gu(15)
                 height: units.gu(6)
                 anchors.verticalCenter: parent.verticalCenter
@@ -108,7 +108,7 @@ Template {
 
             UbuntuShape {
                 objectName: "ubuntushape_sizes_10_14"
-                color: Theme.palette.normal.foreground
+                color: theme.palette.normal.foreground
                 width: units.gu(10)
                 height: units.gu(14)
             }

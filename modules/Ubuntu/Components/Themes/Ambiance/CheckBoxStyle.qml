@@ -65,8 +65,8 @@ Item {
             }
             PropertyChanges {
                 target: background
-                color: Qt.rgba(Theme.palette.normal.foreground.r, Theme.palette.normal.foreground.g,
-                               Theme.palette.normal.foreground.b, 0.2)
+                color: Qt.rgba(theme.palette.normal.foreground.r, theme.palette.normal.foreground.g,
+                               theme.palette.normal.foreground.b, 0.2)
             }
         }
     ]

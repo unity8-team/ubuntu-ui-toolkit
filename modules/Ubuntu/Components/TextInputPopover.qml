@@ -72,7 +72,7 @@ Popover {
                 width: units.gu(6)
                 height: units.gu(6)
                 action: actions[modelData]
-                style: Theme.createStyleComponent("ToolbarButtonStyle.qml", button)
+                style: theme.createStyleComponent("ToolbarButtonStyle.qml", button)
                 onClicked: popover.hide()
             }
         }

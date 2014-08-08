@@ -103,7 +103,7 @@ Rectangle {
                 height: units.gu(8)
                 property bool opened: bottomLeftPanel.opened
                 property bool animating: bottomLeftPanel.animating
-                style: Theme.createStyleComponent("ToolbarStyle.qml", toolbar)
+                style: theme.createStyleComponent("ToolbarStyle.qml", toolbar)
                 Label {
                     anchors.centerIn: parent
                     text: "This looks like a standard toolbar"

@@ -31,7 +31,7 @@ Item {
         /* The color must be white for PartialColorizeUbuntuShape to accurately
            replace the white with leftColor and rightColor
         */
-        color: progressBar.indeterminate ? Theme.palette.normal.base : "white"
+        color: progressBar.indeterminate ? theme.palette.normal.base : "white"
     }
 
     property real progress: progressBar.indeterminate ? 0.0
@@ -44,8 +44,8 @@ Item {
         anchors.fill: background
         sourceItem: progressBar.indeterminate ? null : background
         progress: progressBarStyle.progress
-        leftColor: Theme.palette.selected.foreground
-        rightColor: Theme.palette.normal.base
+        leftColor: theme.palette.selected.foreground
+        rightColor: theme.palette.normal.base
         mirror: Qt.application.layoutDirection == Qt.RightToLeft
     }
 
@@ -53,7 +53,7 @@ Item {
         id: valueLabel
         anchors.centerIn: background
         fontSize: "medium"
-        color: Theme.palette.normal.baseText
+        color: theme.palette.normal.baseText
         text: progressBar.indeterminate ? i18n.tr("In Progress")
               : "%1%".arg(Number(progressBarStyle.progress * 100.0).toFixed(0))
         visible: !progressBar.hasOwnProperty("showProgressPercentage") || progressBar.showProgressPercentage
@@ -73,8 +73,8 @@ Item {
     PartialColorize {
         anchors.fill: valueLabel
         sourceItem: progressBar.indeterminate ? null : valueLabel
-        leftColor: Theme.palette.selected.foregroundText
-        rightColor: Theme.palette.normal.baseText
+        leftColor: theme.palette.selected.foregroundText
+        rightColor: theme.palette.normal.baseText
         progress: (progressBarStyle.progress * background.width - valueLabel.x) / valueLabel.width
         mirror: Qt.application.layoutDirection == Qt.RightToLeft
         visible: !progressBar.hasOwnProperty("showProgressPercentage") || progressBar.showProgressPercentage
