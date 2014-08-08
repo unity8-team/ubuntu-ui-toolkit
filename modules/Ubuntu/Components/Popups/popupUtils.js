@@ -54,7 +54,6 @@ function open(popup, caller, params) {
 
     // if caller is specified, connect its cleanup to the popup's close
     // so popups will be removed together with the caller.
-    print(caller)
     if (caller && caller.Component)
         caller.Component.onDestruction.connect(popupObject.__closePopup);
 
