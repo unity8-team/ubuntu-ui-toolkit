@@ -28,7 +28,7 @@ MainView {
             property date date: new Date()
             text: "Date picker: " + Qt.formatDate(date, "yyyy/MMMM/dd dddd")
             onClicked: {
-                var picker = PickerPanel.openDatePicker(datePickerButton, "date", "Years|Months|Days")
+                var picker = PickerPanelWorkaround.openDatePicker(datePickerButton, "date", "Years|Months|Days")
                 picker.picker.locale = Qt.locale("hu_HU")
             }
         }

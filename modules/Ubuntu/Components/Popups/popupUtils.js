@@ -47,14 +47,15 @@ function open(popup, caller, params) {
         popupObject = popupComponent.createObject(rootObject);
     }
     if (!popupObject) {
-        print("PopupUtils.open(): Failed to create the popup object.");
+        print("PopupUtils.open(): Failed to create the popup object.", popupComponent.errorString());
         return;
     } else if (popupObject.hasOwnProperty("caller") && caller)
         popupObject.caller = caller;
 
     // if caller is specified, connect its cleanup to the popup's close
     // so popups will be removed together with the caller.
-    if (caller)
+    print(caller)
+    if (caller && caller.Component)
         caller.Component.onDestruction.connect(popupObject.__closePopup);
 
     popupObject.show();

@@ -9,6 +9,8 @@ internal MonthModel MonthModel.qml
 internal DayModel DayModel.qml
 internal PickerModelBase PickerModelBase.qml
 
+PickerPanelWorkaround 1.0 pickerPanelWorkaround.js
+
 #version 1.0
 Picker 1.0 Picker.qml
 PickerDelegate 1.0 PickerDelegate.qml
