@@ -41,6 +41,7 @@ class ShapeItem : public QQuickItem
     Q_PROPERTY(HAlignment horizontalAlignment READ horizontalAlignment WRITE setHorizontalAlignment NOTIFY horizontalAlignmentChanged)
     Q_PROPERTY(VAlignment verticalAlignment READ verticalAlignment WRITE setVerticalAlignment NOTIFY verticalAlignmentChanged)
     Q_PROPERTY(QString borderSource READ borderSource WRITE setBorderSource NOTIFY borderSourceChanged)
+    Q_PROPERTY(bool pressed READ pressed WRITE pressed NOTIFY pressedChanged)
 
 public:
     ShapeItem(QQuickItem* parent=0);
@@ -58,6 +59,8 @@ public:
     void setRadius(const QString& radius);
     QString borderSource() const { return borderSource_; }
     void setBorderSource(const QString& borderSource);
+    bool pressed() const { return pressed_; }
+    void setPressed(bool pressed);
     QVariant image() const { return QVariant::fromValue(image_); }
     void setImage(const QVariant& image);
     bool stretched() const { return stretched_; }
@@ -73,6 +76,7 @@ Q_SIGNALS:
     void gradientColorChanged();
     void radiusChanged();
     void borderChanged();
+    void pressedChanged();
     void imageChanged();
     void stretchedChanged();
     void horizontalAlignmentChanged();
@@ -125,6 +129,7 @@ private:
     QString radiusString_;
     Radius radius_;
     QString borderSource_;
+    bool pressed_;
     Border border_;
     QQuickItem* image_;
     bool stretched_;

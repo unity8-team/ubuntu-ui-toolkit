@@ -211,6 +211,7 @@ ShapeItem::ShapeItem(QQuickItem* parent)
     , radiusString_("small")
     , radius_(ShapeItem::SmallRadius)
     , border_(ShapeItem::IdleBorder)
+    , pressed_(false)
     , image_(NULL)
     , stretched_(true)
     , hAlignment_(ShapeItem::AlignHCenter)
@@ -278,6 +279,23 @@ void ShapeItem::setBorderSource(const QString& borderSource)
         dirtyFlags_ |= ShapeItem::DirtyBorder;
         update();
         Q_EMIT borderSourceChanged();
+    }
+}
+
+void ShapeItem::setPressed(bool pressed)
+{
+    if (pressed_ != pressed) {
+        if (pressed) {
+            border_ = ShapeItem::IdleBorder;
+            borderSource_ = "radius_idle.sci";
+        } else {
+            border_ = ShapeItem::PressedBorder;
+            borderSource_ = "radius_pressed.sci";
+        }
+        dirtyFlags_ |= ShapeItem::DirtyBorder;
+        update();
+        Q_EMIT borderSourceChanged();
+        Q_EMIT pressedChanged();
     }
 }
 
