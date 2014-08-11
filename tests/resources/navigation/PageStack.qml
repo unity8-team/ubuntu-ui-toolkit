@@ -72,10 +72,9 @@ Rectangle {
                     }
                 }
 
-                tools: ToolbarItems {
-                    ToolbarButton {
-                        text: "oh"
-                    }
+                head.actions: Action {
+                    text: "oh"
+                    iconName: "search"
                 }
             }
 

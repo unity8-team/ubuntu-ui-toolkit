@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Canonical Ltd.
+ * Copyright 2013-2014 Canonical Ltd.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -20,7 +20,7 @@ import Ubuntu.Components 1.1
 MainView {
     width: 800
     height: 600
-    useDeprecatedToolbar: false
+    //    useDeprecatedToolbar: false
 
     Tabs {
         id: tabs
@@ -33,11 +33,9 @@ MainView {
                     anchors.centerIn: parent
                     text: i18n.tr("First page")
                 }
-                tools: ToolbarItems {
-                    ToolbarButton {
-                        text: "1111"
-                        iconSource: "call_icon.png"
-                    }
+                head.actions: Action {
+                    text: "1111"
+                    iconName: "active-call"
                 }
             }
         }
@@ -48,11 +46,9 @@ MainView {
                     anchors.centerIn: parent
                     text: i18n.tr("Second page")
                 }
-                tools: ToolbarItems {
-                    ToolbarButton {
-                        text: "2222"
-                        iconSource: "call_icon.png"
-                    }
+                head.actions: Action {
+                    text: "2222"
+                    iconName: "missed-call"
                 }
             }
         }
