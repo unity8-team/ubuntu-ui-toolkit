@@ -231,7 +231,8 @@ PageTreeNode {
       enables developers to have a sneak peek at the new features that are coming to
       the header, even before all the required functionality is implemented.
       This property will be deprecated after the new header implementation is done and
-      all apps transitioned to using it. Default value: true.
+      all apps transitioned to using it. Default value: true in Ubuntu.Components 1.0,
+      false in Ubuntu.Components 1.1.
      */
     property bool useDeprecatedToolbar: true
 
