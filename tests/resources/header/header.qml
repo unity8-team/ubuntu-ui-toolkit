@@ -37,13 +37,12 @@ MainView {
                         text: "Click me"
                         onTriggered: stack.push(pageOnStack)
                     }
-                    tools: ToolbarItems {
-                        ToolbarButton {
-                            action: Action {
-                                iconName: "settings"
-                                text: "Settings"
-                            }
+                    head {
+                        actions: Action {
+                            iconName: "settings"
+                            text: "Settings"
                         }
+                        foregroundColor: UbuntuColors.purple
                     }
                 }
             }
@@ -184,7 +183,7 @@ MainView {
                     id: sectionsPage
                     head {
                         sections {
-                            model: ["navy", "lightblue", "brown", "cyan", "darkgrey"]
+                            model: ["navy", "lightblue", "brown"]
                         }
                     }
                     Rectangle {
