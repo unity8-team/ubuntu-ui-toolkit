@@ -1,5 +1,5 @@
-Description: Remove failing tests for -gles package
-Author:  Zoltán Balogh <zoltan.balogh@canonical.com>
+Description: Disable failing component tests for gles packaging
+Author: Zoltan Balogh <zoltan.balogh@canonical.com>
 
 ---
 The information above should follow the Patch Tagging Guidelines, please
@@ -14,15 +14,18 @@ Forwarded: <no|not-needed|url proving that it has been forwarded>
 Reviewed-By: <name and email of someone who approved the patch>
 Last-Update: <YYYY-MM-DD>
 
---- ubuntu-ui-toolkit-1.1.1188+14.10.20140813.orig/tests/unit/unit.pro
-+++ ubuntu-ui-toolkit-1.1.1188+14.10.20140813/tests/unit/unit.pro
-@@ -14,8 +14,7 @@ SUBDIRS += testparser
-         tst_components_benchmark
+--- ubuntu-ui-toolkit-1.1.1188+14.10.20140813.4.orig/tests/unit/unit.pro
++++ ubuntu-ui-toolkit-1.1.1188+14.10.20140813.4/tests/unit/unit.pro
+@@ -10,11 +10,9 @@ SUBDIRS += testparser
+ # https://bugs.launchpad.net/qemu-linaro/+bug/1084148
+ #######################################
+ #!contains(QMAKE_HOST.arch,armv7l) {
+-    SUBDIRS += tst_components \
+-        tst_components_benchmark
  #}
  
 -SUBDIRS += tst_units \
--    tst_scaling_image_provider \
-+SUBDIRS += tst_scaling_image_provider \
++SUBDIRS += tst_unit \
+     tst_scaling_image_provider \
      tst_qquick_image_extension \
      tst_performance \
-     tst_mainview \
