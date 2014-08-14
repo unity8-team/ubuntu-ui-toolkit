@@ -29,8 +29,6 @@ import QtQuick 2.0
 StyledItem {
     id: node
 
-    Accessible.role: Accessible.PageTab
-
     /*!
       \internal
       Used to determine whether an Item is a PageTreeNode

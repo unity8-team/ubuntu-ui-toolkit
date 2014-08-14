@@ -27,6 +27,8 @@ import QtQuick 2.0
 PageTreeNode {
     id: tab
 
+    Accessible.role: Accessible.PageTab
+
     anchors.fill: parent ? parent : undefined
 
     /*!
