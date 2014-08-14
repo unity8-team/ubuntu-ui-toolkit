@@ -14,29 +14,6 @@ Forwarded: <no|not-needed|url proving that it has been forwarded>
 Reviewed-By: <name and email of someone who approved the patch>
 Last-Update: <YYYY-MM-DD>
 
---- ubuntu-ui-toolkit-1.1.1188+14.10.20140813.4.orig/tests/unit/unit.pro
-+++ ubuntu-ui-toolkit-1.1.1188+14.10.20140813.4/tests/unit/unit.pro
-@@ -10,8 +10,6 @@ SUBDIRS += testparser
- # https://bugs.launchpad.net/qemu-linaro/+bug/1084148
- #######################################
- #!contains(QMAKE_HOST.arch,armv7l) {
--    SUBDIRS += tst_components \
--        tst_components_benchmark
-
-
- SUBDIRS += tst_units \
---- ubuntu-ui-toolkit-1.1.1188+14.10.20140813.4.orig/tests/unit_x11/unit_x11.pro
-+++ ubuntu-ui-toolkit-1.1.1188+14.10.20140813.4/tests/unit_x11/unit_x11.pro
-@@ -1,7 +1,6 @@
- TEMPLATE = subdirs
-
--SUBDIRS += tst_components \
--    tst_ubuntu_shape \
-+SUBDIRS += tst_ubuntu_shape \
-     tst_page \
-     tst_test \
-     tst_inversemousearea \
-
 --- ubuntu-ui-toolkit-1.1.1188+14.10.20140813.4.orig/ubuntu-sdk.pro
 +++ ubuntu-ui-toolkit-1.1.1188+14.10.20140813.4/ubuntu-sdk.pro
 @@ -1,40 +1,7 @@
