@@ -27,6 +27,8 @@ import QtQuick 2.0
 StyledItem {
     id: tabBar
 
+    Accessible.role: Accessible.PageTabList
+
     /*!
       \deprecated
       The \l Tabs item that tab bar belongs to.
