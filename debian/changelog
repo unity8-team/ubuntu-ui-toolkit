@@ -2,7 +2,7 @@ ubuntu-ui-toolkit-gles (1.1.1214+14.10.20140825-0ubuntu1) utopic; urgency=medium
  
   * Sync package with ubuntu-ui-toolkit 1.1.1214+14.10.20140825-0ubuntu1
   
-  -- Zoltán Balogh <zoltan@bakter.hu>  Tue, 26 Aug 2014 14:11:04 +0300
+ -- Zoltán Balogh <zoltan@bakter.hu>  Tue, 26 Aug 2014 14:11:04 +0300
   
 ubuntu-ui-toolkit-gles (1.1.1188+14.10.20140813.4-0ubuntu1build1) utopic; urgency=medium
 
