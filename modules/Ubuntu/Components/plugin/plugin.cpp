@@ -61,6 +61,14 @@ QUrl UbuntuComponentsPlugin::m_baseUrl = QUrl();
  * Type registration functions.
  */
 
+static QObject *registerQuickUtils(QQmlEngine *engine, QJSEngine *scriptEngine)
+{
+    Q_UNUSED(engine)
+    Q_UNUSED(scriptEngine)
+
+    return new QuickUtils;
+}
+
 static QObject *registerClipboard(QQmlEngine *engine, QJSEngine *scriptEngine)
 {
     Q_UNUSED(engine)
@@ -91,7 +99,7 @@ static QObject *registerUriHandler(QQmlEngine *engine, QJSEngine *scriptEngine)
 QObject *UbuntuComponentsPlugin::registerQmlSingletonType(QQmlEngine *engine, const char* qmlFile)
 {
     QUrl url = m_baseUrl.resolved(QUrl::fromLocalFile(qmlFile));
-    return QuickUtils::instance().createQmlObject(url, engine);
+    return QuickUtils::createQmlObject(url, engine);
 }
 
 void UbuntuComponentsPlugin::registerWindowContextProperty()
@@ -121,6 +129,9 @@ void UbuntuComponentsPlugin::setWindowContextProperty(QWindow* focusWindow)
 
 void UbuntuComponentsPlugin::registerTypesToVersion(const char *uri, int major, int minor)
 {
+    // internal types
+    qmlRegisterSingletonType<QuickUtils>(uri, major, minor, "QuickUtils", registerQuickUtils);
+    // public types
     qmlRegisterType<UCStyledItemBase>(uri, major, minor, "StyledItemBase");
     qmlRegisterUncreatableType<UbuntuI18n>(uri, major, minor, "i18n", "Singleton object");
     qmlRegisterExtendedType<QQuickImageBase, UCQQuickImageExtension>(uri, major, minor, "QQuickImageBase");
@@ -172,10 +183,6 @@ void UbuntuComponentsPlugin::initializeEngine(QQmlEngine *engine, const char *ur
 
     QQmlExtensionPlugin::initializeEngine(engine, uri);
     QQmlContext* context = engine->rootContext();
-
-    // register root object watcher that sets a global property with the root object
-    // that can be accessed from any object
-    context->setContextProperty("QuickUtils", &QuickUtils::instance());
 
     UCTheme::instance().registerToContext(context);
 

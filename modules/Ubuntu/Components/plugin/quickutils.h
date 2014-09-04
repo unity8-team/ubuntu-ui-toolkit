@@ -32,10 +32,10 @@ class QuickUtils : public QObject
     Q_PROPERTY(QString inputMethodProvider READ inputMethodProvider)
     Q_PROPERTY(bool touchScreenAvailable READ touchScreenAvailable NOTIFY touchScreenAvailableChanged)
 public:
-    static QuickUtils& instance()
+    explicit QuickUtils(QObject *parent = 0);
+    static QuickUtils *instance()
     {
-        static QuickUtils instance;
-        return instance;
+        return m_instance.data();
     }
 
     QQuickItem *rootObject();
@@ -44,7 +44,7 @@ public:
     bool touchScreenAvailable() const;
 
     Q_INVOKABLE static QString className(QObject *item);
-    QObject* createQmlObject(const QUrl &url, QQmlEngine *engine);
+    static QObject* createQmlObject(const QUrl &url, QQmlEngine *engine);
 
 Q_SIGNALS:
     void rootObjectChanged();
@@ -56,7 +56,7 @@ protected:
     bool eventFilter(QObject *, QEvent *);
 
 private:
-    explicit QuickUtils(QObject *parent = 0);
+    static QPointer<QuickUtils> m_instance;
     QPointer<QQuickView> m_rootView;
 
     void lookupQuickView();

@@ -300,7 +300,7 @@ void UCTheme::loadPalette(bool notify)
     if (m_palette != NULL) {
         delete m_palette;
     }
-    m_palette = QuickUtils::instance().createQmlObject(styleUrl("Palette.qml"), m_engine);
+    m_palette = QuickUtils::createQmlObject(styleUrl("Palette.qml"), m_engine);
     if (notify) {
         Q_EMIT paletteChanged();
     }

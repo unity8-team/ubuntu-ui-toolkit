@@ -30,10 +30,13 @@
 #include <private/qquicktextinput_p.h>
 #include <private/qquicktextedit_p.h>
 
+QPointer<QuickUtils> QuickUtils::m_instance = 0;
+
 QuickUtils::QuickUtils(QObject *parent) :
     QObject(parent),
     m_rootView(0)
 {
+    m_instance = this;
     QGuiApplication::instance()->installEventFilter(this);
 }
 
