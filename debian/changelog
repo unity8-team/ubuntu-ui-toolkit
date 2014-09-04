@@ -1,3 +1,9 @@
+ubuntu-ui-toolkit-gles (1.1.1227+14.10.20140904-0ubuntu1) UNRELEASED; urgency=medium
+
+  * 1.1.1227+14.10.20140904-0ubuntu1
+
+ -- Zoltán Balogh <zoltan@bakter.hu>  Thu, 28 Aug 2014 08:17:14 +0300
+
 ubuntu-ui-toolkit-gles (1.1.1214+14.10.20140826-0ubuntu1) utopic; urgency=medium
  
   [ Zoltán Balogh ]
