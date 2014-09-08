@@ -125,7 +125,7 @@ private:
     {
         QPixmap pixmap;
 
-        if (filename.endsWith(".png")) {
+        if (filename.endsWith(".png") || filename.endsWith(".xpm")) {
             pixmap = QPixmap(filename);
             if (!pixmap.isNull() && size > 0 && (pixmap.width() != size || pixmap.height() != size))
                 pixmap = pixmap.scaled(size, size, Qt::KeepAspectRatioByExpanding);
@@ -144,15 +144,21 @@ private:
 
     QString lookupIconFile(const QString &dir, const QString &name)
     {
-        QString png = QString("%1/%2.png").arg(dir).arg(name);
-        QString svg = QString("%1/%2.svg").arg(dir).arg(name);
+        static QStringList extensions = QStringList() << "png" << "xpm" << "svg";
 
         Q_FOREACH(const QString &baseDir, baseDirs) {
-            QString filename = baseDir + "/" + png;
-            if (QFileInfo::exists(filename))
-                return filename;
+            Q_FOREACH(const QString &ext, extensions) {
+                QString filename = QString("%1/%2/%3.%4").arg(baseDir).arg(dir).arg(name).arg(ext);
+                if (QFileInfo::exists(filename))
+                    return filename;
+            }
+        }
 
-            filename = baseDir + "/" + svg;
+        // Fall back to looking in /usr/share/pixmaps. That directory isn't a
+        // real theme (it lacks an index.theme), but has icon files in the top
+        // level.
+        Q_FOREACH(const QString &ext, extensions) {
+            QString filename = QString("/usr/share/pixmaps/%3.%4").arg(name).arg(ext);
             if (QFileInfo::exists(filename))
                 return filename;
         }
