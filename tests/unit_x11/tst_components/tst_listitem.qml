@@ -527,7 +527,7 @@ Item {
             mouseLongPress(testItem, center.x, center.y);
             mouseRelease(testItem, center.x, center.y);
             pressAndHoldSpy.wait();
-            compare(clickSpy.count, "Click must be suppressed when long pressed");
+            compare(clickSpy.count, 0, "Click must be suppressed when long pressed");
         }
     }
 }
