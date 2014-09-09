@@ -514,5 +514,20 @@ Item {
             wait(1000)
             compare(xChangeSpy.count, 0, "No tug allowed when in selection mode");
         }
+
+        SignalSpy {
+            id: pressAndHoldSpy
+            signalName: "pressAndHold"
+        }
+        function test_pressandhold_suppress_click() {
+            var center = centerOf(testItem);
+            pressAndHoldSpy.target = testItem;
+            clickSpy.target = testItem;
+            clickSpy.clear();
+            mouseLongPress(testItem, center.x, center.y);
+            mouseRelease(testItem, center.x, center.y);
+            pressAndHoldSpy.wait();
+            compare(clickSpy.count, "Click must be suppressed when long pressed");
+        }
     }
 }

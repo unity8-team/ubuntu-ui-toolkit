@@ -25,6 +25,7 @@
 #include "i18n.h"
 #include "quickutils.h"
 #include "plugin.h"
+#include "ucmouse.h"
 #include <QtQml/QQmlInfo>
 #include <QtQuick/private/qquickitem_p.h>
 #include <QtQuick/private/qquickflickable_p.h>
@@ -780,6 +781,8 @@ void UCListItem::mousePressEvent(QMouseEvent *event)
     d->lastPos = d->pressedPos = event->localPos();
     // connect the Flickable to know when to rebound
     d->listenToRebind(true);
+    // start pressandhold timer
+    d->pressAndHoldTimer.start(DefaultPressAndHoldDelay, this);
     // accept the event so we get the rest of the events as well
     event->setAccepted(true);
 }
@@ -792,6 +795,7 @@ void UCListItem::mouseReleaseEvent(QMouseEvent *event)
         // no move is allowed while selectable mode is on
         return;
     }
+    d->pressAndHoldTimer.stop();
     // set released
     if (d->pressed) {
         // disconnect the flickable
@@ -847,6 +851,8 @@ void UCListItem::mouseMoveEvent(QMouseEvent *event)
             // connect both panels
             leadingAttached = d->grabPanel(d->leadingOptions, true);
             trailingAttached = d->grabPanel(d->trailingOptions, true);
+            // stop pressAndHold timer as we started to drag
+            d->pressAndHoldTimer.stop();
         }
     }
 
@@ -889,6 +895,18 @@ bool UCListItem::eventFilter(QObject *target, QEvent *event)
         event->accept();
     }
     return UCStyledItemBase::eventFilter(target, event);
+}
+
+void UCListItem::timerEvent(QTimerEvent *event)
+{
+    Q_D(UCListItem);
+    if (isEnabled() && (event->timerId() == d->pressAndHoldTimer.timerId())) {
+        d->pressAndHoldTimer.stop();
+        d->suppressClick = true;
+        Q_EMIT pressAndHold();
+    } else {
+        QQuickItem::timerEvent(event);
+    }
 }
 
 /*!

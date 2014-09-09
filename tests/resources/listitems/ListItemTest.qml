@@ -69,6 +69,7 @@ MainView {
                 print("click")
                 main.override = !main.override
             }
+            onPressAndHold: print("pressAndHold", objectName)
             Label {
                 anchors.fill: parent
                 text: units.gridUnit + "PX/unit"
