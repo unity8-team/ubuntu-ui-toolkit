@@ -41,6 +41,11 @@ MainView {
             onTriggered: print(iconName, "triggered", value)
         }
         Action {
+            iconName: "alarm-clock"
+            enabled: false
+            onTriggered: print(iconName, "triggered")
+        }
+        Action {
             iconName: "camcorder"
             onTriggered: print(iconName, "triggered", value)
         }
