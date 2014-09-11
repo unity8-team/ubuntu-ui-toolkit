@@ -22,6 +22,7 @@
 
 class QQmlComponent;
 class UCListItemOptionsPrivate;
+class QQmlBinding;
 class UCListItemOptions : public QObject
 {
     Q_OBJECT
@@ -30,6 +31,7 @@ class UCListItemOptions : public QObject
     Q_PROPERTY(QQuickItem *panelItem READ panelItem NOTIFY panelItemChanged)
     Q_PROPERTY(Status status READ status NOTIFY statusChanged)
     Q_PROPERTY(UCListItem *connectedItem READ connectedItem NOTIFY connectedItemChanged)
+    Q_PROPERTY(QColor panelColor READ panelColor WRITE setPanelColor NOTIFY panelColorChanged)
     Q_CLASSINFO("DefaultProperty", "options")
     Q_ENUMS(Status)
 public:
@@ -48,12 +50,15 @@ public:
     QQuickItem *panelItem() const;
     Status status() const;
     UCListItem *connectedItem() const;
+    QColor panelColor() const;
+    void setPanelColor(const QColor &color);
 
 Q_SIGNALS:
     void delegateChanged();
     void panelItemChanged();
     void statusChanged();
     void connectedItemChanged();
+    void panelColorChanged();
 
 public Q_SLOTS:
 

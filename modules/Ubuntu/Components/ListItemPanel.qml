@@ -47,6 +47,12 @@ Item {
     property var optionList
 
     /*
+      Panel color
+      */
+    property color color
+
+
+    /*
       Emitted when action is triggered
       */
     signal selected()
@@ -70,9 +76,10 @@ Item {
     }
 
     Rectangle {
+        id: panelBackground
         anchors.fill: parent
         // FIXME: use Palette colors instead when available
-        color: leadingPanel ? UbuntuColors.red : UbuntuColors.green
+        color: (panel.color != "#000000") ? panel.color : (leadingPanel ? UbuntuColors.red : UbuntuColors.green)
     }
 
     Row {

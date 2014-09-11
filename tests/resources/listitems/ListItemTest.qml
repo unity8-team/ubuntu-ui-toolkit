@@ -35,6 +35,7 @@ MainView {
     ListItemOptions {
         id: leading
         objectName: "StockLeading"
+        panelColor: (status == ListItemOptions.LeadingOptions) ? UbuntuColors.blue : UbuntuColors.lightGrey
         Action {
             iconName: "delete"
             onTriggered: print(iconName, "triggered", value)
@@ -140,6 +141,8 @@ MainView {
                         objectName: "InFlickable"+index
                         selectable: main.selectable
                         leadingOptions: ListItemOptions {
+                            id: optionData
+                            panelColor: "pink"
                             Action {
                                 iconName: "edit"
                                 onTriggered: print(iconName, "triggered", value)
@@ -150,11 +153,12 @@ MainView {
                             }
                         }
                         trailingOptions: ListItemOptions {
+                            panelColor: leadingOptions.panelColor
                             options: leadingOptions.options
                         }
 
                         contentItem {
-                            color: "red"
+                            color: UbuntuColors.red
                             pressedColor: "lime"
                         }
 

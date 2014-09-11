@@ -21,13 +21,21 @@
 #include "i18n.h"
 #include "plugin.h"
 #include <QtQml/QQmlInfo>
+#include <QtQuick/private/qquickitem_p.h>
+#include <QtQml/private/qqmlabstractbinding_p.h>
+#define foreach Q_FOREACH //workaround to fix private includes
+#include <QtQml/private/qqmlbinding_p.h>     // for QmlBinding
+#undef foreach
+
 
 UCListItemOptionsPrivate::UCListItemOptionsPrivate()
     : QObjectPrivate()
     , optionsFailure(false)
+    , panelColorChanged(false)
     , status(UCListItemOptions::Disconnected)
     , delegate(0)
     , panelItem(0)
+    , panelColor(Qt::transparent)
     , optionSlotWidth(0.0)
     , offsetDragged(0.0)
     , optionsVisible(0)
@@ -181,6 +189,7 @@ QQuickItem *UCListItemOptionsPrivate::createPanelItem()
             }
             panelItem->setProperty("optionList", QVariant::fromValue(options));
             component.completeCreate();
+            updatePanelColor();
             Q_EMIT q->panelItemChanged();
 
             // calculate option's slot size
@@ -190,15 +199,34 @@ QQuickItem *UCListItemOptionsPrivate::createPanelItem()
             // connect to panel to catch dragging
             QObject::connect(panelItem, SIGNAL(widthChanged()), q, SLOT(_q_handlePanelWidth()));
             QObject::connect(panelItem, SIGNAL(xChanged()), q, SLOT(_q_handlePanelDrag()));
-            // connect panel detaching to trigger selected action when
-            QObject::connect(q, SIGNAL(panelDetached(UCListItemOptions*)),
-                             panelItem, SLOT(fireAction()), Qt::DirectConnection);
         }
     } else {
         qmlInfo(q) << component.errorString();
     }
     return panelItem;
 }
+
+void UCListItemOptionsPrivate::updatePanelColor()
+{
+    if (!panelItem || !panelColorChanged) {
+        return;
+    }
+    Q_Q(UCListItemOptions);
+    // get this property binding
+    QQmlProperty myColor(q, "panelColor", qmlContext(q));
+    QQmlBinding *binding = static_cast<QQmlBinding*>(QQmlPropertyPrivate::binding(myColor));
+    if (!binding) {
+        // this is a simple value assignment, so only override panel's color
+        panelItem->setProperty("color", QVariant::fromValue(panelColor));
+    } else {
+        // transfer the binding to panelItem
+        // get panel item's color binding
+        QQmlProperty colorProperty(panelItem, "color", qmlContext(panelItem));
+        binding->setTarget(colorProperty);
+        binding->update();
+    }
+}
+
 
 /*!
  * \qmltype ListItemOptions
@@ -433,6 +461,28 @@ UCListItem *UCListItemOptions::connectedItem() const
 {
     Q_D(const UCListItemOptions);
     return d->panelItem ? qobject_cast<UCListItem*>(d->panelItem->parentItem()) : 0;
+}
+
+/*!
+ * \qmlproperty color ListItemOptions::panelColor
+ * The property overrides the default colouring of the \l panelItem.
+ */
+QColor UCListItemOptions::panelColor() const
+{
+    Q_D(const UCListItemOptions);
+    return d->panelColor;
+}
+void UCListItemOptions::setPanelColor(const QColor &color)
+{
+    Q_D(UCListItemOptions);
+    if (d->panelColor == color) {
+        return;
+    }
+    d->panelColor = color;
+    d->panelColorChanged = true;
+    // update panelItem's color
+    d->updatePanelColor();
+    Q_EMIT panelColorChanged();
 }
 
 #include "moc_uclistitemoptions.cpp"
