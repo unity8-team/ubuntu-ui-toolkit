@@ -191,8 +191,12 @@ QQuickItem *UCListItemOptionsPrivate::createPanelItem()
             }
             panelItem->setProperty("optionList", QVariant::fromValue(options));
             component.completeCreate();
-            updateColor("panelColor", panelColor);
-            updateColor("iconColor", iconColor);
+            if (panelColorChanged) {
+                updateColor("panelColor", panelColor);
+            }
+            if (iconColorChanged) {
+                updateColor("iconColor", iconColor);
+            }
             Q_EMIT q->panelItemChanged();
 
             // calculate option's slot size

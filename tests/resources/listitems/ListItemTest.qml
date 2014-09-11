@@ -41,6 +41,9 @@ MainView {
                 leading.panelColor = Qt.binding(function() {
                     return (leading.status == ListItemOptions.LeadingOptions) ? UbuntuColors.blue : UbuntuColors.lightGrey;
                 })
+                leading.iconColor = Qt.binding(function() {
+                    return (leading.status == ListItemOptions.LeadingOptions) ? "white" : UbuntuColors.red;
+                })
             }
         }
         Action {
@@ -109,7 +112,7 @@ MainView {
             id: view
             clip: true
             width: parent.width
-            height: units.gu(20)
+            height: units.gu(36)
             model: 10
             pressDelay: 0
             delegate: ListItem {
@@ -135,7 +138,7 @@ MainView {
         Flickable {
             id: flicker
             width: parent.width
-            height: units.gu(20)
+            height: units.gu(36)
             clip: true
             contentHeight: column.childrenRect.height
             Column {
