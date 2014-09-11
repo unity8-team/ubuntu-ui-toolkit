@@ -51,7 +51,6 @@ Item {
       */
     property color color
 
-
     /*
       Emitted when action is triggered
       */
