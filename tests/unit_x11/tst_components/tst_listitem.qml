@@ -32,7 +32,6 @@ Item {
     }
     ListItemOptions {
         id: leading
-        panelColor: UbuntuColors.blue
         Action {
             iconName: "delete"
             property var param
@@ -52,6 +51,7 @@ Item {
     ListItemOptions {
         id: trailing
         panelColor: leading.panelColor
+        iconColor: leading.iconColor
         options: [
             stockAction,
         ]
@@ -552,8 +552,14 @@ Item {
         function test_panelColor_change() {
             // change panel color for the leading and observe the trailing panelItem color change
             leading.panelColor = UbuntuColors.blue;
-            compare(leading.panelItem.color, UbuntuColors.blue, "leading panelItem color differs");
-            compare(trailing.panelItem.color, UbuntuColors.blue, "trailing panelItem color has not been set");
+            compare(leading.panelItem.panelColor, UbuntuColors.blue, "leading panelItem color differs");
+            compare(trailing.panelItem.panelColor, UbuntuColors.blue, "trailing panelItem color has not been set");
+        }
+        function test_iconColor_change() {
+            // change panel color for the leading and observe the trailing panelItem color change
+            leading.iconColor = UbuntuColors.green;
+            compare(leading.panelItem.iconColor, UbuntuColors.green, "leading panelItem color differs");
+            compare(trailing.panelItem.iconColor, UbuntuColors.green, "trailing panelItem color has not been set");
         }
     }
 }

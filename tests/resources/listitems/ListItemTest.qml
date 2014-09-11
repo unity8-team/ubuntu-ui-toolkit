@@ -35,10 +35,13 @@ MainView {
     ListItemOptions {
         id: leading
         objectName: "StockLeading"
-        panelColor: (status == ListItemOptions.LeadingOptions) ? UbuntuColors.blue : UbuntuColors.lightGrey
         Action {
             iconName: "delete"
-            onTriggered: print(iconName, "triggered", value)
+            onTriggered: { print(iconName, "triggered", value)
+                leading.panelColor = Qt.binding(function() {
+                    return (leading.status == ListItemOptions.LeadingOptions) ? UbuntuColors.blue : UbuntuColors.lightGrey;
+                })
+            }
         }
         Action {
             iconName: "alarm-clock"

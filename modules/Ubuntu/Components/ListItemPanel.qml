@@ -47,9 +47,10 @@ Item {
     property var optionList
 
     /*
-      Panel color
+      Panel and icon colors
       */
-    property color color
+    property color panelColor
+    property color iconColor
 
     /*
       Emitted when action is triggered
@@ -75,7 +76,7 @@ Item {
     Rectangle {
         anchors.fill: parent
         // FIXME: use Palette colors instead when available
-        color: (panel.color != "#000000") ? panel.color : (leadingPanel ? UbuntuColors.red : "#00000000")
+        color: (panel.panelColor != "#000000") ? panel.panelColor : (leadingPanel ? UbuntuColors.red : "#00000000")
     }
 
     Row {
@@ -133,7 +134,8 @@ Item {
                 height: width
                 name: option.iconName
                 // FIXME: use Palette colors instead when available
-                color: panel.leadingPanel ? "white" : UbuntuColors.lightGrey
+                color: (panel.iconColor != "#000000") ?
+                           panel.iconColor : (panel.leadingPanel ? "white" : UbuntuColors.lightGrey)
                 anchors.centerIn: parent
             }
         }

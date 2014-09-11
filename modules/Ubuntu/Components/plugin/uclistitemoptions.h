@@ -32,6 +32,7 @@ class UCListItemOptions : public QObject
     Q_PROPERTY(Status status READ status NOTIFY statusChanged)
     Q_PROPERTY(UCListItem *connectedItem READ connectedItem NOTIFY connectedItemChanged)
     Q_PROPERTY(QColor panelColor READ panelColor WRITE setPanelColor NOTIFY panelColorChanged)
+    Q_PROPERTY(QColor iconColor READ iconColor WRITE setIconColor NOTIFY iconColorChanged)
     Q_CLASSINFO("DefaultProperty", "options")
     Q_ENUMS(Status)
 public:
@@ -52,6 +53,8 @@ public:
     UCListItem *connectedItem() const;
     QColor panelColor() const;
     void setPanelColor(const QColor &color);
+    QColor iconColor() const;
+    void setIconColor(const QColor &color);
 
 Q_SIGNALS:
     void delegateChanged();
@@ -59,6 +62,7 @@ Q_SIGNALS:
     void statusChanged();
     void connectedItemChanged();
     void panelColorChanged();
+    void iconColorChanged();
 
 public Q_SLOTS:
 
