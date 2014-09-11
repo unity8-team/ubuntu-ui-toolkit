@@ -22,6 +22,39 @@ Template {
     objectName: "listItemsTemplate"
 
     ListItemsSection {
+        title: i18n.tr("ListItem - without layout")
+        className: "ListItem"
+        clip: true
+        delegate: Toolkit.ListItem {
+            leadingOptions: Toolkit.ListItemOptions {
+                Toolkit.Action {
+                    iconName: "delete"
+                }
+            }
+            trailingOptions: Toolkit.ListItemOptions {
+                Toolkit.Action {
+                    iconName: "edit"
+                }
+                Toolkit.Action {
+                    iconName: "contact"
+                }
+                Toolkit.Action {
+                    iconName: "email"
+                }
+            }
+
+            Toolkit.Label {
+                anchors {
+                    top: parent.top
+                    bottom: parent.bottom
+                }
+                verticalAlignment: Text.AlignVCenter
+                text: "Plain ListItem #" + modelData
+            }
+        }
+    }
+
+    ListItemsSection {
         title: i18n.tr("Standard")
         className: "Standard"
         delegate: ListItem.Standard {
