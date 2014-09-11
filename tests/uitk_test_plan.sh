@@ -16,22 +16,22 @@
 # Author: Zoltán Balogh <zoltan.baloghn@canonical.com>
 
 LAZY=true
-SERIALNUMBER=086e443edf51b915
+SERIALNUMBER=
 RESET=false
 COMISSION=false
 DONOTRUNTESTS=false
-PPA="ppa:ubuntu-sdk-team/staging"
-TIMESTAMP=`date +"%Y_%m_%d-%H_%M_%S"`
+PPA=
+TIMESTAMP=`date +"%Y-%m-%d_%H:%M:%S"`
 LOGFILENAME="ap-${TIMESTAMP}"
-OUTPUTDIR=$HOME
+OUTPUTDIR=./results/
 FILTER=.*
 
 declare -a TEST_SUITE=(
+" -p ubuntu-ui-toolkit-autopilot ubuntuuitoolkit"
 " filemanager"
 " gallery_app"
 " dropping_letters_app"
 " sudoku_app"
-" -p ubuntu-ui-toolkit-autopilot ubuntuuitoolkit"
 " -p webbrowser-app-autopilot webbrowser_app"
 " -n unity8"
 " shorts_app"
@@ -54,9 +54,11 @@ declare -a TEST_SUITE=(
 )
 
 function reset {
-	if [ ${RESET} == true  ]; then
-		adb shell reboot;sleep 5
-		/usr/share/qtcreator/ubuntu/scripts/device_wait_for_shell ${SERIALNUMBER} > /dev/null
+	if [ ${RESET} == true  -o  x"$1" == x-f ]; then
+		adb shell reboot ; sleep 5
+		adb wait-for-device ; sleep 60
+		#/usr/share/qtcreator/ubuntu/scripts/device_wait_for_shell ${SERIALNUMBER} > /dev/null
+		adb shell mount -o remount,rw /
 		phablet-config autopilot --dbus-probe enable
 		adb shell powerd-cli display on |egrep -v "Display State requested, cookie is|Press ctrl-c to exit" &
 		sleep 60
@@ -177,14 +179,7 @@ if [ ${DONOTRUNTESTS} == true ]; then
         exit
 fi
 
-if [ ${RESET} == false ]; then
-	echo "Reset the device for testing."
-        RESET=true
-        reset
-        RESET=false
-else
-        reset
-fi
+reset
 
 # Run the test suite
 for TEST_SET in "${TEST_SUITE[@]}"
@@ -199,26 +194,14 @@ do
 		egrep "<<<===|Ran|OK|FAILED" ${LOGFILE}
 		# check if the tests were successful and re-run after a reset
 		if grep -q "FAILED" ${LOGFILE}; then 
-		        if [ ${RESET} == false  ]; then
-				RESET=true
-				reset
-				RESET=false
-			else
-				reset
-			fi
+			reset -f
 			LOGFILE="$OUTPUTDIR/${LOGFILENAME}-${APPNAME}-2.tests"
 			COMMAND="phablet-test-run -s ${SERIALNUMBER} $TEST_SET >> ${LOGFILE}"
 	        	echo "<<<=== ${APPNAME} 2 ===>>>" >> ${LOGFILE}
 			eval ${COMMAND}
 			egrep "<<<===|Ran|OK|FAILED" ${LOGFILE}
 	        	if grep -q "FAILED" ${LOGFILE}; then
-		                if [ ${RESET} == false  ]; then
-        		                RESET=true
-                		        reset
-                        		RESET=false
-		                else
-        		                reset
-                		fi
+				reset -f
 		                LOGFILE="$OUTPUTDIR/${LOGFILENAME}-${APPNAME}-3.tests"
         		        COMMAND="phablet-test-run -s ${SERIALNUMBER} $TEST_SET >> ${LOGFILE}"
 			        echo "<<<=== ${APPNAME} 3 ===>>>" >> ${LOGFILE}
