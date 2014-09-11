@@ -841,9 +841,12 @@ plugins.qmltypes
     name: "UCListItemOptions"
     prototype: "QObject"
     exports: ["ListItemOptions 1.1"]
+    name: "Status"
     Property { name: "delegate"; type: "QQmlComponent"; isPointer: true }
     Property { name: "options"; type: "QObject"; isList: true; isReadonly: true }
     Property { name: "panelItem"; type: "QQuickItem"; isReadonly: true; isPointer: true }
+    Property { name: "status"; type: "Status"; isReadonly: true }
+    Property { name: "connectedItem"; type: "UCListItem"; isReadonly: true; isPointer: true }
     Signal {
     name: "panelDetached"
     Parameter { name: "options"; type: "UCListItemOptions"; isPointer: true }

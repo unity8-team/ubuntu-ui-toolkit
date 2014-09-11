@@ -28,8 +28,17 @@ class UCListItemOptions : public QObject
     Q_PROPERTY(QQmlComponent *delegate READ delegate WRITE setDelegate NOTIFY delegateChanged)
     Q_PROPERTY(QQmlListProperty<QObject> options READ options CONSTANT)
     Q_PROPERTY(QQuickItem *panelItem READ panelItem NOTIFY panelItemChanged)
+    Q_PROPERTY(Status status READ status NOTIFY statusChanged)
+    Q_PROPERTY(UCListItem *connectedItem READ connectedItem NOTIFY connectedItemChanged)
     Q_CLASSINFO("DefaultProperty", "options")
+    Q_ENUMS(Status)
 public:
+    enum Status {
+        Disconnected = 0,
+        LeadingOptions,
+        TrailingOptions
+    };
+
     explicit UCListItemOptions(QObject *parent = 0);
     ~UCListItemOptions();
 
@@ -37,10 +46,14 @@ public:
     void setDelegate(QQmlComponent *delegate);
     QQmlListProperty<QObject> options();
     QQuickItem *panelItem() const;
+    Status status() const;
+    UCListItem *connectedItem() const;
 
 Q_SIGNALS:
     void delegateChanged();
     void panelItemChanged();
+    void statusChanged();
+    void connectedItemChanged();
 
     void panelDetached(UCListItemOptions *options);
 

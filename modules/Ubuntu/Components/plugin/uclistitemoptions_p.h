@@ -32,8 +32,7 @@ public:
     }
 
     bool optionsFailure:1;
-    bool connected:1;
-    bool leading:1;
+    UCListItemOptions::Status status;
     QQmlComponent *delegate;
     QQuickItem *panelItem;
     QList<QObject*> options;
