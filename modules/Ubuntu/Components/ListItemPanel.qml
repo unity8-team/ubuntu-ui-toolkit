@@ -73,7 +73,6 @@ Item {
     }
 
     Rectangle {
-        id: panelBackground
         anchors.fill: parent
         // FIXME: use Palette colors instead when available
         color: (panel.color != "#000000") ? panel.color : (leadingPanel ? UbuntuColors.red : UbuntuColors.green)
