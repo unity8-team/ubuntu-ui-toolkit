@@ -55,8 +55,6 @@ Q_SIGNALS:
     void statusChanged();
     void connectedItemChanged();
 
-    void panelDetached(UCListItemOptions *options);
-
 public Q_SLOTS:
 
 private:
