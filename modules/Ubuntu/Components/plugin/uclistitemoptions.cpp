@@ -425,7 +425,7 @@ QQmlListProperty<QObject> UCListItemOptions::options()
 /*!
  * \qmlproperty Item ListItemOptions::panelItem
  * The property presents the Item holding the visualized options. The panel is
- * created when used the first time is used.
+ * created when used the first time.
  */
 QQuickItem *UCListItemOptions::panelItem() const
 {
@@ -434,7 +434,7 @@ QQuickItem *UCListItemOptions::panelItem() const
 }
 
 /*!
- * \qmlproperty enum ListItemOptions status
+ * \qmlproperty enum ListItemOptions::status
  * \readonly
  * The property holds the status of the ListItemOptions, whether is connected
  * as leading or as trailing option list to a \l ListItem. Possible valueas are:
@@ -443,7 +443,7 @@ QQuickItem *UCListItemOptions::panelItem() const
  *  \li \b \c LeadingOptions - the options list is connected as leading list
  *  \li \b \c TrailingOptions - the options list is connected as trailing list
  * \endlist
- * \sa ListItem::connectedItem
+ * \sa connectedItem
  */
 UCListItemOptions::Status UCListItemOptions::status() const
 {
@@ -452,10 +452,11 @@ UCListItemOptions::Status UCListItemOptions::status() const
 }
 
 /*!
- * \qmlproperty ListItem connectedItem
+ * \qmlproperty ListItem ListItemOptions::connectedItem
  * \readonly
  * The property holds the \l ListItem the options list is connected to. It is
  * null by default and when the status is \c Disconnected.
+ * \sa status
  */
 UCListItem *UCListItemOptions::connectedItem() const
 {
