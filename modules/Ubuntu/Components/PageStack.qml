@@ -163,6 +163,7 @@ PageTreeNode {
     function push(page, properties) {
         if (internal.stack.size() > 0) internal.stack.top().active = false;
         internal.stack.push(internal.createWrapper(page, properties));
+        internal.stack.top().active = true;
         internal.stackUpdated();
     }
 
