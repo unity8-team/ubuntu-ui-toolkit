@@ -41,6 +41,11 @@
          import Ubuntu.Components.ListItems 1.0
      \endcode
      \annotatedlist ubuntu-listitems
+     New list item layouts:
+     \code
+        import Ubuntu.Components 1.1
+     \endcode
+     \annotatedlist new-ubuntu-listitems
 
      \part Pickers
      Available through:

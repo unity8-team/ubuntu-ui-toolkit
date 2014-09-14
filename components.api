@@ -82,6 +82,11 @@ Icon10
 Label 0.1 1.0
 Text
     property string fontSize
+ListItemContainer 1.1
+MouseArea
+    property string preset
+ListItemLayout 1.1
+RowLayout
 Base 0.1 1.0
 Empty
     property variant icon
