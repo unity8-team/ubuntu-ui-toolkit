@@ -109,8 +109,7 @@ MainView {
                 Rectangle { border { color: UbuntuColors.lightGrey; width: 1 }
                     width: parent.width; height: units.gu(7)
                     ListItemLayout {
-                        ListItemContainer {
-                            preset: "leading"
+                        FramedImage {
                         }
                         Captions {
                             title.text: "Caption with empty details"
@@ -124,13 +123,8 @@ MainView {
                 Rectangle { border { color: UbuntuColors.lightGrey; width: 1 }
                     width: parent.width; height: units.gu(7)
                     ListItemLayout {
-                        ListItemContainer {
-                            preset: "leading"
-                            UbuntuShape {
-                                width: parent.Layout.maximumWidth
-                                height: parent.Layout.maximumHeight
-                                color: UbuntuColors.green
-                            }
+                        FramedImage {
+                            color: UbuntuColors.green
                         }
                         Captions {
                             title.text: "Caption"
