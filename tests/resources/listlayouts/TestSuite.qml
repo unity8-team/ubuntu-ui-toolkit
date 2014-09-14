@@ -36,20 +36,15 @@ MainView {
                 Rectangle { border { color: UbuntuColors.lightGrey; width: 1 }
                     width: parent.width; height: units.gu(7)
                     ListItemLayout {
-                        ListItemContainer {
+                        FramedImage {
                             id: leading2
-                            preset: "leading"
+                            frame.width: units.gu(3)
+                            frame.height: units.gu(3)
+                            iconName: "edit"
                             enabled: true
-//                            Layout.maximumWidth: units.gu(3)
-//                            Layout.maximumHeight: units.gu(3)
                             onClicked: trailing2.state = trailing2.state === "hidden" ? "" : "hidden"
-                            UbuntuShape {
-                                width: units.gu(3)
-                                height: units.gu(3)
-                                color: UbuntuColors.green
-                                anchors.horizontalCenter: parent.horizontalCenter
-                            }
                         }
+
                         Captions {
                             title.text: "Caption"
                             subtitle.text: "Click to hide/show leading container"
@@ -74,14 +69,11 @@ MainView {
                 Rectangle { border { color: UbuntuColors.lightGrey; width: 1 }
                     width: parent.width; height: units.gu(7)
                     ListItemLayout {
-                        ListItemContainer {
-                            preset: "leading"
-                            UbuntuShape {
-                                width: parent.Layout.maximumWidth
-                                height: parent.Layout.maximumHeight
-                                color: UbuntuColors.green
-                            }
+                        FramedImage {
+                            color: UbuntuColors.red
+                            image: Image { source: "images.png" }
                         }
+
                         Captions {
                             title.text: "Caption"
                             subtitle.text: "Subtitle\n third line"

@@ -109,3 +109,4 @@ singleton UbuntuColors 1.1 11/UbuntuColors.qml
 ListItemLayout 1.1 ListItemLayout.qml
 ListItemContainer 1.1 ListItemContainer.qml
 Captions 1.1 Captions.qml
+FramedImage 1.1 FramedImage.qml

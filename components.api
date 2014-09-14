@@ -73,6 +73,12 @@ Item
     property string fadeStyle
     readonly property bool running
     readonly property int status
+FramedImage 1.1
+ListItemContainer
+    property color color
+    property Image image
+    property string iconName
+    property Loader frame
 Header 0.1 1.0
 AppHeader
     property string _for_autopilot
