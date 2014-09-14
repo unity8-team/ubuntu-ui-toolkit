@@ -147,6 +147,4 @@ MouseArea {
 
     clip: true
     enabled: false
-
-//    Rectangle { anchors.fill: parent; border.width: 1}
 }

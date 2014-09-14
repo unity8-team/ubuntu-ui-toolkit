@@ -32,40 +32,6 @@ import QtQuick.Layouts 1.1
 RowLayout {
     id: layout
 
-//    /*!
-//      \qmlproperty ListItemContainer leading
-//      The property holds the first slot container. Its height is the layout height
-//      and its width is 5 grid units by default, and it is aligned as centered to
-//      the layout.
-//      */
-//    property alias leading: leadingContainer
-
-//    /*!
-//      \qmlproperty ListItemContainer captions
-//      The container where the list item content is placed.
-//      */
-//    property alias captions: captionsContainer
-
-//    /*!
-//      \qmlproperty ListItemContainer trailing
-//      The trailing container of the layout.
-//      */
-//    property alias trailing: trailingContainer
-
-//    // implementation
-//    ListItemContainer {
-//        id: leadingContainer
-//        preset: "leading"
-//    }
-//    ListItemContainer {
-//        id: captionsContainer
-//        preset: "captions"
-//    }
-//    ListItemContainer {
-//        id: trailingContainer
-//        preset: "trailing"
-//    }
-
     spacing: units.gu(1)
     anchors {
         fill: parent
