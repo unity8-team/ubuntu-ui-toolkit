@@ -40,6 +40,11 @@ AbstractButton
     property Gradient gradient
     property font font
     property string iconPosition
+Captions 1.1
+MouseArea
+    property string preset
+    property Label title
+    property Label subtitle
 CheckBox 0.1 1.0
 AbstractButton
     property bool checked
