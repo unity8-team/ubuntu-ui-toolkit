@@ -28,7 +28,7 @@ import QtQuick.Layouts 1.1
   and \l subtitle properties. The label's main configuration is provided by the
   \l preset property.
 
-  The Caption is not visible if neither the label content is set. Altering \c
+  The Captions is not visible if neither the label content is set. Altering \c
   visible property may destroy the handling. Therefore should be altered only
   through \c PropertyChanges so visibility control is preserved.
   \qml
@@ -40,12 +40,12 @@ import QtQuick.Layouts 1.1
       width: units.gu(40)
       height: units.gu(7)
 
-      Caption {
+      Captions {
           enabled: true
           onClicked: details.state = (details.state == "hidden") ? "" : "hidden"
           title.text: "Caption text"
       }
-      Caption {
+      Captions {
           id: details
           preset: "details"
           title.text: "Details"
