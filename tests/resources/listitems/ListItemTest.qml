@@ -37,7 +37,14 @@ MainView {
         objectName: "StockLeading"
         Action {
             iconName: "delete"
-            onTriggered: print(iconName, "triggered", value)
+            onTriggered: { print(iconName, "triggered", value)
+                leading.panelColor = Qt.binding(function() {
+                    return (leading.status == ListItemOptions.LeadingOptions) ? UbuntuColors.blue : UbuntuColors.lightGrey;
+                })
+                leading.iconColor = Qt.binding(function() {
+                    return (leading.status == ListItemOptions.LeadingOptions) ? "white" : UbuntuColors.red;
+                })
+            }
         }
         Action {
             iconName: "alarm-clock"
@@ -105,7 +112,7 @@ MainView {
             id: view
             clip: true
             width: parent.width
-            height: units.gu(20)
+            height: units.gu(36)
             model: 10
             pressDelay: 0
             delegate: ListItem {
@@ -131,7 +138,7 @@ MainView {
         Flickable {
             id: flicker
             width: parent.width
-            height: units.gu(20)
+            height: units.gu(36)
             clip: true
             contentHeight: column.childrenRect.height
             Column {
@@ -145,6 +152,8 @@ MainView {
                         objectName: "InFlickable"+index
                         selectable: main.selectable
                         leadingOptions: ListItemOptions {
+                            id: optionData
+                            panelColor: "pink"
                             Action {
                                 iconName: "edit"
                                 onTriggered: print(iconName, "triggered", value)
@@ -155,11 +164,12 @@ MainView {
                             }
                         }
                         trailingOptions: ListItemOptions {
+                            panelColor: leadingOptions.panelColor
                             options: leadingOptions.options
                         }
 
                         contentItem {
-                            color: "red"
+                            color: UbuntuColors.red
                             pressedColor: "lime"
                         }
                         divider.colorFrom: UbuntuColors.green

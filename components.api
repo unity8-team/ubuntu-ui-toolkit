@@ -849,6 +849,8 @@ plugins.qmltypes
     Property { name: "panelItem"; type: "QQuickItem"; isReadonly: true; isPointer: true }
     Property { name: "status"; type: "Status"; isReadonly: true }
     Property { name: "connectedItem"; type: "UCListItem"; isReadonly: true; isPointer: true }
+    Property { name: "panelColor"; type: "QColor" }
+    Property { name: "iconColor"; type: "QColor" }
     name: "UCMouse"
     prototype: "QObject"
     exports: ["Mouse 0.1", "Mouse 1.0"]

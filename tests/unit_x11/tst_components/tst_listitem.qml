@@ -50,6 +50,8 @@ Item {
     }
     ListItemOptions {
         id: trailing
+        panelColor: leading.panelColor
+        iconColor: leading.iconColor
         options: [
             stockAction,
         ]
@@ -179,6 +181,7 @@ Item {
             compare(optionsDefault.panelItem, null, "There is no panelItem created by default.");
             compare(optionsDefault.status, ListItemOptions.Disconnected, "optiosn list is disconnected by default");
             compare(optionsDefault.connectedItem, null, "No item is connected by default");
+            compare(optionsDefault.panelColor, "#000000", "default panelColor must be black");
         }
 
         function test_children_in_content_item() {
@@ -548,6 +551,19 @@ Item {
             waitForRendering(testItem, 800);
             compare(data.list.status, data.expectedStatus, "Status on the option list differs.");
             compare(data.list.connectedItem, data.item, "connectedItem is not the tugged item.");
+        }
+
+        function test_panelColor_change() {
+            // change panel color for the leading and observe the trailing panelItem color change
+            leading.panelColor = UbuntuColors.blue;
+            compare(leading.panelItem.panelColor, UbuntuColors.blue, "leading panelItem color differs");
+            compare(trailing.panelItem.panelColor, UbuntuColors.blue, "trailing panelItem color has not been set");
+        }
+        function test_iconColor_change() {
+            // change panel color for the leading and observe the trailing panelItem color change
+            leading.iconColor = UbuntuColors.green;
+            compare(leading.panelItem.iconColor, UbuntuColors.green, "leading panelItem color differs");
+            compare(trailing.panelItem.iconColor, UbuntuColors.green, "trailing panelItem color has not been set");
         }
     }
 }

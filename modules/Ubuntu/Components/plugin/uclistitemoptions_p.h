@@ -32,9 +32,13 @@ public:
     }
 
     bool optionsFailure:1;
+    bool panelColorChanged:1;
+    bool iconColorChanged:1;
     UCListItemOptions::Status status;
     QQmlComponent *delegate;
     QQuickItem *panelItem;
+    QColor panelColor;
+    QColor iconColor;
     QList<QObject*> options;
     QPointer<UCListItem> queuedItem;
     qreal optionSlotWidth;
@@ -56,6 +60,7 @@ public:
     static qreal snap(UCListItemOptions *options);
 
     QQuickItem *createPanelItem();
+    void updateColor(const char *property, const QColor &color);
 };
 
 #endif // UCLISTITEMOPTIONS_P_H

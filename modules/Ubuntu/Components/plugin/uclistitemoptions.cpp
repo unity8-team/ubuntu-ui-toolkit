@@ -21,13 +21,23 @@
 #include "i18n.h"
 #include "plugin.h"
 #include <QtQml/QQmlInfo>
+#include <QtQuick/private/qquickitem_p.h>
+#include <QtQml/private/qqmlabstractbinding_p.h>
+#define foreach Q_FOREACH //workaround to fix private includes
+#include <QtQml/private/qqmlbinding_p.h>     // for QmlBinding
+#undef foreach
+
 
 UCListItemOptionsPrivate::UCListItemOptionsPrivate()
     : QObjectPrivate()
     , optionsFailure(false)
+    , panelColorChanged(false)
+    , iconColorChanged(false)
     , status(UCListItemOptions::Disconnected)
     , delegate(0)
     , panelItem(0)
+    , panelColor(Qt::transparent)
+    , iconColor(Qt::transparent)
     , optionSlotWidth(0.0)
     , offsetDragged(0.0)
     , optionsVisible(0)
@@ -181,6 +191,12 @@ QQuickItem *UCListItemOptionsPrivate::createPanelItem()
             }
             panelItem->setProperty("optionList", QVariant::fromValue(options));
             component.completeCreate();
+            if (panelColorChanged) {
+                updateColor("panelColor", panelColor);
+            }
+            if (iconColorChanged) {
+                updateColor("iconColor", iconColor);
+            }
             Q_EMIT q->panelItemChanged();
 
             // calculate option's slot size
@@ -195,6 +211,35 @@ QQuickItem *UCListItemOptionsPrivate::createPanelItem()
         qmlInfo(q) << component.errorString();
     }
     return panelItem;
+}
+
+void UCListItemOptionsPrivate::updateColor(const char *property, const QColor &color)
+{
+    if (!panelItem) {
+        return;
+    }
+    Q_Q(UCListItemOptions);
+    // get this property binding
+    QQmlProperty myColor(q, property, qmlContext(q));
+    QQmlBinding *binding = static_cast<QQmlBinding*>(QQmlPropertyPrivate::binding(myColor));
+    if (!binding) {
+        // this is a simple value assignment, so only override panel's color
+        panelItem->setProperty(property, QVariant::fromValue(color));
+    } else {
+        // transfer the binding to panelItem
+        // get panel item's color binding
+        QQmlProperty colorProperty(panelItem, property, qmlContext(panelItem));
+        QQmlAbstractBinding *prevBinding = QQmlPropertyPrivate::binding(colorProperty);
+        if (prevBinding != binding) {
+            // clear the previous binding
+            prevBinding = QQmlPropertyPrivate::setBinding(colorProperty, 0);
+            if (prevBinding) {
+                prevBinding->destroy();
+            }
+            // do the "alias"
+            binding->retargetBinding(panelItem, colorProperty.index());
+        }
+    }
 }
 
 /*!
@@ -431,6 +476,51 @@ UCListItem *UCListItemOptions::connectedItem() const
 {
     Q_D(const UCListItemOptions);
     return d->panelItem ? qobject_cast<UCListItem*>(d->panelItem->parentItem()) : 0;
+}
+
+/*!
+ * \qmlproperty color ListItemOptions::panelColor
+ * The property overrides the default colouring of the \l panelItem.
+ */
+QColor UCListItemOptions::panelColor() const
+{
+    Q_D(const UCListItemOptions);
+    return d->panelColor;
+}
+void UCListItemOptions::setPanelColor(const QColor &color)
+{
+    Q_D(UCListItemOptions);
+    if (d->panelColor == color) {
+        return;
+    }
+    d->panelColor = color;
+    d->panelColorChanged = true;
+    // update panelItem's color
+    d->updateColor("panelColor", d->panelColor);
+    Q_EMIT panelColorChanged();
+}
+
+/*!
+ * \qmlproperty color ListItemOptions::iconColor
+ * The property overrides the default colouring of the icons in the default
+ * options visualization.
+ */
+QColor UCListItemOptions::iconColor() const
+{
+    Q_D(const UCListItemOptions);
+    return d->iconColor;
+}
+void UCListItemOptions::setIconColor(const QColor &color)
+{
+    Q_D(UCListItemOptions);
+    if (d->iconColor == color) {
+        return;
+    }
+    d->iconColor = color;
+    d->iconColorChanged = true;
+    // update panelItem's color
+    d->updateColor("iconColor", d->iconColor);
+    Q_EMIT iconColorChanged();
 }
 
 #include "moc_uclistitemoptions.cpp"
