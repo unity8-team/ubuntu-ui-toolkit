@@ -15,12 +15,12 @@
  */
 
 import QtQuick 2.2
-import Ubuntu.Components 1.1
+import Ubuntu.Components 1.2
 
 /*
   This component is the holder of the ListItem selection checkbox.
   */
-Rectangle {
+Item {
     id: panel
     width: height
 
@@ -33,8 +33,6 @@ Rectangle {
       Exposed checked property linked to the listItem's selected
       */
     property alias checked: checkbox.checked
-
-    color: checked ? contentItem.pressedColor : contentItem.color
 
     anchors {
         right: contentItem ? contentItem.left : undefined
