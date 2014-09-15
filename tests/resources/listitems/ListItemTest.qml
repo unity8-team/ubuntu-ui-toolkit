@@ -132,15 +132,25 @@ MainView {
                     model: 100
                     ListItem {
                         objectName: "InFlickable"+index
+                        leadingOptions: ListItemOptions {
+                            Action {
+                                iconName: "edit"
+                                onTriggered: print(iconName, "clicked")
+                            }
+                            Action {
+                                iconName: "delete"
+                                onTriggered: print(iconName, "clicked")
+                            }
+                        }
+                        trailingOptions: ListItemOptions {
+                            options: leadingOptions.options
+                        }
+
                         contentItem {
                             color: "red"
                             pressedColor: "lime"
                         }
                         divider.colorFrom: UbuntuColors.green
-
-                        trailingOptions: ListItemOptions {
-                            options: leading.options
-                        }
 
                         Label {
                             text: modelData + " Flickable item"

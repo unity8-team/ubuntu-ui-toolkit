@@ -22,6 +22,7 @@
 #include "uclistitemoptions_p.h"
 #include "ucubuntuanimation.h"
 #include "propertychange_p.h"
+#include "i18n.h"
 #include <QtQml/QQmlInfo>
 #include <QtQuick/private/qquickitem_p.h>
 #include <QtQuick/private/qquickflickable_p.h>
@@ -320,7 +321,6 @@ void UCListItemPrivate::init()
     reboundAnimation->setTargetObject(contentItem);
     reboundAnimation->setProperty("x");
     reboundAnimation->setAlwaysRunToEnd(true);
-    QObject::connect(reboundAnimation, SIGNAL(stopped()), q, SLOT(_q_completeRebinding()));
 }
 
 void UCListItemPrivate::setFocusable()
@@ -340,11 +340,16 @@ void UCListItemPrivate::_q_rebound()
         return;
     }
     setMoved(false);
-    // rebound to zero
+    //connect rebound completion so we can disconnect
+    QObject::connect(reboundAnimation, SIGNAL(stopped()), q, SLOT(_q_completeRebinding()));
+    // then rebound to zero
     reboundTo(0);
 }
 void UCListItemPrivate::_q_completeRebinding()
 {
+    Q_Q(UCListItem);
+    // disconnect animation, otherwise snapping will disconnect the panel
+    QObject::disconnect(reboundAnimation, SIGNAL(stopped()), q, SLOT(_q_completeRebinding()));
     // restore flickable's interactive and cleanup
     PropertyChange::restore(flickableInteractive);
     // disconnect options
@@ -652,9 +657,22 @@ void UCListItem::mouseReleaseEvent(QMouseEvent *event)
         if (!d->suppressClick) {
             Q_EMIT clicked();
             d->_q_rebound();
-        } else if (d->contentItem->x() == 0.0) {
-            // if no options list is connected, release flickable blockade
-            d->cleanup();
+        } else {
+            // snap
+            qreal snapPosition = 0.0;
+            if (d->contentItem->x() < 0) {
+                snapPosition = UCListItemOptionsPrivate::snap(d->trailingOptions);
+            } else if (d->contentItem->x() > 0) {
+                snapPosition = UCListItemOptionsPrivate::snap(d->leadingOptions);
+            }
+            if (d->contentItem->x() == 0.0) {
+                // do a cleanup, no need to rebound, the item has been dragged back to 0
+                d->cleanup();
+            } else if (snapPosition == 0.0){
+                d->_q_rebound();
+            } else {
+                d->reboundTo(snapPosition);
+            }
         }
     }
     d->setPressed(false);
@@ -730,6 +748,8 @@ bool UCListItem::eventFilter(QObject *target, QEvent *event)
  *
  * The property holds the options and its configuration to be revealed when swiped
  * from left to right.
+ *
+ * \sa trailingOptions
  */
 UCListItemOptions *UCListItem::leadingOptions() const
 {
@@ -743,6 +763,9 @@ void UCListItem::setLeadingOptions(UCListItemOptions *options)
         return;
     }
     d->leadingOptions = options;
+    if (d->leadingOptions == d->trailingOptions && d->leadingOptions) {
+        qmlInfo(this) << UbuntuI18n::tr("leadingOptions and trailingOptions cannot share the same object!");
+    }
     Q_EMIT leadingOptionsChanged();
 }
 
@@ -751,6 +774,8 @@ void UCListItem::setLeadingOptions(UCListItemOptions *options)
  *
  * The property holds the options and its configuration to be revealed when swiped
  * from right to left.
+ *
+ * \sa leadingOptions
  */
 UCListItemOptions *UCListItem::trailingOptions() const
 {
@@ -764,6 +789,9 @@ void UCListItem::setTrailingOptions(UCListItemOptions *options)
         return;
     }
     d->trailingOptions = options;
+    if (d->leadingOptions == d->trailingOptions && d->trailingOptions) {
+        qmlInfo(this) << UbuntuI18n::tr("leadingOptions and trailingOptions cannot share the same object!");
+    }
     Q_EMIT trailingOptionsChanged();
 }
 

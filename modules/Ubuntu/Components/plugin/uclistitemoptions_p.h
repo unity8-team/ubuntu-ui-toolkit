@@ -38,6 +38,12 @@ public:
     QQuickItem *panelItem;
     QList<QObject*> options;
     QPointer<UCListItem> queuedItem;
+    qreal optionSlotWidth;
+    qreal offsetDragged;
+    int optionsVisible;
+
+    void _q_handlePanelDrag();
+    void _q_handlePanelWidth();
 
     // options list property functions
     static void funcAppend(QQmlListProperty<QObject>*, QObject*);
@@ -48,6 +54,7 @@ public:
     static bool connectToListItem(UCListItemOptions *options, UCListItem *listItem, bool leading);
     static void disconnectFromListItem(UCListItemOptions *options);
     static bool isConnectedTo(UCListItemOptions *options, UCListItem *listItem);
+    static qreal snap(UCListItemOptions *options);
 
     QQuickItem *createPanelItem();
 };

@@ -78,7 +78,10 @@ Item {
             width: parent.width
             contentItem.color: "blue"
             leadingOptions: leading
-            trailingOptions: leading
+            trailingOptions: ListItemOptions {
+                options: leading.options
+            }
+
             Item {
                 id: bodyItem
                 anchors.fill: parent
@@ -128,6 +131,8 @@ Item {
             pressedSpy.clear();
             clickSpy.clear();
             listView.interactive = true;
+            // tap on the first item to make sure we are rebounding all
+            mouseClick(defaults, 0, 0);
             // make sure all events are processed
             wait(200);
         }
@@ -359,6 +364,47 @@ Item {
             verify(custom, "Custom delegate not in use");
             // cleanup
             mouseClick(main, 0, 0);
+        }
+
+        // execute as last so we make sure we have the panel created
+        function test_snap_data() {
+            verify(testItem.leadingOptions.panelItem, "Panel had not been created!");
+            var option = findChild(testItem.leadingOptions.panelItem, "list_option_0");
+            verify(option, "Options not accessible");
+            var optionSize = option.width;
+            return [
+                {tag: "Snap back leading, mouse", item: testItem.contentItem, dx: optionSize / 2 - 10, list: testItem.leadingOptions, snap: false, mouse: true},
+                {tag: "Snap back leading, touch", item: testItem.contentItem, dx: optionSize / 2 - 10, list: testItem.leadingOptions, snap: false, mouse: false},
+                {tag: "Snap in leading, mouse", item: testItem.contentItem, dx: optionSize / 2 + 10, list: testItem.leadingOptions, snap: true, mouse: true},
+                {tag: "Snap in leading, touch", item: testItem.contentItem, dx: optionSize / 2 + 10, list: testItem.leadingOptions, snap: true, mouse: false},
+
+                {tag: "Snap back trailing, mouse", item: testItem.contentItem, dx: -(optionSize / 2 - 10), list: testItem.trailingOptions, snap: false, mouse: true},
+                {tag: "Snap back trailing, touch", item: testItem.contentItem, dx: -(optionSize / 2 - 10), list: testItem.trailingOptions, snap: false, mouse: false},
+                {tag: "Snap in trailing, mouse", item: testItem.contentItem, dx: -(optionSize / 2 + 10), list: testItem.trailingOptions, snap: true, mouse: true},
+                {tag: "Snap in trailing, touch", item: testItem.contentItem, dx: -(optionSize / 2 + 10), list: testItem.trailingOptions, snap: true, mouse: false},
+            ];
+        }
+        function test_snap(data) {
+            if (data.mouse) {
+                flick(data.item, centerOf(data.item).x, centerOf(data.item).y, data.dx, 0);
+            } else {
+                TestExtras.touchDrag(0, data.item, centerOf(data.item), Qt.point(data.dx, 0));
+            }
+
+            waitForRendering(data.item, 800);
+            if (data.snap) {
+                verify(data.item.x != 0, "Not snapped to be visible");
+            } else {
+                verify(data.item.x == 0, "Not snapped back");
+            }
+
+            // cleanup
+            if (data.mouse) {
+                mouseClick(data.item, centerOf(data.item).x, centerOf(data.item).y);
+            } else {
+                TestExtras.touchClick(0, data.item, centerOf(data.item));
+            }
+            waitForRendering(data.item, 800);
         }
     }
 }

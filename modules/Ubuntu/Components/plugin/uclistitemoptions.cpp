@@ -29,10 +29,37 @@ UCListItemOptionsPrivate::UCListItemOptionsPrivate()
     , leading(false)
     , delegate(0)
     , panelItem(0)
+    , optionSlotWidth(0.0)
+    , offsetDragged(0.0)
+    , optionsVisible(0)
 {
 }
 UCListItemOptionsPrivate::~UCListItemOptionsPrivate()
 {
+}
+
+void UCListItemOptionsPrivate::_q_handlePanelDrag()
+{
+    UCListItem *listItem = qobject_cast<UCListItem*>(panelItem->parentItem());
+    if (!listItem) {
+        return;
+    }
+
+    Q_Q(UCListItemOptions);
+    offsetDragged = (leading) ? panelItem->width() + panelItem->x() :
+                         listItem->width() - panelItem->x();
+    if (offsetDragged < 0.0) {
+        offsetDragged = 0.0;
+    }
+    if (optionSlotWidth > 0.0) {
+        optionsVisible = (int)trunc(offsetDragged / optionSlotWidth);
+    }
+}
+
+void UCListItemOptionsPrivate::_q_handlePanelWidth()
+{
+    optionSlotWidth = panelItem->width() / options.count();
+    _q_handlePanelDrag();
 }
 
 void UCListItemOptionsPrivate::funcAppend(QQmlListProperty<QObject> *list, QObject *option)
@@ -86,6 +113,7 @@ bool UCListItemOptionsPrivate::connectToListItem(UCListItemOptions *options, UCL
     _this->leading = leading;
     _this->panelItem->setProperty("leadingPanel", leading);
     _this->panelItem->setParentItem(listItem);
+    _this->offsetDragged = 0.0;
     QObject::connect(_this->panelItem, SIGNAL(selected()), _this->panelItem->parentItem(), SLOT(_q_rebound()));
     _this->connected = true;
     return true;
@@ -116,6 +144,21 @@ bool UCListItemOptionsPrivate::isConnectedTo(UCListItemOptions *options, UCListI
     return _this && _this->panelItem && _this->connected && (_this->panelItem->parentItem() == listItem);
 }
 
+qreal UCListItemOptionsPrivate::snap(UCListItemOptions *options)
+{
+    UCListItemOptionsPrivate *_this = get(options);
+    if (!_this || !_this->panelItem) {
+        return 0.0;
+    }
+    qreal ratio = _this->offsetDragged / _this->optionSlotWidth;
+    int visible = _this->optionsVisible;
+    if (ratio > 0.0 && (ratio - trunc(ratio)) > 0.5) {
+        visible++;
+    }
+    return visible * _this->optionSlotWidth * (_this->leading ? 1 : -1);
+}
+
+
 QQuickItem *UCListItemOptionsPrivate::createPanelItem()
 {
     if (panelItem) {
@@ -135,6 +178,14 @@ QQuickItem *UCListItemOptionsPrivate::createPanelItem()
             panelItem->setProperty("optionList", QVariant::fromValue(options));
             component.completeCreate();
             Q_EMIT q->panelItemChanged();
+
+            // calculate option's slot size
+            optionSlotWidth = panelItem->width() / options.count();
+            offsetDragged = 0.0;
+            optionsVisible = 0;
+            // connect to panel to catch dragging
+            QObject::connect(panelItem, SIGNAL(widthChanged()), q, SLOT(_q_handlePanelWidth()));
+            QObject::connect(panelItem, SIGNAL(xChanged()), q, SLOT(_q_handlePanelDrag()));
         }
     } else {
         qmlInfo(q) << component.errorString();
@@ -166,13 +217,29 @@ QQuickItem *UCListItemOptionsPrivate::createPanelItem()
  *
  * When tugged, panels reveal the options one by one. In case an option is revealed
  * more than 50%, the option will be snapped and revealed completely. This is also
- * valid for the case when the option is visibl eless than 50%, in which case the
+ * valid for the case when the option is visible less than 50%, in which case the
  * option is hidden. Options can be triggered by tapping.
  *
- * \note You can use the same ListItemOptions for leading and for trailing options
- * the same time only if the options are used in a ListView or in a list where the
- * list items are scrolled by the same Flickable. In any other circumstances use
- * separate ListItemOptions for leading and trailing options.
+ * \note You cannot use the same ListItemOptions for leading and for trailing options
+ * the same time as when the item content is tugged, both options' panels will be
+ * bound to the list item, and teh same item cannot be bount to both edges. However
+ * the same set of actions can be used for both options either by using a shared
+ * set or by using the others' list. Example:
+ * \qml
+ * ListItem {
+ *     leadingOptions: ListItemOptions {
+ *         Action {
+ *             iconName: "edit"
+ *         }
+ *         Action {
+ *             iconName: "delete"
+ *         }
+ *     }
+ *     trailingOptions: ListItemOptions {
+ *         options: leadingOptions.options
+ *     }
+ * }
+ * \endqml
  *
  * \section3 Notes on performance
  * When used with views, or when the amount of items of same kind to be created
