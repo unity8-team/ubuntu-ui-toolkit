@@ -21,11 +21,13 @@
 #include "ucstyleditembase.h"
 
 class UCListItemContent;
+class UCListItemDivider;
 class UCListItemPrivate;
 class UCListItem : public UCStyledItemBase
 {
     Q_OBJECT
     Q_PROPERTY(UCListItemContent *contentItem READ contentItem CONSTANT)
+    Q_PROPERTY(UCListItemDivider *divider READ divider CONSTANT)
     Q_PROPERTY(bool pressed READ pressed NOTIFY pressedChanged)
     Q_PROPERTY(QQmlListProperty<QObject> data READ data DESIGNABLE false)
     Q_PROPERTY(QQmlListProperty<QQuickItem> children READ children NOTIFY childrenChanged DESIGNABLE false)
@@ -35,10 +37,13 @@ public:
     ~UCListItem();
 
     UCListItemContent *contentItem() const;
+    UCListItemDivider *divider() const;
     bool pressed() const;
 
 protected:
+    void componentComplete();
     void itemChange(ItemChange change, const ItemChangeData &data);
+    QSGNode *updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *data);
     void geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometry);
     void mousePressEvent(QMouseEvent *event);
     void mouseReleaseEvent(QMouseEvent *event);

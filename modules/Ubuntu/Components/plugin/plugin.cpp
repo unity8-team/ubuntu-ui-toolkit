@@ -162,6 +162,7 @@ void UbuntuComponentsPlugin::registerTypes(const char *uri)
     // ListItem and related types
     qmlRegisterType<UCListItem, 1>(uri, 1, 1, "ListItem");
     qmlRegisterType<UCListItemContent>();
+    qmlRegisterType<UCListItemDivider>();
 }
 
 void UbuntuComponentsPlugin::initializeEngine(QQmlEngine *engine, const char *uri)
