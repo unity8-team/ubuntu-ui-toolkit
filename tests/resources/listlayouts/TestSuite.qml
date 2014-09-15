@@ -36,55 +36,23 @@ MainView {
                 Rectangle { border { color: UbuntuColors.lightGrey; width: 1 }
                     width: parent.width; height: units.gu(7)
                     ListItemLayout {
-                        ListItemContainer {
-                            id: leading2
-                            preset: "leading"
-                            enabled: true
-//                            Layout.maximumWidth: units.gu(3)
-//                            Layout.maximumHeight: units.gu(3)
-                            onClicked: trailing2.state = trailing2.state === "hidden" ? "" : "hidden"
-                            UbuntuShape {
-                                width: units.gu(3)
-                                height: units.gu(3)
-                                color: UbuntuColors.green
-                                anchors.horizontalCenter: parent.horizontalCenter
+                        ColumnLayout {
+                            spacing: units.gu(0.5)
+                            Layout.alignment: Qt.AlignVCenter
+                            Layout.maximumHeight: parent.height
+                            Layout.maximumWidth: parent.width
+                            Layout.preferredWidth: childrenRect.width
+                            Layout.fillWidth: true
+                            Label {
+                                text: "Title"
+                                fontSize: "large"
+                            }
+                            Label {
+                                text: "Subtitle"
+                                fontSize: "small"
                             }
                         }
-                        Captions {
-                            title.text: "Caption"
-                            subtitle.text: "Click to hide/show leading container"
-                            enabled: true
-                            onClicked: leading2.visible = !leading2.visible
-                        }
-                        Captions {
-                            id: trailing2
-                            preset: "details"
-                            title.text: "Text"
-                            subtitle.text: "Text"
-                            states: State {
-                                name: "hidden"
-                                PropertyChanges {
-                                    target: trailing2
-                                    visible: false
-                                }
-                            }
-                        }
-                    }
-                }
-                Rectangle { border { color: UbuntuColors.lightGrey; width: 1 }
-                    width: parent.width; height: units.gu(7)
-                    ListItemLayout {
-                        ListItemContainer {
-                            preset: "leading"
-                            UbuntuShape {
-                                width: parent.Layout.maximumWidth
-                                height: parent.Layout.maximumHeight
-                                color: UbuntuColors.green
-                            }
-                        }
-                        Captions {
-                            title.text: "Caption"
-                            subtitle.text: "Subtitle\n third line"
+                        Switch {
                         }
                     }
                 }
@@ -92,67 +60,24 @@ MainView {
                     width: parent.width; height: units.gu(7)
                     ListItemLayout {
                         Captions {
-                            title.text: "Caption"
-                            subtitle.text: "Subtitle\n third line"
+                            title.text: "Caption (title)"
+                            subtitle.text: "Subtitle"
                         }
-                        Captions {
-                            preset: "details"
-                            title.text: "Text"
-                        }
-                    }
-                }
-                Rectangle { border { color: UbuntuColors.lightGrey; width: 1 }
-                    width: parent.width; height: units.gu(7)
-                    ListItemLayout {
-                        Captions {
-                            title.text: "Caption"
-                            subtitle.text: "Subtitle\n third line"
-                        }
-                        ListItemContainer {
-                            preset: "trailing"
-                            Switch {}
-                        }
-                    }
-                }
-                Rectangle { border { color: UbuntuColors.lightGrey; width: 1 }
-                    width: parent.width; height: units.gu(7)
-                    ListItemLayout {
-                        ListItemContainer {
-                            preset: "leading"
-                        }
-                        Captions {
-                            title.text: "Caption with empty details"
-                            subtitle.text: "Subtitle\n third line"
-                        }
-                        Captions {
-                            preset: "details"
-                        }
-                    }
-                }
-                Rectangle { border { color: UbuntuColors.lightGrey; width: 1 }
-                    width: parent.width; height: units.gu(7)
-                    ListItemLayout {
-                        ListItemContainer {
-                            preset: "leading"
-                            UbuntuShape {
-                                width: parent.Layout.maximumWidth
-                                height: parent.Layout.maximumHeight
-                                color: UbuntuColors.green
-                            }
-                        }
-                        Captions {
-                            title.text: "Caption"
-                        }
-                        UbuntuShape {
-                            Layout.preferredHeight: parent.height
-                            Layout.preferredWidth: units.gu(3)
-                            color: UbuntuColors.blue
-                        }
-
                         Captions {
                             preset: "details"
                             title.text: "Text"
                             subtitle.text: "Text"
+                        }
+                    }
+                }
+                Rectangle { border { color: UbuntuColors.lightGrey; width: 1 }
+                    width: parent.width; height: units.gu(7)
+                    ListItemLayout {
+                        Captions {
+                            title.text: "Caption (title)"
+                            subtitle.text: "Subtitle"
+                        }
+                        Switch {
                         }
                     }
                 }
