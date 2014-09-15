@@ -76,7 +76,7 @@ Item {
     Rectangle {
         anchors.fill: parent
         // FIXME: use Palette colors instead when available
-        color: (panel.panelColor != "#000000") ? panel.panelColor : (leadingPanel ? UbuntuColors.red : "#00000000")
+        color: (panel.panelColor != "#000000") ? panel.panelColor : (leadingPanel ? UbuntuColors.red : "white")
     }
 
     Row {
@@ -94,6 +94,7 @@ Item {
             model: panel.optionList
             AbstractButton {
                 action: modelData
+                visible: action.visible && action.enabled
                 width: (!visible || !enabled) ?
                            0 : MathUtils.clamp(delegateLoader.item ? delegateLoader.item.width : 0, height, optionsRow.maxItemWidth)
                 anchors {
@@ -135,7 +136,7 @@ Item {
                 name: option.iconName
                 // FIXME: use Palette colors instead when available
                 color: (panel.iconColor != "#000000") ?
-                           panel.iconColor : (panel.leadingPanel ? "white" : UbuntuColors.lightGrey)
+                           panel.iconColor : (panel.leadingPanel ? "white" : UbuntuColors.darkGrey)
                 anchors.centerIn: parent
             }
         }

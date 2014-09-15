@@ -67,7 +67,15 @@ void UCListItemOptionsPrivate::_q_handlePanelDrag()
 
 void UCListItemOptionsPrivate::_q_handlePanelWidth()
 {
-    optionSlotWidth = panelItem->width() / options.count();
+    // check how many options are visible && enabled
+    // FIXME: use Actions API when moved to C++
+    int count = 0;
+    for (int i = 0; i < options.count(); i++) {
+        if (options[i]->property("visible").toBool() && options[i]->property("enabled").toBool()) {
+            count++;
+        }
+    }
+    optionSlotWidth = panelItem->width() / count;
     _q_handlePanelDrag();
 }
 
@@ -246,8 +254,9 @@ void UCListItemOptionsPrivate::updateColor(const char *property, const QColor &c
  * \qmltype ListItemOptions
  * \instantiates UCListItemOptions
  * \inherits QtQObject
- * \inqmlmodule Ubuntu.Components 1.1
- * \ingroup ubuntu
+ * \inqmlmodule Ubuntu.Components 1.2
+ * \since Ubuntu.Components 1.2
+ * \ingroup unstable-ubuntu-listitems
  * \brief Provides configuration for options to be added to a ListItem.
  *
  * ListItem accepts options that can be configured to appear when tugged to left
@@ -296,7 +305,7 @@ void UCListItemOptionsPrivate::updateColor(const char *property, const QColor &c
  * instances. In this way we can reduce the creation time of the items:
  * \qml
  * import QtQuick 2.2
- * import Ubuntu.Components 1.1
+ * import Ubuntu.Components 1.2
  *
  * MainView {
  *     width: units.gu(40)
@@ -351,7 +360,7 @@ UCListItemOptions::~UCListItemOptions()
  * number of options in the list.
  * \qml
  * import QtQuick 2.2
- * import Ubuntu.Components 1.1
+ * import Ubuntu.Components 1.2
  *
  * MainView {
  *     width: units.gu(40)
