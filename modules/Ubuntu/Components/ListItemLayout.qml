@@ -23,11 +23,38 @@ import QtQuick.Layouts 1.1
   \ingroup new-ubuntu-listitems
   \brief Standard ListItem layout for vertical flowing lists.
 
-  The component is a simple RowLayout which provides positioning of the different
-  containers, which can either be \l ListItemContainer elements or any other element.
-  It fills the entire item it is embedded in, with 1 grid unit top and bottom margin,
-  2 grid units left and right margins. The spacing in between the containers is 1 grid
-  unit.
+  The component is a simple RowLayout providing positioning of the different containers,
+  which can be one of the predefined containers or any other component. It fills
+  the entire item it is embedded in, with 1 grid unit margin on top and bottom,
+  as well as 2 grid units margin on left and right. The spacing in between the
+  containers is 1 grid unit. Component sizes can be driven using the layouting
+  mechanism provided by QtQuick.
+  \qml
+  import QtQuick 2.2
+  import QtQuick.Layouts 1.1
+  import Ubuntu.Components 1.1
+
+  Item {
+      ListItemLayout {
+          ColumnLayout {
+              spacing: units.gu(0.5)
+              Layout.alignment: Qt.AlignVCenter
+              Layout.maximumHeight: parent.height
+              Layout.maximumWidth: parent.width
+              Layout.preferredWidth: childrenRect.width
+              Layout.fillWidth: true
+              Label {
+                  text: "Title"
+              }
+              Label {
+                  text: "Title"
+              }
+          }
+          Switch {
+          }
+      }
+  }
+  \endqml
  */
 RowLayout {
     id: layout

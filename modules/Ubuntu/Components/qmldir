@@ -107,4 +107,3 @@ Icon 1.1 Icon11.qml
 StyledItem 1.1 StyledItem.qml
 singleton UbuntuColors 1.1 11/UbuntuColors.qml
 ListItemLayout 1.1 ListItemLayout.qml
-ListItemContainer 1.1 ListItemContainer.qml
