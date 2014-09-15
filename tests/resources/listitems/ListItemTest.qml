@@ -24,6 +24,21 @@ MainView {
 
     property bool override: false
 
+    Action {
+        objectName: "stock"
+        id: stock
+    }
+
+    ListItemOptions {
+        id: leading
+        Action {
+        }
+        Action {
+        }
+        Action {
+        }
+    }
+
     Column {
         anchors {
             left: parent.left
@@ -41,6 +56,10 @@ MainView {
                 anchors.fill: parent
                 text: units.gridUnit + "PX/unit"
             }
+            leadingOptions: ListItemOptions {
+                options: [stock]
+            }
+            trailingOptions: leading
         }
 
         ListView {
@@ -53,7 +72,7 @@ MainView {
             delegate: ListItem {
                 id: listItem
                 onClicked: print(" clicked")
-
+                leadingOptions: leading
                 Label {
                     text: modelData + " item"
                 }

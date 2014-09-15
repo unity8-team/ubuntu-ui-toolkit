@@ -52,6 +52,7 @@
 #include "ucstyleditembase.h"
 #include "uclistitem.h"
 #include "uclistitem_p.h"
+#include "uclistitemoptions.h"
 
 #include <sys/types.h>
 #include <unistd.h>
@@ -163,6 +164,7 @@ void UbuntuComponentsPlugin::registerTypes(const char *uri)
     qmlRegisterType<UCListItem, 1>(uri, 1, 1, "ListItem");
     qmlRegisterType<UCListItemContent>();
     qmlRegisterType<UCListItemDivider>();
+    qmlRegisterType<UCListItemOptions, 1>(uri, 1, 1, "ListItemOptions");
 }
 
 void UbuntuComponentsPlugin::initializeEngine(QQmlEngine *engine, const char *uri)

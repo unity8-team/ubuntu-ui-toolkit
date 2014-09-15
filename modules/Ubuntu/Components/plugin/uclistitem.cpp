@@ -270,6 +270,8 @@ UCListItemPrivate::UCListItemPrivate()
     , pressed(false)
     , contentItem(new UCListItemContent)
     , divider(new UCListItemDivider)
+    , leadingOptions(0)
+    , trailingOptions(0)
 {
 }
 UCListItemPrivate::~UCListItemPrivate()
@@ -496,6 +498,48 @@ void UCListItem::mouseReleaseEvent(QMouseEvent *event)
     UCStyledItemBase::mouseReleaseEvent(event);
     d->pressed = wasPressed;
     d->setPressed(false);
+}
+
+/*!
+ * \qmlproperty ListItemOptions ListItem::leadingOptions
+ *
+ * The property holds the options and its configuration to be revealed when swiped
+ * from left to right.
+ */
+UCListItemOptions *UCListItem::leadingOptions() const
+{
+    Q_D(const UCListItem);
+    return d->leadingOptions;
+}
+void UCListItem::setLeadingOptions(UCListItemOptions *options)
+{
+    Q_D(UCListItem);
+    if (d->leadingOptions == options) {
+        return;
+    }
+    d->leadingOptions = options;
+    Q_EMIT leadingOptionsChanged();
+}
+
+/*!
+ * \qmlproperty ListItemOptions ListItem::trailingOptions
+ *
+ * The property holds the options and its configuration to be revealed when swiped
+ * from right to left.
+ */
+UCListItemOptions *UCListItem::trailingOptions() const
+{
+    Q_D(const UCListItem);
+    return d->trailingOptions;
+}
+void UCListItem::setTrailingOptions(UCListItemOptions *options)
+{
+    Q_D(UCListItem);
+    if (d->trailingOptions == options) {
+        return;
+    }
+    d->trailingOptions = options;
+    Q_EMIT trailingOptionsChanged();
 }
 
 /*!

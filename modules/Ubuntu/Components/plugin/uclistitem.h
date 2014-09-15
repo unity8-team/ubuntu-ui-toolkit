@@ -22,12 +22,15 @@
 
 class UCListItemContent;
 class UCListItemDivider;
+class UCListItemOptions;
 class UCListItemPrivate;
 class UCListItem : public UCStyledItemBase
 {
     Q_OBJECT
     Q_PROPERTY(UCListItemContent *contentItem READ contentItem CONSTANT)
     Q_PROPERTY(UCListItemDivider *divider READ divider CONSTANT)
+    Q_PROPERTY(UCListItemOptions *leadingOptions READ leadingOptions WRITE setLeadingOptions NOTIFY leadingOptionsChanged DESIGNABLE false)
+    Q_PROPERTY(UCListItemOptions *trailingOptions READ trailingOptions WRITE setTrailingOptions NOTIFY trailingOptionsChanged DESIGNABLE false)
     Q_PROPERTY(bool pressed READ pressed NOTIFY pressedChanged)
     Q_PROPERTY(QQmlListProperty<QObject> data READ data DESIGNABLE false)
     Q_PROPERTY(QQmlListProperty<QQuickItem> children READ children NOTIFY childrenChanged DESIGNABLE false)
@@ -38,6 +41,10 @@ public:
 
     UCListItemContent *contentItem() const;
     UCListItemDivider *divider() const;
+    UCListItemOptions *leadingOptions() const;
+    void setLeadingOptions(UCListItemOptions *options);
+    UCListItemOptions *trailingOptions() const;
+    void setTrailingOptions(UCListItemOptions *options);
     bool pressed() const;
 
 protected:
@@ -49,6 +56,8 @@ protected:
     void mouseReleaseEvent(QMouseEvent *event);
 
 Q_SIGNALS:
+    void leadingOptionsChanged();
+    void trailingOptionsChanged();
     void pressedChanged();
     void childrenChanged();
 
