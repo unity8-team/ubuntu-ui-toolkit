@@ -23,9 +23,11 @@
 #include <QtQuick/private/qquickrectangle_p.h>
 
 class QQuickFlickable;
+class QQuickPropertyAnimation;
 class UCListItemContent;
 class UCListItemDivider;
 class UCListItemOptions;
+class PropertyChange;
 class UCListItemPrivate : public UCStyledItemBasePrivate
 {
     Q_DECLARE_PUBLIC(UCListItem)
@@ -45,14 +47,27 @@ public:
 
     void _q_rebound();
     void _q_updateSize();
+    void _q_completeRebinding();
+    void cleanup();
+    void reboundTo(qreal x);
     void setPressed(bool pressed);
+    void setMoved(bool moved);
+    bool grabPanel(UCListItemOptions *optionList, bool isMoved);
     void listenToRebind(bool listen);
     void resize();
     void update();
+    void clampX(qreal &x, qreal dx);
 
     bool pressed:1;
+    bool moved:1;
+    bool suppressClick:1;
     bool ready:1;
+    qreal xAxisMoveThresholdGU;
+    QPointF lastPos;
+    QPointF pressedPos;
     QPointer<QQuickFlickable> flickable;
+    QQuickPropertyAnimation *reboundAnimation;
+    PropertyChange *flickableInteractive;
     UCListItemContent *contentItem;
     UCListItemDivider *divider;
     UCListItemOptions *leadingOptions;

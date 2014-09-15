@@ -31,6 +31,7 @@ MainView {
 
     ListItemOptions {
         id: leading
+        objectName: "StockLeading"
         Action {
         }
         Action {
@@ -47,6 +48,7 @@ MainView {
 
         ListItem {
             id: testItem
+            objectName: "single"
             contentItem.color: "lime"
             onClicked: {
                 print("click")
@@ -57,6 +59,7 @@ MainView {
                 text: units.gridUnit + "PX/unit"
             }
             leadingOptions: ListItemOptions {
+                objectName: "InlineLeading"
                 options: [stock]
             }
             trailingOptions: leading
@@ -70,6 +73,7 @@ MainView {
             model: 100
             pressDelay: 0
             delegate: ListItem {
+                objectName: "ListItem" + index
                 id: listItem
                 onClicked: print(" clicked")
                 leadingOptions: leading
@@ -98,11 +102,16 @@ MainView {
                 Repeater {
                     model: 100
                     ListItem {
+                        objectName: "InFlickable"+index
                         contentItem {
                             color: "red"
                             pressedColor: "lime"
                         }
                         divider.colorFrom: UbuntuColors.green
+
+                        trailingOptions: ListItemOptions {
+                            options: leading.options
+                        }
 
                         Label {
                             text: modelData + " Flickable item"
