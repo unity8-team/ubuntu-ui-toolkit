@@ -15,7 +15,7 @@
  */
 
 import QtQuick 2.2
-import Ubuntu.Components 1.1
+import Ubuntu.Components 1.2
 
 MainView {
     id: main
@@ -77,6 +77,7 @@ MainView {
             id: testItem
             objectName: "single"
             selectable: main.selectable
+            color: "lime"
             onClicked: {
                 print("click")
                 main.override = !main.override
@@ -129,7 +130,7 @@ MainView {
                     name: "override"
                     when: main.override
                     PropertyChanges {
-                        target: listItem.contentItem
+                        target: listItem
                         pressedColor: "brown"
                     }
                 }
@@ -153,7 +154,7 @@ MainView {
                         selectable: main.selectable
                         leadingOptions: ListItemOptions {
                             id: optionData
-                            panelColor: "pink"
+                            panelColor: UbuntuColors.blue
                             Action {
                                 iconName: "edit"
                                 onTriggered: print(iconName, "triggered", value)
@@ -168,10 +169,8 @@ MainView {
                             options: leadingOptions.options
                         }
 
-                        contentItem {
-                            color: UbuntuColors.red
-                            pressedColor: "lime"
-                        }
+                        color: UbuntuColors.red
+                        pressedColor: "lime"
                         divider.colorFrom: UbuntuColors.green
 
                         Label {

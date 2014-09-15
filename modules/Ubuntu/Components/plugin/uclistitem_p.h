@@ -46,6 +46,7 @@ public:
     // override setFocusable()
     void setFocusable();
 
+    void _q_updateColors();
     void _q_dimmDisabled();
     void _q_rebound();
     void _q_updateSize();
@@ -66,6 +67,7 @@ public:
     void toggleSelectionMode();
 
     bool pressed:1;
+    bool pressedColorChanged:1;
     bool moved:1;
     bool suppressClick:1;
     bool ready:1;
@@ -76,45 +78,17 @@ public:
     QBasicTimer pressAndHoldTimer;
     QPointF lastPos;
     QPointF pressedPos;
+    QColor color;
+    QColor pressedColor;
     QPointer<QQuickFlickable> flickable;
     QQuickPropertyAnimation *reboundAnimation;
     PropertyChange *flickableInteractive;
+    QQuickItem *contentItem;
     PropertyChange *disabledOpacity;
-    UCListItemContent *contentItem;
     UCListItemDivider *divider;
     UCListItemOptions *leadingOptions;
     UCListItemOptions *trailingOptions;
     QQuickItem *selectionPanel;
-};
-
-class UCListItemContent : public QQuickItem
-{
-    Q_OBJECT
-    Q_PROPERTY(QColor color MEMBER m_color WRITE setColor NOTIFY colorChanged)
-    Q_PROPERTY(QColor pressedColor MEMBER m_pressedColor WRITE setPressedColor NOTIFY pressedColorChanged)
-public:
-    explicit UCListItemContent(QQuickItem *parent = 0);
-    ~UCListItemContent();
-
-    void setColor(const QColor &color);
-    void setPressedColor(const QColor &color);
-
-Q_SIGNALS:
-    void colorChanged();
-    void pressedColorChanged();
-
-protected:
-    void itemChange(ItemChange change, const ItemChangeData &data);
-    QSGNode *updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *data);
-
-private Q_SLOTS:
-    void updateColors();
-
-private:
-    QColor m_color;
-    QColor m_pressedColor;
-    UCListItem *m_item;
-    bool m_pressedColorChanged:1;
 };
 
 class UCListItemDivider : public QObject
@@ -138,7 +112,7 @@ Q_SIGNALS:
     void colorToChanged();
 
 protected:
-    QSGNode *paint(QSGNode *paintNode, const QRectF &rect);
+    QSGNode *paint(const QRectF &rect);
 
 private Q_SLOTS:
     void unitsChanged();
@@ -171,7 +145,6 @@ private:
 
 QColor getPaletteColor(const char *profile, const char *color);
 
-QML_DECLARE_TYPE(UCListItemContent)
 QML_DECLARE_TYPE(UCListItemDivider)
 
 #endif // UCVIEWITEM_P_H
