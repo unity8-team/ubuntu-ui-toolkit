@@ -62,6 +62,7 @@ public:
     bool moved:1;
     bool suppressClick:1;
     bool ready:1;
+    int index;
     qreal xAxisMoveThresholdGU;
     QPointF lastPos;
     QPointF pressedPos;

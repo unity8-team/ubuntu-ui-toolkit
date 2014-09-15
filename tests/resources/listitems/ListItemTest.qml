@@ -29,7 +29,7 @@ MainView {
         id: stock
         iconName: "starred"
         text: "Staaaar"
-        onTriggered: print(iconName, "triggered")
+        onTriggered: print(iconName, "triggered", value)
     }
 
     ListItemOptions {
@@ -37,7 +37,7 @@ MainView {
         objectName: "StockLeading"
         Action {
             iconName: "delete"
-            onTriggered: print(iconName, "triggered")
+            onTriggered: print(iconName, "triggered", value)
         }
         Action {
             iconName: "alarm-clock"
@@ -46,11 +46,11 @@ MainView {
         }
         Action {
             iconName: "camcorder"
-            onTriggered: print(iconName, "triggered")
+            onTriggered: print(iconName, "triggered", value)
         }
         Action {
             iconName: "stock_website"
-            onTriggered: print(iconName, "triggered")
+            onTriggered: print(iconName, "triggered", value)
         }
     }
 
@@ -63,7 +63,6 @@ MainView {
         ListItem {
             id: testItem
             objectName: "single"
-            contentItem.color: "lime"
             onClicked: {
                 print("click")
                 main.override = !main.override
@@ -135,11 +134,11 @@ MainView {
                         leadingOptions: ListItemOptions {
                             Action {
                                 iconName: "edit"
-                                onTriggered: print(iconName, "clicked")
+                                onTriggered: print(iconName, "triggered", value)
                             }
                             Action {
                                 iconName: "delete"
-                                onTriggered: print(iconName, "clicked")
+                                onTriggered: print(iconName, "triggered", value)
                             }
                         }
                         trailingOptions: ListItemOptions {

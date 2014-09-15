@@ -25,6 +25,13 @@ Item {
     width: optionsRow.childrenRect.width
 
     readonly property Item contentItem: parent ? parent.contentItem : null
+
+    /*
+      Index of the ListItem, if the ListItem is inside a ListView or has been
+      created using a Repeater.
+      */
+    property int listItemIndex: -1
+
     /*
       Specifies whether the panel is used to visualize leading or trailing options.
       */
@@ -43,6 +50,15 @@ Item {
       Emitted when action is triggered
       */
     signal selected()
+
+    // fire selected action when parent is removed
+    onParentChanged: {
+        if (!parent && selectedAction) {
+            selectedAction.triggered(listItemIndex >= 0 ? listItemIndex : null);
+            selectedAction = null;
+        }
+    }
+    property Action selectedAction: null
 
     anchors {
         left: contentItem ? (leadingPanel ? undefined : contentItem.right) : undefined
@@ -78,7 +94,13 @@ Item {
                     top: parent.top
                     bottom: parent.bottom
                 }
-                onTriggered: panel.selected()
+
+                function trigger() {
+                    // save the action as we trigger when the rebound animation is over
+                    // to make sure we properly clean up the blockade of teh Flickables
+                    panel.selectedAction = action;
+                    panel.selected();
+                }
 
                 Loader {
                     id: delegateLoader
