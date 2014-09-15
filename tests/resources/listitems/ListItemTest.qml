@@ -172,6 +172,7 @@ MainView {
                             color: UbuntuColors.red
                             pressedColor: "lime"
                         }
+                        divider.colorFrom: UbuntuColors.green
 
                         Label {
                             text: modelData + " Flickable item"
