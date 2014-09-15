@@ -98,7 +98,7 @@ MainView {
             clip: true
             width: parent.width
             height: units.gu(20)
-            model: 100
+            model: 10
             pressDelay: 0
             delegate: ListItem {
                 objectName: "ListItem" + index
@@ -127,8 +127,10 @@ MainView {
             Column {
                 id: column
                 width: view.width
+                property alias count: repeater.count
                 Repeater {
-                    model: 100
+                    id: repeater
+                    model: 10
                     ListItem {
                         objectName: "InFlickable"+index
                         leadingOptions: ListItemOptions {
