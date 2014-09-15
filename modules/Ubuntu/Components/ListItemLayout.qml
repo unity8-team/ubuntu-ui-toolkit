@@ -29,12 +29,18 @@ import QtQuick.Layouts 1.1
   as well as 2 grid units margin on left and right. The spacing in between the
   containers is 1 grid unit. Component sizes can be driven using the layouting
   mechanism provided by QtQuick.
+
+  It is designed to be used with \c ListItem, however it can be used with any
+  Item in any context.
+
   \qml
   import QtQuick 2.2
   import QtQuick.Layouts 1.1
   import Ubuntu.Components 1.1
 
   Item {
+      width: units.gu(40)
+      height: units.gu(7)
       ListItemLayout {
           ColumnLayout {
               spacing: units.gu(0.5)
@@ -45,9 +51,11 @@ import QtQuick.Layouts 1.1
               Layout.fillWidth: true
               Label {
                   text: "Title"
+                  fontSize: "large"
               }
               Label {
-                  text: "Title"
+                  text: "Subtitle"
+                  fontSize: "small"
               }
           }
           Switch {

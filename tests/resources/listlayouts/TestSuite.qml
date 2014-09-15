@@ -36,162 +36,23 @@ MainView {
                 Rectangle { border { color: UbuntuColors.lightGrey; width: 1 }
                     width: parent.width; height: units.gu(7)
                     ListItemLayout {
-                        id: layout
-                        ListItemContainer {
-                            id: leading
-                            preset: "leading"
-                            enabled: true
-                            Layout.maximumWidth: units.gu(3)
-                            Layout.maximumHeight: units.gu(3)
-                            onClicked: trailing.visible = !trailing.visible
-                            UbuntuShape {
-                                width: parent.Layout.maximumWidth
-                                height: parent.Layout.maximumHeight
-                                color: UbuntuColors.green
-                            }
-                        }
-                        ListItemContainer {
-                            preset: "captions"
-                            ColumnLayout {
-                                spacing: 0
-                                Label {
-                                    text: "Caption"
-                                    font.weight: Text.Normal
-                                }
-                                Label {
-                                    text: "Click to hide/show leading container"
-                                    fontSize: "small"
-                                }
-                            }
-                            enabled: true
-                            onClicked: leading.visible = !leading.visible
-                        }
-                        ListItemContainer {
-                            id: trailing
-                            preset: "trailing"
+                        ColumnLayout {
+                            spacing: units.gu(0.5)
+                            Layout.alignment: Qt.AlignVCenter
+                            Layout.maximumHeight: parent.height
+                            Layout.maximumWidth: parent.width
+                            Layout.preferredWidth: childrenRect.width
+                            Layout.fillWidth: true
                             Label {
-                                text: "Detail\n second line"
+                                text: "Title"
+                                fontSize: "large"
+                            }
+                            Label {
+                                text: "Subtitle"
                                 fontSize: "small"
                             }
                         }
-                    }
-                }
-                Rectangle { border { color: UbuntuColors.lightGrey; width: 1 }
-                    width: parent.width; height: units.gu(7)
-                    ListItemLayout {
-                        ListItemContainer {
-                            preset: "leading"
-                            UbuntuShape {
-                                width: parent.Layout.maximumWidth
-                                height: parent.Layout.maximumHeight
-                                color: UbuntuColors.green
-                            }
-                        }
-                        ListItemContainer {
-                            preset: "captions"
-                            ColumnLayout {
-                                spacing: 0
-                                Label {
-                                    text: "Caption"
-                                    font.weight: Text.Normal
-                                }
-                                Label {
-                                    text: "Subtitle\n third line"
-                                    fontSize: "small"
-                                }
-                            }
-                        }
-                    }
-                }
-                Rectangle { border { color: UbuntuColors.lightGrey; width: 1 }
-                    width: parent.width; height: units.gu(7)
-                    ListItemLayout {
-                        ListItemContainer {
-                            preset: "captions"
-                            ColumnLayout {
-                                spacing: 0
-                                Label {
-                                    text: "Caption"
-                                    font.weight: Text.Normal
-                                }
-                                Label {
-                                    text: "Subtitle\n third line"
-                                    fontSize: "small"
-                                }
-                            }
-                        }
-                        ListItemContainer {
-                            preset: "trailer"
-                            Label {
-                                text: "Detail\n second line"
-                                fontSize: "small"
-                            }
-                        }
-                    }
-                }
-                Rectangle { border { color: UbuntuColors.lightGrey; width: 1 }
-                    width: parent.width; height: units.gu(7)
-                    ListItemLayout {
-                        ListItemContainer {
-                            preset: "captions"
-                            ColumnLayout {
-                                spacing: 0
-                                Label {
-                                    text: "Caption"
-                                    font.weight: Text.Normal
-                                }
-                                Label {
-                                    text: "Subtitle\n third line"
-                                    fontSize: "small"
-                                }
-                            }
-                        }
-                    }
-                }
-                Rectangle { border { color: UbuntuColors.lightGrey; width: 1 }
-                    width: parent.width; height: units.gu(7)
-                    ListItemLayout {
-                        ListItemContainer {
-                            preset: "leading"
-                            UbuntuShape {
-                                width: parent.Layout.maximumWidth
-                                height: parent.Layout.maximumHeight
-                                color: UbuntuColors.green
-                            }
-                        }
-                        ListItemContainer {
-                            preset: "captions"
-                            ColumnLayout {
-                                spacing: 0
-                                Label {
-                                    text: "Caption"
-                                    font.weight: Text.Normal
-                                }
-                                Label {
-                                    text: "Subtitle\n third line"
-                                    fontSize: "small"
-                                }
-                            }
-                        }
-                        UbuntuShape {
-                            Layout.preferredHeight: parent.height
-                            Layout.preferredWidth: units.gu(3)
-                            color: UbuntuColors.blue
-                        }
-
-                        ListItemContainer {
-                            preset: "trailing"
-                            ColumnLayout {
-                                spacing: 0
-                                Label {
-                                    text: "Detail text"
-                                    fontSize: "small"
-                                }
-                                Label {
-                                    text: "Subdetail text"
-                                    fontSize: "small"
-                                }
-                            }
+                        Switch {
                         }
                     }
                 }
