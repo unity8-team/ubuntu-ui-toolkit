@@ -62,6 +62,7 @@ protected:
     void mouseReleaseEvent(QMouseEvent *event);
     void mouseMoveEvent(QMouseEvent *event);
     bool eventFilter(QObject *, QEvent *);
+    void timerEvent(QTimerEvent *event);
 
 Q_SIGNALS:
     void leadingOptionsChanged();
@@ -72,6 +73,7 @@ Q_SIGNALS:
     void childrenChanged();
 
     void clicked();
+    void pressAndHold();
 
 public Q_SLOTS:
 

@@ -20,6 +20,7 @@
 #include "uclistitem.h"
 #include "ucstyleditembase_p.h"
 #include <QtCore/QPointer>
+#include <QtCore/QBasicTimer>
 #include <QtQuick/private/qquickrectangle_p.h>
 
 class QQuickFlickable;
@@ -72,6 +73,7 @@ public:
     bool selected:1;
     int index;
     qreal xAxisMoveThresholdGU;
+    QBasicTimer pressAndHoldTimer;
     QPointF lastPos;
     QPointF pressedPos;
     QPointer<QQuickFlickable> flickable;
