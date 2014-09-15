@@ -22,11 +22,6 @@
 #include "plugin.h"
 #include <QtQml/QQmlInfo>
 #include <QtQuick/private/qquickitem_p.h>
-#include <QtQml/private/qqmlabstractbinding_p.h>
-#define foreach Q_FOREACH //workaround to fix private includes
-#include <QtQml/private/qqmlbinding_p.h>     // for QmlBinding
-#undef foreach
-
 
 UCListItemOptionsPrivate::UCListItemOptionsPrivate()
     : QObjectPrivate()
@@ -227,27 +222,7 @@ void UCListItemOptionsPrivate::updateColor(const char *property, const QColor &c
         return;
     }
     Q_Q(UCListItemOptions);
-    // get this property binding
-    QQmlProperty myColor(q, property, qmlContext(q));
-    QQmlBinding *binding = static_cast<QQmlBinding*>(QQmlPropertyPrivate::binding(myColor));
-    if (!binding) {
-        // this is a simple value assignment, so only override panel's color
-        panelItem->setProperty(property, QVariant::fromValue(color));
-    } else {
-        // transfer the binding to panelItem
-        // get panel item's color binding
-        QQmlProperty colorProperty(panelItem, property, qmlContext(panelItem));
-        QQmlAbstractBinding *prevBinding = QQmlPropertyPrivate::binding(colorProperty);
-        if (prevBinding != binding) {
-            // clear the previous binding
-            prevBinding = QQmlPropertyPrivate::setBinding(colorProperty, 0);
-            if (prevBinding) {
-                prevBinding->destroy();
-            }
-            // do the "alias"
-            binding->retargetBinding(panelItem, colorProperty.index());
-        }
-    }
+    panelItem->setProperty(property, QVariant::fromValue(color));
 }
 
 /*!

@@ -154,7 +154,7 @@ MainView {
                         selectable: main.selectable
                         leadingOptions: ListItemOptions {
                             id: optionData
-                            panelColor: "pink"
+                            panelColor: UbuntuColors.blue
                             Action {
                                 iconName: "edit"
                                 onTriggered: print(iconName, "triggered", value)

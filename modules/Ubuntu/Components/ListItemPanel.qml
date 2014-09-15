@@ -52,6 +52,8 @@ Item {
     property color panelColor
     property color iconColor
 
+    onPanelColorChanged: print("panelColor=", panelColor)
+
     /*
       Emitted when action is triggered
       */
