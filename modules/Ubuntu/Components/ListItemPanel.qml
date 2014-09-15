@@ -39,6 +39,11 @@ Item {
       */
     property var optionList
 
+    /*
+      Emitted when action is triggered
+      */
+    signal selected()
+
     anchors {
         left: contentItem ? (leadingPanel ? undefined : contentItem.right) : undefined
         right: contentItem ? (leadingPanel ? contentItem.left : undefined) : undefined
@@ -73,6 +78,7 @@ Item {
                     top: parent.top
                     bottom: parent.bottom
                 }
+                onTriggered: panel.selected()
 
                 Loader {
                     id: delegateLoader

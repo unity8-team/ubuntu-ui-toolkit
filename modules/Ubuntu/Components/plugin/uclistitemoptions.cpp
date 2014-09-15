@@ -86,6 +86,7 @@ bool UCListItemOptionsPrivate::connectToListItem(UCListItemOptions *options, UCL
     _this->leading = leading;
     _this->panelItem->setProperty("leadingPanel", leading);
     _this->panelItem->setParentItem(listItem);
+    QObject::connect(_this->panelItem, SIGNAL(selected()), _this->panelItem->parentItem(), SLOT(_q_rebound()));
     _this->connected = true;
     return true;
 }
@@ -96,6 +97,8 @@ void UCListItemOptionsPrivate::disconnectFromListItem(UCListItemOptions *options
     if (!_this || !_this->panelItem || !_this->panelItem->parentItem()) {
         return;
     }
+
+    QObject::disconnect(_this->panelItem, SIGNAL(selected()), _this->panelItem->parentItem(), SLOT(_q_rebound()));
     _this->panelItem->setParentItem(0);
     _this->connected = false;
     _this->leading = false;
