@@ -49,6 +49,7 @@ public:
     void _q_rebound();
     void _q_updateSize();
     void _q_completeRebinding();
+    void _q_updateIndex(QObject *ownerItem = 0);
     void cleanup();
     void reboundTo(qreal x);
     void setPressed(bool pressed);
@@ -115,6 +116,7 @@ private:
     void setColorTo(const QColor &color);
 
     bool m_visible:1;
+    bool m_lastItem:1;
     bool m_leftMarginChanged:1;
     bool m_rightMarginChanged:1;
     bool m_colorFromChanged:1;
