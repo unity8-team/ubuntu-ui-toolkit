@@ -26,14 +26,18 @@ Item {
 
     Action {
         id: stockAction
+        iconName: "starred"
     }
     ListItemOptions {
         id: leading
         Action {
+            iconName: "starred"
         }
         Action {
+            iconName: "starred"
         }
         Action {
+            iconName: "starred"
         }
     }
     ListItemOptions {
@@ -46,11 +50,13 @@ Item {
         id: wrongOption
         Action {
             id: goodAction
+            iconName: "starred"
         }
         QtObject {
             id: badAction
         }
         Action {
+            iconName: "starred"
         }
     }
     ListItemOptions {

@@ -22,7 +22,7 @@ import Ubuntu.Components 1.1
   */
 Item {
     id: panel
-    width: units.gu(20)
+    width: optionsRow.childrenRect.width
 
     readonly property Item contentItem: parent ? parent.contentItem : null
     /*
@@ -48,6 +48,61 @@ Item {
 
     Rectangle {
         anchors.fill: parent
+        // FIXME: use Palette colors instead when available
         color: leadingPanel ? UbuntuColors.red : "white"
+    }
+
+    Row {
+        id: optionsRow
+        anchors {
+            left: parent.left
+            top: parent.top
+            bottom: parent.bottom
+            leftMargin: spacing
+        }
+
+        property real maxItemWidth: panel.parent ? (panel.parent.width / panel.optionList.length) : 0
+
+        Repeater {
+            model: panel.optionList
+            AbstractButton {
+                action: modelData
+                visible: action.visible && action.enabled
+                width: (!visible || !enabled) ?
+                           0 : MathUtils.clamp(delegateLoader.item ? delegateLoader.item.width : 0, height, optionsRow.maxItemWidth)
+                anchors {
+                    top: parent.top
+                    bottom: parent.bottom
+                }
+
+                Loader {
+                    id: delegateLoader
+                    height: parent.height
+                    sourceComponent: panel.delegate ? panel.delegate : defaultDelegate
+                    property Action option: modelData
+                    onItemChanged: {
+                        // this is needed only for testing purposes
+                        if (item && item.objectName === "") {
+                            item.objectName = "list_option_" + index
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    Component {
+        id: defaultDelegate
+        Item {
+            width: height
+            Icon {
+                width: units.gu(2.5)
+                height: width
+                name: option.iconName
+                // FIXME: use Palette colors instead when available
+                color: panel.leadingPanel ? "white" : UbuntuColors.darkGrey
+                anchors.centerIn: parent
+            }
+        }
     }
 }
