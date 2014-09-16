@@ -25,8 +25,7 @@
 UCListItemOptionsPrivate::UCListItemOptionsPrivate()
     : QObjectPrivate()
     , optionsFailure(false)
-    , connected(false)
-    , leading(false)
+    , status(UCListItemOptions::Disconnected)
     , delegate(0)
     , panelItem(0)
     , optionSlotWidth(0.0)
@@ -46,7 +45,7 @@ void UCListItemOptionsPrivate::_q_handlePanelDrag()
     }
 
     Q_Q(UCListItemOptions);
-    offsetDragged = (leading) ? panelItem->width() + panelItem->x() :
+    offsetDragged = (status == UCListItemOptions::LeadingOptions) ? panelItem->width() + panelItem->x() :
                          listItem->width() - panelItem->x();
     if (offsetDragged < 0.0) {
         offsetDragged = 0.0;
@@ -118,13 +117,14 @@ bool UCListItemOptionsPrivate::connectToListItem(UCListItemOptions *options, UCL
         _this->queuedItem = listItem;
         return false;
     }
-    _this->leading = leading;
     _this->panelItem->setProperty("listItemIndex", UCListItemPrivate::get(listItem)->index);
     _this->panelItem->setProperty("leadingPanel", leading);
     _this->panelItem->setParentItem(listItem);
     _this->offsetDragged = 0.0;
     QObject::connect(_this->panelItem, SIGNAL(selected()), _this->panelItem->parentItem(), SLOT(_q_rebound()));
-    _this->connected = true;
+    _this->status = (leading) ? UCListItemOptions::LeadingOptions : UCListItemOptions::TrailingOptions;
+    Q_EMIT options->statusChanged();
+    Q_EMIT options->connectedItemChanged();
     return true;
 }
 
@@ -136,9 +136,10 @@ void UCListItemOptionsPrivate::disconnectFromListItem(UCListItemOptions *options
     }
 
     QObject::disconnect(_this->panelItem, SIGNAL(selected()), _this->panelItem->parentItem(), SLOT(_q_rebound()));
-    _this->connected = false;
-    _this->leading = false;
     _this->panelItem->setParentItem(0);
+    _this->status = UCListItemOptions::Disconnected;
+    Q_EMIT options->statusChanged();
+    Q_EMIT options->connectedItemChanged();
     // if there was a queuedItem, make it grab the options list
     if (_this->queuedItem) {
         UCListItemPrivate::get(_this->queuedItem.data())->grabPanel(options, true);
@@ -150,7 +151,9 @@ void UCListItemOptionsPrivate::disconnectFromListItem(UCListItemOptions *options
 bool UCListItemOptionsPrivate::isConnectedTo(UCListItemOptions *options, UCListItem *listItem)
 {
     UCListItemOptionsPrivate *_this = get(options);
-    return _this && _this->panelItem && _this->connected && (_this->panelItem->parentItem() == listItem);
+    return _this && _this->panelItem &&
+            (_this->status != UCListItemOptions::Disconnected) &&
+            (_this->panelItem->parentItem() == listItem);
 }
 
 qreal UCListItemOptionsPrivate::snap(UCListItemOptions *options)
@@ -164,7 +167,7 @@ qreal UCListItemOptionsPrivate::snap(UCListItemOptions *options)
     if (ratio > 0.0 && (ratio - trunc(ratio)) > 0.5) {
         visible++;
     }
-    return visible * _this->optionSlotWidth * (_this->leading ? 1 : -1);
+    return visible * _this->optionSlotWidth * (_this->status == UCListItemOptions::LeadingOptions ? 1 : -1);
 }
 
 
@@ -400,12 +403,43 @@ QQmlListProperty<QObject> UCListItemOptions::options()
 /*!
  * \qmlproperty Item ListItemOptions::panelItem
  * The property presents the Item holding the visualized options. The panel is
- * created when used the first time is used.
+ * created when used the first time.
  */
 QQuickItem *UCListItemOptions::panelItem() const
 {
     Q_D(const UCListItemOptions);
     return d->panelItem;
+}
+
+/*!
+ * \qmlproperty enum ListItemOptions::status
+ * \readonly
+ * The property holds the status of the ListItemOptions, whether is connected
+ * as leading or as trailing option list to a \l ListItem. Possible valueas are:
+ * \list A
+ *  \li \b \c Disconnected - default, the options list is not connected to any \l ListItem
+ *  \li \b \c LeadingOptions - the options list is connected as leading list
+ *  \li \b \c TrailingOptions - the options list is connected as trailing list
+ * \endlist
+ * \sa connectedItem
+ */
+UCListItemOptions::Status UCListItemOptions::status() const
+{
+    Q_D(const UCListItemOptions);
+    return d->status;
+}
+
+/*!
+ * \qmlproperty ListItem ListItemOptions::connectedItem
+ * \readonly
+ * The property holds the \l ListItem the options list is connected to. It is
+ * null by default and when the status is \c Disconnected.
+ * \sa status
+ */
+UCListItem *UCListItemOptions::connectedItem() const
+{
+    Q_D(const UCListItemOptions);
+    return d->panelItem ? qobject_cast<UCListItem*>(d->panelItem->parentItem()) : 0;
 }
 
 #include "moc_uclistitemoptions.cpp"

@@ -177,6 +177,8 @@ Item {
             compare(optionsDefault.delegate, null, "ListItemOptions has no delegate set by default.");
             compare(optionsDefault.options.length, 0, "ListItemOptions has no options set.");
             compare(optionsDefault.panelItem, null, "There is no panelItem created by default.");
+            compare(optionsDefault.status, ListItemOptions.Disconnected, "optiosn list is disconnected by default");
+            compare(optionsDefault.connectedItem, null, "No item is connected by default");
         }
 
         function test_children_in_content_item() {
@@ -531,6 +533,21 @@ Item {
             mouseRelease(testItem, center.x, center.y);
             pressAndHoldSpy.wait();
             compare(clickSpy.count, 0, "Click must be suppressed when long pressed");
+        }
+
+        function test_listitemoptions_status_data() {
+            var drag = testItem.contentItem.width / 2;
+            return [
+                {tag:"Leading", item: testItem, dx: drag, list: testItem.leadingOptions, expectedStatus: ListItemOptions.LeadingOptions},
+                {tag:"Trailing", item: testItem, dx: -drag, list: testItem.trailingOptions, expectedStatus: ListItemOptions.TrailingOptions},
+            ];
+        }
+        function test_listitemoptions_status(data) {
+            var testItem = data.item.contentItem;
+            flick(testItem, centerOf(testItem).x, centerOf(testItem).y, data.dx, 0);
+            waitForRendering(testItem, 800);
+            compare(data.list.status, data.expectedStatus, "Status on the option list differs.");
+            compare(data.list.connectedItem, data.item, "connectedItem is not the tugged item.");
         }
     }
 }
