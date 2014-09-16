@@ -1,3 +1,31 @@
+ubuntu-ui-toolkit (1.1.1248+14.10.20140916-0ubuntu1) UNRELEASED; urgency=medium
+
+  [ Zsombor Egri ]
+  * New ListItem component 
+  * Sheet header button space reservation made button presence 
+    dependent. Fixes: LP: #1356636
+  * Tweaks for ListItem dividers. Header margins and font weight
+    updated.
+  * Exclude UbuntuColors dumped erroneously by qmlplugindump as it
+    would be a C++ type.
+  * Organizer audible reminder wasn't updated when Alarm sound 
+    changed.
+
+  [ Zoltán Balogh ]
+  * Updated test plan execution for RTM images and for new phablet
+    tools. 
+  [ Christian Dywan ]
+  * Specify /sbin when calling initctl just like autopilot does.
+
+  [ Leo Arias ]
+  * On autopilot tests launched by upstart, use the local modules
+    if running from a branch. 
+
+  [ Christian Dywan ]
+  * Change gallery to use launcher to allow -touch argument.
+
+ -- Zoltán Balogh <zoltan@bakter.hu>  Tue, 16 Sep 2014 10:47:46 +0300
+
 ubuntu-ui-toolkit (1.1.1239+14.10.20140908-0ubuntu1) utopic; urgency=medium
 
   [ Zsombor Egri ]
