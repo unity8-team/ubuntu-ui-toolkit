@@ -24,6 +24,7 @@
 #include "propertychange_p.h"
 #include "i18n.h"
 #include "quickutils.h"
+#include "plugin.h"
 #include <QtQml/QQmlInfo>
 #include <QtQuick/private/qquickitem_p.h>
 #include <QtQuick/private/qquickflickable_p.h>
@@ -208,6 +209,8 @@ UCListItemPrivate::UCListItemPrivate()
     , pressedColorChanged(false)
     , moved(false)
     , ready(false)
+    , selectable(false)
+    , selected(false)
     , index(-1)
     , xAxisMoveThresholdGU(1.5)
     , color(Qt::transparent)
@@ -219,6 +222,7 @@ UCListItemPrivate::UCListItemPrivate()
     , divider(new UCListItemDivider)
     , leadingOptions(0)
     , trailingOptions(0)
+    , selectionPanel(0)
 {
 }
 UCListItemPrivate::~UCListItemPrivate()
@@ -333,6 +337,14 @@ void UCListItemPrivate::_q_updateIndex(QObject *ownerItem)
         index = indexProperty.isValid() ? indexProperty.toInt() : -1;
     }
     divider->m_lastItem = ready && index == (ownerItem->property("count").toInt() - 1);
+}
+
+void UCListItemPrivate::_q_updateSelected()
+{
+    Q_Q(UCListItem);
+    bool checked = selectionPanel->property("checked").toBool();
+    q->setSelected(checked);
+    update();
 }
 
 // the function performs a cleanup on mouse release without any rebound animation
@@ -470,6 +482,49 @@ void UCListItemPrivate::autoLeadingOptions()
             }
         }
     }
+}
+
+QQuickItem *UCListItemPrivate::createSelectionPanel()
+{
+    Q_Q(UCListItem);
+    if (!selectionPanel) {
+        QUrl panelDocument = UbuntuComponentsPlugin::pluginUrl().
+                resolved(QUrl::fromLocalFile("ListItemSelectablePanel.qml"));
+        QQmlComponent component(qmlEngine(q), panelDocument);
+        if (!component.isError()) {
+            selectionPanel = qobject_cast<QQuickItem*>(component.beginCreate(qmlContext(q)));
+            if (selectionPanel) {
+                QQml_setParent_noEvent(selectionPanel, q);
+                selectionPanel->setParentItem(q);
+                selectionPanel->setVisible(false);
+                selectionPanel->setProperty("checked", selected);
+                // complete component creation
+                component.completeCreate();
+            }
+        } else {
+            qmlInfo(q) << component.errorString();
+        }
+    }
+    return selectionPanel;
+}
+void UCListItemPrivate::toggleSelectionMode()
+{
+    if (!createSelectionPanel()) {
+        return;
+    }
+    Q_Q(UCListItem);
+    if (selectable) {
+        // move and dimm content item
+        selectionPanel->setVisible(true);
+        reboundTo(selectionPanel->width());
+        QObject::connect(selectionPanel, SIGNAL(checkedChanged()), q, SLOT(_q_updateSelected()));
+    } else {
+        // remove content item dimming and destroy selection panel as well
+        reboundTo(0.0);
+        selectionPanel->setVisible(false);
+        QObject::disconnect(selectionPanel, SIGNAL(checkedChanged()), q, SLOT(_q_updateSelected()));
+    }
+    _q_updateSelected();
 }
 
 /*!
@@ -667,7 +722,7 @@ QSGNode *UCListItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *data
     Q_UNUSED(data);
 
     Q_D(UCListItem);
-    QColor color = d->pressed ? d->pressedColor : d->color;
+    QColor color = (d->pressed || (d->selectable && d->selected))? d->pressedColor : d->color;
 
     delete oldNode;
     if (width() <= 0 || height() <= 0) {
@@ -697,7 +752,7 @@ void UCListItem::mousePressEvent(QMouseEvent *event)
 {
     UCStyledItemBase::mousePressEvent(event);
     Q_D(UCListItem);
-    if (!d->flickable.isNull() && d->flickable->isMoving()) {
+    if (d->selectable || (!d->flickable.isNull() && d->flickable->isMoving())) {
         // while moving, we cannot select or tug any items
         return;
     }
@@ -715,6 +770,10 @@ void UCListItem::mouseReleaseEvent(QMouseEvent *event)
 {
     UCStyledItemBase::mouseReleaseEvent(event);
     Q_D(UCListItem);
+    if (d->selectable) {
+        // no move is allowed while selectable mode is on
+        return;
+    }
     // set released
     if (d->pressed) {
         // disconnect the flickable
@@ -748,6 +807,11 @@ void UCListItem::mouseMoveEvent(QMouseEvent *event)
 {
     Q_D(UCListItem);
     UCStyledItemBase::mouseMoveEvent(event);
+
+    if (d->selectable) {
+        // no move is allowed while selectable mode is on
+        return;
+    }
 
     // accept the tugging only if the move is within the threshold
     bool leadingAttached = UCListItemOptionsPrivate::isConnectedTo(d->leadingOptions, this);
@@ -952,6 +1016,56 @@ void UCListItem::setPressedColor(const QColor &color)
     disconnect(&UCTheme::instance(), SIGNAL(paletteChanged()), this, SLOT(_q_updateColors()));
     update();
     Q_EMIT pressedColorChanged();
+}
+
+/*!
+ * \qmlproperty bool ListItem::selectable
+ * The property drives whether a list item is selectable or not. When set, the item
+ * will show a check box on the leading side hanving the content item pushed towards
+ * trailing side and dimmed. The checkbox which will reflect and drive the \l selected
+ * state.
+ * Defaults to false.
+ * \note it is recommended to be used with UbuntuListView which can drive all the
+ * ListItem's selectable.
+ */
+bool UCListItem::selectable() const
+{
+    Q_D(const UCListItem);
+    return d->selectable;
+}
+void UCListItem::setSelectable(bool selectable)
+{
+    Q_D(UCListItem);
+    if (d->selectable == selectable) {
+        return;
+    }
+    d->selectable = selectable;
+    d->toggleSelectionMode();
+    Q_EMIT selectableChanged();
+}
+
+/*!
+ * \qmlproperty bool ListItem::selected
+ * The property drives whether a list item is selected or not. While selected, the
+ * ListItem is dimmed and cannot be tugged. The default value is false.
+ */
+bool UCListItem::selected() const
+{
+    Q_D(const UCListItem);
+    return d->selected;
+}
+void UCListItem::setSelected(bool selected)
+{
+    Q_D(UCListItem);
+    if (d->selected == selected) {
+        return;
+    }
+    d->selected = selected;
+    // update panel as well
+    if (d->selectionPanel) {
+        d->selectionPanel->setProperty("checked", d->selected);
+    }
+    Q_EMIT selectedChanged();
 }
 
 /*!

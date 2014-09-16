@@ -34,6 +34,8 @@ class UCListItem : public UCStyledItemBase
     Q_PROPERTY(bool pressed READ pressed NOTIFY pressedChanged)
     Q_PROPERTY(QColor color READ color WRITE setColor NOTIFY colorChanged)
     Q_PROPERTY(QColor pressedColor READ pressedColor WRITE setPressedColor NOTIFY pressedColorChanged)
+    Q_PROPERTY(bool selectable READ selectable WRITE setSelectable NOTIFY selectableChanged)
+    Q_PROPERTY(bool selected READ selected WRITE setSelected NOTIFY selectedChanged)
     Q_PROPERTY(QQmlListProperty<QObject> data READ data DESIGNABLE false)
     Q_PROPERTY(QQmlListProperty<QQuickItem> children READ children NOTIFY childrenChanged DESIGNABLE false)
     Q_CLASSINFO("DefaultProperty", "data")
@@ -52,6 +54,10 @@ public:
     void setColor(const QColor &color);
     QColor pressedColor() const;
     void setPressedColor(const QColor &color);
+    bool selectable() const;
+    void setSelectable(bool selectable);
+    bool selected() const;
+    void setSelected(bool selected);
 
 protected:
     void componentComplete();
@@ -69,6 +75,8 @@ Q_SIGNALS:
     void pressedChanged();
     void colorChanged();
     void pressedColorChanged();
+    void selectableChanged();
+    void selectedChanged();
     void childrenChanged();
 
     void clicked();
@@ -85,6 +93,7 @@ private:
     Q_PRIVATE_SLOT(d_func(), void _q_updateSize())
     Q_PRIVATE_SLOT(d_func(), void _q_completeRebinding())
     Q_PRIVATE_SLOT(d_func(), void _q_updateIndex(QObject *ownerItem = 0))
+    Q_PRIVATE_SLOT(d_func(), void _q_updateSelected())
 };
 
 #endif // UCLISTITEM_H
