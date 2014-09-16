@@ -882,10 +882,12 @@ bool UCListItem::eventFilter(QObject *target, QEvent *event)
 void UCListItem::timerEvent(QTimerEvent *event)
 {
     Q_D(UCListItem);
-    if (isEnabled() && (event->timerId() == d->pressAndHoldTimer.timerId())) {
+    if (event->timerId() == d->pressAndHoldTimer.timerId()) {
         d->pressAndHoldTimer.stop();
-        d->suppressClick = true;
-        Q_EMIT pressAndHold();
+        if (isEnabled()) {
+            d->suppressClick = true;
+            Q_EMIT pressAndHold();
+        }
     } else {
         QQuickItem::timerEvent(event);
     }
