@@ -14,21 +14,28 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import QtQuick 2.2
-import Ubuntu.Components 1.0 as Version10
+import QtQuick 2.0
+import Ubuntu.Components 1.2
 
-// documentation in UbuntuListView11.qdoc
-Version10.UbuntuListView {
+Column {
+    width: 800
+    height: 600
+    property ListItemOptions leadingOptions: options1
+    ListItemOptions {
+        id: options1
+        Action {}
+    }
+    ListItemOptions {
+        id: options2
+        Action {}
+        Action {}
+        Action {}
+    }
 
-    /*!
-      \internal
-      \qmlproperty PullToRefresh pullToRefresh
-      */
-    property alias pullToRefresh: refreshItem
-
-    PullToRefresh {
-        objectName: "listview_pulltorefresh"
-        id: refreshItem
-        enabled: false
+    Repeater {
+        model: 5000
+        ListItem {
+            trailingOptions: options1
+        }
     }
 }
