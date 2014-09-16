@@ -60,6 +60,8 @@ protected:
     void geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometry);
     void mousePressEvent(QMouseEvent *event);
     void mouseReleaseEvent(QMouseEvent *event);
+    void mouseMoveEvent(QMouseEvent *event);
+    bool eventFilter(QObject *, QEvent *);
 
 Q_SIGNALS:
     void leadingOptionsChanged();
@@ -80,6 +82,7 @@ private:
     Q_PRIVATE_SLOT(d_func(), void _q_updateColors())
     Q_PRIVATE_SLOT(d_func(), void _q_rebound())
     Q_PRIVATE_SLOT(d_func(), void _q_updateSize())
+    Q_PRIVATE_SLOT(d_func(), void _q_completeRebinding())
 };
 
 #endif // UCLISTITEM_H

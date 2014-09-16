@@ -19,11 +19,14 @@
 #include "uclistitem_p.h"
 #include "quickutils.h"
 #include "i18n.h"
+#include "plugin.h"
 #include <QtQml/QQmlInfo>
 
 UCListItemOptionsPrivate::UCListItemOptionsPrivate()
     : QObjectPrivate()
     , optionsFailure(false)
+    , connected(false)
+    , leading(false)
     , delegate(0)
     , panelItem(0)
 {
@@ -66,6 +69,76 @@ void UCListItemOptionsPrivate::funcClear(QQmlListProperty<QObject> *list)
     return plist->options.clear();
 }
 
+bool UCListItemOptionsPrivate::connectToListItem(UCListItemOptions *options, UCListItem *listItem, bool leading)
+{
+    UCListItemOptionsPrivate *_this = get(options);
+    if (!_this || !_this->createPanelItem() || isConnectedTo(options, listItem)) {
+        return isConnectedTo(options, listItem);
+    }
+    // check if the panel is still connected to a ListItem
+    // this may happen if there is a swipe over an other item while the previous
+    // one is rebounding
+    if (_this->panelItem->parentItem()) {
+        // set the requesting listItem as queuedItem
+        _this->queuedItem = listItem;
+        return false;
+    }
+    _this->leading = leading;
+    _this->panelItem->setProperty("leadingPanel", leading);
+    _this->panelItem->setParentItem(listItem);
+    _this->connected = true;
+    return true;
+}
+
+void UCListItemOptionsPrivate::disconnectFromListItem(UCListItemOptions *options)
+{
+    UCListItemOptionsPrivate *_this = get(options);
+    if (!_this || !_this->panelItem || !_this->panelItem->parentItem()) {
+        return;
+    }
+    _this->panelItem->setParentItem(0);
+    _this->connected = false;
+    _this->leading = false;
+    // if there was a queuedItem, make it grab the options list
+    if (_this->queuedItem) {
+        UCListItemPrivate::get(_this->queuedItem.data())->grabPanel(options, true);
+        // remove item from queue
+        _this->queuedItem.clear();
+    }
+}
+
+bool UCListItemOptionsPrivate::isConnectedTo(UCListItemOptions *options, UCListItem *listItem)
+{
+    UCListItemOptionsPrivate *_this = get(options);
+    return _this && _this->panelItem && _this->connected && (_this->panelItem->parentItem() == listItem);
+}
+
+QQuickItem *UCListItemOptionsPrivate::createPanelItem()
+{
+    if (panelItem) {
+        return panelItem;
+    }
+    Q_Q(UCListItemOptions);
+    QUrl panelDocument = UbuntuComponentsPlugin::pluginUrl().
+            resolved(QUrl::fromLocalFile("ListItemPanel.qml"));
+    QQmlComponent component(qmlEngine(q), panelDocument);
+    if (!component.isError()) {
+        panelItem = qobject_cast<QQuickItem*>(component.beginCreate(qmlContext(q)));
+        if (panelItem) {
+            QQml_setParent_noEvent(panelItem, q);
+            if (delegate) {
+                panelItem->setProperty("delegate", QVariant::fromValue(delegate));
+            }
+            panelItem->setProperty("optionList", QVariant::fromValue(options));
+            component.completeCreate();
+            Q_EMIT q->panelItemChanged();
+        }
+    } else {
+        qmlInfo(q) << component.errorString();
+    }
+    return panelItem;
+}
+
 /*!
  * \qmltype ListItemOptions
  * \instantiates UCListItemOptions
@@ -93,6 +166,11 @@ void UCListItemOptionsPrivate::funcClear(QQmlListProperty<QObject> *list)
  * more than 50%, the option will be snapped and revealed completely. This is also
  * valid for the case when the option is visibl eless than 50%, in which case the
  * option is hidden. Options can be triggered by tapping.
+ *
+ * \note You can use the same ListItemOptions for leading and for trailing options
+ * the same time only if the options are used in a ListView or in a list where the
+ * list items are scrolled by the same Flickable. In any other circumstances use
+ * separate ListItemOptions for leading and trailing options.
  *
  * \section3 Notes on performance
  * When used with views, or when the amount of items of same kind to be created
@@ -194,3 +272,5 @@ QQuickItem *UCListItemOptions::panelItem() const
     Q_D(const UCListItemOptions);
     return d->panelItem;
 }
+
+#include "moc_uclistitemoptions.cpp"

@@ -18,10 +18,18 @@
 #include "uctheme.h"
 #include "uclistitem.h"
 #include "uclistitem_p.h"
+#include "uclistitemoptions.h"
+#include "uclistitemoptions_p.h"
+#include "ucubuntuanimation.h"
+#include "propertychange_p.h"
 #include <QtQml/QQmlInfo>
 #include <QtQuick/private/qquickitem_p.h>
 #include <QtQuick/private/qquickflickable_p.h>
 #include <QtQuick/private/qquickpositioners_p.h>
+
+#define MIN(x, y)           ((x < y) ? x : y)
+#define MAX(x, y)           ((x > y) ? x : y)
+#define CLAMP(v, min, max)  (min <= max) ? MAX(min, MIN(v, max)) : MAX(max, MIN(v, min))
 
 QColor getPaletteColor(const char *profile, const char *color)
 {
@@ -189,8 +197,13 @@ UCListItemPrivate::UCListItemPrivate()
     : UCStyledItemBasePrivate()
     , pressed(false)
     , pressedColorChanged(false)
+    , moved(false)
+    , ready(false)
+    , xAxisMoveThresholdGU(1.5)
     , color(Qt::transparent)
     , pressedColor(Qt::transparent)
+    , reboundAnimation(0)
+    , flickableInteractive(0)
     , contentItem(new QQuickItem)
     , divider(new UCListItemDivider)
     , leadingOptions(0)
@@ -199,6 +212,7 @@ UCListItemPrivate::UCListItemPrivate()
 }
 UCListItemPrivate::~UCListItemPrivate()
 {
+    delete flickableInteractive;
 }
 
 void UCListItemPrivate::init()
@@ -224,6 +238,16 @@ void UCListItemPrivate::init()
     // watch size change and set implicit size;
     QObject::connect(&UCUnits::instance(), SIGNAL(gridUnitChanged()), q, SLOT(_q_updateSize()));
     _q_updateSize();
+
+    // create rebound animation
+    UCUbuntuAnimation animationCodes;
+    reboundAnimation = new QQuickPropertyAnimation(q);
+    reboundAnimation->setEasing(animationCodes.StandardEasing());
+    reboundAnimation->setDuration(animationCodes.SnapDuration());
+    reboundAnimation->setTargetObject(contentItem);
+    reboundAnimation->setProperty("x");
+    reboundAnimation->setAlwaysRunToEnd(true);
+    QObject::connect(reboundAnimation, SIGNAL(stopped()), q, SLOT(_q_completeRebinding()));
 }
 
 void UCListItemPrivate::setFocusable()
@@ -244,8 +268,37 @@ void UCListItemPrivate::_q_updateColors()
 void UCListItemPrivate::_q_rebound()
 {
     setPressed(false);
-    // disconnect the flickable
-    listenToRebind(false);
+    // initiate rebinding only if there were options tugged
+    Q_Q(UCListItem);
+    if (!UCListItemOptionsPrivate::isConnectedTo(leadingOptions, q) && !UCListItemOptionsPrivate::isConnectedTo(trailingOptions, q)) {
+        return;
+    }
+    setMoved(false);
+    // rebound to zero
+    reboundTo(0);
+}
+void UCListItemPrivate::_q_completeRebinding()
+{
+    // restore flickable's interactive and cleanup
+    PropertyChange::restore(flickableInteractive);
+    // disconnect options
+    grabPanel(leadingOptions, false);
+    grabPanel(trailingOptions, false);
+}
+
+// the function performs a cleanup on mouse release without any rebound animation
+void UCListItemPrivate::cleanup()
+{
+    setPressed(false);
+    setMoved(false);
+    _q_completeRebinding();
+}
+
+void UCListItemPrivate::reboundTo(qreal x)
+{
+    reboundAnimation->setFrom(contentItem->x());
+    reboundAnimation->setTo(x);
+    reboundAnimation->restart();
 }
 
 // called when units size changes
@@ -262,11 +315,45 @@ void UCListItemPrivate::setPressed(bool pressed)
 {
     if (this->pressed != pressed) {
         this->pressed = pressed;
+        suppressClick = false;
         Q_Q(UCListItem);
         q->update();
         Q_EMIT q->pressedChanged();
     }
 }
+// toggles the moved flag and installs/removes event filter
+void UCListItemPrivate::setMoved(bool moved)
+{
+    suppressClick = moved;
+    if (this->moved == moved) {
+        return;
+    }
+    this->moved = moved;
+    Q_Q(UCListItem);
+    QQuickWindow *window = q->window();
+    if (moved) {
+        window->installEventFilter(q);
+    } else {
+        window->removeEventFilter(q);
+    }
+}
+
+// sets the moved flag but also grabs the panels from the leading/trailing options
+bool UCListItemPrivate::grabPanel(UCListItemOptions *optionsList, bool isMoved)
+{
+    Q_Q(UCListItem);
+    if (isMoved) {
+        bool grab = UCListItemOptionsPrivate::connectToListItem(optionsList, q, (optionsList == leadingOptions));
+        if (grab) {
+            PropertyChange::setValue(flickableInteractive, false);
+        }
+        return grab;
+    } else {
+        UCListItemOptionsPrivate::disconnectFromListItem(optionsList);
+        return false;
+    }
+}
+
 
 // connects/disconnects from the Flickable anchestor to get notified when to do rebound
 void UCListItemPrivate::listenToRebind(bool listen)
@@ -299,6 +386,18 @@ void UCListItemPrivate::update()
     }
     Q_Q(UCListItem);
     q->update();
+}
+
+void UCListItemPrivate::clampX(qreal &x, qreal dx)
+{
+    UCListItemOptionsPrivate *leading = UCListItemOptionsPrivate::get(leadingOptions);
+    UCListItemOptionsPrivate *trailing = UCListItemOptionsPrivate::get(trailingOptions);
+    x += dx;
+    // min cannot be less than the trailing's panel width
+    qreal min = (trailing && trailing->panelItem) ? -trailing->panelItem->width() : 0;
+    // max cannot be bigger than 0 or the leading's width in case we have leading panel
+    qreal max = (leading && leading->panelItem) ? leading->panelItem->width() : 0;
+    x = CLAMP(x, min, max);
 }
 
 /*!
@@ -334,6 +433,52 @@ void UCListItemPrivate::update()
  * Each ListItem has a thin divider shown on the bottom of the component. This
  * divider can be configured through the \l divider grouped property, which can
  * configure its margins from the edges of the ListItem as well as its visibility.
+ *
+ * ListItem can handle options that can ge tugged from front ot right of the item.
+ * These options are Action elements visualized in panels attached to the front
+ * or to the end of the item, and are revealed by swiping the item horizontally.
+ * The tug is started only after the mouse/touch move had passed a given threshold.
+ * These options are configured through the \l leadingOptions as well as \l
+ * trailingOptions properties.
+ * \qml
+ * ListItem {
+ *     id: listItem
+ *     leadingOptions: ListItemOptions {
+ *         Action {
+ *             iconName: "delete"
+ *             onTriggered: listItem.destroy()
+ *         }
+ *     }
+ *     trailingOptions: ListItemOptions {
+ *         Action {
+ *             iconName: "search"
+ *             onTriggered: {
+ *                 // do some search
+ *             }
+ *         }
+ *     }
+ * }
+ * \endqml
+ * \note A ListItem cannot use the same ListItemOption instance for both leading or
+ * trailing options. If it is desired to have the same action present in both leading
+ * and trailing options, one of the ListItemOption options list can use the other's
+ * list. In the following example the list item can be deleted through both option
+ * leading and trailing options:
+ * \qml
+ * ListItem {
+ *     id: listItem
+ *     leadingOptions: ListItemOptions {
+ *         Action {
+ *             iconName: "delete"
+ *             onTriggered: listItem.destroy()
+ *         }
+ *     }
+ *     trailingOptions: ListItemOptions {
+ *         options: leadingOptions.options
+ *     }
+ * }
+ * \endqml
+ * \sa ListItemOptions
  */
 
 /*!
@@ -377,10 +522,18 @@ void UCListItem::itemChange(ItemChange change, const ItemChangeData &data)
         }
 
         if (d->flickable) {
+            // create the flickableInteractive property change now
+            d->flickableInteractive = new PropertyChange(d->flickable, "interactive");
             // connect to flickable to get width changes
             QObject::connect(d->flickable, SIGNAL(widthChanged()), this, SLOT(_q_updateSize()));
         } else if (data.item) {
             QObject::connect(data.item, SIGNAL(widthChanged()), this, SLOT(_q_updateSize()));
+        } else {
+            // in case we had a flickableInteractive property change active, destroy it
+            if (d->flickableInteractive) {
+                delete d->flickableInteractive;
+                d->flickableInteractive = 0;
+            }
         }
 
         // update size
@@ -391,7 +544,7 @@ void UCListItem::itemChange(ItemChange change, const ItemChangeData &data)
 void UCListItem::geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometry)
 {
     UCStyledItemBase::geometryChanged(newGeometry, oldGeometry);
-    // resize background item
+    // resize contentItem item
     Q_D(UCListItem);
     d->resize();
 }
@@ -432,11 +585,12 @@ void UCListItem::mousePressEvent(QMouseEvent *event)
     UCStyledItemBase::mousePressEvent(event);
     Q_D(UCListItem);
     if (!d->flickable.isNull() && d->flickable->isMoving()) {
-        // while moving, we cannot select any items
+        // while moving, we cannot select or tug any items
         return;
     }
     if (event->button() == Qt::LeftButton) {
         d->setPressed(true);
+        d->lastPos = d->pressedPos = event->localPos();
         // connect the Flickable to know when to rebound
         d->listenToRebind(true);
         // accept the event so we get the rest of the events as well
@@ -446,16 +600,87 @@ void UCListItem::mousePressEvent(QMouseEvent *event)
 
 void UCListItem::mouseReleaseEvent(QMouseEvent *event)
 {
+    UCStyledItemBase::mouseReleaseEvent(event);
     Q_D(UCListItem);
     // set released
     if (d->pressed) {
-        Q_EMIT clicked();
+        // disconnect the flickable
+        d->listenToRebind(false);
+
+        if (!d->suppressClick) {
+            Q_EMIT clicked();
+            d->_q_rebound();
+        } else if (d->contentItem->x() == 0.0) {
+            // if no options list is connected, release flickable blockade
+            d->cleanup();
+        }
     }
-    // save pressed state as UCFocusScope resets it seemlessly
-    bool wasPressed = d->pressed;
-    UCStyledItemBase::mouseReleaseEvent(event);
-    d->pressed = wasPressed;
     d->setPressed(false);
+}
+
+void UCListItem::mouseMoveEvent(QMouseEvent *event)
+{
+    Q_D(UCListItem);
+    UCStyledItemBase::mouseMoveEvent(event);
+
+    // accept the tugging only if the move is within the threshold
+    bool leadingAttached = UCListItemOptionsPrivate::isConnectedTo(d->leadingOptions, this);
+    bool trailingAttached = UCListItemOptionsPrivate::isConnectedTo(d->trailingOptions, this);
+    if (d->pressed && !(leadingAttached || trailingAttached)) {
+        // check if we can initiate the drag at all
+        // only X direction matters, if Y-direction leaves the threshold, but X not, the tug is not valid
+        qreal threshold = UCUnits::instance().gu(d->xAxisMoveThresholdGU);
+        qreal mouseX = event->localPos().x();
+        qreal pressedX = d->pressedPos.x();
+
+        if ((mouseX < (pressedX - threshold)) || (mouseX > (pressedX + threshold))) {
+            // the press went out of the threshold area, enable move, if the direction allows it
+            d->lastPos = event->localPos();
+            // connect both panels
+            leadingAttached = d->grabPanel(d->leadingOptions, true);
+            trailingAttached = d->grabPanel(d->trailingOptions, true);
+        }
+    }
+
+    if (leadingAttached || trailingAttached) {
+        qreal x = d->contentItem->x();
+        qreal dx = event->localPos().x() - d->lastPos.x();
+        d->lastPos = event->localPos();
+
+        if (dx) {
+            // clamp X into allowed dragging area
+            d->clampX(x, dx);
+            // block flickable
+            d->setMoved(true);
+            d->contentItem->setX(x);
+        }
+    }
+}
+
+bool UCListItem::eventFilter(QObject *target, QEvent *event)
+{
+    QPointF myPos;
+    // only filter press events, and rebound when pressed outside
+    if (event->type() == QEvent::MouseButtonPress) {
+        QMouseEvent *mouse = static_cast<QMouseEvent*>(event);
+        QQuickWindow *window = qobject_cast<QQuickWindow*>(target);
+        if (window) {
+            myPos = window->contentItem()->mapToItem(this, mouse->localPos());
+        }
+    } else if (event->type() == QEvent::TouchBegin) {
+        QTouchEvent *touch = static_cast<QTouchEvent*>(event);
+        QQuickWindow *window = qobject_cast<QQuickWindow*>(target);
+        if (window) {
+            myPos = window->contentItem()->mapToItem(this, touch->touchPoints()[0].pos());
+        }
+    }
+    if (!myPos.isNull() && !contains(myPos)) {
+        Q_D(UCListItem);
+        d->_q_rebound();
+        // only accept event, but let it be handled by the underlying or surrounding Flickables
+        event->accept();
+    }
+    return UCStyledItemBase::eventFilter(target, event);
 }
 
 /*!
