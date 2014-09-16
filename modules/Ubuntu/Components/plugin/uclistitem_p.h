@@ -46,6 +46,7 @@ public:
     void setFocusable();
 
     void _q_updateColors();
+    void _q_dimmDisabled();
     void _q_rebound();
     void _q_updateSize();
     void _q_completeRebinding();
@@ -75,6 +76,7 @@ public:
     QQuickPropertyAnimation *reboundAnimation;
     PropertyChange *flickableInteractive;
     QQuickItem *contentItem;
+    PropertyChange *disabledOpacity;
     UCListItemDivider *divider;
     UCListItemOptions *leadingOptions;
     UCListItemOptions *trailingOptions;
