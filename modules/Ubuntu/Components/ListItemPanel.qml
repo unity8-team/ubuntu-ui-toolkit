@@ -86,6 +86,7 @@ Item {
                     height: parent.height
                     sourceComponent: panel.delegate ? panel.delegate : defaultDelegate
                     property Action option: modelData
+                    property int index: index
                     onItemChanged: {
                         // this is needed only for testing purposes
                         if (item && item.objectName === "") {
