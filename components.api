@@ -819,6 +819,8 @@ plugins.qmltypes
     exports: ["ListItem 1.2"]
     Property { name: "contentItem"; type: "QQuickItem"; isReadonly: true; isPointer: true }
     Property { name: "divider"; type: "UCListItemDivider"; isReadonly: true; isPointer: true }
+    Property { name: "leadingOptions"; type: "UCListItemOptions"; isPointer: true }
+    Property { name: "trailingOptions"; type: "UCListItemOptions"; isPointer: true }
     Property { name: "pressed"; type: "bool"; isReadonly: true }
     Property { name: "color"; type: "QColor" }
     Property { name: "pressedColor"; type: "QColor" }
@@ -832,6 +834,12 @@ plugins.qmltypes
     Property { name: "rightMargin"; type: "double" }
     Property { name: "colorFrom"; type: "QColor" }
     Property { name: "colorTo"; type: "QColor" }
+    name: "UCListItemOptions"
+    prototype: "QObject"
+    exports: ["ListItemOptions 1.2"]
+    Property { name: "delegate"; type: "QQmlComponent"; isPointer: true }
+    Property { name: "options"; type: "QObject"; isList: true; isReadonly: true }
+    Property { name: "panelItem"; type: "QQuickItem"; isReadonly: true; isPointer: true }
     name: "UCMouse"
     prototype: "QObject"
     exports: ["Mouse 0.1", "Mouse 1.0"]
