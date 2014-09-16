@@ -200,6 +200,7 @@ UCListItemPrivate::UCListItemPrivate()
     , pressedColorChanged(false)
     , moved(false)
     , ready(false)
+    , index(-1)
     , xAxisMoveThresholdGU(1.5)
     , color(Qt::transparent)
     , pressedColor(Qt::transparent)
@@ -306,6 +307,7 @@ void UCListItemPrivate::reboundTo(qreal x)
     reboundAnimation->restart();
 }
 
+// set pressed flag and update background
 // called when units size changes
 void UCListItemPrivate::_q_updateSize()
 {
@@ -507,7 +509,14 @@ UCListItem::~UCListItem()
 void UCListItem::componentComplete()
 {
     UCStyledItemBase::componentComplete();
-    d_func()->ready = true;
+    Q_D(UCListItem);
+    d->ready = true;
+    // is there an index context property?
+    QQmlContext *context = qmlContext(this);
+    QVariant index = context->contextProperty("index");
+    if (index.isValid()) {
+        d->index = index.toInt();
+    }
 }
 
 void UCListItem::itemChange(ItemChange change, const ItemChangeData &data)
