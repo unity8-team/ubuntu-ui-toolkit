@@ -36,8 +36,8 @@ class UCListItemOptions : public QObject
 public:
     enum Status {
         Disconnected = 0,
-        LeadingOptions,
-        TrailingOptions
+        Leading,
+        Trailing
     };
 
     explicit UCListItemOptions(QObject *parent = 0);

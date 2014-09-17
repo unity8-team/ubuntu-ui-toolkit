@@ -45,7 +45,7 @@ void UCListItemOptionsPrivate::_q_handlePanelDrag()
     }
 
     Q_Q(UCListItemOptions);
-    offsetDragged = (status == UCListItemOptions::LeadingOptions) ? panelItem->width() + panelItem->x() :
+    offsetDragged = (status == UCListItemOptions::Leading) ? panelItem->width() + panelItem->x() :
                          listItem->width() - panelItem->x();
     if (offsetDragged < 0.0) {
         offsetDragged = 0.0;
@@ -125,7 +125,7 @@ bool UCListItemOptionsPrivate::connectToListItem(UCListItemOptions *options, UCL
     _this->panelItem->setParentItem(listItem);
     _this->offsetDragged = 0.0;
     QObject::connect(_this->panelItem, SIGNAL(selected()), _this->panelItem->parentItem(), SLOT(_q_rebound()));
-    _this->status = (leading) ? UCListItemOptions::LeadingOptions : UCListItemOptions::TrailingOptions;
+    _this->status = (leading) ?  UCListItemOptions::Leading :  UCListItemOptions::Trailing;
     Q_EMIT options->statusChanged();
     Q_EMIT options->connectedItemChanged();
     return true;
@@ -170,7 +170,7 @@ qreal UCListItemOptionsPrivate::snap(UCListItemOptions *options)
     if (ratio > 0.0 && (ratio - trunc(ratio)) > 0.5) {
         visible++;
     }
-    return visible * _this->optionSlotWidth * (_this->status == UCListItemOptions::LeadingOptions ? 1 : -1);
+    return visible * _this->optionSlotWidth * (_this->status ==  UCListItemOptions::Leading ? 1 : -1);
 }
 
 
