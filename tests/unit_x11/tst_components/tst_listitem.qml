@@ -542,8 +542,8 @@ Item {
         function test_listitemoptions_status_data() {
             var drag = testItem.contentItem.width / 2;
             return [
-                {tag:"Leading", item: testItem, dx: drag, list: testItem.leadingOptions, expectedStatus: ListItemOptions.LeadingOptions},
-                {tag:"Trailing", item: testItem, dx: -drag, list: testItem.trailingOptions, expectedStatus: ListItemOptions.TrailingOptions},
+                {tag:"Leading", item: testItem, dx: drag, list: testItem.leadingOptions, expectedStatus: ListItemOptions.Leading},
+                {tag:"Trailing", item: testItem, dx: -drag, list: testItem.trailingOptions, expectedStatus: ListItemOptions.Trailing},
             ];
         }
         function test_listitemoptions_status(data) {
