@@ -24,6 +24,9 @@ Item {
     id: panel
     width: optionsRow.childrenRect.width
 
+    /*
+      Property holding the ListItem's contentItem instance
+      */
     readonly property Item contentItem: parent ? parent.contentItem : null
 
     /*
@@ -47,12 +50,10 @@ Item {
     property var optionList
 
     /*
-      Panel and icon colors
+      Panel and text colors
       */
     property color panelColor
-    property color iconColor
-
-    onPanelColorChanged: print("panelColor=", panelColor)
+    property color textColor
 
     /*
       Emitted when action is triggered
@@ -137,8 +138,8 @@ Item {
                 height: width
                 name: option.iconName
                 // FIXME: use Palette colors instead when available
-                color: (panel.iconColor != "#000000") ?
-                           panel.iconColor : (panel.leadingPanel ? "white" : UbuntuColors.darkGrey)
+                color: (panel.textColor != "#000000") ?
+                           panel.textColor : (panel.leadingPanel ? "white" : UbuntuColors.darkGrey)
                 anchors.centerIn: parent
             }
         }

@@ -32,26 +32,28 @@ Item {
     }
     ListItemOptions {
         id: leading
-        Action {
-            iconName: "delete"
-            property var param
-            onTriggered: param = value
-        }
-        Action {
-            iconName: "edit"
-            property var param
-            onTriggered: param = value
-        }
-        Action {
-            iconName: "camcorder"
-            property var param
-            onTriggered: param = value
-        }
+        options: [
+            Action {
+                iconName: "delete"
+                property var param
+                onTriggered: param = value
+            },
+            Action {
+                iconName: "edit"
+                property var param
+                onTriggered: param = value
+            },
+            Action {
+                iconName: "camcorder"
+                property var param
+                onTriggered: param = value
+            }
+        ]
     }
     ListItemOptions {
         id: trailing
         panelColor: leading.panelColor
-        iconColor: leading.iconColor
+        textColor: leading.textColor
         options: [
             stockAction,
         ]
@@ -61,16 +63,18 @@ Item {
     }
     ListItemOptions {
         id: wrongOption
-        Action {
-            id: goodAction
-            iconName: "starred"
-        }
-        QtObject {
-            id: badAction
-        }
-        Action {
-            iconName: "starred"
-        }
+        options: [
+            Action {
+                id: goodAction
+                iconName: "starred"
+            },
+            QtObject {
+                id: badAction
+            },
+            Action {
+                iconName: "starred"
+            }
+        ]
     }
     ListItemOptions {
         id: optionsDefault
@@ -559,11 +563,11 @@ Item {
             compare(leading.panelItem.panelColor, UbuntuColors.blue, "leading panelItem color differs");
             compare(trailing.panelItem.panelColor, UbuntuColors.blue, "trailing panelItem color has not been set");
         }
-        function test_iconColor_change() {
+        function test_textColor_change() {
             // change panel color for the leading and observe the trailing panelItem color change
-            leading.iconColor = UbuntuColors.green;
-            compare(leading.panelItem.iconColor, UbuntuColors.green, "leading panelItem color differs");
-            compare(trailing.panelItem.iconColor, UbuntuColors.green, "trailing panelItem color has not been set");
+            leading.textColor = UbuntuColors.green;
+            compare(leading.panelItem.textColor, UbuntuColors.green, "leading panelItem color differs");
+            compare(trailing.panelItem.textColor, UbuntuColors.green, "trailing panelItem color has not been set");
         }
     }
 }
