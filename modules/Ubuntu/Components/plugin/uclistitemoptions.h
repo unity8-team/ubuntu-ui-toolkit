@@ -30,7 +30,8 @@ class UCListItemOptions : public QObject
     Q_PROPERTY(QQuickItem *panelItem READ panelItem NOTIFY panelItemChanged)
     Q_PROPERTY(Status status READ status NOTIFY statusChanged)
     Q_PROPERTY(UCListItem *connectedItem READ connectedItem NOTIFY connectedItemChanged)
-    Q_CLASSINFO("DefaultProperty", "options")
+    Q_PROPERTY(QQmlListProperty<QObject> data READ data)
+    Q_CLASSINFO("DefaultProperty", "data")
     Q_ENUMS(Status)
 public:
     enum Status {
@@ -48,6 +49,7 @@ public:
     QQuickItem *panelItem() const;
     Status status() const;
     UCListItem *connectedItem() const;
+    QQmlListProperty<QObject> data();
 
 Q_SIGNALS:
     void delegateChanged();
