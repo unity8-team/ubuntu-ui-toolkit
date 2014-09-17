@@ -31,11 +31,13 @@ public:
         return options ? options->d_func() : 0;
     }
 
-    bool optionsFailure:1;
+    bool actionsFailure:1;
+    bool connected:1;
+    bool leading:1;
     UCListItemOptions::Status status;
     QQmlComponent *delegate;
     QQuickItem *panelItem;
-    QList<QObject*> options;
+    QList<QObject*> actions;
     QList<QObject*> data;
     QPointer<UCListItem> queuedItem;
     qreal optionSlotWidth;

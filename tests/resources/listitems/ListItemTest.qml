@@ -35,7 +35,7 @@ MainView {
     ListItemOptions {
         id: leading
         objectName: "StockLeading"
-        options: [
+        actions: [
             Action {
                 iconName: "delete"
                 onTriggered: print(iconName, "triggered")
@@ -92,7 +92,7 @@ MainView {
             }
             leadingOptions: ListItemOptions {
                 objectName: "InlineLeading"
-                options: [stock]
+                actions: [stock]
                 delegate: Column {
                     width: height + units.gu(2)
                     Icon {
@@ -156,7 +156,7 @@ MainView {
                         objectName: "InFlickable"+index
                         selectable: main.selectable
                         leadingOptions: ListItemOptions {
-                            options: [
+                            actions: [
                                 Action {
                                     iconName: "edit"
                                     onTriggered: print(iconName, "clicked", value)
@@ -168,7 +168,7 @@ MainView {
                             ]
                         }
                         trailingOptions: ListItemOptions {
-                            options: leadingOptions.options
+                            actions: leading.actions
                         }
 
                         color: "red"

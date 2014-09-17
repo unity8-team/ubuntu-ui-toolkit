@@ -32,7 +32,7 @@ Item {
     }
     ListItemOptions {
         id: leading
-        options: [
+        actions: [
             Action {
                 iconName: "delete"
                 property var param
@@ -52,7 +52,7 @@ Item {
     }
     ListItemOptions {
         id: trailing
-        options: [
+        actions: [
             stockAction,
         ]
         delegate: Item {
@@ -61,7 +61,7 @@ Item {
     }
     ListItemOptions {
         id: wrongOption
-        options: [
+        actions: [
             Action {
                 id: goodAction
                 iconName: "starred"
@@ -91,7 +91,7 @@ Item {
             color: "blue"
             leadingOptions: leading
             trailingOptions: ListItemOptions {
-                options: leading.options
+                actions: leading.actions
             }
 
             Item {
@@ -179,7 +179,7 @@ Item {
             fuzzyCompare(defaults.divider.colorTo.a, 0.07, 0.01, "colorTo alpha differs");
 
             compare(optionsDefault.delegate, null, "ListItemOptions has no delegate set by default.");
-            compare(optionsDefault.options.length, 0, "ListItemOptions has no options set.");
+            compare(optionsDefault.actions.length, 0, "ListItemOptions has no options set.");
             compare(optionsDefault.panelItem, null, "There is no panelItem created by default.");
             compare(optionsDefault.status, ListItemOptions.Disconnected, "optiosn list is disconnected by default");
             compare(optionsDefault.connectedItem, null, "No item is connected by default");
@@ -265,7 +265,7 @@ Item {
             if (data.xfail) {
                 expectFailContinue(data.tag, "expected to fail");
             }
-            compare(data.object.options.length, data.expected, data.tag + ": expected options differ.");
+            compare(data.object.actions.length, data.expected, data.tag + ": expected options differ.");
         }
 
         function test_touch_tug_options_data() {
