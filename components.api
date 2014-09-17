@@ -842,7 +842,7 @@ plugins.qmltypes
     exports: ["ListItemOptions 1.2"]
     name: "Status"
     Property { name: "delegate"; type: "QQmlComponent"; isPointer: true }
-    Property { name: "options"; type: "QObject"; isList: true; isReadonly: true }
+    Property { name: "actions"; type: "QObject"; isList: true; isReadonly: true }
     Property { name: "panelItem"; type: "QQuickItem"; isReadonly: true; isPointer: true }
     Property { name: "status"; type: "Status"; isReadonly: true }
     Property { name: "connectedItem"; type: "UCListItem"; isReadonly: true; isPointer: true }

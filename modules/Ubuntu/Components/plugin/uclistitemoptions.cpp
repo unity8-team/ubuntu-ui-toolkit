@@ -25,9 +25,11 @@
 
 UCListItemOptionsPrivate::UCListItemOptionsPrivate()
     : QObjectPrivate()
-    , optionsFailure(false)
+    , actionsFailure(false)
     , panelColorChanged(false)
     , textColorChanged(false)
+    , connected(false)
+    , leading(false)
     , status(UCListItemOptions::Disconnected)
     , delegate(0)
     , panelItem(0)
@@ -65,8 +67,8 @@ void UCListItemOptionsPrivate::_q_handlePanelWidth()
     // check how many options are visible && enabled
     // FIXME: use Actions API when moved to C++
     int count = 0;
-    for (int i = 0; i < options.count(); i++) {
-        if (options[i]->property("visible").toBool() && options[i]->property("enabled").toBool()) {
+    for (int i = 0; i < actions.count(); i++) {
+        if (actions[i]->property("visible").toBool() && actions[i]->property("enabled").toBool()) {
             count++;
         }
     }
@@ -82,33 +84,33 @@ void UCListItemOptionsPrivate::funcAppend(QQmlListProperty<QObject> *list, QObje
     UCListItemOptions *_this = static_cast<UCListItemOptions*>(list->object);
     UCListItemOptionsPrivate *plist = UCListItemOptionsPrivate::get(_this);
     if (!QuickUtils::inherits(option, "Action")) {
-        qmlInfo(_this) << UbuntuI18n::instance().tr(QString("Option at index %1 is not an Action or a derivate of it.").arg(plist->options.size()));
-        plist->optionsFailure = true;
-        plist->options.clear();
+        qmlInfo(_this) << UbuntuI18n::instance().tr(QString("Option at index %1 is not an Action or a derivate of it.").arg(plist->actions.size()));
+        plist->actionsFailure = true;
+        plist->actions.clear();
         return;
     }
-    if (!plist->optionsFailure) {
-        plist->options.append(option);
+    if (!plist->actionsFailure) {
+        plist->actions.append(option);
     }
 }
 int UCListItemOptionsPrivate::funcCount(QQmlListProperty<QObject> *list)
 {
     UCListItemOptions *_this = static_cast<UCListItemOptions*>(list->object);
     UCListItemOptionsPrivate *plist = UCListItemOptionsPrivate::get(_this);
-    return plist->options.size();
+    return plist->actions.size();
 }
 QObject *UCListItemOptionsPrivate::funcAt(QQmlListProperty<QObject> *list, int index)
 {
     UCListItemOptions *_this = static_cast<UCListItemOptions*>(list->object);
     UCListItemOptionsPrivate *plist = UCListItemOptionsPrivate::get(_this);
-    return plist->options.at(index);
+    return plist->actions.at(index);
 }
 void UCListItemOptionsPrivate::funcClear(QQmlListProperty<QObject> *list)
 {
     UCListItemOptions *_this = static_cast<UCListItemOptions*>(list->object);
     UCListItemOptionsPrivate *plist = UCListItemOptionsPrivate::get(_this);
-    plist->optionsFailure = false;
-    return plist->options.clear();
+    plist->actionsFailure = false;
+    return plist->actions.clear();
 }
 
 bool UCListItemOptionsPrivate::connectToListItem(UCListItemOptions *options, UCListItem *listItem, bool leading)
@@ -195,7 +197,7 @@ QQuickItem *UCListItemOptionsPrivate::createPanelItem()
             if (delegate) {
                 panelItem->setProperty("delegate", QVariant::fromValue(delegate));
             }
-            panelItem->setProperty("optionList", QVariant::fromValue(options));
+            panelItem->setProperty("optionList", QVariant::fromValue(actions));
             component.completeCreate();
             if (panelColorChanged) {
                 updateColor("panelColor", panelColor);
@@ -206,9 +208,9 @@ QQuickItem *UCListItemOptionsPrivate::createPanelItem()
             Q_EMIT q->panelItemChanged();
 
             // calculate option's slot size
-            optionSlotWidth = panelItem->width() / options.count();
             offsetDragged = 0.0;
             optionsVisible = 0;
+            _q_handlePanelWidth();
             // connect to panel to catch dragging
             QObject::connect(panelItem, SIGNAL(widthChanged()), q, SLOT(_q_handlePanelWidth()));
             QObject::connect(panelItem, SIGNAL(xChanged()), q, SLOT(_q_handlePanelDrag()));
@@ -268,7 +270,7 @@ void UCListItemOptionsPrivate::updateColor(const char *property, const QColor &c
  *
  *     ListItemOptions {
  *         id: sharedOptions
- *         options: [
+ *         actions: [
  *             Action {
  *                 iconName: "search"
  *             },
@@ -313,7 +315,7 @@ void UCListItemOptionsPrivate::updateColor(const char *property, const QColor &c
  *         model: 10000
  *         ListItemOptions {
  *             id: commonOptions
- *             options: [
+ *             actions: [
  *                 Action {
  *                     iconName: "search"
  *                 },
@@ -421,22 +423,22 @@ void UCListItemOptions::setDelegate(QQmlComponent *delegate)
 }
 
 /*!
- * \qmlproperty list<Action> ListItemOptions::options
- * The property holds the options to be displayed. It can hold instances cached or
- * declared in place. An example of cached options:
+ * \qmlproperty list<Action> ListItemOptions::actions
+ * The property holds the actions to be displayed. It can hold instances cached or
+ * declared in place. An example of cached actions:
  * \qml
  * ListItemOptions {
  *     id: cacedOptions
- *     options: [
+ *     actions: [
  *         copyAction, searchAction, cutAction
  *     ]
  * }
  * \endqml
  */
-QQmlListProperty<QObject> UCListItemOptions::options()
+QQmlListProperty<QObject> UCListItemOptions::actions()
 {
     Q_D(UCListItemOptions);
-    return QQmlListProperty<QObject>(this, &(d->options),
+    return QQmlListProperty<QObject>(this, &(d->actions),
                                      &UCListItemOptionsPrivate::funcAppend,
                                      &UCListItemOptionsPrivate::funcCount,
                                      &UCListItemOptionsPrivate::funcAt,
