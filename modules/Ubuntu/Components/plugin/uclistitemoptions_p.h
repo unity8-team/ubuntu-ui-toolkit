@@ -33,13 +33,14 @@ public:
 
     bool optionsFailure:1;
     bool panelColorChanged:1;
-    bool iconColorChanged:1;
+    bool textColorChanged:1;
     UCListItemOptions::Status status;
     QQmlComponent *delegate;
     QQuickItem *panelItem;
     QColor panelColor;
-    QColor iconColor;
+    QColor textColor;
     QList<QObject*> options;
+    QList<QObject*> data;
     QPointer<UCListItem> queuedItem;
     qreal optionSlotWidth;
     qreal offsetDragged;

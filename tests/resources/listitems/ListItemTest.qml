@@ -35,30 +35,40 @@ MainView {
     ListItemOptions {
         id: leading
         objectName: "StockLeading"
-        Action {
-            iconName: "delete"
-            onTriggered: { print(iconName, "triggered", value)
-                leading.panelColor = Qt.binding(function() {
-                    return (leading.status == ListItemOptions.LeadingOptions) ? UbuntuColors.blue : UbuntuColors.lightGrey;
-                })
-                leading.iconColor = Qt.binding(function() {
-                    return (leading.status == ListItemOptions.LeadingOptions) ? "white" : UbuntuColors.red;
-                })
+        options: [
+            Action {
+                iconName: "delete"
+                onTriggered: { print(iconName, "triggered", value)
+                    leading.panelColor = Qt.binding(function() {
+                        return (leading.status == ListItemOptions.Leading) ? UbuntuColors.blue : UbuntuColors.lightGrey;
+                    })
+                    leading.textColor = Qt.binding(function() {
+                        return (leading.status == ListItemOptions.Leading) ? "white" : UbuntuColors.red;
+                    })
+                }
+            },
+            Action {
+                iconName: "alarm-clock"
+                enabled: false
+                onTriggered: print(iconName, "triggered")
+            },
+            Action {
+                iconName: "camcorder"
+                onTriggered: print(iconName, "triggered")
+            },
+            Action {
+                iconName: "stock_website"
+                onTriggered: print(iconName, "triggered")
+            },
+            Action {
+                iconName: "starred"
+                onTriggered: print(iconName, "triggered")
+            },
+            Action {
+                iconName: "go-home"
+                onTriggered: print(iconName, "triggered")
             }
-        }
-        Action {
-            iconName: "alarm-clock"
-            enabled: false
-            onTriggered: print(iconName, "triggered")
-        }
-        Action {
-            iconName: "camcorder"
-            onTriggered: print(iconName, "triggered", value)
-        }
-        Action {
-            iconName: "stock_website"
-            onTriggered: print(iconName, "triggered", value)
-        }
+        ]
     }
 
     property bool selectable: false
@@ -154,15 +164,16 @@ MainView {
                         selectable: main.selectable
                         leadingOptions: ListItemOptions {
                             id: optionData
-                            panelColor: UbuntuColors.blue
-                            Action {
-                                iconName: "edit"
-                                onTriggered: print(iconName, "triggered", value)
-                            }
-                            Action {
-                                iconName: "delete"
-                                onTriggered: print(iconName, "triggered", value)
-                            }
+                            options: [
+                                Action {
+                                    iconName: "edit"
+                                    onTriggered: print(iconName, "clicked", value)
+                                },
+                                Action {
+                                    iconName: "delete"
+                                    onTriggered: print(iconName, "clicked", value)
+                                }
+                            ]
                         }
                         trailingOptions: ListItemOptions {
                             panelColor: leadingOptions.panelColor

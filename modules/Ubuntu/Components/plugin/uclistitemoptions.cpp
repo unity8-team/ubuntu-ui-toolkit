@@ -27,12 +27,12 @@ UCListItemOptionsPrivate::UCListItemOptionsPrivate()
     : QObjectPrivate()
     , optionsFailure(false)
     , panelColorChanged(false)
-    , iconColorChanged(false)
+    , textColorChanged(false)
     , status(UCListItemOptions::Disconnected)
     , delegate(0)
     , panelItem(0)
     , panelColor(Qt::transparent)
-    , iconColor(Qt::transparent)
+    , textColor(Qt::transparent)
     , optionSlotWidth(0.0)
     , offsetDragged(0.0)
     , optionsVisible(0)
@@ -50,7 +50,7 @@ void UCListItemOptionsPrivate::_q_handlePanelDrag()
     }
 
     Q_Q(UCListItemOptions);
-    offsetDragged = (status == UCListItemOptions::LeadingOptions) ? panelItem->width() + panelItem->x() :
+    offsetDragged = (status == UCListItemOptions::Leading) ? panelItem->width() + panelItem->x() :
                          listItem->width() - panelItem->x();
     if (offsetDragged < 0.0) {
         offsetDragged = 0.0;
@@ -130,7 +130,7 @@ bool UCListItemOptionsPrivate::connectToListItem(UCListItemOptions *options, UCL
     _this->panelItem->setParentItem(listItem);
     _this->offsetDragged = 0.0;
     QObject::connect(_this->panelItem, SIGNAL(selected()), _this->panelItem->parentItem(), SLOT(_q_rebound()));
-    _this->status = (leading) ? UCListItemOptions::LeadingOptions : UCListItemOptions::TrailingOptions;
+    _this->status = (leading) ?  UCListItemOptions::Leading :  UCListItemOptions::Trailing;
     Q_EMIT options->statusChanged();
     Q_EMIT options->connectedItemChanged();
     return true;
@@ -175,7 +175,7 @@ qreal UCListItemOptionsPrivate::snap(UCListItemOptions *options)
     if (ratio > 0.0 && (ratio - trunc(ratio)) > 0.5) {
         visible++;
     }
-    return visible * _this->optionSlotWidth * (_this->status == UCListItemOptions::LeadingOptions ? 1 : -1);
+    return visible * _this->optionSlotWidth * (_this->status ==  UCListItemOptions::Leading ? 1 : -1);
 }
 
 
@@ -200,8 +200,8 @@ QQuickItem *UCListItemOptionsPrivate::createPanelItem()
             if (panelColorChanged) {
                 updateColor("panelColor", panelColor);
             }
-            if (iconColorChanged) {
-                updateColor("iconColor", iconColor);
+            if (textColorChanged) {
+                updateColor("textColor", textColor);
             }
             Q_EMIT q->panelItemChanged();
 
@@ -255,23 +255,43 @@ void UCListItemOptionsPrivate::updateColor(const char *property, const QColor &c
  * valid for the case when the option is visible less than 50%, in which case the
  * option is hidden. Options can be triggered by tapping.
  *
- * \note You cannot use the same ListItemOptions for leading and for trailing options
- * the same time as when the item content is tugged, both options' panels will be
- * bound to the list item, and teh same item cannot be bount to both edges. However
- * the same set of actions can be used for both options either by using a shared
- * set or by using the others' list. Example:
+ * \note You can use the same ListItemOptions for leading and for trailing options
+ * the same time only if the instance is used by different groups of list items,
+ * where one group uses it as leading and other group as trailing. In any other
+ * circumstances use separate ListItemOptions for leading and trailing options.
  * \qml
- * ListItem {
- *     leadingOptions: ListItemOptions {
- *         Action {
- *             iconName: "edit"
- *         }
- *         Action {
- *             iconName: "delete"
- *         }
+ * import QtQuick 2.2
+ * import Ubuntu.Components 1.2
+ * MainView {
+ *     width: units.gu(40)
+ *     height: units.gu(71)
+ *
+ *     ListItemOptions {
+ *         id: sharedOptions
+ *         options: [
+ *             Action {
+ *                 iconName: "search"
+ *             },
+ *             Action {
+ *                 iconName: "edit"
+ *             },
+ *             Action {
+ *                 iconName: "copy"
+ *             }
+ *         ]
  *     }
- *     trailingOptions: ListItemOptions {
- *         options: leadingOptions.options
+ *
+ *     Column {
+ *         ListItem {
+ *             leadingOptions: sharedOptions
+ *         }
+ *         UbuntuListView {
+ *             anchors.fill: parent
+ *             model: 10000
+ *             delegate: ListItem {
+ *                 trailingOptions: sharedOptions
+ *             }
+ *         }
  *     }
  * }
  * \endqml
@@ -293,15 +313,17 @@ void UCListItemOptionsPrivate::updateColor(const char *property, const QColor &c
  *         model: 10000
  *         ListItemOptions {
  *             id: commonOptions
- *             Action {
- *                 iconName: "search"
- *             }
- *             Action {
- *                 iconName: "edit"
- *             }
- *             Action {
- *                 iconName: "copy"
- *             }
+ *             options: [
+ *                 Action {
+ *                     iconName: "search"
+ *                 },
+ *                 Action {
+ *                     iconName: "edit"
+ *                 },
+ *                 Action {
+ *                     iconName: "copy"
+ *                 }
+ *             ]
  *         }
  *         delegate: ListItem {
  *             trailingOptions: commonOptions
@@ -366,7 +388,7 @@ UCListItemOptions::~UCListItemOptions()
  *                     horizontalAlignment: Text.AlignHCenter
  *                 }
  *             }
- *             Action {
+ *             options: Action {
  *                 iconName: "starred"
  *                 text: "Star"
  *             }
@@ -400,7 +422,6 @@ void UCListItemOptions::setDelegate(QQmlComponent *delegate)
 
 /*!
  * \qmlproperty list<Action> ListItemOptions::options
- * \default
  * The property holds the options to be displayed. It can hold instances cached or
  * declared in place. An example of cached options:
  * \qml
@@ -463,6 +484,17 @@ UCListItem *UCListItemOptions::connectedItem() const
     Q_D(const UCListItemOptions);
     return d->panelItem ? qobject_cast<UCListItem*>(d->panelItem->parentItem()) : 0;
 }
+/*!
+ * \internal
+ * \qmlproperty list<QtObject> ListItemOptions::data
+ * \default
+ * The property holds any additional content added to the ListItemOptions.
+ */
+QQmlListProperty<QObject> UCListItemOptions::data()
+{
+    Q_D(UCListItemOptions);
+    return QQmlListProperty<QObject>(this, d->data);
+}
 
 /*!
  * \qmlproperty color ListItemOptions::panelColor
@@ -487,26 +519,26 @@ void UCListItemOptions::setPanelColor(const QColor &color)
 }
 
 /*!
- * \qmlproperty color ListItemOptions::iconColor
- * The property overrides the default colouring of the icons in the default
+ * \qmlproperty color ListItemOptions::textColor
+ * The property overrides the default colouring of the icons or texts in the
  * options visualization.
  */
-QColor UCListItemOptions::iconColor() const
+QColor UCListItemOptions::textColor() const
 {
     Q_D(const UCListItemOptions);
-    return d->iconColor;
+    return d->textColor;
 }
-void UCListItemOptions::setIconColor(const QColor &color)
+void UCListItemOptions::setTextColor(const QColor &color)
 {
     Q_D(UCListItemOptions);
-    if (d->iconColor == color) {
+    if (d->textColor == color) {
         return;
     }
-    d->iconColor = color;
-    d->iconColorChanged = true;
+    d->textColor = color;
+    d->textColorChanged = true;
     // update panelItem's color
-    d->updateColor("iconColor", d->iconColor);
-    Q_EMIT iconColorChanged();
+    d->updateColor("textColor", d->textColor);
+    Q_EMIT textColorChanged();
 }
 
 #include "moc_uclistitemoptions.cpp"

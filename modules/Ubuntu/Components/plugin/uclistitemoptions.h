@@ -32,14 +32,15 @@ class UCListItemOptions : public QObject
     Q_PROPERTY(Status status READ status NOTIFY statusChanged)
     Q_PROPERTY(UCListItem *connectedItem READ connectedItem NOTIFY connectedItemChanged)
     Q_PROPERTY(QColor panelColor READ panelColor WRITE setPanelColor NOTIFY panelColorChanged)
-    Q_PROPERTY(QColor iconColor READ iconColor WRITE setIconColor NOTIFY iconColorChanged)
-    Q_CLASSINFO("DefaultProperty", "options")
+    Q_PROPERTY(QColor textColor READ textColor WRITE setTextColor NOTIFY textColorChanged)
+    Q_PROPERTY(QQmlListProperty<QObject> data READ data)
+    Q_CLASSINFO("DefaultProperty", "data")
     Q_ENUMS(Status)
 public:
     enum Status {
         Disconnected = 0,
-        LeadingOptions,
-        TrailingOptions
+        Leading,
+        Trailing
     };
 
     explicit UCListItemOptions(QObject *parent = 0);
@@ -53,8 +54,9 @@ public:
     UCListItem *connectedItem() const;
     QColor panelColor() const;
     void setPanelColor(const QColor &color);
-    QColor iconColor() const;
-    void setIconColor(const QColor &color);
+    QColor textColor() const;
+    void setTextColor(const QColor &color);
+    QQmlListProperty<QObject> data();
 
 Q_SIGNALS:
     void delegateChanged();
@@ -62,7 +64,7 @@ Q_SIGNALS:
     void statusChanged();
     void connectedItemChanged();
     void panelColorChanged();
-    void iconColorChanged();
+    void textColorChanged();
 
 public Q_SLOTS:
 
