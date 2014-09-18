@@ -30,8 +30,8 @@ class UCListItemActions : public QObject
     Q_PROPERTY(QQuickItem *panelItem READ panelItem NOTIFY panelItemChanged)
     Q_PROPERTY(Status status READ status NOTIFY statusChanged)
     Q_PROPERTY(UCListItem *connectedItem READ connectedItem NOTIFY connectedItemChanged)
-    Q_PROPERTY(QColor panelColor READ panelColor WRITE setPanelColor NOTIFY panelColorChanged)
-    Q_PROPERTY(QColor textColor READ textColor WRITE setTextColor NOTIFY textColorChanged)
+    Q_PROPERTY(QColor backgroundColor READ backgroundColor WRITE setBackgroundColor NOTIFY backgroundColorChanged)
+    Q_PROPERTY(QColor foregroundColor READ foregroundColor WRITE setForegroundColor NOTIFY foregroundColorChanged)
     Q_PROPERTY(QQmlListProperty<QObject> data READ data)
     Q_CLASSINFO("DefaultProperty", "data")
     Q_ENUMS(Status)
@@ -51,10 +51,10 @@ public:
     QQuickItem *panelItem() const;
     Status status() const;
     UCListItem *connectedItem() const;
-    QColor panelColor() const;
-    void setPanelColor(const QColor &color);
-    QColor textColor() const;
-    void setTextColor(const QColor &color);
+    QColor backgroundColor() const;
+    void setBackgroundColor(const QColor &color);
+    QColor foregroundColor() const;
+    void setForegroundColor(const QColor &color);
     QQmlListProperty<QObject> data();
 
 Q_SIGNALS:
@@ -62,8 +62,8 @@ Q_SIGNALS:
     void panelItemChanged();
     void statusChanged();
     void connectedItemChanged();
-    void panelColorChanged();
-    void textColorChanged();
+    void backgroundColorChanged();
+    void foregroundColorChanged();
 
 public Q_SLOTS:
 

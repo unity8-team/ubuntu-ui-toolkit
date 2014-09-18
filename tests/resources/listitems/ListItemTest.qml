@@ -39,11 +39,11 @@ MainView {
             Action {
                 iconName: "delete"
                 onTriggered: { print(iconName, "triggered", value)
-                    leading.panelColor = Qt.binding(function() {
-                        return (leading.status == ListItemOptions.Leading) ? UbuntuColors.blue : UbuntuColors.lightGrey;
+                    leading.backgroundColor = Qt.binding(function() {
+                        return (leading.status == ListItemActions.Leading) ? UbuntuColors.green : UbuntuColors.lightGrey;
                     })
-                    leading.textColor = Qt.binding(function() {
-                        return (leading.status == ListItemOptions.Leading) ? "white" : UbuntuColors.red;
+                    leading.foregroundColor = Qt.binding(function() {
+                        return (leading.status == ListItemActions.Leading) ? "white" : UbuntuColors.red;
                     })
                 }
             },
@@ -165,7 +165,7 @@ MainView {
             ListItemActions {
                 id: trailing
                 actions: leading.actions
-                panelColor: leading.panelColor
+                backgroundColor: leading.backgroundColor
             }
 
             Column {

@@ -26,15 +26,15 @@
 UCListItemActionsPrivate::UCListItemActionsPrivate()
     : QObjectPrivate()
     , actionsFailure(false)
-    , panelColorChanged(false)
-    , textColorChanged(false)
+    , backgroundColorChanged(false)
+    , foregroundColorChanged(false)
     , connected(false)
     , leading(false)
     , status(UCListItemActions::Disconnected)
     , delegate(0)
     , panelItem(0)
-    , panelColor(Qt::transparent)
-    , textColor(Qt::transparent)
+    , backgroundColor(Qt::transparent)
+    , foregroundColor(Qt::transparent)
     , optionSlotWidth(0.0)
     , offsetDragged(0.0)
     , optionsVisible(0)
@@ -199,11 +199,11 @@ QQuickItem *UCListItemActionsPrivate::createPanelItem()
             }
             panelItem->setProperty("actionList", QVariant::fromValue(actions));
             component.completeCreate();
-            if (panelColorChanged) {
-                updateColor("panelColor", panelColor);
+            if (backgroundColorChanged) {
+                updateColor("backgroundColor", backgroundColor);
             }
-            if (textColorChanged) {
-                updateColor("textColor", textColor);
+            if (foregroundColorChanged) {
+                updateColor("foregroundColor", foregroundColor);
             }
             Q_EMIT q->panelItemChanged();
 
@@ -501,48 +501,48 @@ QQmlListProperty<QObject> UCListItemActions::data()
 }
 
 /*!
- * \qmlproperty color ListItemActions::panelColor
+ * \qmlproperty color ListItemActions::backgroundColor
  * The property overrides the default colouring of the \l panelItem.
  */
-QColor UCListItemActions::panelColor() const
+QColor UCListItemActions::backgroundColor() const
 {
     Q_D(const UCListItemActions);
-    return d->panelColor;
+    return d->backgroundColor;
 }
-void UCListItemActions::setPanelColor(const QColor &color)
+void UCListItemActions::setBackgroundColor(const QColor &color)
 {
     Q_D(UCListItemActions);
-    if (d->panelColor == color) {
+    if (d->backgroundColor == color) {
         return;
     }
-    d->panelColor = color;
-    d->panelColorChanged = true;
+    d->backgroundColor = color;
+    d->backgroundColorChanged = true;
     // update panelItem's color
-    d->updateColor("panelColor", d->panelColor);
-    Q_EMIT panelColorChanged();
+    d->updateColor("backgroundColor", d->backgroundColor);
+    Q_EMIT backgroundColorChanged();
 }
 
 /*!
- * \qmlproperty color ListItemActions::textColor
+ * \qmlproperty color ListItemActions::foregroundColor
  * The property overrides the default colouring of the icons or texts in the
  * options visualization.
  */
-QColor UCListItemActions::textColor() const
+QColor UCListItemActions::foregroundColor() const
 {
     Q_D(const UCListItemActions);
-    return d->textColor;
+    return d->foregroundColor;
 }
-void UCListItemActions::setTextColor(const QColor &color)
+void UCListItemActions::setForegroundColor(const QColor &color)
 {
     Q_D(UCListItemActions);
-    if (d->textColor == color) {
+    if (d->foregroundColor == color) {
         return;
     }
-    d->textColor = color;
-    d->textColorChanged = true;
+    d->foregroundColor = color;
+    d->foregroundColorChanged = true;
     // update panelItem's color
-    d->updateColor("textColor", d->textColor);
-    Q_EMIT textColorChanged();
+    d->updateColor("foregroundColor", d->foregroundColor);
+    Q_EMIT foregroundColorChanged();
 }
 
 #include "moc_uclistitemactions.cpp"

@@ -52,8 +52,8 @@ Item {
     }
     ListItemActions {
         id: trailing
-        panelColor: leading.panelColor
-        textColor: leading.textColor
+        backgroundColor: leading.backgroundColor
+        foregroundColor: leading.foregroundColor
         actions: [
             stockAction,
         ]
@@ -184,8 +184,8 @@ Item {
             compare(actionsDefault.panelItem, null, "There is no panelItem created by default.");
             compare(actionsDefault.status,  ListItemActions.Disconnected, "actions list is disconnected by default");
             compare(actionsDefault.connectedItem, null, "No item is connected by default");
-            compare(actionsDefault.panelColor, "#000000", "default panelColor must be black");
-            compare(actionsDefault.textColor, "#000000", "default textColor must be black");
+            compare(actionsDefault.backgroundColor, Qt.rgba(0, 0, 0, 0), "default background color is transparent");
+            compare(actionsDefault.foregroundColor, "#000000", "default foregroundColor must be black");
         }
 
         function test_children_in_content_item() {
@@ -557,17 +557,18 @@ Item {
             compare(data.list.connectedItem, data.item, "connectedItem is not the tugged item.");
         }
 
-        function test_panelColor_change() {
+        // keep these as last ones so we make sure the panel has been created by the previous swipes
+        function test_x_backgroundColor_change() {
             // change panel color for the leading and observe the trailing panelItem color change
-            leading.panelColor = UbuntuColors.blue;
-            compare(leading.panelItem.panelColor, UbuntuColors.blue, "leading panelItem color differs");
-            compare(trailing.panelItem.panelColor, UbuntuColors.blue, "trailing panelItem color has not been set");
+            leading.backgroundColor = UbuntuColors.blue;
+            compare(leading.panelItem.backgroundColor, UbuntuColors.blue, "leading panelItem color differs");
+            compare(trailing.panelItem.backgroundColor, UbuntuColors.blue, "trailing panelItem color has not been set");
         }
-        function test_textColor_change() {
+        function test_x_foregroundColor_change() {
             // change panel color for the leading and observe the trailing panelItem color change
-            leading.textColor = UbuntuColors.green;
-            compare(leading.panelItem.textColor, UbuntuColors.green, "leading panelItem color differs");
-            compare(trailing.panelItem.textColor, UbuntuColors.green, "trailing panelItem color has not been set");
+            leading.foregroundColor = UbuntuColors.green;
+            compare(leading.panelItem.foregroundColor, UbuntuColors.green, "leading panelItem color differs");
+            compare(trailing.panelItem.foregroundColor, UbuntuColors.green, "trailing panelItem color has not been set");
         }
     }
 }

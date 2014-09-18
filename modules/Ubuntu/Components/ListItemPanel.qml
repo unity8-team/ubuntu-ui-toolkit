@@ -52,8 +52,8 @@ Item {
     /*
       Panel and text colors
       */
-    property color panelColor
-    property color textColor
+    property color backgroundColor
+    property color foregroundColor
 
     /*
       Emitted when action is triggered
@@ -79,7 +79,7 @@ Item {
     Rectangle {
         anchors.fill: parent
         // FIXME: use Palette colors instead when available
-        color: (panel.panelColor != "#000000") ? panel.panelColor : (leadingPanel ? UbuntuColors.red : "white")
+        color: (panel.backgroundColor != "#000000") ? panel.backgroundColor : (leadingPanel ? UbuntuColors.red : "white")
     }
 
     Row {
@@ -138,8 +138,8 @@ Item {
                 height: width
                 name: action.iconName
                 // FIXME: use Palette colors instead when available
-                color: (panel.textColor != "#000000") ?
-                           panel.textColor : (panel.leadingPanel ? "white" : UbuntuColors.darkGrey)
+                color: (panel.foregroundColor != "#000000") ?
+                           panel.foregroundColor : (panel.leadingPanel ? "white" : UbuntuColors.darkGrey)
                 anchors.centerIn: parent
             }
         }

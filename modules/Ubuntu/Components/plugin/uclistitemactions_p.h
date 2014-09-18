@@ -32,15 +32,15 @@ public:
     }
 
     bool actionsFailure:1;
-    bool panelColorChanged:1;
-    bool textColorChanged:1;
+    bool backgroundColorChanged:1;
+    bool foregroundColorChanged:1;
     bool connected:1;
     bool leading:1;
     UCListItemActions::Status status;
     QQmlComponent *delegate;
     QQuickItem *panelItem;
-    QColor panelColor;
-    QColor textColor;
+    QColor backgroundColor;
+    QColor foregroundColor;
     QList<QObject*> actions;
     QList<QObject*> data;
     QPointer<UCListItem> queuedItem;
