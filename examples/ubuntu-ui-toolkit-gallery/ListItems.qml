@@ -26,21 +26,23 @@ Template {
         className: "ListItem"
         clip: true
         delegate: Toolkit.ListItem {
-            leadingOptions: Toolkit.ListItemOptions {
-                Toolkit.Action {
+            leadingActions: Toolkit.ListItemActions {
+                actions: Toolkit.Action {
                     iconName: "delete"
                 }
             }
-            trailingOptions: Toolkit.ListItemOptions {
-                Toolkit.Action {
-                    iconName: "edit"
-                }
-                Toolkit.Action {
-                    iconName: "contact"
-                }
-                Toolkit.Action {
-                    iconName: "email"
-                }
+            trailingActions: Toolkit.ListItemActions {
+                actions: [
+                    Toolkit.Action {
+                        iconName: "edit"
+                    },
+                    Toolkit.Action {
+                        iconName: "contact"
+                    },
+                    Toolkit.Action {
+                        iconName: "email"
+                    }
+                ]
             }
 
             Toolkit.Label {
