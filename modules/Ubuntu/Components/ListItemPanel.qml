@@ -45,15 +45,15 @@ Item {
     property Component delegate
 
     /*
-      Options
+      Actions
       */
-    property var optionList
+    property var actionList
 
     /*
       Panel and text colors
       */
-    property color panelColor
-    property color textColor
+    property color backgroundColor
+    property color foregroundColor
 
     /*
       Emitted when action is triggered
@@ -79,7 +79,7 @@ Item {
     Rectangle {
         anchors.fill: parent
         // FIXME: use Palette colors instead when available
-        color: (panel.panelColor != "#000000") ? panel.panelColor : (leadingPanel ? UbuntuColors.red : "white")
+        color: (panel.backgroundColor != "#000000") ? panel.backgroundColor : (leadingPanel ? UbuntuColors.red : "white")
     }
 
     Row {
@@ -91,10 +91,10 @@ Item {
             leftMargin: spacing
         }
 
-        property real maxItemWidth: panel.parent ? (panel.parent.width / panel.optionList.length) : 0
+        property real maxItemWidth: panel.parent ? (panel.parent.width / panel.actionList.length) : 0
 
         Repeater {
-            model: panel.optionList
+            model: panel.actionList
             AbstractButton {
                 action: modelData
                 visible: action.visible && action.enabled
@@ -116,7 +116,7 @@ Item {
                     id: delegateLoader
                     height: parent.height
                     sourceComponent: panel.delegate ? panel.delegate : defaultDelegate
-                    property Action option: modelData
+                    property Action action: modelData
                     property int index: index
                     onItemChanged: {
                         // this is needed only for testing purposes
@@ -136,10 +136,10 @@ Item {
             Icon {
                 width: units.gu(2.5)
                 height: width
-                name: option.iconName
+                name: action.iconName
                 // FIXME: use Palette colors instead when available
-                color: (panel.textColor != "#000000") ?
-                           panel.textColor : (panel.leadingPanel ? "white" : UbuntuColors.darkGrey)
+                color: (panel.foregroundColor != "#000000") ?
+                           panel.foregroundColor : (panel.leadingPanel ? "white" : UbuntuColors.darkGrey)
                 anchors.centerIn: parent
             }
         }

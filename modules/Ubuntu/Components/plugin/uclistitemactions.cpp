@@ -14,8 +14,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "uclistitemoptions.h"
-#include "uclistitemoptions_p.h"
+#include "uclistitemactions.h"
+#include "uclistitemactions_p.h"
 #include "uclistitem_p.h"
 #include "quickutils.h"
 #include "i18n.h"
@@ -23,36 +23,36 @@
 #include <QtQml/QQmlInfo>
 #include <QtQuick/private/qquickitem_p.h>
 
-UCListItemOptionsPrivate::UCListItemOptionsPrivate()
+UCListItemActionsPrivate::UCListItemActionsPrivate()
     : QObjectPrivate()
     , actionsFailure(false)
-    , panelColorChanged(false)
-    , textColorChanged(false)
+    , backgroundColorChanged(false)
+    , foregroundColorChanged(false)
     , connected(false)
     , leading(false)
-    , status(UCListItemOptions::Disconnected)
+    , status(UCListItemActions::Disconnected)
     , delegate(0)
     , panelItem(0)
-    , panelColor(Qt::transparent)
-    , textColor(Qt::transparent)
+    , backgroundColor(Qt::transparent)
+    , foregroundColor(Qt::transparent)
     , optionSlotWidth(0.0)
     , offsetDragged(0.0)
     , optionsVisible(0)
 {
 }
-UCListItemOptionsPrivate::~UCListItemOptionsPrivate()
+UCListItemActionsPrivate::~UCListItemActionsPrivate()
 {
 }
 
-void UCListItemOptionsPrivate::_q_handlePanelDrag()
+void UCListItemActionsPrivate::_q_handlePanelDrag()
 {
     UCListItem *listItem = qobject_cast<UCListItem*>(panelItem->parentItem());
     if (!listItem) {
         return;
     }
 
-    Q_Q(UCListItemOptions);
-    offsetDragged = (status == UCListItemOptions::Leading) ? panelItem->width() + panelItem->x() :
+    Q_Q(UCListItemActions);
+    offsetDragged = (status == UCListItemActions::Leading) ? panelItem->width() + panelItem->x() :
                          listItem->width() - panelItem->x();
     if (offsetDragged < 0.0) {
         offsetDragged = 0.0;
@@ -62,7 +62,7 @@ void UCListItemOptionsPrivate::_q_handlePanelDrag()
     }
 }
 
-void UCListItemOptionsPrivate::_q_handlePanelWidth()
+void UCListItemActionsPrivate::_q_handlePanelWidth()
 {
     // check how many options are visible && enabled
     // FIXME: use Actions API when moved to C++
@@ -79,45 +79,45 @@ void UCListItemOptionsPrivate::_q_handlePanelWidth()
 /*
  * Callback functions for QQmlListProperty handling append(), count(), at() and clear() list functions.
  */
-void UCListItemOptionsPrivate::funcAppend(QQmlListProperty<QObject> *list, QObject *option)
+void UCListItemActionsPrivate::funcAppend(QQmlListProperty<QObject> *list, QObject *action)
 {
-    UCListItemOptions *_this = static_cast<UCListItemOptions*>(list->object);
-    UCListItemOptionsPrivate *plist = UCListItemOptionsPrivate::get(_this);
-    if (!QuickUtils::inherits(option, "Action")) {
-        qmlInfo(_this) << UbuntuI18n::instance().tr(QString("Option at index %1 is not an Action or a derivate of it.").arg(plist->actions.size()));
+    UCListItemActions *_this = static_cast<UCListItemActions*>(list->object);
+    UCListItemActionsPrivate *plist = UCListItemActionsPrivate::get(_this);
+    if (!QuickUtils::inherits(action, "Action")) {
+        qmlInfo(_this) << UbuntuI18n::instance().tr(QString("Action at index %1 is not an Action or a derivate of it.").arg(plist->actions.size()));
         plist->actionsFailure = true;
         plist->actions.clear();
         return;
     }
     if (!plist->actionsFailure) {
-        plist->actions.append(option);
+        plist->actions.append(action);
     }
 }
-int UCListItemOptionsPrivate::funcCount(QQmlListProperty<QObject> *list)
+int UCListItemActionsPrivate::funcCount(QQmlListProperty<QObject> *list)
 {
-    UCListItemOptions *_this = static_cast<UCListItemOptions*>(list->object);
-    UCListItemOptionsPrivate *plist = UCListItemOptionsPrivate::get(_this);
+    UCListItemActions *_this = static_cast<UCListItemActions*>(list->object);
+    UCListItemActionsPrivate *plist = UCListItemActionsPrivate::get(_this);
     return plist->actions.size();
 }
-QObject *UCListItemOptionsPrivate::funcAt(QQmlListProperty<QObject> *list, int index)
+QObject *UCListItemActionsPrivate::funcAt(QQmlListProperty<QObject> *list, int index)
 {
-    UCListItemOptions *_this = static_cast<UCListItemOptions*>(list->object);
-    UCListItemOptionsPrivate *plist = UCListItemOptionsPrivate::get(_this);
+    UCListItemActions *_this = static_cast<UCListItemActions*>(list->object);
+    UCListItemActionsPrivate *plist = UCListItemActionsPrivate::get(_this);
     return plist->actions.at(index);
 }
-void UCListItemOptionsPrivate::funcClear(QQmlListProperty<QObject> *list)
+void UCListItemActionsPrivate::funcClear(QQmlListProperty<QObject> *list)
 {
-    UCListItemOptions *_this = static_cast<UCListItemOptions*>(list->object);
-    UCListItemOptionsPrivate *plist = UCListItemOptionsPrivate::get(_this);
+    UCListItemActions *_this = static_cast<UCListItemActions*>(list->object);
+    UCListItemActionsPrivate *plist = UCListItemActionsPrivate::get(_this);
     plist->actionsFailure = false;
     return plist->actions.clear();
 }
 
-bool UCListItemOptionsPrivate::connectToListItem(UCListItemOptions *options, UCListItem *listItem, bool leading)
+bool UCListItemActionsPrivate::connectToListItem(UCListItemActions *actions, UCListItem *listItem, bool leading)
 {
-    UCListItemOptionsPrivate *_this = get(options);
-    if (!_this || !_this->createPanelItem() || isConnectedTo(options, listItem)) {
-        return isConnectedTo(options, listItem);
+    UCListItemActionsPrivate *_this = get(actions);
+    if (!_this || !_this->createPanelItem() || isConnectedTo(actions, listItem)) {
+        return isConnectedTo(actions, listItem);
     }
     // check if the panel is still connected to a ListItem
     // this may happen if there is a swipe over an other item while the previous
@@ -132,43 +132,43 @@ bool UCListItemOptionsPrivate::connectToListItem(UCListItemOptions *options, UCL
     _this->panelItem->setParentItem(listItem);
     _this->offsetDragged = 0.0;
     QObject::connect(_this->panelItem, SIGNAL(selected()), _this->panelItem->parentItem(), SLOT(_q_rebound()));
-    _this->status = (leading) ?  UCListItemOptions::Leading :  UCListItemOptions::Trailing;
-    Q_EMIT options->statusChanged();
-    Q_EMIT options->connectedItemChanged();
+    _this->status = (leading) ?  UCListItemActions::Leading :  UCListItemActions::Trailing;
+    Q_EMIT actions->statusChanged();
+    Q_EMIT actions->connectedItemChanged();
     return true;
 }
 
-void UCListItemOptionsPrivate::disconnectFromListItem(UCListItemOptions *options)
+void UCListItemActionsPrivate::disconnectFromListItem(UCListItemActions *actions)
 {
-    UCListItemOptionsPrivate *_this = get(options);
+    UCListItemActionsPrivate *_this = get(actions);
     if (!_this || !_this->panelItem || !_this->panelItem->parentItem()) {
         return;
     }
 
     QObject::disconnect(_this->panelItem, SIGNAL(selected()), _this->panelItem->parentItem(), SLOT(_q_rebound()));
     _this->panelItem->setParentItem(0);
-    _this->status = UCListItemOptions::Disconnected;
-    Q_EMIT options->statusChanged();
-    Q_EMIT options->connectedItemChanged();
-    // if there was a queuedItem, make it grab the options list
+    _this->status = UCListItemActions::Disconnected;
+    Q_EMIT actions->statusChanged();
+    Q_EMIT actions->connectedItemChanged();
+    // if there was a queuedItem, make it grab the actions list
     if (_this->queuedItem) {
-        UCListItemPrivate::get(_this->queuedItem.data())->grabPanel(options, true);
+        UCListItemPrivate::get(_this->queuedItem.data())->grabPanel(actions, true);
         // remove item from queue
         _this->queuedItem.clear();
     }
 }
 
-bool UCListItemOptionsPrivate::isConnectedTo(UCListItemOptions *options, UCListItem *listItem)
+bool UCListItemActionsPrivate::isConnectedTo(UCListItemActions *actions, UCListItem *listItem)
 {
-    UCListItemOptionsPrivate *_this = get(options);
+    UCListItemActionsPrivate *_this = get(actions);
     return _this && _this->panelItem &&
-            (_this->status != UCListItemOptions::Disconnected) &&
+            (_this->status != UCListItemActions::Disconnected) &&
             (_this->panelItem->parentItem() == listItem);
 }
 
-qreal UCListItemOptionsPrivate::snap(UCListItemOptions *options)
+qreal UCListItemActionsPrivate::snap(UCListItemActions *options)
 {
-    UCListItemOptionsPrivate *_this = get(options);
+    UCListItemActionsPrivate *_this = get(options);
     if (!_this || !_this->panelItem) {
         return 0.0;
     }
@@ -177,16 +177,16 @@ qreal UCListItemOptionsPrivate::snap(UCListItemOptions *options)
     if (ratio > 0.0 && (ratio - trunc(ratio)) > 0.5) {
         visible++;
     }
-    return visible * _this->optionSlotWidth * (_this->status ==  UCListItemOptions::Leading ? 1 : -1);
+    return visible * _this->optionSlotWidth * (_this->status ==  UCListItemActions::Leading ? 1 : -1);
 }
 
 
-QQuickItem *UCListItemOptionsPrivate::createPanelItem()
+QQuickItem *UCListItemActionsPrivate::createPanelItem()
 {
     if (panelItem) {
         return panelItem;
     }
-    Q_Q(UCListItemOptions);
+    Q_Q(UCListItemActions);
     QUrl panelDocument = UbuntuComponentsPlugin::pluginUrl().
             resolved(QUrl::fromLocalFile("ListItemPanel.qml"));
     QQmlComponent component(qmlEngine(q), panelDocument);
@@ -197,13 +197,13 @@ QQuickItem *UCListItemOptionsPrivate::createPanelItem()
             if (delegate) {
                 panelItem->setProperty("delegate", QVariant::fromValue(delegate));
             }
-            panelItem->setProperty("optionList", QVariant::fromValue(actions));
+            panelItem->setProperty("actionList", QVariant::fromValue(actions));
             component.completeCreate();
-            if (panelColorChanged) {
-                updateColor("panelColor", panelColor);
+            if (backgroundColorChanged) {
+                updateColor("backgroundColor", backgroundColor);
             }
-            if (textColorChanged) {
-                updateColor("textColor", textColor);
+            if (foregroundColorChanged) {
+                updateColor("foregroundColor", foregroundColor);
             }
             Q_EMIT q->panelItemChanged();
 
@@ -221,46 +221,46 @@ QQuickItem *UCListItemOptionsPrivate::createPanelItem()
     return panelItem;
 }
 
-void UCListItemOptionsPrivate::updateColor(const char *property, const QColor &color)
+void UCListItemActionsPrivate::updateColor(const char *property, const QColor &color)
 {
     if (!panelItem) {
         return;
     }
-    Q_Q(UCListItemOptions);
+    Q_Q(UCListItemActions);
     panelItem->setProperty(property, QVariant::fromValue(color));
 }
 
 /*!
- * \qmltype ListItemOptions
- * \instantiates UCListItemOptions
+ * \qmltype ListItemActions
+ * \instantiates UCListItemActions
  * \inherits QtQObject
  * \inqmlmodule Ubuntu.Components 1.2
  * \since Ubuntu.Components 1.2
  * \ingroup unstable-ubuntu-listitems
- * \brief Provides configuration for options to be added to a ListItem.
+ * \brief Provides configuration for actions to be added to a ListItem.
  *
- * ListItem accepts options that can be configured to appear when tugged to left
- * or right. The API does not limit the number of options to be assigned for leading
+ * ListItem accepts actions that can be configured to appear when tugged to left
+ * or right. The API does not limit the number of actions to be assigned for leading
  * or trailing actions, however the design constrains are allowing a maximum of
- * 1 option on leading- and a maximum of 3 options on trailing side of teh ListItem.
+ * 1 action on leading- and a maximum of 3 actions on trailing side of teh ListItem.
  *
- * The options are Action instances or elements derived from Action. The default
- * visualization of the options can be overridden using the \l delegate property,
+ * The \l actions are Action instances or elements derived from Action. The default
+ * visualization of the actions can be overridden using the \l delegate property,
  * and the default implementation uses the \c name property of the Action.
  *
- * The leading and trailing options are placed on \l panelItem, which is created
- * the first time the options are accessed. The colors of the panel is taken from
+ * The leading and trailing actions are placed on \l panelItem, which is created
+ * the first time the actions are accessed. The colors of the panel is taken from
  * the theme's palette.
  *
- * When tugged, panels reveal the options one by one. In case an option is revealed
- * more than 50%, the option will be snapped and revealed completely. This is also
- * valid for the case when the option is visible less than 50%, in which case the
- * option is hidden. Options can be triggered by tapping.
+ * When tugged, panels reveal the actions one by one. In case an action is revealed
+ * more than 50%, the action will be snapped and revealed completely. This is also
+ * valid for the case when the action is visible less than 50%, in which case the
+ * action is hidden. Actions can be triggered by tapping.
  *
- * \note You can use the same ListItemOptions for leading and for trailing options
+ * \note You can use the same ListItemActions for leading and for trailing actions
  * the same time only if the instance is used by different groups of list items,
  * where one group uses it as leading and other group as trailing. In any other
- * circumstances use separate ListItemOptions for leading and trailing options.
+ * circumstances use separate ListItemActions for leading and trailing actions.
  * \qml
  * import QtQuick 2.2
  * import Ubuntu.Components 1.2
@@ -268,8 +268,8 @@ void UCListItemOptionsPrivate::updateColor(const char *property, const QColor &c
  *     width: units.gu(40)
  *     height: units.gu(71)
  *
- *     ListItemOptions {
- *         id: sharedOptions
+ *     ListItemActions {
+ *         id: sharedActions
  *         actions: [
  *             Action {
  *                 iconName: "search"
@@ -285,23 +285,25 @@ void UCListItemOptionsPrivate::updateColor(const char *property, const QColor &c
  *
  *     Column {
  *         ListItem {
- *             leadingOptions: sharedOptions
+ *             leadingActions: sharedActions
  *         }
  *         UbuntuListView {
  *             anchors.fill: parent
  *             model: 10000
  *             delegate: ListItem {
- *                 trailingOptions: sharedOptions
+ *                 trailingActions: sharedActions
  *             }
  *         }
  *     }
  * }
  * \endqml
  *
- * \section3 Notes on performance
+ * \section3 Using with ListViews
  * When used with views, or when the amount of items of same kind to be created
- * is huge, it is recommended to use cached actions as well as cached ListItemOption
- * instances. In this way we can reduce the creation time of the items:
+ * is huge, it is recommended to use cached ListItemActions instances to reduce
+ * creation time and to be able to handle rebounding and flicking properly. If
+ * each ListItem crteates its own ListItemActions instance the Flickable view may
+ * be blocked and action visualization will also break.
  * \qml
  * import QtQuick 2.2
  * import Ubuntu.Components 1.2
@@ -313,8 +315,8 @@ void UCListItemOptionsPrivate::updateColor(const char *property, const QColor &c
  *     UbuntuListView {
  *         anchors.fill: parent
  *         model: 10000
- *         ListItemOptions {
- *             id: commonOptions
+ *         ListItemActions {
+ *             id: commonActions
  *             actions: [
  *                 Action {
  *                     iconName: "search"
@@ -328,37 +330,37 @@ void UCListItemOptionsPrivate::updateColor(const char *property, const QColor &c
  *             ]
  *         }
  *         delegate: ListItem {
- *             trailingOptions: commonOptions
+ *             trailingActions: commonActions
  *         }
  *     }
  * }
  * \endqml
  */
 
-UCListItemOptions::UCListItemOptions(QObject *parent)
-    : QObject(*(new UCListItemOptionsPrivate), parent)
+UCListItemActions::UCListItemActions(QObject *parent)
+    : QObject(*(new UCListItemActionsPrivate), parent)
 {
 }
-UCListItemOptions::~UCListItemOptions()
+UCListItemActions::~UCListItemActions()
 {
 }
 
 
 /*!
- * \qmlproperty Component ListItemOptions::delegate
+ * \qmlproperty Component ListItemActions::delegate
  * Custom delegate which overrides the default one used by the ListItem. If the
  * value is null, the default delegate will be used.
  *
- * ListItemOptions provides the \c option context property which contains the
+ * ListItemActions provides the \c action context property which contains the
  * Action instance currently visualized. Using this property delegates can access
  * the information to be visualized. The trigger is handled by the \l panelItem
  * therefore only visualization is needed by the custom delegates. The other
  * context property exposed to delegates is the \c index, which specifies the
- * index of the option visualized.
+ * index of the action visualized.
  *
  * The delegate height is set automatically by the panelItem, and the width value
  * is clamped between height and the maximum width of the list item divided by the
- * number of options in the list.
+ * number of actions in the list.
  * \qml
  * import QtQuick 2.2
  * import Ubuntu.Components 1.2
@@ -371,14 +373,14 @@ UCListItemOptions::~UCListItemOptions()
  *         anchors.fill: parent
  *         model: 50
  *         delegate: ListItem {
- *             trailingOptions: optionsList
+ *             trailingActions: optionsList
  *         }
- *         ListItemOptions {
+ *         ListItemActions {
  *             id: optionsList
  *             delegate: Column {
  *                 width: height + units.gu(2)
  *                 Icon {
- *                     name: option.iconName
+ *                     name: action.iconName
  *                     width: units.gu(3)
  *                     height: width
  *                     color: "blue"
@@ -390,7 +392,7 @@ UCListItemOptions::~UCListItemOptions()
  *                     horizontalAlignment: Text.AlignHCenter
  *                 }
  *             }
- *             options: Action {
+ *             actions: Action {
  *                 iconName: "starred"
  *                 text: "Star"
  *             }
@@ -403,14 +405,14 @@ UCListItemOptions::~UCListItemOptions()
  *
  * Defaults to null.
  */
-QQmlComponent *UCListItemOptions::delegate() const
+QQmlComponent *UCListItemActions::delegate() const
 {
-    Q_D(const UCListItemOptions);
+    Q_D(const UCListItemActions);
     return d->delegate;
 }
-void UCListItemOptions::setDelegate(QQmlComponent *delegate)
+void UCListItemActions::setDelegate(QQmlComponent *delegate)
 {
-    Q_D(UCListItemOptions);
+    Q_D(UCListItemActions);
     if (d->delegate == delegate) {
         return;
     }
@@ -423,43 +425,43 @@ void UCListItemOptions::setDelegate(QQmlComponent *delegate)
 }
 
 /*!
- * \qmlproperty list<Action> ListItemOptions::actions
+ * \qmlproperty list<Action> ListItemActions::actions
  * The property holds the actions to be displayed. It can hold instances cached or
  * declared in place. An example of cached actions:
  * \qml
- * ListItemOptions {
- *     id: cacedOptions
+ * ListItemActions {
+ *     id: cacedActions
  *     actions: [
  *         copyAction, searchAction, cutAction
  *     ]
  * }
  * \endqml
  */
-QQmlListProperty<QObject> UCListItemOptions::actions()
+QQmlListProperty<QObject> UCListItemActions::actions()
 {
-    Q_D(UCListItemOptions);
+    Q_D(UCListItemActions);
     return QQmlListProperty<QObject>(this, &(d->actions),
-                                     &UCListItemOptionsPrivate::funcAppend,
-                                     &UCListItemOptionsPrivate::funcCount,
-                                     &UCListItemOptionsPrivate::funcAt,
-                                     &UCListItemOptionsPrivate::funcClear);
+                                     &UCListItemActionsPrivate::funcAppend,
+                                     &UCListItemActionsPrivate::funcCount,
+                                     &UCListItemActionsPrivate::funcAt,
+                                     &UCListItemActionsPrivate::funcClear);
 }
 
 /*!
- * \qmlproperty Item ListItemOptions::panelItem
- * The property presents the Item holding the visualized options. The panel is
+ * \qmlproperty Item ListItemActions::panelItem
+ * The property presents the Item holding the visualized actions. The panel is
  * created when used the first time.
  */
-QQuickItem *UCListItemOptions::panelItem() const
+QQuickItem *UCListItemActions::panelItem() const
 {
-    Q_D(const UCListItemOptions);
+    Q_D(const UCListItemActions);
     return d->panelItem;
 }
 
 /*!
- * \qmlproperty enum ListItemOptions::status
+ * \qmlproperty enum ListItemActions::status
  * \readonly
- * The property holds the status of the ListItemOptions, whether is connected
+ * The property holds the status of the ListItemActions, whether is connected
  * as leading or as trailing option list to a \l ListItem. Possible valueas are:
  * \list A
  *  \li \b \c Disconnected - default, the options list is not connected to any \l ListItem
@@ -468,79 +470,79 @@ QQuickItem *UCListItemOptions::panelItem() const
  * \endlist
  * \sa connectedItem
  */
-UCListItemOptions::Status UCListItemOptions::status() const
+UCListItemActions::Status UCListItemActions::status() const
 {
-    Q_D(const UCListItemOptions);
+    Q_D(const UCListItemActions);
     return d->status;
 }
 
 /*!
- * \qmlproperty ListItem ListItemOptions::connectedItem
+ * \qmlproperty ListItem ListItemActions::connectedItem
  * \readonly
  * The property holds the \l ListItem the options list is connected to. It is
  * null by default and when the status is \c Disconnected.
  * \sa status
  */
-UCListItem *UCListItemOptions::connectedItem() const
+UCListItem *UCListItemActions::connectedItem() const
 {
-    Q_D(const UCListItemOptions);
+    Q_D(const UCListItemActions);
     return d->panelItem ? qobject_cast<UCListItem*>(d->panelItem->parentItem()) : 0;
 }
 /*!
  * \internal
- * \qmlproperty list<QtObject> ListItemOptions::data
+ * \qmlproperty list<QtObject> ListItemActions::data
  * \default
- * The property holds any additional content added to the ListItemOptions.
+ * The property holds any additional content added to the ListItemActions.
  */
-QQmlListProperty<QObject> UCListItemOptions::data()
+QQmlListProperty<QObject> UCListItemActions::data()
 {
-    Q_D(UCListItemOptions);
+    Q_D(UCListItemActions);
     return QQmlListProperty<QObject>(this, d->data);
 }
 
 /*!
- * \qmlproperty color ListItemOptions::panelColor
+ * \qmlproperty color ListItemActions::backgroundColor
  * The property overrides the default colouring of the \l panelItem.
  */
-QColor UCListItemOptions::panelColor() const
+QColor UCListItemActions::backgroundColor() const
 {
-    Q_D(const UCListItemOptions);
-    return d->panelColor;
+    Q_D(const UCListItemActions);
+    return d->backgroundColor;
 }
-void UCListItemOptions::setPanelColor(const QColor &color)
+void UCListItemActions::setBackgroundColor(const QColor &color)
 {
-    Q_D(UCListItemOptions);
-    if (d->panelColor == color) {
+    Q_D(UCListItemActions);
+    if (d->backgroundColor == color) {
         return;
     }
-    d->panelColor = color;
-    d->panelColorChanged = true;
+    d->backgroundColor = color;
+    d->backgroundColorChanged = true;
     // update panelItem's color
-    d->updateColor("panelColor", d->panelColor);
-    Q_EMIT panelColorChanged();
+    d->updateColor("backgroundColor", d->backgroundColor);
+    Q_EMIT backgroundColorChanged();
 }
 
 /*!
- * \qmlproperty color ListItemOptions::textColor
+ * \qmlproperty color ListItemActions::foregroundColor
  * The property overrides the default colouring of the icons or texts in the
  * options visualization.
  */
-QColor UCListItemOptions::textColor() const
+QColor UCListItemActions::foregroundColor() const
 {
-    Q_D(const UCListItemOptions);
-    return d->textColor;
+    Q_D(const UCListItemActions);
+    return d->foregroundColor;
 }
-void UCListItemOptions::setTextColor(const QColor &color)
+void UCListItemActions::setForegroundColor(const QColor &color)
 {
-    Q_D(UCListItemOptions);
-    if (d->textColor == color) {
+    Q_D(UCListItemActions);
+    if (d->foregroundColor == color) {
         return;
     }
-    d->textColor = color;
-    d->textColorChanged = true;
+    d->foregroundColor = color;
+    d->foregroundColorChanged = true;
     // update panelItem's color
-    d->updateColor("textColor", d->textColor);
-    Q_EMIT textColorChanged();
+    d->updateColor("foregroundColor", d->foregroundColor);
+    Q_EMIT foregroundColorChanged();
 }
 
-#include "moc_uclistitemoptions.cpp"
+#include "moc_uclistitemactions.cpp"
