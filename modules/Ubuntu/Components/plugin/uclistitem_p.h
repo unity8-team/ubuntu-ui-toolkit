@@ -27,7 +27,7 @@ class QQuickFlickable;
 class QQuickPropertyAnimation;
 class UCListItemContent;
 class UCListItemDivider;
-class UCListItemOptions;
+class UCListItemActions;
 class PropertyChange;
 class UCListItemPrivate : public UCStyledItemBasePrivate
 {
@@ -57,7 +57,7 @@ public:
     void reboundTo(qreal x);
     void setPressed(bool pressed);
     void setMoved(bool moved);
-    bool grabPanel(UCListItemOptions *optionList, bool isMoved);
+    bool grabPanel(UCListItemActions *optionList, bool isMoved);
     void listenToRebind(bool listen);
     void resize();
     void update();
@@ -85,8 +85,8 @@ public:
     QQuickItem *contentItem;
     PropertyChange *disabledOpacity;
     UCListItemDivider *divider;
-    UCListItemOptions *leadingOptions;
-    UCListItemOptions *trailingOptions;
+    UCListItemActions *leadingActions;
+    UCListItemActions *trailingActions;
     QQuickItem *selectionPanel;
 };
 
