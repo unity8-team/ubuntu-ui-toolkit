@@ -180,8 +180,8 @@ Item {
             compare(actionsDefault.delegate, null, "ListItemActions has no delegate set by default.");
             compare(actionsDefault.actions.length, 0, "ListItemActions has no actions set.");
             compare(actionsDefault.panelItem, null, "There is no panelItem created by default.");
-            compare(optionsDefault.status,  ListItemActions.Disconnected, "optiosn list is disconnected by default");
-            compare(optionsDefault.connectedItem, null, "No item is connected by default");
+            compare(actionsDefault.status,  ListItemActions.Disconnected, "actions list is disconnected by default");
+            compare(actionsDefault.connectedItem, null, "No item is connected by default");
         }
 
         function test_children_in_content_item() {
