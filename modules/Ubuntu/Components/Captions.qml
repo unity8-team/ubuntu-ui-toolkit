@@ -19,14 +19,33 @@ import QtQuick.Layouts 1.1
 
 /*!
   \qmltype Captions
-  \inqmlmodule Ubuntu.Components 1.1
-  \ingroup new-ubuntu-listitems
+  \inqmlmodule Ubuntu.Components 1.2
+  \ingroup unstable-ubuntu-listitems
   \brief Container providing presets for a twin-label colun that can be used in
   \l ListItemLayout.
 
   The labels are placed in a column layout and can be configured through \l title
-  and \l subtitle properties. The label's main configuration is provided by the
-  \l preset property.
+  and \l subtitle properties. \l preset property configures these labels.
+
+  Being derived from MouseArea, Captions provides the ability to handle mouse
+  related events on the area covered. When used with the ListItem, the component
+  can provide different handling when pressed over or on other areas of the
+  ListItem. By default, the container is disabled.
+  \qml
+  import QtQuick 2.2
+  import Ubuntu.Components 1.2
+
+  ListItem {
+      ListLayout {
+           Captions {
+               enabled: true
+               onClicked: console.log("Captions clicked")
+           }
+           Switch {
+           }
+      }
+  }
+  \endqml
 
   The Captions is not visible if neither the label content is set. Altering \c
   visible property may destroy the handling. Therefore should be altered only
@@ -34,9 +53,9 @@ import QtQuick.Layouts 1.1
   \qml
   import QtQuick 2.2
   import QtQuick.Layouts 1.1
-  import Ubuntu.Components 1.1
+  import Ubuntu.Components 1.2
 
-  Item {
+  ListItem {
       width: units.gu(40)
       height: units.gu(7)
 
