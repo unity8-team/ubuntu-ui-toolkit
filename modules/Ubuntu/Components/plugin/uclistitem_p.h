@@ -29,6 +29,7 @@ class UCListItemContent;
 class UCListItemDivider;
 class UCListItemActions;
 class PropertyChange;
+class FlickableControl;
 class UCListItemPrivate : public UCStyledItemBasePrivate
 {
     Q_DECLARE_PUBLIC(UCListItem)
@@ -58,7 +59,6 @@ public:
     void setPressed(bool pressed);
     void setMoved(bool moved);
     bool grabPanel(UCListItemActions *optionList, bool isMoved);
-    void listenToRebind(bool listen);
     void resize();
     void update();
     void clampX(qreal &x, qreal dx);
@@ -79,15 +79,39 @@ public:
     QPointF pressedPos;
     QColor color;
     QColor pressedColor;
+    FlickableControl *flickableControl;
     QPointer<QQuickFlickable> flickable;
     QQuickPropertyAnimation *reboundAnimation;
-    PropertyChange *flickableInteractive;
     QQuickItem *contentItem;
     PropertyChange *disabledOpacity;
     UCListItemDivider *divider;
     UCListItemActions *leadingActions;
     UCListItemActions *trailingActions;
     QQuickItem *selectionPanel;
+};
+
+// controls all ascendant Flickables
+class FlickableControl : QObject {
+    Q_OBJECT
+public:
+    FlickableControl(QObject *parent = 0);
+    ~FlickableControl();
+
+    void listenToRebind(bool listen);
+    void grab(bool grab);
+    bool isMoving();
+
+private Q_SLOTS:
+    void rebind();
+
+protected:
+    struct Record {
+        QPointer<QQuickFlickable> flickable;
+        PropertyChange *interactive;
+    };
+
+    UCListItem *item;
+    QList<Record> list;
 };
 
 class UCListItemDivider : public QObject

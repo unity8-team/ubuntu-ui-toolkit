@@ -199,6 +199,91 @@ void UCListItemDivider::setColorTo(const QColor &color)
 }
 
 /******************************************************************************
+ * FlickableControl
+ */
+FlickableControl::FlickableControl(QObject *parent)
+    : QObject(parent)
+    , item(qobject_cast<UCListItem*>(parent))
+{
+}
+FlickableControl::~FlickableControl()
+{
+    grab(false);
+    listenToRebind(false);
+}
+
+// collect Flickables from ascendants and listens for moves so list item can be rebound
+void FlickableControl::listenToRebind(bool listen)
+{
+    Q_ASSERT(item);
+    if (listen) {
+        // we should not have any flickables connected
+        Q_ASSERT(!list.count());
+        // collect flickables and connect their movement
+        QQuickItem *parent = QQuickItemPrivate::get(item)->parentItem;
+        while (parent) {
+            QQuickFlickable *flickable = qobject_cast<QQuickFlickable*>(parent);
+            if (flickable) {
+                QObject::connect(flickable, SIGNAL(movementStarted()), this, SLOT(rebind()), Qt::DirectConnection);
+                // add flickable to the list
+                Record record;
+                record.flickable = flickable;
+                record.interactive = new PropertyChange(flickable, "interactive");
+                list.append(record);
+            }
+            parent = QQuickItemPrivate::get(parent)->parentItem;
+        }
+    } else {
+        Q_FOREACH(const Record &record, list) {
+            if (record.flickable) {
+                QObject::disconnect(record.flickable.data(), SIGNAL(movementStarted()), this, SLOT(rebind()));
+            }
+            delete record.interactive;
+        }
+        // clear the list
+        list.clear();
+    }
+}
+
+void FlickableControl::grab(bool grab)
+{
+    // go thru the list and block/unblock interactive
+    Q_FOREACH(const Record &record, list) {
+        if (grab) {
+            PropertyChange::setValue(record.interactive, false);
+        } else {
+            PropertyChange::restore(record.interactive);
+        }
+    }
+}
+
+// reports if any ascendant Flickable is moving
+bool FlickableControl::isMoving()
+{
+    QQuickItem *parent = QQuickItemPrivate::get(item)->parentItem;
+    while (parent) {
+        QQuickFlickable *flickable = qobject_cast<QQuickFlickable*>(parent);
+        if (flickable && flickable->isMoving()) {
+            return true;
+        }
+        parent = QQuickItemPrivate::get(parent)->parentItem;
+    }
+    return false;
+}
+
+// slot to rebind the ListItem
+void FlickableControl::rebind()
+{
+    if (item->contentItem()->x() != 0.0) {
+        // content is not in origin, rebind
+        UCListItemPrivate::get(item)->_q_rebound();
+    } else {
+        // we simply do cleanup
+        UCListItemPrivate::get(item)->cleanup();
+    }
+}
+
+/******************************************************************************
  * ListItemPrivate
  */
 UCListItemPrivate::UCListItemPrivate()
@@ -213,8 +298,9 @@ UCListItemPrivate::UCListItemPrivate()
     , xAxisMoveThresholdGU(1.5)
     , color(Qt::transparent)
     , pressedColor(Qt::transparent)
+    , flickableControl(0)
+    , flickable(0)
     , reboundAnimation(0)
-    , flickableInteractive(0)
     , contentItem(new QQuickItem)
     , disabledOpacity(0)
     , divider(new UCListItemDivider)
@@ -225,7 +311,6 @@ UCListItemPrivate::UCListItemPrivate()
 }
 UCListItemPrivate::~UCListItemPrivate()
 {
-    delete flickableInteractive;
     delete disabledOpacity;
 }
 
@@ -244,6 +329,9 @@ void UCListItemPrivate::init()
     // turn activeFocusOnPress on
     activeFocusOnPress = true;
     setFocusable();
+
+    // create flickable controller
+    flickableControl = new FlickableControl(q);
 
     // catch theme palette changes
     QObject::connect(&UCTheme::instance(), SIGNAL(paletteChanged()), q, SLOT(_q_updateColors()));
@@ -315,7 +403,9 @@ void UCListItemPrivate::_q_completeRebinding()
     // disconnect animation, otherwise snapping will disconnect the panel
     QObject::disconnect(reboundAnimation, SIGNAL(stopped()), q, SLOT(_q_completeRebinding()));
     // restore flickable's interactive and cleanup
-    PropertyChange::restore(flickableInteractive);
+    flickableControl->grab(false);
+    // no need to listen flickables any longer
+    flickableControl->listenToRebind(false);
     // disconnect actions
     grabPanel(leadingActions, false);
     grabPanel(trailingActions, false);
@@ -404,28 +494,11 @@ bool UCListItemPrivate::grabPanel(UCListItemActions *actionsList, bool isMoved)
     Q_Q(UCListItem);
     if (isMoved) {
         bool grab = UCListItemActionsPrivate::connectToListItem(actionsList, q, (actionsList == leadingActions));
-        if (grab) {
-            PropertyChange::setValue(flickableInteractive, false);
-        }
+        flickableControl->grab(grab);
         return grab;
     } else {
         UCListItemActionsPrivate::disconnectFromListItem(actionsList);
         return false;
-    }
-}
-
-
-// connects/disconnects from the Flickable anchestor to get notified when to do rebound
-void UCListItemPrivate::listenToRebind(bool listen)
-{
-    if (flickable.isNull()) {
-        return;
-    }
-    Q_Q(UCListItem);
-    if (listen) {
-        QObject::connect(flickable.data(), SIGNAL(movementStarted()), q, SLOT(_q_rebound()));
-    } else {
-        QObject::disconnect(flickable.data(), SIGNAL(movementStarted()), q, SLOT(_q_rebound()));
     }
 }
 
@@ -637,8 +710,8 @@ void UCListItem::itemChange(ItemChange change, const ItemChangeData &data)
     UCStyledItemBase::itemChange(change, data);
     if (change == ItemParentHasChanged) {
         Q_D(UCListItem);
-        // make sure we are not connected to the previous Flickable
-        d->listenToRebind(false);
+        // make sure we are not connected to any previous Flickable
+        d->flickableControl->listenToRebind(false);
         // check if we are in a positioner, and if that positioner is in a Flickable
         QQuickBasePositioner *positioner = qobject_cast<QQuickBasePositioner*>(data.item);
         if (positioner && positioner->parentItem()) {
@@ -649,18 +722,11 @@ void UCListItem::itemChange(ItemChange change, const ItemChangeData &data)
         }
 
         if (d->flickable) {
-            // create the flickableInteractive property change now
-            d->flickableInteractive = new PropertyChange(d->flickable, "interactive");
             // connect to flickable to get width changes
             QObject::connect(d->flickable, SIGNAL(widthChanged()), this, SLOT(_q_updateSize()));
         } else if (data.item) {
             QObject::connect(data.item, SIGNAL(widthChanged()), this, SLOT(_q_updateSize()));
         } else {
-            // in case we had a flickableInteractive property change active, destroy it
-            if (d->flickableInteractive) {
-                delete d->flickableInteractive;
-                d->flickableInteractive = 0;
-            }
             // mar as not ready, so no action should be performed which depends on readyness
             d->ready = false;
         }
@@ -714,20 +780,20 @@ void UCListItem::mousePressEvent(QMouseEvent *event)
 {
     UCStyledItemBase::mousePressEvent(event);
     Q_D(UCListItem);
-    if (d->selectable || (!d->flickable.isNull() && d->flickable->isMoving())) {
+    if (d->selectable || d->flickableControl->isMoving()) {
         // while moving, we cannot select or tug any items
         return;
     }
-    if (event->button() == Qt::LeftButton) {
+    if (!d->pressed && event->button() == Qt::LeftButton) {
         d->setPressed(true);
         d->lastPos = d->pressedPos = event->localPos();
         // connect the Flickable to know when to rebound
-        d->listenToRebind(true);
+        d->flickableControl->listenToRebind(true);
         // start pressandhold timer
         d->pressAndHoldTimer.start(DefaultPressAndHoldDelay, this);
-        // accept the event so we get the rest of the events as well
-        event->setAccepted(true);
     }
+    // accept the event so we get the rest of the events as well
+    event->setAccepted(true);
 }
 
 void UCListItem::mouseReleaseEvent(QMouseEvent *event)
@@ -742,7 +808,7 @@ void UCListItem::mouseReleaseEvent(QMouseEvent *event)
     // set released
     if (d->pressed) {
         // disconnect the flickable
-        d->listenToRebind(false);
+        d->flickableControl->listenToRebind(false);
 
         if (!d->suppressClick) {
             Q_EMIT clicked();
