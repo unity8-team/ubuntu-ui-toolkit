@@ -19,8 +19,8 @@ import QtQuick.Layouts 1.1
 
 /*!
   \qmltype ListItemLayout
-  \inqmlmodule Ubuntu.Components 1.1
-  \ingroup new-ubuntu-listitems
+  \inqmlmodule Ubuntu.Components 1.2
+  \ingroup unstable-ubuntu-listitems
   \brief Standard ListItem layout for vertical flowing lists.
 
   The component is a simple RowLayout providing positioning of the different containers,
@@ -30,15 +30,15 @@ import QtQuick.Layouts 1.1
   containers is 1 grid unit. Component sizes can be driven using the layouting
   mechanism provided by QtQuick.
 
-  It is designed to be used with \c ListItem, however it can be used with any
+  It is designed to be used with \l ListItem, however it can be used with any
   Item in any context.
 
   \qml
   import QtQuick 2.2
   import QtQuick.Layouts 1.1
-  import Ubuntu.Components 1.1
+  import Ubuntu.Components 1.2
 
-  Item {
+  ListItem {
       width: units.gu(40)
       height: units.gu(7)
       ListItemLayout {

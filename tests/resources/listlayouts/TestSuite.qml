@@ -15,7 +15,7 @@
  */
 
 import QtQuick 2.2
-import Ubuntu.Components 1.1
+import Ubuntu.Components 1.2
 import QtQuick.Layouts 1.1
 
 MainView {
@@ -33,8 +33,7 @@ MainView {
             contentHeight: childrenRect.height
             Column {
                 width: parent.width
-                Rectangle { border { color: UbuntuColors.lightGrey; width: 1 }
-                    width: parent.width; height: units.gu(7)
+                ListItem {
                     ListItemLayout {
                         ColumnLayout {
                             spacing: units.gu(0.5)
