@@ -81,6 +81,7 @@ MainView {
                         Switch {
                         }
                     }
+                    onClicked: print("clicked on ListItem")
                 }
             }
         }
