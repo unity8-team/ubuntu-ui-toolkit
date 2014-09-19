@@ -33,118 +33,6 @@ MainView {
             contentHeight: childrenRect.height
             Column {
                 width: parent.width
-                Rectangle { border { color: UbuntuColors.lightGrey; width: 1 }
-                    width: parent.width; height: units.gu(7)
-                    ListItemLayout {
-                        FramedImage {
-                            id: leading2
-                            frame.width: units.gu(3)
-                            frame.height: units.gu(3)
-                            frame.image: Image { source: "images.png" }
-                            frame.color: UbuntuColors.blue
-                            enabled: true
-                            onClicked: trailing2.state = trailing2.state === "hidden" ? "" : "hidden"
-                        }
-
-                        Captions {
-                            title.text: "Caption"
-                            subtitle.text: "Click to hide/show leading container"
-                            enabled: true
-                            onClicked: leading2.visible = !leading2.visible
-                        }
-                        Captions {
-                            id: trailing2
-                            preset: "details"
-                            title.text: "Text"
-                            subtitle.text: "Text"
-                            states: State {
-                                name: "hidden"
-                                PropertyChanges {
-                                    target: trailing2
-                                    visible: false
-                                }
-                            }
-                        }
-                    }
-                }
-                Rectangle { border { color: UbuntuColors.lightGrey; width: 1 }
-                    width: parent.width; height: units.gu(7)
-                    ListItemLayout {
-                        FramedImage {
-                            frame.color: UbuntuColors.red
-                            frame.image: Image { source: "images.png" }
-                        }
-
-                        Captions {
-                            title.text: "Caption"
-                            subtitle.text: "Subtitle\n third line"
-                        }
-                    }
-                }
-                Rectangle { border { color: UbuntuColors.lightGrey; width: 1 }
-                    width: parent.width; height: units.gu(7)
-                    ListItemLayout {
-                        Captions {
-                            title.text: "Caption"
-                            subtitle.text: "Subtitle\n third line"
-                        }
-                        Captions {
-                            preset: "details"
-                            title.text: "Text"
-                        }
-                    }
-                }
-                Rectangle { border { color: UbuntuColors.lightGrey; width: 1 }
-                    width: parent.width; height: units.gu(7)
-                    ListItemLayout {
-                        Captions {
-                            title.text: "Caption"
-                            subtitle.text: "Subtitle\n third line"
-                        }
-                        ListItemContainer {
-                            preset: "trailing"
-                            Switch {}
-                        }
-                    }
-                }
-                Rectangle { border { color: UbuntuColors.lightGrey; width: 1 }
-                    width: parent.width; height: units.gu(7)
-                    ListItemLayout {
-                        FramedImage {
-                        }
-                        Captions {
-                            title.text: "Caption with empty details"
-                            subtitle.text: "Subtitle\n third line"
-                        }
-                        Captions {
-                            preset: "details"
-                        }
-                    }
-                }
-                Rectangle { border { color: UbuntuColors.lightGrey; width: 1 }
-                    width: parent.width; height: units.gu(7)
-                    ListItemLayout {
-                        FramedImage {
-                            frame.color: UbuntuColors.green
-                        }
-                        Captions {
-                            title.text: "Caption"
-                        }
-                        UbuntuShape {
-                            Layout.preferredHeight: parent.height
-                            Layout.preferredWidth: units.gu(3)
-                            color: UbuntuColors.blue
-                        }
-
-                        Captions {
-                            preset: "details"
-                            title.text: "Text"
-                            subtitle.text: "Text"
-                        }
-                    }
-                }
-
-
                 ListItem {
                     ListItemLayout {
                         ColumnLayout {
@@ -194,6 +82,41 @@ MainView {
                         }
                     }
                     onClicked: print("clicked on ListItem")
+                }
+                ListItem {
+                    ListItemLayout {
+                        FramedImage {
+                            shape.image: Image { source: "images.png" }
+                        }
+                        Captions {
+                            title.text: "Caption (title)"
+                            subtitle.text: "Subtitle text"
+                        }
+                        Captions {
+                            preset: "details"
+                            title.text: "Text"
+                            subtitle.text: "Text"
+                        }
+                    }
+                }
+                ListItem {
+                    ListItemLayout {
+                        FramedImage {
+                            shape.image: Image { source: "images.png" }
+                            shape.width: units.gu(3)
+                            shape.height: units.gu(3)
+                            enabled: true
+                        }
+                        Captions {
+                            title.text: "Caption (title)"
+                            subtitle.text: "Subtitle text"
+                        }
+                        Captions {
+                            preset: "details"
+                            title.text: "Text"
+                            subtitle.text: "Text"
+                        }
+                    }
                 }
             }
         }

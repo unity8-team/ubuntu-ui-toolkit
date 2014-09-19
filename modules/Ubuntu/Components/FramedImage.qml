@@ -25,8 +25,8 @@ import Ubuntu.Components 1.1
   \brief Container providing presets for a framed image that can be used in
   \l ListItemLayout.
 
-  The component, similarly to \l Captions, is a container which clips an \l image
-  into a shape. Derived from MouseArea, it can handle mouse events over the shape
+  The component, similarly to \l Captions, is a container which clips an image
+  into a \l shape. Derived from MouseArea, it can handle mouse events over the shape
   when enabled. Also similarly to \l Captions, the default state is disabled, meaning
   no mouse events are handled.
 
