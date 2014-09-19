@@ -97,6 +97,22 @@ Item {
                 trailingActions: trailing
             }
         }
+        Flickable {
+            id: testFlickable
+            width: parent.width
+            height: units.gu(28)
+            ListView {
+                id: nestedListView
+                width: parent.width
+                height: units.gu(28)
+                clip: true
+                model: 10
+                delegate: ListItem {
+                    objectName: "listItem" + index
+                    leadingActions: leading
+                }
+            }
+        }
     }
 
     UbuntuTestCase {
@@ -125,6 +141,11 @@ Item {
             signalName: "xChanged"
         }
 
+        SignalSpy {
+            id: interactiveSpy
+            signalName: "interactiveChanged"
+        }
+
         function waitReboundCompletion(item) {
             var prevX;
             tryCompareFunction(function() { var b = prevX == item.contentItem.x; prevX = item.contentItem.x; return b; }, true, 1000);
@@ -143,6 +164,8 @@ Item {
             clickSpy.clear();
             actionSpy.clear();
             xChangeSpy.clear();
+            interactiveSpy.target = null;
+            interactiveSpy.clear();
             listView.interactive = true;
             // tap on the first item to make sure we are rebounding all
             mouseClick(defaults, 0, 0);
@@ -304,21 +327,24 @@ Item {
             var item0 = findChild(listView, "listItem0");
             var item1 = findChild(listView, "listItem1");
             return [
-                {tag: "Trailing", item: item0, pos: centerOf(item0), dx: -units.gu(20), clickOn: item1, mouse: true},
-                {tag: "Leading", item: item0, pos: centerOf(item0), dx: units.gu(20), clickOn: item0.contentItem, mouse: true},
-                {tag: "Trailing", item: item0, pos: centerOf(item0), dx: -units.gu(20), clickOn: item1, mouse: false},
-                {tag: "Leading", item: item0, pos: centerOf(item0), dx: units.gu(20), clickOn: item0.contentItem, mouse: false},
+                {tag: "Trailing", view: listView, item: item0, pos: centerOf(item0), dx: -units.gu(20), clickOn: item1, mouse: true},
+                {tag: "Leading", view: listView, item: item0, pos: centerOf(item0), dx: units.gu(20), clickOn: item0.contentItem, mouse: true},
+                {tag: "Trailing", view: listView, item: item0, pos: centerOf(item0), dx: -units.gu(20), clickOn: item1, mouse: false},
+                {tag: "Leading", view: listView, item: item0, pos: centerOf(item0), dx: units.gu(20), clickOn: item0.contentItem, mouse: false},
             ];
         }
         function test_listview_not_interactive_while_tugged(data) {
             listView.positionViewAtBeginning();
+            interactiveSpy.target = data.view;
             if (data.mouse) {
                 flick(data.item, data.pos.x, data.pos.y, data.dx, 0);
             } else {
                 TestExtras.touchDrag(0, data.item, data.pos, Qt.point(data.dx, 0));
             }
             waitForRendering(data.item, 800);
-            compare(listView.interactive, false, "The ListView is still interactive!");
+            // interactive is reset when mouse is released, so we must check its state while tugged
+            interactiveSpy.wait();
+//            compare(listView.interactive, false, "The ListView is still interactive!");
             // dismiss
             if (data.mouse) {
                 mouseClick(data.clickOn, centerOf(data.clickOn).x, centerOf(data.clickOn).y);
@@ -523,6 +549,17 @@ Item {
             waitForRendering(testItem, 800);
             compare(data.list.status, data.expectedStatus, "Status on the option list differs.");
             compare(data.list.connectedItem, data.item, "connectedItem is not the tugged item.");
+        }
+
+        function test_listitem_blockks_ascendant_flickables() {
+            var testItem = findChild(nestedListView, "listItem0");
+            verify(testItem, "Cannot find test item");
+            interactiveSpy.target = testFlickable;
+            // tug leading
+            flick(testItem, centerOf(testItem).x, centerOf(testItem).y, testItem.width / 2, 0);
+            waitForRendering(testItem, 800);
+            // check if interactive got changed
+            interactiveSpy.wait();
         }
 
         // keep these as last ones so we make sure the panel has been created by the previous swipes

@@ -181,15 +181,24 @@ bool UCStyledItemBase::childMouseEventFilter(QQuickItem *child, QEvent *event)
 {
     // only filter pressed events
     if (event->type() == QEvent::MouseButtonPress) {
+        // send mouse event
         QMouseEvent *mouse = static_cast<QMouseEvent*>(event);
         // the event may occur outside of the parent's boundaries if not clipped
         // therefore must check containment
-        QPointF point = mapFromItem(child, mouse->localPos());
-        if (contains(point)) {
-            QMouseEvent press(event->type(), point, mouse->windowPos(), mouse->screenPos(),
+        QPointF localPos = mapFromScene(mouse->windowPos());
+        qDebug() << "LOCALPOS" << mouse->localPos() << localPos;
+        if (contains(localPos)) {
+            QMouseEvent press(event->type(), localPos, mouse->windowPos(), mouse->screenPos(),
                               mouse->button(), mouse->buttons(), mouse->modifiers());
             mousePressEvent(&press);
         }
+    } else if (event->type() == QEvent::MouseMove) {
+        QMouseEvent *mouse = static_cast<QMouseEvent*>(event);
+        QPointF point = mapFromItem(child, mouse->localPos());
+        qDebug() << "MOVEPOS" << mouse->localPos() << point;
+        QMouseEvent move(event->type(), point, mouse->windowPos(), mouse->screenPos(),
+                          mouse->button(), mouse->buttons(), mouse->modifiers());
+        mouseMoveEvent(&move);
     }
     // let the event be passed to children
     return false;

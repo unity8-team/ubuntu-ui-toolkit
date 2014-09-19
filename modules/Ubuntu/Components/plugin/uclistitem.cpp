@@ -276,9 +276,11 @@ void FlickableControl::rebind()
 {
     if (item->contentItem()->x() != 0.0) {
         // content is not in origin, rebind
+        qDebug() << "REBOUNDING";
         UCListItemPrivate::get(item)->_q_rebound();
     } else {
         // we simply do cleanup
+        qDebug() << "CLEANUP";
         UCListItemPrivate::get(item)->cleanup();
     }
 }
@@ -787,8 +789,13 @@ void UCListItem::mousePressEvent(QMouseEvent *event)
     if (!d->pressed && event->button() == Qt::LeftButton) {
         d->setPressed(true);
         d->lastPos = d->pressedPos = event->localPos();
+        qDebug() << "PRESSEDPOS" << d->lastPos.x();
         // connect the Flickable to know when to rebound
         d->flickableControl->listenToRebind(true);
+        // also grab it if it was moved
+        if (d->moved) {
+            d->flickableControl->grab(true);
+        }
         // start pressandhold timer
         d->pressAndHoldTimer.start(DefaultPressAndHoldDelay, this);
     }
@@ -869,6 +876,7 @@ void UCListItem::mouseMoveEvent(QMouseEvent *event)
         qreal x = d->contentItem->x();
         qreal dx = event->localPos().x() - d->lastPos.x();
         d->lastPos = event->localPos();
+        qDebug() << "TUG" << x << d->lastPos.x() << dx;
 
         if (dx) {
             // clamp X into allowed dragging area
