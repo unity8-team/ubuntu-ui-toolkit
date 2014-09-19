@@ -84,6 +84,8 @@ private Q_SLOTS:
 //        QTest::newRow("grid with Switch") << "SwitchGrid.qml" << QUrl();
         QTest::newRow("grid with SliderStyle") << "SliderStyleGrid.qml" << QUrl();
         QTest::newRow("grid with Slider") << "SliderGrid.qml" << QUrl();
+
+        QTest::newRow("list of standard layout") << "ListOfStandard.qml" << QUrl();
     }
 
     void benchmark_GridOfComponents()

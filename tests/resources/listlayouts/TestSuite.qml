@@ -40,7 +40,8 @@ MainView {
                             id: leading2
                             frame.width: units.gu(3)
                             frame.height: units.gu(3)
-                            iconName: "edit"
+                            frame.image: Image { source: "images.png" }
+                            frame.color: UbuntuColors.blue
                             enabled: true
                             onClicked: trailing2.state = trailing2.state === "hidden" ? "" : "hidden"
                         }
@@ -70,8 +71,8 @@ MainView {
                     width: parent.width; height: units.gu(7)
                     ListItemLayout {
                         FramedImage {
-                            color: UbuntuColors.red
-                            image: Image { source: "images.png" }
+                            frame.color: UbuntuColors.red
+                            frame.image: Image { source: "images.png" }
                         }
 
                         Captions {
@@ -124,7 +125,7 @@ MainView {
                     width: parent.width; height: units.gu(7)
                     ListItemLayout {
                         FramedImage {
-                            color: UbuntuColors.green
+                            frame.color: UbuntuColors.green
                         }
                         Captions {
                             title.text: "Caption"

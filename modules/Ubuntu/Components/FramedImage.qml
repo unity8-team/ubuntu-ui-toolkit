@@ -20,68 +20,69 @@ import Ubuntu.Components 1.1
 
 /*!
   \qmltype FramedImage
-  \inqmlmodule Ubuntu.Components 1.1
-  \ingroup new-ubuntu-listitems
+  \inqmlmodule Ubuntu.Components 1.2
+  \ingroup unstable-ubuntu-listitems
   \brief Container providing presets for a framed image that can be used in
   \l ListItemLayout.
 
-  The image is embedded and clipped into an UbuntuShape.
+  The component, similarly to \l Captions, is a container which clips an \l image
+  into a shape. Derived from MouseArea, it can handle mouse events over the shape
+  when enabled. Also similarly to \l Captions, the default state is disabled, meaning
+  no mouse events are handled.
+
+  Another similarity to \l Captions is the handling of visibility. The container
+  is hidden when no color or image is specified to the shape. Therefore visible
+  property should be handled using PropertyChange to preserve internal visible
+  handling.
+
+  The component also provides the possibility to place an item overlay. This can
+  be useful when additional content needs to be provided over the image or shape.
+  \qml
+  FramedImage {
+       shape.color: UbuntuColors.blue
+       overlay: Label {
+           anchors.fill: parent
+           horizontalAlignment: Text.AlignHCenter
+           verticalAlignment: Text.AlignVCenter
+           text: "XY"
+       }
+  }
+  \endqml
   */
-ListItemContainer {
+MouseArea {
     id: framedImage
 
-    property color color
-
-    property Image image: null
-
-    property string iconName
+    /*!
+      \qmlproperty UbuntuShape shape
+      Container for the image or color
+      */
+    property alias shape: frameItem
 
     /*!
-      \qmlproperty Item frame
+      \qmlproperty list<QtObject> overlay
+      The property holds items placed overlay the shape.
       */
-    property alias frame: frameLoader
+    property alias overlay: overlayItem.data
 
-    visible: frameLoader.item != null
-    preset: "leading"
-    Layout.preferredWidth: Layout.maximumWidth
-    Loader {
-        id: frameLoader
-        width: framedImage.Layout.maximumWidth
+    enabled: false
+    clip: true
+    Layout.alignment: Qt.AlignVCenter
+    width: units.gu(5)
+    Layout.minimumHeight: 0
+    Layout.maximumHeight: parent.height
+    Layout.preferredHeight: childrenRect.height
+    visible: (frameItem.image || (frameItem.color.a > 0))
+
+    UbuntuShape {
+        id: frameItem
+        width: parent.width
         height: framedImage.Layout.maximumHeight
         anchors.horizontalCenter: parent.horizontalCenter
-    }
-
-    onColorChanged: frameLoader.sourceComponent = frameComponent
-    onImageChanged: {
-        if (image) {
-            frameLoader.sourceComponent = frameComponent
-        } else {
-            frameLoader.sourceComponent = null
-        }
-    }
-    onIconNameChanged: {
-        if (!frameLoader.item) {
-            frameLoader.sourceComponent = frameComponent
-        }
-    }
-
-    Component {
-        id: frameComponent
+        color: "#00000000"
+        image: framedImage.image
         Item {
-            UbuntuShape {
-                id: frameItem
-                image: framedImage.image ? framedImage.image : icon
-                anchors.fill: parent
-            }
-            Image {
-                id: icon
-                visible: false
-                anchors.fill: parent
-                source: !framedImage.image ? "image://theme/" + framedImage.iconName : ""
-                fillMode: Image.PreserveAspectCrop
-                smooth: true
-                asynchronous: true
-            }
+            id: overlayItem
+            anchors.fill: parent
         }
     }
 }
