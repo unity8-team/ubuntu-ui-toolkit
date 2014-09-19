@@ -50,6 +50,12 @@
 #include "ucinversemouse.h"
 #include "sortfiltermodel.h"
 #include "ucstyleditembase.h"
+#include "ucaction.h"
+#include "ucactioncontext.h"
+#include "ucactionmanager.h"
+#include "uclistitem.h"
+#include "uclistitem_p.h"
+#include "uclistitemactions.h"
 
 #include <sys/types.h>
 #include <unistd.h>
@@ -115,6 +121,9 @@ void UbuntuComponentsPlugin::setWindowContextProperty(QWindow* focusWindow)
 
 void UbuntuComponentsPlugin::registerTypesToVersion(const char *uri, int major, int minor)
 {
+    qmlRegisterType<UCAction>(uri, major, minor, "Action");
+    qmlRegisterType<UCActionContext>(uri, major, minor, "ActionContext");
+    qmlRegisterType<UCActionManager>(uri, major, minor, "ActionManager");
     qmlRegisterType<UCStyledItemBase>(uri, major, minor, "StyledItemBase");
     qmlRegisterUncreatableType<UbuntuI18n>(uri, major, minor, "i18n", "Singleton object");
     qmlRegisterExtendedType<QQuickImageBase, UCQQuickImageExtension>(uri, major, minor, "QQuickImageBase");
@@ -157,6 +166,10 @@ void UbuntuComponentsPlugin::registerTypes(const char *uri)
     qmlRegisterType<QSortFilterProxyModelQML>(uri, 1, 1, "SortFilterModel");
     qmlRegisterUncreatableType<FilterBehavior>(uri, 1, 1, "FilterBehavior", "Not instantiable");
     qmlRegisterUncreatableType<SortBehavior>(uri, 1, 1, "SortBehavior", "Not instantiable");
+    // ListItem and related types, released to 1.2
+    qmlRegisterType<UCListItem, 2>(uri, 1, 2, "ListItem");
+    qmlRegisterType<UCListItemDivider>();
+    qmlRegisterType<UCListItemActions, 2>(uri, 1, 2, "ListItemActions");
 }
 
 void UbuntuComponentsPlugin::initializeEngine(QQmlEngine *engine, const char *uri)

@@ -41,11 +41,6 @@
          import Ubuntu.Components.ListItems 1.0
      \endcode
      \annotatedlist ubuntu-listitems
-     New list item layouts:
-     \code
-        import Ubuntu.Components 1.1
-     \endcode
-     \annotatedlist new-ubuntu-listitems
 
      \part Pickers
      Available through:
@@ -118,4 +113,13 @@
          import Ubuntu Test 1.0
      \endcode
      \annotatedlist ubuntu-test
+
+     \part Unstable QML Types
+     The following section lists components which will be part of future releases.
+     Their interface is unstable and thus should not be used in production applications.
+     Available through:
+     \code
+         import Ubuntu.Components 1.2
+     \endcode
+     \annotatedlist unstable-ubuntu-listitems
  */

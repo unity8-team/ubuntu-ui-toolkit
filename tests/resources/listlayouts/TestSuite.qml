@@ -15,7 +15,7 @@
  */
 
 import QtQuick 2.2
-import Ubuntu.Components 1.1
+import Ubuntu.Components 1.2
 import QtQuick.Layouts 1.1
 
 MainView {
@@ -142,6 +142,58 @@ MainView {
                             subtitle.text: "Text"
                         }
                     }
+                }
+
+
+                ListItem {
+                    ListItemLayout {
+                        ColumnLayout {
+                            spacing: units.gu(0.5)
+                            Layout.alignment: Qt.AlignVCenter
+                            Layout.maximumHeight: parent.height
+                            Layout.maximumWidth: parent.width
+                            Layout.preferredWidth: childrenRect.width
+                            Layout.fillWidth: true
+                            Label {
+                                text: "Title"
+                                fontSize: "large"
+                            }
+                            Label {
+                                text: "Subtitle"
+                                fontSize: "small"
+                            }
+                        }
+                        Switch {
+                        }
+                    }
+                }
+                ListItem {
+                    ListItemLayout {
+                        Captions {
+                            title.text: "Caption (title)"
+                            subtitle.text: "Subtitle"
+                            enabled: true
+                            preventStealing: true
+                            onClicked: print("Captions clicked");
+                        }
+                        Captions {
+                            preset: "details"
+                            title.text: "Text"
+                            subtitle.text: "Text"
+                        }
+                    }
+                    onClicked: print("ListItem clicked")
+                }
+                ListItem {
+                    ListItemLayout {
+                        Captions {
+                            title.text: "Caption (title)"
+                            subtitle.text: "Subtitle"
+                        }
+                        Switch {
+                        }
+                    }
+                    onClicked: print("clicked on ListItem")
                 }
             }
         }
