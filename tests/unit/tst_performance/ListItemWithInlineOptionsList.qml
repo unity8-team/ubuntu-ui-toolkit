@@ -24,12 +24,12 @@ Column {
     Repeater {
         model: 5000
         ListItem {
-            trailingOptions: ListItemOptions {
+            trailingActions: ListItemActions {
                 actions: [
                     Action {}
                 ]
             }
-            leadingOptions: ListItemOptions {
+            leadingActions: ListItemActions {
                 actions: [
                     Action {},
                     Action {},
