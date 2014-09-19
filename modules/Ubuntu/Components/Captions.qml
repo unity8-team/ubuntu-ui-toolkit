@@ -94,10 +94,8 @@ MouseArea {
     Layout.fillWidth: (preset === "main")
     Layout.alignment: Qt.AlignVCenter
     Layout.minimumWidth: 0
-    Layout.maximumWidth: (preset === "details") ?
-                             units.gu(8) : parent.width
-    Layout.preferredWidth: (preset === "details") ?
-                               units.gu(6) : childrenRect.width
+    Layout.maximumWidth: (preset === "details") ? units.gu(6) : parent.width
+    Layout.preferredWidth: (preset === "details") ? Layout.maximumWidth : childrenRect.width
     Layout.minimumHeight: 0
     Layout.maximumHeight: parent.height
     Layout.preferredHeight: childrenRect.height
@@ -114,12 +112,13 @@ MouseArea {
             id: titleLabel
             fontSize: (captions.preset === "main") ? "large" : "medium"
             Layout.alignment: (captions.preset === "details") ? Qt.AlignRight : Qt.AlignLeft
+            visible: text !== ""
         }
         Label {
             id: subtitleLabel
-            fontSize: (captions.preset === "main") ? "small" : "small"
+            fontSize: "small"
             Layout.alignment: (captions.preset === "details") ? Qt.AlignRight : Qt.AlignLeft
-            Layout.preferredHeight: text !== "" ? paintedHeight : 0
+            visible: text !== ""
         }
     }
 }
