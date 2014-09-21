@@ -83,6 +83,8 @@ private Q_SLOTS:
         QTest::newRow("list with ListItems.Empty (equivalent to the new ListItem") << "ListItemsEmptyList.qml" << QUrl();
         // disable this test as it takes >20 seconds. Kept still for measurements to be done during development
         QTest::newRow("list of standard layout") << "ListOfStandard.qml" << QUrl();
+        QTest::newRow("list of StandardLayout") << "ListOfStandardLayout.qml" << QUrl();
+        QTest::newRow("list of StandardLayout with options") << "ListOfStandardLayoutWithOptions.qml" << QUrl();
 //        QTest::newRow("list with ListItems.Base (one icon, one label and one chevron)") << "ListItemsBaseList.qml" << QUrl();
 
     }
