@@ -25,7 +25,7 @@ Item {
         model: 5000
         ListItem {
             ListItemLayout {
-                FramedImage {
+                ImageContainer {
                 }
                 Captions {
                 }

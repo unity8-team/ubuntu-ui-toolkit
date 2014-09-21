@@ -19,7 +19,7 @@ import QtQuick.Layouts 1.1
 import Ubuntu.Components 1.1
 
 /*!
-  \qmltype FramedImage
+  \qmltype ImageContainer
   \inqmlmodule Ubuntu.Components 1.2
   \ingroup unstable-ubuntu-listitems
   \brief Container providing presets for a framed image that can be used in
@@ -38,7 +38,7 @@ import Ubuntu.Components 1.1
   The component also provides the possibility to place an item overlay. This can
   be useful when additional content needs to be provided over the image or shape.
   \qml
-  FramedImage {
+  ImageContainer {
        shape.color: UbuntuColors.blue
        overlay: Label {
            anchors.fill: parent
@@ -50,7 +50,7 @@ import Ubuntu.Components 1.1
   \endqml
   */
 MouseArea {
-    id: framedImage
+    id: imageContainer
 
     /*!
       \qmlproperty UbuntuShape shape
@@ -76,10 +76,9 @@ MouseArea {
     UbuntuShape {
         id: frameItem
         width: parent.width
-        height: framedImage.Layout.maximumHeight
+        height: imageContainer.Layout.maximumHeight
         anchors.horizontalCenter: parent.horizontalCenter
         color: "#00000000"
-        image: framedImage.image
         Item {
             id: overlayItem
             anchors.fill: parent

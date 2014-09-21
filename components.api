@@ -69,10 +69,6 @@ Item
     property string fadeStyle
     readonly property bool running
     readonly property int status
-FramedImage 1.2
-MouseArea
-    property UbuntuShape shape
-    property list<QtObject> overlay
 Header 0.1 1.0
 AppHeader
     property string _for_autopilot
@@ -84,6 +80,10 @@ Item
 Icon 1.1
 Icon10
     property url source
+ImageContainer 1.2
+MouseArea
+    property UbuntuShape shape
+    property list<QtObject> overlay
 Label 0.1 1.0
 Text
     property string fontSize
