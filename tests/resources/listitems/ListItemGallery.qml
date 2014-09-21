@@ -85,7 +85,7 @@ MainView {
                 }
                 ListItem {
                     ListItemLayout {
-                        FramedImage {
+                        ImageContainer {
                             shape.image: Image { source: "images.png" }
                         }
                         Captions {
@@ -101,7 +101,7 @@ MainView {
                 }
                 ListItem {
                     ListItemLayout {
-                        FramedImage {
+                        ImageContainer {
                             shape.image: Image { source: "images.png" }
                             shape.width: units.gu(3)
                             shape.height: units.gu(3)
@@ -120,7 +120,7 @@ MainView {
                 }
                 ListItem {
                     ListItemLayout {
-                        FramedImage {
+                        ImageContainer {
                             shape.color: UbuntuColors.blue
                         }
                         Captions {
@@ -149,7 +149,7 @@ MainView {
                 }
                 ListItem {
                     ListItemLayout {
-                        FramedImage {
+                        ImageContainer {
                             shape.color: UbuntuColors.blue
                         }
                         Captions {

@@ -21,7 +21,7 @@ import QtQuick.Layouts 1.1
   \qmltype StandardLayout
   \inqmlmodule Ubuntu.Components 1.2
   \ingroup unstable-ubuntu-listitems
-  \brief Helper component composing a \l FramedImage and two \l Captions containers,
+  \brief Helper component composing a \l ImageContainer and two \l Captions containers,
   one for the titles and one for details.
 
   The three building elements are accessible and configurable through the \l image,
@@ -36,7 +36,7 @@ import QtQuick.Layouts 1.1
       width: units.gu(40)
       ListItem {
           ListItemLayout {
-              FramedImage {
+              ImageContainer {
                   shape.color: UbuntuColors.blue
               }
               Captions {
@@ -80,7 +80,7 @@ import QtQuick.Layouts 1.1
       width: units.gu(40)
       ListItem {
           ListItemLayout {
-              FramedImage {
+              ImageContainer {
                   shape.color: UbuntuColors.blue
               }
               Captions {
@@ -174,10 +174,10 @@ import QtQuick.Layouts 1.1
   */
 ListItemLayout {
     /*!
-      \qmlproperty FramedImage image
-      The property holds the instance of the \l FramedImage container.
+      \qmlproperty ImageContainer image
+      The property holds the instance of the \l ImageContainer container.
       */
-    property alias image: framedImageContainer
+    property alias image: imageContainer
 
     /*!
       \qmlproperty Captions captions
@@ -191,8 +191,8 @@ ListItemLayout {
       */
     property alias details: detailsContainer
 
-    FramedImage {
-        id: framedImageContainer
+    ImageContainer {
+        id: imageContainer
     }
     Captions {
         id: captionsContainer

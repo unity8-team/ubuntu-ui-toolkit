@@ -110,5 +110,5 @@ internal ListItemSelectablePanel ListItemSelectablePanel.qml
 #version 1.2
 ListItemLayout 1.2 ListItemLayout.qml
 Captions 1.2 Captions.qml
-FramedImage 1.2 FramedImage.qml
+ImageContainer 1.2 ImageContainer.qml
 StandardLayout 1.2 StandardLayout.qml

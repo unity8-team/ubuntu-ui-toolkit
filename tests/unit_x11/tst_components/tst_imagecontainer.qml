@@ -26,16 +26,16 @@ Item {
 
     Column {
         width: parent.width
-        FramedImage {
+        ImageContainer {
             id: defaults
         }
-        FramedImage {
+        ImageContainer {
             id: testItem
         }
         ListItem {
             id: listItem
             ListItemLayout {
-                FramedImage {
+                ImageContainer {
                     id: image
                     shape.color: UbuntuColors.blue
                 }
@@ -44,7 +44,7 @@ Item {
     }
 
     UbuntuTestCase {
-        name: "FramedImageAPI"
+        name: "ImageContainerAPI"
         when: windowShown
 
         SignalSpy {
