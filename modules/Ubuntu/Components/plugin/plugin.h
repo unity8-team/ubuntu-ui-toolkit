@@ -22,8 +22,15 @@
 #include <QtQml/QQmlEngine>
 #include <QtQml/QQmlExtensionPlugin>
 
-class QWindow;
+typedef struct tagQmlType QmlType;
+struct tagQmlType {
+    const char *type;
+    const char *file;
+    bool singleton;
+    int major, minor;
+};
 
+class QWindow;
 class UbuntuComponentsPlugin : public QQmlExtensionPlugin
 {
     Q_OBJECT
@@ -46,6 +53,7 @@ private:
     static QUrl m_baseUrl;
     void registerTypesToVersion(const char *uri, int major, int minor);
     QUrl fileLocation();
+    void registerQmlTypes(const char *uri, const QmlType *types, uint count);
 };
 #endif // UBUNTU_COMPONENTS_PLUGIN_H
 
