@@ -17,6 +17,9 @@
 import QtQuick 2.0
 import Ubuntu.Components 1.0 as Toolkit10
 
+/*
+  \qmlabstract
+  */
 Toolkit10.Icon {
     property url source: name ? "image://theme/%1".arg(name) : ""
 }

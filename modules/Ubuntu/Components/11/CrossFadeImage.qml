@@ -21,9 +21,8 @@ import QtQuick 2.0
 // Bug to watch: https://bugreports.qt-project.org/browse/QTBUG-27645
 import Ubuntu.Components 1.1 as Ubuntu
 
-/*!
-  \internal
-  Documentation is in CrossFadeImage.qdoc
+/*
+    Documentation is in CrossFadeImage.qdoc
 */
 Item {
     id: crossFadeImage

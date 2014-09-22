@@ -15,57 +15,11 @@
  */
 
 import QtQuick 2.0
-import Ubuntu.Components 1.1 as Toolkit
-
-/*!
-    \qmltype UbuntuListView
-    \inqmlmodule Ubuntu.Components 1.1
-    \ingroup ubuntu
-    \brief A ListView with special features tailored for a look and feel fitting the
-    Ubuntu Touch platform.
-    The UbuntuListView works just like a regular ListView, but it adds special features
-    such as expanding/collapsing items (when used together with the Expandable item).
-    It provides features like automatically positioning the expanding item when it
-    expands and collapsing it again when the user taps outside of it.
-
-    Examples:
-    \qml
-        import Ubuntu.Components 1.1
-        import Ubuntu.Components.ListItems 1.0 as ListItem
-
-        Item {
-            ListModel {
-                id: listModel
-            }
-
-            UbuntuListView {
-                id: ubuntuListView
-                anchors { left: parent.left; right: parent.right }
-                height: units.gu(24)
-                model: listModel
-
-                delegate: ListItem.Expandable {
-                    id: expandingItem
-
-                    expandedHeight: units.gu(30)
-
-                    onClicked: {
-                        ubuntuListView.expandedIndex = index;
-                    }
-                }
-            }
-        }
-    \endqml
-
-    \b{This component is under heavy development.}
-*/
+import Ubuntu.Components 1.0 as Toolkit
 
 ListView {
     id: root
 
-    /*!
-      The index of the currently expanded item. -1 if no item is expanded.
-     */
     property int expandedIndex: -1
 
     QtObject {
