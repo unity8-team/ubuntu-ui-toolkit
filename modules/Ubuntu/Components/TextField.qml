@@ -916,7 +916,7 @@ ActionItem {
         visible: control.hasClearButton &&
                     (control.activeFocus && ((editor.text != "") || editor.inputMethodComposing))
 
-        Icon {
+        Ubuntu.Icon {
             id: icon
             anchors.verticalCenter: parent.verticalCenter
             width: units.gu(2.5)

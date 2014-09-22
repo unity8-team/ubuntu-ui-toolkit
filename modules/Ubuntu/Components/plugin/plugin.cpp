@@ -54,6 +54,8 @@
 #include "ucactioncontext.h"
 #include "ucactionmanager.h"
 
+#include <QtQml/private/qjsvalue_p.h>
+
 #include <sys/types.h>
 #include <unistd.h>
 #include <stdexcept>
@@ -79,7 +81,7 @@ static const QmlType qmlTypes[] = {
     {"Label", NULL, 0, 1}, {"Label", NULL, 1, 0},
     {"AbstractButton", NULL, 0, 1}, {"AbstractButton", NULL, 1, 0},
     {"ActivityIndicator", NULL, 0, 1}, {"ActivityIndicator", NULL, 1, 0},
-    {"ProgressBar", NULL, 0, 1}, {"ProgressBar", NULL, 1, 0},
+    {"ProgressBar", "ProgressBar10.qml", 0, 1}, {"ProgressBar", "ProgressBar10.qml", 1, 0},
     {"TextField", NULL, 0, 1}, {"TextField", NULL, 1, 0},
     {"TextArea", NULL, 0, 1}, {"TextArea", NULL, 1, 0},
     {"Switch", NULL, 0, 1}, {"Switch", NULL, 1, 0},
@@ -111,13 +113,15 @@ static const QmlType qmlTypes[] = {
     {"PageHeadSections", NULL, 1, 1},
     {"PageHeadState", NULL, 1, 1},
     {"StyledItem", NULL, 1, 1},
+};
 
-    // JS files
-    {"MathUtils", "mathUtils.js", 0, 1}, {"MathUtils", "mathUtils.js", 1, 0},
-    {"SliderUtils", "sliderUtils.js", 0, 1}, {"SliderUtils", "sliderUtils.js", 1, 0},
-    {"ScrollbarUtils", "scrollbarUtils.js", 0, 1}, {"ScrollbarUtils", "scrollbarUtils.js", 1, 0},
-    {"ColorUtils", "colorUtils.js", 0, 1}, {"ColorUtils", "colorUtils.js", 1, 0},
-    {"DateUtils", "dateUtils.js", 0, 1}, {"DateUtils", "dateUtils.js", 1, 0},
+// JS files
+static const QmlType jsTypes [] = {
+    {"MathUtils", "mathUtils.js", 0, 1}, //{"MathUtils", "mathUtils.js", 1, 0},
+    {"SliderUtils", "sliderUtils.js", 0, 1}, //{"SliderUtils", "sliderUtils.js", 1, 0},
+    {"ScrollbarUtils", "scrollbarUtils.js", 0, 1}, //{"ScrollbarUtils", "scrollbarUtils.js", 1, 0},
+    {"ColorUtils", "colorUtils.js", 0, 1}, //{"ColorUtils", "colorUtils.js", 1, 0},
+    {"DateUtils", "dateUtils.js", 0, 1}, //{"DateUtils", "dateUtils.js", 1, 0},
 };
 
 static const QmlType singletonQmlTypes[] = {
@@ -244,18 +248,26 @@ void UbuntuComponentsPlugin::registerTypes(const char *uri)
     // register QML file types
     QUrl filePath = fileLocation();
     for (uint i = 0; i < (sizeof(qmlTypes) / sizeof(qmlTypes[0])); i++) {
+        int result;
         if (qmlTypes[i].file) {
-            qmlRegisterType(filePath.resolved(QString(qmlTypes[i].file)), uri, qmlTypes[i].major, qmlTypes[i].minor, qmlTypes[i].type);
+            result = qmlRegisterType(filePath.resolved(QString(qmlTypes[i].file)), uri, qmlTypes[i].major, qmlTypes[i].minor, qmlTypes[i].type);
         } else {
-            qmlRegisterType(filePath.resolved(QString(qmlTypes[i].type) + ".qml"), uri, qmlTypes[i].major, qmlTypes[i].minor, qmlTypes[i].type);
+            result = qmlRegisterType(filePath.resolved(QString(qmlTypes[i].type) + ".qml"), uri, qmlTypes[i].major, qmlTypes[i].minor, qmlTypes[i].type);
+        }
+        if (!result) {
+            qDebug() << QString("Type '%1' registration failed!").arg(qmlTypes[i].type);
         }
     }
     // register singletons
     for (uint i = 0; i < (sizeof(singletonQmlTypes) / sizeof(singletonQmlTypes[0])); i++) {
-        if (qmlTypes[i].file) {
-            qmlRegisterSingletonType(filePath.resolved(QString(singletonQmlTypes[i].file)), uri, singletonQmlTypes[i].major, singletonQmlTypes[i].minor, singletonQmlTypes[i].type);
+        int result;
+        if (singletonQmlTypes[i].file) {
+            result = qmlRegisterSingletonType(filePath.resolved(QString(singletonQmlTypes[i].file)), uri, singletonQmlTypes[i].major, singletonQmlTypes[i].minor, singletonQmlTypes[i].type);
         } else {
-            qmlRegisterType(filePath.resolved(QString(singletonQmlTypes[i].type) + ".qml"), uri, singletonQmlTypes[i].major, singletonQmlTypes[i].minor, singletonQmlTypes[i].type);
+            result = qmlRegisterSingletonType(filePath.resolved(QString(singletonQmlTypes[i].type) + ".qml"), uri, singletonQmlTypes[i].major, singletonQmlTypes[i].minor, singletonQmlTypes[i].type);
+        }
+        if (!result) {
+            qDebug() << QString("Singleton '%1' registration failed!").arg(singletonQmlTypes[i].type);
         }
     }
 }

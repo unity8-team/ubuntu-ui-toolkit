@@ -10,11 +10,20 @@ internal AppHeader AppHeader.qml
 internal AnimatedItem AnimatedItem.qml
 internal PageWrapper PageWrapper.qml
 
-#MathUtils 0.1 mathUtils.js
-#SliderUtils 0.1 sliderUtils.js
-#ScrollbarUtils 0.1 scrollbarUtils.js
-#ColorUtils 0.1 colorUtils.js
-#DateUtils 0.1 dateUtils.js
+MathUtils 0.1 mathUtils.js
+SliderUtils 0.1 sliderUtils.js
+ScrollbarUtils 0.1 scrollbarUtils.js
+ColorUtils 0.1 colorUtils.js
+DateUtils 0.1 dateUtils.js
+
+MathUtils 1.0 mathUtils.js
+SliderUtils 1.0 sliderUtils.js
+ScrollbarUtils 1.0 scrollbarUtils.js
+ColorUtils 1.0 colorUtils.js
+DateUtils 1.0 dateUtils.js
+
+
+
 
 #singleton UbuntuColors 0.1 10/UbuntuColors10.qml
 
