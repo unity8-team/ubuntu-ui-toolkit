@@ -15,6 +15,7 @@
  */
 
 import QtQuick 2.0
+import Ubuntu.Components 1.1
 
 /*!
     \qmltype ToolbarItems
@@ -138,7 +139,7 @@ Item {
      */
     property Item back: ToolbarButton {
         objectName: "back_toolbar_button"
-        iconSource: Qt.resolvedUrl("artwork/back.png")
+        iconSource: Qt.resolvedUrl(Qt.resolvedUrl("../artwork/back.png"))
         text: i18n.dtr('ubuntu-ui-toolkit', 'Back')
         visible: toolbarItems.pageStack && toolbarItems.pageStack.depth > 1
         /*!

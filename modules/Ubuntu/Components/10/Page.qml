@@ -15,7 +15,8 @@
  */
 
 import QtQuick 2.2
-import Ubuntu.Components 1.1 as Toolkit
+import Ubuntu.Components 1.1
+import Ubuntu.Components.Internals 0.1
 
 /*!
   \internal
@@ -68,7 +69,7 @@ PageTreeNode {
         id: internal
 
         // Toolkit ActionContext registers automatically to ActionManager
-        Toolkit.ActionContext {
+        ActionContext {
             id: actionContext
         }
 

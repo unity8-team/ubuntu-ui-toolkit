@@ -16,7 +16,6 @@
 
 import QtQuick 2.0
 import Ubuntu.Components.Popups 1.0
-import "mathUtils.js" as MathUtils
 import Ubuntu.Components 1.1
 
 /*!

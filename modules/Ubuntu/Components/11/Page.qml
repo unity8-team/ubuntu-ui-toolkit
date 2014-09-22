@@ -15,10 +15,12 @@
  */
 
 import QtQuick 2.2
+import Ubuntu.Components 1.0 as OldToolkit
+import Ubuntu.Components 1.1
 
 /*! \internal */
 // Documentation in Page.qdoc
-Page10 {
+OldToolkit.Page {
     id: page
     /*!
       \qmlproperty PageHeadConfiguration head

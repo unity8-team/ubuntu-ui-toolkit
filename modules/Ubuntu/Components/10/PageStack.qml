@@ -16,6 +16,7 @@
 
 import QtQuick 2.0
 import "stack.js" as Stack
+import Ubuntu.Components.Internals 0.1
 
 /*!
     \qmltype PageStack
@@ -204,7 +205,11 @@ PageTreeNode {
         property var stack: new Stack.Stack()
 
         function createWrapper(page, properties) {
-            var wrapperComponent = Qt.createComponent("PageWrapper.qml");
+            var wrapperComponent = Qt.createComponent(Qt.resolvedUrl("Internals/PageWrapper.qml"));
+            if (wrapperComponent.status == Component.Error) {
+                console.error(wrapperComponent.errorString());
+                return null;
+            }
             var wrapperObject = wrapperComponent.createObject(pageStack);
             wrapperObject.reference = page;
             wrapperObject.pageStack = pageStack;

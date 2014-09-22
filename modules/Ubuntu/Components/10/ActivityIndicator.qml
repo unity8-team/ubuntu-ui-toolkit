@@ -15,6 +15,7 @@
  */
 
 import QtQuick 2.0
+import Ubuntu.Components.Internals 0.1
 
 /*!
     \qmltype ActivityIndicator

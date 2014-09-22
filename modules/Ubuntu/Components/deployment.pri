@@ -2,7 +2,7 @@ uri = Ubuntu.Components
 installPath = $$[QT_INSTALL_QML]/$$replace(uri, \\., /)
 
 # Components
-QML_FILES = $$system(ls *.qml)
+QML_FILES = $$system(ls *.qml) $$system(ls 10/*.qml)  $$system(ls 11/*.qml)  $$system(ls Internals/*.qml)
 JS_FILES = $$system(ls *.js)
 
 # Components/artwork

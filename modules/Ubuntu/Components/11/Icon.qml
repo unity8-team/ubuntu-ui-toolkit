@@ -15,7 +15,8 @@
  */
 
 import QtQuick 2.0
+import Ubuntu.Components 1.0 as Toolkit10
 
-Icon10 {
+Toolkit10.Icon {
     property url source: name ? "image://theme/%1".arg(name) : ""
 }

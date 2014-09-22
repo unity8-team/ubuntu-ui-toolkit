@@ -16,6 +16,7 @@
 
 import QtQuick 2.0
 import Ubuntu.Components 1.1 as Ubuntu
+import Ubuntu.Components.Internals 0.1
 
 /*!
     \qmltype TextField
@@ -100,7 +101,7 @@ import Ubuntu.Components 1.1 as Ubuntu
     \note During text selection all interactive parent Flickables are turned off.
 */
 
-ActionItem {
+Ubuntu.ActionItem {
     id: control
 
     implicitWidth: units.gu(25)
@@ -901,7 +902,7 @@ ActionItem {
         }
     }
 
-    AbstractButton {
+    Ubuntu.AbstractButton {
         id: clearButton
         objectName: "clear_button"
         activeFocusOnPress: false

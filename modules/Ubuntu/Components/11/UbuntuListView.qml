@@ -15,9 +15,10 @@
  */
 
 import QtQuick 2.2
+import Ubuntu.Components 1.0 as Toolkit10
 
 // documentation in UbuntuListView11.qdoc
-UbuntuListView {
+Toolkit10.UbuntuListView {
 
     /*!
       \internal

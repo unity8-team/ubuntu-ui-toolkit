@@ -16,6 +16,7 @@
 
 import QtQuick 2.0
 import Ubuntu.Components 1.1 as Toolkit
+import Ubuntu.Components.Internals 0.1
 
 /*!
     \qmltype Panel

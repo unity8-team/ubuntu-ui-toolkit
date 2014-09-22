@@ -15,6 +15,8 @@
  */
 
 import QtQuick 2.0
+import Ubuntu.Components 1.1 as Toolkit
+import Ubuntu.Components.Internals 0.1
 
 /*!
     \internal
@@ -24,7 +26,7 @@ import QtQuick 2.0
     \brief Application toolbar. This class is not exposed because it will
             be automatically added when a Page defines tools.
 */
-Panel {
+Toolkit.Panel {
     id: toolbar
     anchors {
         left: parent ? parent.left : undefined
@@ -118,7 +120,7 @@ Panel {
         }
     }
 
-    StyledItem {
+    Toolkit.StyledItem {
         // FIXME:
         // All theming items go into the background because only the children
         //  of the Panel are being shown/hidden while the toolbar

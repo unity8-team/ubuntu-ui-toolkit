@@ -16,7 +16,7 @@
 
 import QtQuick 2.0
 import Ubuntu.Components 1.1 as Ubuntu
-import "mathUtils.js" as MathUtils
+import Ubuntu.Components.Internals 0.1
 
 /*!
     \qmltype TextArea
@@ -768,7 +768,7 @@ StyledItem {
                 var max = (control.maximumLineCount <= 0) ?
                             control.lineCount :
                             Math.min(control.maximumLineCount, control.lineCount);
-                control.height = linesHeight(MathUtils.clamp(control.lineCount, 1, max));
+                control.height = linesHeight(Ubuntu.MathUtils.clamp(control.lineCount, 1, max));
             }
         }
     }
