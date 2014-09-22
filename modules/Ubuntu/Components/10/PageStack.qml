@@ -205,7 +205,7 @@ PageTreeNode {
         property var stack: new Stack.Stack()
 
         function createWrapper(page, properties) {
-            var wrapperComponent = Qt.createComponent(Qt.resolvedUrl("Internals/PageWrapper.qml"));
+            var wrapperComponent = Qt.createComponent(Qt.resolvedUrl("../Internals/PageWrapper.qml"));
             if (wrapperComponent.status == Component.Error) {
                 console.error(wrapperComponent.errorString());
                 return null;
