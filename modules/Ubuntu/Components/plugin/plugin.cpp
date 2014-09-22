@@ -58,6 +58,75 @@
 #include <unistd.h>
 #include <stdexcept>
 
+typedef struct tagQmlType QmlType;
+struct tagQmlType {
+    const char *type;
+    const char *file;
+    int major, minor;
+};
+
+static const QmlType qmlTypes[] = {
+    {"ActionItem", NULL, 0, 1}, {"ActionItem", NULL, 1, 0},
+    {"ActionList", NULL, 0, 1}, {"ActionList", NULL, 1, 0},
+    {"ToolbarItems", NULL, 0, 1}, {"ToolbarItems", NULL, 1, 0},
+    {"ToolbarButton", NULL, 0, 1}, {"ToolbarButton", NULL, 1, 0},
+    {"MainView", NULL, 0, 1}, {"MainView", NULL, 1, 0},
+    {"Button", "10/Button.qml", 0, 1}, {"Button", "10/Button.qml", 1, 0},
+    {"Panel", NULL, 0, 1}, {"Panel", NULL, 1, 0},
+    {"Tab", NULL, 0, 1}, {"Tab", NULL, 1, 0},
+    {"TabBar", NULL, 0, 1}, {"TabBar", NULL, 1, 0},
+    {"Tabs", NULL, 0, 1}, {"Tabs", NULL, 1, 0},
+    {"Label", NULL, 0, 1}, {"Label", NULL, 1, 0},
+    {"AbstractButton", NULL, 0, 1}, {"AbstractButton", NULL, 1, 0},
+    {"ActivityIndicator", NULL, 0, 1}, {"ActivityIndicator", NULL, 1, 0},
+    {"ProgressBar", NULL, 0, 1}, {"ProgressBar", NULL, 1, 0},
+    {"TextField", NULL, 0, 1}, {"TextField", NULL, 1, 0},
+    {"TextArea", NULL, 0, 1}, {"TextArea", NULL, 1, 0},
+    {"Switch", NULL, 0, 1}, {"Switch", NULL, 1, 0},
+    {"CheckBox", NULL, 0, 1}, {"CheckBox", NULL, 1, 0},
+    {"Slider", NULL, 0, 1}, {"Slider", NULL, 1, 0},
+    {"Scrollbar", NULL, 0, 1}, {"Scrollbar", NULL, 1, 0},
+    {"Object", NULL, 0, 1}, {"Object", NULL, 1, 0},
+    {"OptionSelector", NULL, 0, 1}, {"OptionSelector", NULL, 1, 0},
+    {"OptionSelectorDelegate", NULL, 0, 1}, {"OptionSelectorDelegate", NULL, 1, 0},
+    {"Page", NULL, 0, 1}, {"Page", NULL, 1, 0},
+    {"PageStack", NULL, 0, 1}, {"PageStack", NULL, 1, 0},
+    {"Header", NULL, 0, 1}, {"Header", NULL, 1, 0},
+    {"CrossFadeImage", NULL, 0, 1}, {"CrossFadeImage", NULL, 1, 0},
+    {"Icon", "Icon10.qml", 0, 1}, {"Icon", "Icon10.qml", 1, 0},
+    {"OrientationHelper", NULL, 0, 1}, {"OrientationHelper", NULL, 1, 0},
+    {"UbuntuNumberAnimation", NULL, 0, 1}, {"UbuntuNumberAnimation", NULL, 1, 0},
+    {"UbuntuListView", NULL, 0, 1}, {"UbuntuListView", NULL, 1, 0},
+
+    // 1.1
+    {"ComboButton", NULL, 1, 1},
+    {"Button", "11/Button.qml", 1, 1},
+    {"Icon", "Icon11.qml", 1, 1},
+    {"ProgressBar", "ProgressBar11.qml", 1, 1},
+    {"CrossFadeImage", "CrossFadeImage11.qml", 1, 1},
+    {"PullToRefresh", NULL, 1, 1},
+    {"UbuntuListView", "UbuntuListView11.qml", 1, 1},
+    {"Page", "Page11.qml", 1, 1},
+    {"PageHeadConfiguration", NULL, 1, 1},
+    {"PageHeadSections", NULL, 1, 1},
+    {"PageHeadState", NULL, 1, 1},
+    {"StyledItem", NULL, 1, 1},
+
+    // JS files
+    {"MathUtils", "mathUtils.js", 0, 1}, {"MathUtils", "mathUtils.js", 1, 0},
+    {"SliderUtils", "sliderUtils.js", 0, 1}, {"SliderUtils", "sliderUtils.js", 1, 0},
+    {"ScrollbarUtils", "scrollbarUtils.js", 0, 1}, {"ScrollbarUtils", "scrollbarUtils.js", 1, 0},
+    {"ColorUtils", "colorUtils.js", 0, 1}, {"ColorUtils", "colorUtils.js", 1, 0},
+    {"DateUtils", "dateUtils.js", 0, 1}, {"DateUtils", "dateUtils.js", 1, 0},
+};
+
+static const QmlType singletonQmlTypes[] = {
+    {"UbuntuColors", "10/UbuntuColors10.qml", 0, 1},
+    {"UbuntuColors", "10/UbuntuColors10.qml", 1, 0},
+    {"UbuntuColors", "11/UbuntuColors.qml", 1, 1},
+};
+
+
 QUrl UbuntuComponentsPlugin::m_baseUrl = QUrl();
 
 /*
@@ -116,6 +185,14 @@ void UbuntuComponentsPlugin::setWindowContextProperty(QWindow* focusWindow)
     }
 }
 
+QUrl UbuntuComponentsPlugin::fileLocation()
+{
+    if (m_baseUrl.isEmpty()) {
+        m_baseUrl = QUrl(baseUrl().toString() + '/');
+    }
+    return m_baseUrl;
+}
+
 void UbuntuComponentsPlugin::registerTypesToVersion(const char *uri, int major, int minor)
 {
     qmlRegisterType<UCAction>(uri, major, minor, "Action");
@@ -163,12 +240,32 @@ void UbuntuComponentsPlugin::registerTypes(const char *uri)
     qmlRegisterType<QSortFilterProxyModelQML>(uri, 1, 1, "SortFilterModel");
     qmlRegisterUncreatableType<FilterBehavior>(uri, 1, 1, "FilterBehavior", "Not instantiable");
     qmlRegisterUncreatableType<SortBehavior>(uri, 1, 1, "SortBehavior", "Not instantiable");
+
+    // register QML file types
+    QUrl filePath = fileLocation();
+    for (uint i = 0; i < (sizeof(qmlTypes) / sizeof(qmlTypes[0])); i++) {
+        if (qmlTypes[i].file) {
+            qmlRegisterType(filePath.resolved(QString(qmlTypes[i].file)), uri, qmlTypes[i].major, qmlTypes[i].minor, qmlTypes[i].type);
+        } else {
+            qmlRegisterType(filePath.resolved(QString(qmlTypes[i].type) + ".qml"), uri, qmlTypes[i].major, qmlTypes[i].minor, qmlTypes[i].type);
+        }
+    }
+    // register singletons
+    for (uint i = 0; i < (sizeof(singletonQmlTypes) / sizeof(singletonQmlTypes[0])); i++) {
+        if (qmlTypes[i].file) {
+            qmlRegisterSingletonType(filePath.resolved(QString(singletonQmlTypes[i].file)), uri, singletonQmlTypes[i].major, singletonQmlTypes[i].minor, singletonQmlTypes[i].type);
+        } else {
+            qmlRegisterType(filePath.resolved(QString(singletonQmlTypes[i].type) + ".qml"), uri, singletonQmlTypes[i].major, singletonQmlTypes[i].minor, singletonQmlTypes[i].type);
+        }
+    }
 }
 
 void UbuntuComponentsPlugin::initializeEngine(QQmlEngine *engine, const char *uri)
 {
     // initialize baseURL
-    m_baseUrl = QUrl(baseUrl().toString() + '/');
+    if (m_baseUrl.isEmpty()) {
+        m_baseUrl = QUrl(baseUrl().toString() + '/');
+    }
 
     QQmlExtensionPlugin::initializeEngine(engine, uri);
     QQmlContext* context = engine->rootContext();

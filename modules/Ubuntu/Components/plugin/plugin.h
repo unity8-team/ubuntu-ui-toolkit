@@ -37,6 +37,7 @@ public:
         return m_baseUrl;
     }
 
+
 private Q_SLOTS:
     void registerWindowContextProperty();
     void setWindowContextProperty(QWindow* focusWindow);
@@ -44,6 +45,7 @@ private Q_SLOTS:
 private:
     static QUrl m_baseUrl;
     void registerTypesToVersion(const char *uri, int major, int minor);
+    QUrl fileLocation();
 };
 #endif // UBUNTU_COMPONENTS_PLUGIN_H
 
