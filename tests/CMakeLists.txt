@@ -39,8 +39,11 @@ add_custom_target(qmluitests
     DEPENDS UbuntuComponents UbuntuLayouts UbuntuTest UbuntuPerformanceMetrics
 )
 
-add_custom_target(license ALL
-    COMMAND ./tests/license/checklicense.sh
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
+list(APPEND licence_dirs "modules" "examples" "documentation" "debian" "scripts" "tests" "manual-tests" "po")
+foreach(CHECK_DIR ${licence_dirs})
+    add_custom_target(license_${CHECK_DIR} ALL
+    COMMAND ${CMAKE_SOURCE_DIR}/tests/license/checklicense.sh
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/${CHECK_DIR}
+    )
+endforeach()
 
