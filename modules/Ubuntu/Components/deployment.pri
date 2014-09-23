@@ -2,7 +2,7 @@ uri = Ubuntu.Components
 installPath = $$[QT_INSTALL_QML]/$$replace(uri, \\., /)
 
 # Components
-QML_FILES = $$system(ls *.qml) $$system(ls 10/*.qml)  $$system(ls 11/*.qml)  $$system(ls Internals/*.qml)
+QML_FILES = $$system(ls 10/*.qml) $$system(ls 11/*.qml)  $$system(ls Internals/*.qml)
 JS_FILES = $$system(ls *.js)
 
 # Components/artwork
@@ -30,12 +30,6 @@ OTHER_FILES += $$QML_FILES $$JS_FILES $$ARTWORK_FILES $$LISTITEMS_FILES $$POPUPS
 # define deployment for found deployables
 qmldir_file.path = $$installPath
 qmldir_file.files = $$QMLDIR_FILE
-qml_files.path = $$installPath
-qml_files.files = $$QML_FILES
-js_files.path = $$installPath
-js_files.files = $$JS_FILES
-artwork_files.path = $$installPath/artwork
-artwork_files.files = $$ARTWORK_FILES
 listitems_files.path = $$installPath/ListItems
 listitems_files.files = $$LISTITEMS_FILES
 listitems_artwork_files.path = $$installPath/ListItems/artwork
@@ -54,4 +48,32 @@ plugins_qmltypes.files = plugins.qmltypes
 # https://bugreports.qt-project.org/browse/QTBUG-36243
 plugins_qmltypes.extra = ALARM_BACKEND=memory $$[QT_INSTALL_BINS]/qmlplugindump -notrelocatable Ubuntu.Components 0.1 ../../ 2>/dev/null > $(INSTALL_ROOT)/$$installPath/plugins.qmltypes
 
-INSTALLS += qmldir_file qml_files js_files artwork_files listitems_files listitems_artwork_files popups_files picker_files styles_files plugins_qmltypes
+INSTALLS += qmldir_file listitems_files listitems_artwork_files popups_files picker_files styles_files plugins_qmltypes
+
+#deploy qmldir files to shadow build folder
+
+#!equals($$_PRO_FILE_PWD_, $$OUT_PWD) {
+#    listitems_qmldir.target = $$OUT_PWD/ListItems/qmldir
+#    listitems_qmldir.depends = $$_PRO_FILE_PWD_/ListItems/qmldir
+#    listitems_qmldir.commands = cp \"$$listitems_qmldir.depends\" \"$$listitems_qmldir.target\"
+#    QMAKE_EXTRA_TARGETS += listitems_qmldir
+#    PRE_TARGETDEPS += $$listitems_qmldir.target
+
+#    popups_qmldir.target = $$OUT_PWD/Popups/qmldir
+#    popups_qmldir.depends = $$_PRO_FILE_PWD_/Popups/qmldir
+#    popups_qmldir.commands = cp \"$$popups_qmldir.depends\" \"$$popups_qmldir.target\"
+#    QMAKE_EXTRA_TARGETS += popups_qmldir
+#    PRE_TARGETDEPS += $$popups_qmldir.target
+
+#    picker_qmldir.target = $$OUT_PWD/Pickers/qmldir
+#    picker_qmldir.depends = $$_PRO_FILE_PWD_/Pickers/qmldir
+#    picker_qmldir.commands = cp \"$$picker_qmldir.depends\" \"$$picker_qmldir.target\"
+#    QMAKE_EXTRA_TARGETS += picker_qmldir
+#    PRE_TARGETDEPS += $$picker_qmldir.target
+
+#    styles_qmldir.target = $$OUT_PWD/Styles/qmldir
+#    styles_qmldir.depends = $$_PRO_FILE_PWD_/Styles/qmldir
+#    styles_qmldir.commands = cp \"$$styles_qmldir.depends\" \"$$styles_qmldir.target\"
+#    QMAKE_EXTRA_TARGETS += styles_qmldir
+#    PRE_TARGETDEPS += $$styles_qmldir.target
+#}

@@ -5,14 +5,9 @@ usr/lib/*/qt5/qml/Ubuntu/PerformanceMetrics/libUbuntuPerformanceMetrics.so
 usr/lib/*/qt5/qml/Ubuntu/Layouts/qmldir
 usr/lib/*/qt5/qml/Ubuntu/Layouts/plugins.qmltypes
 usr/lib/*/qt5/qml/Ubuntu/Layouts/libUbuntuLayouts.so
-usr/lib/*/qt5/qml/Ubuntu/Components/*.qml
-usr/lib/*/qt5/qml/Ubuntu/Components/10/*.qml
-usr/lib/*/qt5/qml/Ubuntu/Components/11/*.qml
-usr/lib/*/qt5/qml/Ubuntu/Components/*.js
 usr/lib/*/qt5/qml/Ubuntu/Components/qmldir
 usr/lib/*/qt5/qml/Ubuntu/Components/plugins.qmltypes
 usr/lib/*/qt5/qml/Ubuntu/Components/libUbuntuComponents.so
-usr/lib/*/qt5/qml/Ubuntu/Components/artwork
 usr/lib/*/qt5/qml/Ubuntu/Components/ListItems/*.qml
 usr/lib/*/qt5/qml/Ubuntu/Components/ListItems/qmldir
 usr/lib/*/qt5/qml/Ubuntu/Components/ListItems/artwork

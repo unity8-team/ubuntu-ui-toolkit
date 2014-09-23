@@ -15,8 +15,8 @@
  *
  */
 
-import QtQuick 2.0
-import Ubuntu.Components 1.0
+import QtQuick 2.2
+import Ubuntu.Components 1.1 as Toolkit
 
 /*!
     \qmltype UbuntuNumberAnimation
@@ -51,6 +51,6 @@ import Ubuntu.Components 1.0
     \l UbuntuAnimation manually in order to ensure consistency.
 */
 NumberAnimation {
-    duration: UbuntuAnimation.FastDuration
-    easing: UbuntuAnimation.StandardEasing
+    duration: Toolkit.UbuntuAnimation.FastDuration
+    easing: Toolkit.UbuntuAnimation.StandardEasing
 }

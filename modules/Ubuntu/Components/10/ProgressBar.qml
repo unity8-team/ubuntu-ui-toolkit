@@ -15,7 +15,7 @@
  */
 
 import QtQuick 2.0
-import Ubuntu.Components.Internals 0.1
+import "../Internals"
 /*!
     \qmltype ProgressBar
     \inqmlmodule Ubuntu.Components 1.1

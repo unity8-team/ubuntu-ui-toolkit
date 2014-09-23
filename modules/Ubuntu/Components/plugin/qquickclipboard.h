@@ -33,6 +33,7 @@ class QQuickClipboard : public QObject
     Q_PROPERTY(QQuickMimeData *data READ data NOTIFY dataChanged)
 public:
     explicit QQuickClipboard(QObject *parent = 0);
+    ~QQuickClipboard();
 
     Q_INVOKABLE QQuickMimeData *newData();
 

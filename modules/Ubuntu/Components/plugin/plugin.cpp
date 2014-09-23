@@ -60,6 +60,11 @@
 #include <unistd.h>
 #include <stdexcept>
 
+static void initResources()
+{
+    Q_INIT_RESOURCE(resources);
+}
+
 static const QmlType qmlTypes[] = {
     {"ActionItem", "10/ActionItem.qml", false, 0, 1}, {"ActionItem", "10/ActionItem.qml", false, 1, 0},
     {"ActionList", "10/ActionList.qml", false, 0, 1}, {"ActionList", "10/ActionList.qml", false, 1, 0},
@@ -110,6 +115,9 @@ static const QmlType qmlTypes[] = {
     {"UbuntuColors", "10/UbuntuColors.qml", true, 0, 1},
     {"UbuntuColors", "10/UbuntuColors.qml", true, 1, 0},
     {"UbuntuColors", "11/UbuntuColors.qml", true, 1, 1},
+
+    {"PageBase", "10/Page.qml", false, 1, 1},
+
 };
 
 static const QmlType internalTypes [] = {
@@ -124,11 +132,6 @@ static const QmlType internalTypes [] = {
     {"InputHandler", "Internals/InputHandler.qml", false, 0, 1},
     {"PageBase", "10/Page.qml", false, 0, 1},
 };
-
-static void initResources()
-{
-//    Q_INIT_RESOURCE(components);
-}
 
 QUrl UbuntuComponentsPlugin::m_baseUrl = QUrl();
 
@@ -190,11 +193,17 @@ void UbuntuComponentsPlugin::setWindowContextProperty(QWindow* focusWindow)
 
 QUrl UbuntuComponentsPlugin::fileLocation()
 {
-    if (m_baseUrl.isEmpty()) {
-        m_baseUrl = QUrl(baseUrl().toString() + '/');
-    }
-    return m_baseUrl;
+    return loadedFromResources() ? QUrl("qrc:/Ubuntu/Components/") : m_baseUrl;
 }
+
+bool UbuntuComponentsPlugin::loadedFromResources()
+{
+    QString fname = m_baseUrl.resolved(QString("10/MainView.qml")).toString(QUrl::RemoveScheme);
+    QFile mainView(fname);
+    qDebug() << "FROMFS?" << baseUrl() << fname << mainView.exists();
+    return !mainView.exists();
+}
+
 
 void UbuntuComponentsPlugin::registerQmlTypes(const char *uri, const QmlType *types, uint count)
 {
@@ -202,21 +211,14 @@ void UbuntuComponentsPlugin::registerQmlTypes(const char *uri, const QmlType *ty
     QUrl filePath = fileLocation();
     for (uint i = 0; i < count; i++) {
         int result;
+        QUrl file = (types[i].file) ? filePath.resolved(QString(types[i].file)) : filePath.resolved(QString(types[i].type) + ".qml");
         if (types[i].singleton) {
-            if (types[i].file) {
-                result = qmlRegisterSingletonType(filePath.resolved(QString(types[i].file)), uri, types[i].major, types[i].minor, types[i].type);
-            } else {
-                result = qmlRegisterSingletonType(filePath.resolved(QString(types[i].type) + ".qml"), uri, types[i].major, types[i].minor, types[i].type);
-            }
+            result = qmlRegisterSingletonType(file, uri, types[i].major, types[i].minor, types[i].type);
         } else {
-            if (types[i].file) {
-                result = qmlRegisterType(filePath.resolved(QString(types[i].file)), uri, types[i].major, types[i].minor, types[i].type);
-            } else {
-                result = qmlRegisterType(filePath.resolved(QString(types[i].type) + ".qml"), uri, types[i].major, types[i].minor, types[i].type);
-            }
+            result = qmlRegisterType(file, uri, types[i].major, types[i].minor, types[i].type);
         }
         if (!result) {
-            qDebug() << QString("Type '%1' registration failed!").arg(types[i].type);
+            qCritical() << QString("Type '%1' registration failed!").arg(types[i].type);
         }
     }
 }
@@ -280,7 +282,7 @@ void UbuntuComponentsPlugin::registerTypes(const char *uri)
 void UbuntuComponentsPlugin::initializeEngine(QQmlEngine *engine, const char *uri)
 {
     // register internal types
-    registerQmlTypes("Ubuntu.Components.Internals", internalTypes, sizeof(internalTypes) / sizeof(internalTypes[0]));
+//    registerQmlTypes("Ubuntu.Components.Internals", internalTypes, sizeof(internalTypes) / sizeof(internalTypes[0]));
 
     QQmlExtensionPlugin::initializeEngine(engine, uri);
     QQmlContext* context = engine->rootContext();
@@ -340,4 +342,8 @@ void UbuntuComponentsPlugin::initializeEngine(QQmlEngine *engine, const char *ur
             Qt::InvertedLandscapeOrientation);
 
     registerWindowContextProperty();
+
+    if (loadedFromResources()) {
+        engine->addImportPath(QStringLiteral("qrc:/"));
+    }
 }

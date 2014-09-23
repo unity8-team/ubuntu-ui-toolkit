@@ -15,22 +15,21 @@
  */
 
 import QtQuick 2.2
-import Ubuntu.Components 1.0 as OldToolkit
-import Ubuntu.Components 1.1
+import "../10" as Toolkit10
 
 /*! \internal */
 // Documentation in Page.qdoc
-OldToolkit.Page {
+Toolkit10.Page {
     id: page
     /*!
       \qmlproperty PageHeadConfiguration head
      */
     readonly property alias head: headerConfig
-    PageHeadConfiguration {
+    Toolkit10.PageHeadConfiguration {
         id: headerConfig
     }
 
-    Object {
+    Toolkit10.Object {
         id: internal
 
         // Note: The bindings below need to check whether headerConfig.contents

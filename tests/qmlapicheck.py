@@ -20,6 +20,7 @@
 import sys
 import fileinput
 import os
+import re
 
 if len(sys.argv) < 2 or '-h' in sys.argv or '--help' in sys.argv:
     basename = os.path.basename(sys.argv[0])
@@ -138,7 +139,7 @@ for line in fileinput.input(inputfiles, openhook=hook):
 
     if '{' in line and '}' in line:
         if filetype == 'qmltypes' and not in_builtin_type:
-            print('    ' + line.strip())
+            print('    ' + re.sub('_QMLTYPE_\d+', '', line.strip()))
             continue
 
     # End of function/ signal/ Item block

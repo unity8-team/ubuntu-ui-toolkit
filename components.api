@@ -636,39 +636,6 @@ plugins.qmltypes
     Parameter { name: "reason"; type: "Qt::FocusReason" }
     Method { name: "requestFocus"; revision: 1; type: "bool" }
     prototype: "QQuickItem"
-    name: "Ubuntu.Components.Internals/AnimatedItem"
-    exports: ["Ubuntu.Components.Internals/AnimatedItem 0.1"]
-    Property { name: "onScreen"; type: "bool" }
-    Property { name: "style"; type: "QQmlComponent"; isPointer: true }
-    Property { name: "__styleInstance"; type: "QQuickItem"; isReadonly: true; isPointer: true }
-    Property { name: "activeFocusOnPress"; revision: 1; type: "bool" }
-    Method {
-    name: "requestFocus"
-    Parameter { name: "reason"; type: "Qt::FocusReason" }
-    Method { name: "requestFocus"; revision: 1; type: "bool" }
-    prototype: "QQuickItem"
-    name: "Ubuntu.Components.Internals/AppHeader"
-    exports: ["Ubuntu.Components.Internals/AppHeader 0.1"]
-    Property { name: "animate"; type: "bool" }
-    Property { name: "title"; type: "string" }
-    Property { name: "contents"; type: "QQuickItem"; isPointer: true }
-    Property { name: "flickable"; type: "QQuickFlickable"; isPointer: true }
-    Property { name: "useDeprecatedToolbar"; type: "bool" }
-    Property { name: "config"; type: "PageHeadConfiguration_QMLTYPE_10"; isPointer: true }
-    Property { name: "tabsModel"; type: "QVariant" }
-    Property { name: "pageStack"; type: "QVariant" }
-    Property { name: "actions"; type: "QVariant" }
-    Property { name: "__customBackAction"; type: "QVariant" }
-    Method { name: "show"; type: "QVariant" }
-    Method { name: "hide"; type: "QVariant" }
-    Property { name: "style"; type: "QQmlComponent"; isPointer: true }
-    Property { name: "__styleInstance"; type: "QQuickItem"; isReadonly: true; isPointer: true }
-    Property { name: "activeFocusOnPress"; revision: 1; type: "bool" }
-    Method {
-    name: "requestFocus"
-    Parameter { name: "reason"; type: "Qt::FocusReason" }
-    Method { name: "requestFocus"; revision: 1; type: "bool" }
-    prototype: "QQuickItem"
     name: "Ubuntu.Components/Button"
     exports: ["Button 1.1"]
     Property { name: "strokeColor"; type: "QColor" }
@@ -773,31 +740,6 @@ plugins.qmltypes
     Property { name: "fadeStyle"; type: "string" }
     Property { name: "running"; type: "bool"; isReadonly: true }
     Property { name: "status"; type: "int"; isReadonly: true }
-    prototype: "QQuickMouseArea"
-    name: "Ubuntu.Components.Internals/DraggingArea"
-    exports: ["Ubuntu.Components.Internals/DraggingArea 0.1"]
-    Property { name: "orientation"; type: "int" }
-    Property { name: "dragging"; type: "bool" }
-    Property { name: "dragVelocity"; type: "double" }
-    Property { name: "dragValue"; type: "double" }
-    Property { name: "lateralPosition"; type: "double" }
-    Property { name: "__pressedPosition"; type: "QPointF" }
-    Property { name: "clickValidated"; type: "bool" }
-    Property { name: "zeroVelocityCounts"; type: "bool" }
-    Property { name: "__dragEvents"; type: "QVariant" }
-    Signal { name: "dragStart" }
-    Signal { name: "dragEnd" }
-    Method { name: "updateSpeed"; type: "QVariant" }
-    Method {
-    name: "cullOldDragEvents"
-    Parameter { name: "currentTime"; type: "QVariant" }
-    Method {
-    name: "getEventSpeed"
-    Parameter { name: "currentTime"; type: "QVariant" }
-    Parameter { name: "event"; type: "QVariant" }
-    Method {
-    name: "pushDragEvent"
-    Parameter { name: "event"; type: "QVariant" }
     prototype: "QQuickItem"
     name: "Ubuntu.Components/Header"
     exports: ["Header 1.0"]
@@ -807,7 +749,7 @@ plugins.qmltypes
     Property { name: "contents"; type: "QQuickItem"; isPointer: true }
     Property { name: "flickable"; type: "QQuickFlickable"; isPointer: true }
     Property { name: "useDeprecatedToolbar"; type: "bool" }
-    Property { name: "config"; type: "PageHeadConfiguration_QMLTYPE_10"; isPointer: true }
+    Property { name: "config"; type: "PageHeadConfiguration"; isPointer: true }
     Property { name: "tabsModel"; type: "QVariant" }
     Property { name: "pageStack"; type: "QVariant" }
     Property { name: "actions"; type: "QVariant" }
@@ -828,95 +770,6 @@ plugins.qmltypes
     Property { name: "name"; type: "string" }
     Property { name: "color"; type: "QColor" }
     Property { name: "keyColor"; type: "QColor" }
-    prototype: "QQuickMultiPointTouchArea"
-    name: "Ubuntu.Components.Internals/InputHandler"
-    exports: ["Ubuntu.Components.Internals/InputHandler 0.1"]
-    Property { name: "main"; type: "QQuickItem"; isPointer: true }
-    Property { name: "input"; type: "QQuickItem"; isPointer: true }
-    Property { name: "flickable"; type: "QQuickFlickable"; isPointer: true }
-    Property { name: "selectionCursor"; type: "bool" }
-    Property { name: "visibleArea"; type: "QQuickItem"; isPointer: true }
-    Property { name: "lineSpacing"; type: "double" }
-    Property { name: "lineSize"; type: "double" }
-    Property { name: "frameDistance"; type: "QPointF" }
-    Property { name: "oldText"; type: "string" }
-    Property { name: "singleLine"; type: "bool"; isReadonly: true }
-    Property { name: "textChanged"; type: "bool" }
-    Property { name: "suppressReleaseEvent"; type: "bool" }
-    Property { name: "pressedPosition"; type: "int" }
-    Property { name: "moveStarts"; type: "int" }
-    Property { name: "moveEnds"; type: "int" }
-    Property { name: "scrollingDisabled"; type: "bool"; isReadonly: true }
-    Property { name: "grandScroller"; type: "QQuickFlickable"; isReadonly: true; isPointer: true }
-    Property { name: "scroller"; type: "QQuickFlickable"; isReadonly: true; isPointer: true }
-    Property { name: "flickableList"; type: "QVariant" }
-    Property { name: "popover"; type: "QVariant" }
-    Signal {
-    name: "pressAndHold"
-    Parameter { name: "pos"; type: "int" }
-    Signal {
-    name: "tap"
-    Parameter { name: "pos"; type: "int" }
-    Signal { name: "textModified" }
-    Method { name: "activateInput"; type: "QVariant" }
-    Method { name: "showInputPanel"; type: "QVariant" }
-    Method { name: "hideInputPanel"; type: "QVariant" }
-    Method {
-    name: "ensureVisible"
-    Parameter { name: "rect"; type: "QVariant" }
-    Method {
-    name: "cursorPosition"
-    Parameter { name: "x"; type: "QVariant" }
-    Parameter { name: "y"; type: "QVariant" }
-    Method {
-    name: "mousePosition"
-    Parameter { name: "mouse"; type: "QVariant" }
-    Method {
-    name: "positionInSelection"
-    Parameter { name: "pos"; type: "QVariant" }
-    Method {
-    name: "mouseInSelection"
-    Parameter { name: "mouse"; type: "QVariant" }
-    Method {
-    name: "selectText"
-    Parameter { name: "mouse"; type: "QVariant" }
-    Method {
-    name: "firstFlickableParent"
-    Parameter { name: "item"; type: "QVariant" }
-    Method {
-    name: "openContextMenu"
-    Parameter { name: "mouse"; type: "QVariant" }
-    Parameter { name: "noAutoselect"; type: "QVariant" }
-    Method {
-    name: "toggleFlickablesInteractive"
-    Parameter { name: "turnOn"; type: "QVariant" }
-    Method {
-    name: "positionCaret"
-    Parameter { name: "positioner"; type: "QVariant" }
-    Parameter { name: "x"; type: "QVariant" }
-    Parameter { name: "y"; type: "QVariant" }
-    Method {
-    name: "textCursorStyle"
-    Parameter { name: "positionProperty"; type: "QVariant" }
-    Method {
-    name: "movePage"
-    Parameter { name: "forward"; type: "QVariant" }
-    Method {
-    name: "handlePressed"
-    Parameter { name: "event"; type: "QVariant" }
-    Parameter { name: "touch"; type: "QVariant" }
-    Method {
-    name: "handleReleased"
-    Parameter { name: "event"; type: "QVariant" }
-    Parameter { name: "touch"; type: "QVariant" }
-    Method {
-    name: "handleMove"
-    Parameter { name: "event"; type: "QVariant" }
-    Parameter { name: "touch"; type: "QVariant" }
-    Method {
-    name: "handleDblClick"
-    Parameter { name: "event"; type: "QVariant" }
-    Parameter { name: "touch"; type: "QVariant" }
     prototype: "QQuickText"
     name: "Ubuntu.Components/Label"
     exports: ["Label 1.0"]
@@ -935,8 +788,8 @@ plugins.qmltypes
     Property { name: "actions"; type: "QObject"; isList: true; isReadonly: true }
     Property { name: "actionManager"; type: "UCActionManager"; isReadonly: true; isPointer: true }
     Property { name: "__isPageTreeNode"; type: "bool" }
-    Property { name: "header"; type: "AppHeader_QMLTYPE_11"; isPointer: true }
-    Property { name: "toolbar"; type: "Toolbar_QMLTYPE_64"; isPointer: true }
+    Property { name: "header"; type: "AppHeader"; isPointer: true }
+    Property { name: "toolbar"; type: "Toolbar"; isPointer: true }
     Property { name: "__propagated"; type: "QObject"; isPointer: true }
     Property { name: "active"; type: "bool" }
     Property { name: "pageStack"; type: "QQuickItem"; isPointer: true }
@@ -983,7 +836,7 @@ plugins.qmltypes
     Property { name: "children"; type: "QObject"; isList: true; isReadonly: true }
     Property { name: "__contents"; type: "QQuickItem"; isReadonly: true; isPointer: true }
     Property { name: "backgroundIndicator"; type: "QQuickItem"; isList: true; isReadonly: true }
-    Property { name: "divider"; type: "ThinDivider_QMLTYPE_89"; isReadonly: true; isPointer: true }
+    Property { name: "divider"; type: "ThinDivider"; isReadonly: true; isPointer: true }
     Signal { name: "itemRemoved" }
     Method { name: "cancelItemRemoval"; type: "QVariant" }
     Property { name: "pressed"; type: "bool" }
@@ -1031,7 +884,7 @@ plugins.qmltypes
     Property { name: "children"; type: "QObject"; isList: true; isReadonly: true }
     Property { name: "__contents"; type: "QQuickItem"; isReadonly: true; isPointer: true }
     Property { name: "backgroundIndicator"; type: "QQuickItem"; isList: true; isReadonly: true }
-    Property { name: "divider"; type: "ThinDivider_QMLTYPE_89"; isReadonly: true; isPointer: true }
+    Property { name: "divider"; type: "ThinDivider"; isReadonly: true; isPointer: true }
     Signal { name: "itemRemoved" }
     Method { name: "cancelItemRemoval"; type: "QVariant" }
     Property { name: "pressed"; type: "bool" }
@@ -1077,8 +930,8 @@ plugins.qmltypes
     Property { name: "flickable"; type: "QQuickFlickable"; isPointer: true }
     Property { name: "actions"; type: "QObject"; isList: true; isReadonly: true }
     Property { name: "__isPageTreeNode"; type: "bool" }
-    Property { name: "header"; type: "AppHeader_QMLTYPE_11"; isPointer: true }
-    Property { name: "toolbar"; type: "Toolbar_QMLTYPE_64"; isPointer: true }
+    Property { name: "header"; type: "AppHeader"; isPointer: true }
+    Property { name: "toolbar"; type: "Toolbar"; isPointer: true }
     Property { name: "__propagated"; type: "QObject"; isPointer: true }
     Property { name: "active"; type: "bool" }
     Property { name: "pageStack"; type: "QQuickItem"; isPointer: true }
@@ -1093,16 +946,16 @@ plugins.qmltypes
     Parameter { name: "reason"; type: "Qt::FocusReason" }
     Method { name: "requestFocus"; revision: 1; type: "bool" }
     prototype: "QQuickItem"
-    name: "Ubuntu.Components.Internals/PageBase"
-    exports: ["Ubuntu.Components.Internals/PageBase 0.1"]
+    name: "Ubuntu.Components/PageBase"
+    exports: ["PageBase 1.1"]
     Property { name: "title"; type: "string" }
     Property { name: "tools"; type: "QQuickItem"; isPointer: true }
     Property { name: "__customHeaderContents"; type: "QQuickItem"; isPointer: true }
     Property { name: "flickable"; type: "QQuickFlickable"; isPointer: true }
     Property { name: "actions"; type: "QObject"; isList: true; isReadonly: true }
     Property { name: "__isPageTreeNode"; type: "bool" }
-    Property { name: "header"; type: "AppHeader_QMLTYPE_11"; isPointer: true }
-    Property { name: "toolbar"; type: "Toolbar_QMLTYPE_64"; isPointer: true }
+    Property { name: "header"; type: "AppHeader"; isPointer: true }
+    Property { name: "toolbar"; type: "Toolbar"; isPointer: true }
     Property { name: "__propagated"; type: "QObject"; isPointer: true }
     Property { name: "active"; type: "bool" }
     Property { name: "pageStack"; type: "QQuickItem"; isPointer: true }
@@ -1136,7 +989,7 @@ plugins.qmltypes
     prototype: "QQuickState"
     name: "Ubuntu.Components/PageHeadState"
     exports: ["PageHeadState 1.1"]
-    Property { name: "head"; type: "PageHeadConfiguration_QMLTYPE_10"; isPointer: true }
+    Property { name: "head"; type: "PageHeadConfiguration"; isPointer: true }
     Property { name: "actions"; type: "UCAction"; isList: true; isReadonly: true }
     Property { name: "backAction"; type: "UCAction"; isPointer: true }
     Property { name: "contents"; type: "QQuickItem"; isPointer: true }
@@ -1154,51 +1007,8 @@ plugins.qmltypes
     Method { name: "pop"; type: "QVariant" }
     Method { name: "clear"; type: "QVariant" }
     Property { name: "__isPageTreeNode"; type: "bool" }
-    Property { name: "header"; type: "AppHeader_QMLTYPE_11"; isPointer: true }
-    Property { name: "toolbar"; type: "Toolbar_QMLTYPE_64"; isPointer: true }
-    Property { name: "__propagated"; type: "QObject"; isPointer: true }
-    Property { name: "active"; type: "bool" }
-    Property { name: "pageStack"; type: "QQuickItem"; isPointer: true }
-    Property { name: "parentNode"; type: "QQuickItem"; isPointer: true }
-    Property { name: "activeLeafNode"; type: "QQuickItem"; isPointer: true }
-    Property { name: "isLeaf"; type: "bool" }
-    Property { name: "style"; type: "QQmlComponent"; isPointer: true }
-    Property { name: "__styleInstance"; type: "QQuickItem"; isReadonly: true; isPointer: true }
-    Property { name: "activeFocusOnPress"; revision: 1; type: "bool" }
-    Method {
-    name: "requestFocus"
-    Parameter { name: "reason"; type: "Qt::FocusReason" }
-    Method { name: "requestFocus"; revision: 1; type: "bool" }
-    prototype: "QQuickItem"
-    name: "Ubuntu.Components.Internals/PageTreeNode"
-    exports: ["Ubuntu.Components.Internals/PageTreeNode 0.1"]
-    Property { name: "__isPageTreeNode"; type: "bool" }
-    Property { name: "header"; type: "AppHeader_QMLTYPE_11"; isPointer: true }
-    Property { name: "toolbar"; type: "Toolbar_QMLTYPE_64"; isPointer: true }
-    Property { name: "__propagated"; type: "QObject"; isPointer: true }
-    Property { name: "active"; type: "bool" }
-    Property { name: "pageStack"; type: "QQuickItem"; isPointer: true }
-    Property { name: "parentNode"; type: "QQuickItem"; isPointer: true }
-    Property { name: "activeLeafNode"; type: "QQuickItem"; isPointer: true }
-    Property { name: "isLeaf"; type: "bool" }
-    Property { name: "style"; type: "QQmlComponent"; isPointer: true }
-    Property { name: "__styleInstance"; type: "QQuickItem"; isReadonly: true; isPointer: true }
-    Property { name: "activeFocusOnPress"; revision: 1; type: "bool" }
-    Method {
-    name: "requestFocus"
-    Parameter { name: "reason"; type: "Qt::FocusReason" }
-    Method { name: "requestFocus"; revision: 1; type: "bool" }
-    prototype: "QQuickItem"
-    name: "Ubuntu.Components.Internals/PageWrapper"
-    exports: ["Ubuntu.Components.Internals/PageWrapper 0.1"]
-    Property { name: "object"; type: "QQuickItem"; isPointer: true }
-    Property { name: "canDestroy"; type: "bool" }
-    Property { name: "reference"; type: "QVariant" }
-    Property { name: "properties"; type: "QVariant" }
-    Method { name: "destroyObject"; type: "QVariant" }
-    Property { name: "__isPageTreeNode"; type: "bool" }
-    Property { name: "header"; type: "AppHeader_QMLTYPE_11"; isPointer: true }
-    Property { name: "toolbar"; type: "Toolbar_QMLTYPE_64"; isPointer: true }
+    Property { name: "header"; type: "AppHeader"; isPointer: true }
+    Property { name: "toolbar"; type: "Toolbar"; isPointer: true }
     Property { name: "__propagated"; type: "QObject"; isPointer: true }
     Property { name: "active"; type: "bool" }
     Property { name: "pageStack"; type: "QQuickItem"; isPointer: true }
@@ -1344,8 +1154,8 @@ plugins.qmltypes
     Property { name: "index"; type: "int"; isReadonly: true }
     Property { name: "__protected"; type: "QObject"; isReadonly: true; isPointer: true }
     Property { name: "__isPageTreeNode"; type: "bool" }
-    Property { name: "header"; type: "AppHeader_QMLTYPE_11"; isPointer: true }
-    Property { name: "toolbar"; type: "Toolbar_QMLTYPE_64"; isPointer: true }
+    Property { name: "header"; type: "AppHeader"; isPointer: true }
+    Property { name: "toolbar"; type: "Toolbar"; isPointer: true }
     Property { name: "__propagated"; type: "QObject"; isPointer: true }
     Property { name: "active"; type: "bool" }
     Property { name: "pageStack"; type: "QQuickItem"; isPointer: true }
@@ -1379,17 +1189,17 @@ plugins.qmltypes
     prototype: "QQuickItem"
     name: "Ubuntu.Components/Tabs"
     exports: ["Tabs 1.0"]
-    Property { name: "selectedTab"; type: "Tab_QMLTYPE_128"; isReadonly: true; isPointer: true }
+    Property { name: "selectedTab"; type: "Tab"; isReadonly: true; isPointer: true }
     Property { name: "currentPage"; type: "QQuickItem"; isReadonly: true; isPointer: true }
-    Property { name: "tabBar"; type: "TabBar_QMLTYPE_16"; isPointer: true }
+    Property { name: "tabBar"; type: "TabBar"; isPointer: true }
     Property { name: "__model"; type: "QVariant" }
     Property { name: "selectedTabIndex"; type: "int" }
     Property { name: "tabChildren"; type: "QObject"; isList: true; isReadonly: true }
     Property { name: "count"; type: "int"; isReadonly: true }
     Signal { name: "modelChanged" }
     Property { name: "__isPageTreeNode"; type: "bool" }
-    Property { name: "header"; type: "AppHeader_QMLTYPE_11"; isPointer: true }
-    Property { name: "toolbar"; type: "Toolbar_QMLTYPE_64"; isPointer: true }
+    Property { name: "header"; type: "AppHeader"; isPointer: true }
+    Property { name: "toolbar"; type: "Toolbar"; isPointer: true }
     Property { name: "__propagated"; type: "QObject"; isPointer: true }
     Property { name: "active"; type: "bool" }
     Property { name: "pageStack"; type: "QQuickItem"; isPointer: true }
@@ -1501,31 +1311,6 @@ plugins.qmltypes
     Parameter { name: "reason"; type: "Qt::FocusReason" }
     Method { name: "requestFocus"; revision: 1; type: "bool" }
     prototype: "QQuickItem"
-    name: "Ubuntu.Components.Internals/TextCursor"
-    exports: ["Ubuntu.Components.Internals/TextCursor 0.1"]
-    Property { name: "positionProperty"; type: "string" }
-    Property { name: "handler"; type: "InputHandler_QMLTYPE_54"; isPointer: true }
-    Property { name: "cursorDelegate"; type: "QQmlComponent"; isReadonly: true; isPointer: true }
-    Property { name: "caret"; type: "QQuickItem"; isPointer: true }
-    Property { name: "caretX"; type: "double" }
-    Property { name: "caretY"; type: "double" }
-    Property { name: "typing"; type: "bool" }
-    Property { name: "contextMenuVisible"; type: "bool" }
-    Method {
-    name: "mappedCursorPosition"
-    Parameter { name: "pos"; type: "QVariant" }
-    Method { name: "openPopover"; type: "QVariant" }
-    Method {
-    name: "contextMenuHidden"
-    Parameter { name: "p"; type: "QVariant" }
-    Property { name: "style"; type: "QQmlComponent"; isPointer: true }
-    Property { name: "__styleInstance"; type: "QQuickItem"; isReadonly: true; isPointer: true }
-    Property { name: "activeFocusOnPress"; revision: 1; type: "bool" }
-    Method {
-    name: "requestFocus"
-    Parameter { name: "reason"; type: "Qt::FocusReason" }
-    Method { name: "requestFocus"; revision: 1; type: "bool" }
-    prototype: "QQuickItem"
     name: "Ubuntu.Components/TextField"
     exports: ["TextField 1.0"]
     Property { name: "highlighted"; type: "bool" }
@@ -1630,58 +1415,6 @@ plugins.qmltypes
     name: "requestFocus"
     Parameter { name: "reason"; type: "Qt::FocusReason" }
     Method { name: "requestFocus"; revision: 1; type: "bool" }
-    prototype: "QQuickItem"
-    name: "Ubuntu.Components.Internals/TextInputPopover"
-    exports: ["Ubuntu.Components.Internals/TextInputPopover 0.1"]
-    Property { name: "target"; type: "QQuickItem"; isPointer: true }
-    Property { name: "actions"; type: "UCAction"; isList: true; isReadonly: true }
-    Property { name: "caller"; type: "QQuickItem"; isPointer: true }
-    Property { name: "pointerTarget"; type: "QQuickItem"; isPointer: true }
-    Property { name: "edgeMargins"; type: "double" }
-    Property { name: "callerMargin"; type: "double" }
-    Property { name: "autoClose"; type: "bool" }
-    Property { name: "container"; type: "QObject"; isList: true; isReadonly: true }
-    Property { name: "contentWidth"; type: "double" }
-    Property { name: "contentHeight"; type: "double" }
-    Property { name: "foregroundStyle"; type: "QQmlComponent"; isPointer: true }
-    Method { name: "show"; type: "QVariant" }
-    Method { name: "hide"; type: "QVariant" }
-    Method { name: "__makeInvisible"; type: "QVariant" }
-    Property { name: "dismissArea"; type: "QQuickItem"; isPointer: true }
-    Property { name: "grabDismissAreaEvents"; type: "bool" }
-    Property { name: "fadingAnimation"; type: "QQuickPropertyAnimation"; isPointer: true }
-    Property { name: "__foreground"; type: "QQuickItem"; isPointer: true }
-    Property { name: "__closeOnDismissAreaPress"; type: "bool" }
-    Property { name: "__dimBackground"; type: "bool" }
-    Property {
-    name: "__eventGrabber"
-    Method { name: "__closeIfHidden"; type: "QVariant" }
-    Method { name: "__closePopup"; type: "QVariant" }
-    Property { name: "automaticOrientation"; type: "bool" }
-    Property { name: "transitionEnabled"; type: "bool" }
-    Property { name: "orientationAngle"; type: "int" }
-    Property { name: "anchorToKeyboard"; type: "bool" }
-    Property { name: "rotating"; type: "bool"; isReadonly: true }
-    Property { name: "__orientationAngle"; type: "int" }
-    prototype: "QQuickItem"
-    name: "Ubuntu.Components.Internals/Toolbar"
-    exports: ["Ubuntu.Components.Internals/Toolbar 0.1"]
-    Property { name: "tools"; type: "QQuickItem"; isPointer: true }
-    Property { name: "align"; type: "int" }
-    Property { name: "opened"; type: "bool" }
-    Property { name: "locked"; type: "bool" }
-    Property { name: "hintSize"; type: "double" }
-    Property { name: "triggerSize"; type: "double" }
-    Property { name: "animate"; type: "bool" }
-    Property { name: "animating"; type: "bool"; isReadonly: true }
-    Property { name: "__closeOnContentsClicks"; type: "bool" }
-    Property { name: "__openOnHover"; type: "bool" }
-    Property { name: "contents"; type: "QObject"; isList: true; isReadonly: true }
-    Property { name: "hideTimeout"; type: "int" }
-    Property { name: "position"; type: "double"; isReadonly: true }
-    Property { name: "pressed"; type: "bool"; isReadonly: true }
-    Method { name: "open"; type: "QVariant" }
-    Method { name: "close"; type: "QVariant" }
     prototype: "QQuickItem"
     name: "Ubuntu.Components/ToolbarButton"
     exports: ["ToolbarButton 1.0"]

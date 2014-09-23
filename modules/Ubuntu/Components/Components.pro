@@ -1,5 +1,5 @@
 TEMPLATE = subdirs
 
-SUBDIRS += plugin Themes 10 11
+SUBDIRS += plugin Themes
 
 include(deployment.pri)

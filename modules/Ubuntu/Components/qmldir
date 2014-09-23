@@ -1,14 +1,15 @@
 module Ubuntu.Components
 plugin UbuntuComponents
+classname UbuntuComponentsPlugin
 
-MathUtils 0.1 mathUtils.js
-SliderUtils 0.1 sliderUtils.js
-ScrollbarUtils 0.1 scrollbarUtils.js
-ColorUtils 0.1 colorUtils.js
-DateUtils 0.1 dateUtils.js
+MathUtils 0.1 qrc:/Ubuntu/Components/mathUtils.js
+SliderUtils 0.1 qrc:/Ubuntu/Components/sliderUtils.js
+ScrollbarUtils 0.1 qrc:/Ubuntu/Components/scrollbarUtils.js
+ColorUtils 0.1 qrc:/Ubuntu/Components/colorUtils.js
+DateUtils 0.1 qrc:/Ubuntu/Components/dateUtils.js
 
-MathUtils 1.0 mathUtils.js
-SliderUtils 1.0 sliderUtils.js
-ScrollbarUtils 1.0 scrollbarUtils.js
-ColorUtils 1.0 colorUtils.js
-DateUtils 1.0 dateUtils.js
+MathUtils 1.0 qrc:/Ubuntu/Components/mathUtils.js
+SliderUtils 1.0 qrc:/Ubuntu/Components/sliderUtils.js
+ScrollbarUtils 1.0 qrc:/Ubuntu/Components/scrollbarUtils.js
+ColorUtils 1.0 qrc:/Ubuntu/Components/colorUtils.js
+DateUtils 1.0 qrc:/Ubuntu/Components/dateUtils.js

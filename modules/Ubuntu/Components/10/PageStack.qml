@@ -16,7 +16,7 @@
 
 import QtQuick 2.0
 import "stack.js" as Stack
-import Ubuntu.Components.Internals 0.1
+import "../Internals"
 
 /*!
     \qmltype PageStack

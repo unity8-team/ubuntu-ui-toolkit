@@ -112,7 +112,45 @@ SOURCES += plugin.cpp \
 # adapters
 SOURCES += adapters/alarmsadapter_organizer.cpp
 
+#resources
+RESOURCE_FILES = $$system(ls ../10/*.qml) \
+                $$system(ls ../10/*.js) \
+                $$system(ls ../11/*.qml) \
+                $$system(ls ../11/*.js) \
+                $$system(ls ../Internals/*.qml) \
+                $$system(ls ../Internals/*.js) \
+                $$system(ls ../*.js) \
+                $$system(find ../artwork -type f)
+
+GENERATED_RESOURCE_FILE = $$OUT_PWD/resources.qrc
+
+RESOURCE_CONTENT = \
+    "<RCC>" \
+    "<qresource prefix=\"/Ubuntu/Components\">"
+
+for (resourcefile, RESOURCE_FILES) {
+    resourcefileabsolutepath = $$absolute_path($$resourcefile)
+    relativepath_in = $$relative_path($$resourcefileabsolutepath, $$_PRO_FILE_PWD_)
+    relativepath_out = $$relative_path($$resourcefileabsolutepath, $$OUT_PWD)
+    RESOURCE_CONTENT += "<file alias=\"$$relativepath_in\">$$relativepath_out</file>"
+}
+
+RESOURCE_CONTENT += \
+    "</qresource>" \
+    "</RCC>"
+
+write_file($$GENERATED_RESOURCE_FILE, RESOURCE_CONTENT)|error("Aborting.")
+
+RESOURCES +=$$GENERATED_RESOURCE_FILE
+
 # deployment rules for the plugin
 installPath = $$[QT_INSTALL_QML]/$$replace(uri, \\., /)
 target.path = $$installPath
 INSTALLS += target
+
+!equals(_PRO_FILE_PWD_, $$OUT_PWD) {
+    main_qmldir.target = .qmldir
+    main_qmldir.commands = cp \"$$_PRO_FILE_PWD_/../qmldir\" \"$$$$OUT_PWD/../qmldir\"
+    QMAKE_EXTRA_TARGETS += main_qmldir
+    PRE_TARGETDEPS += $$main_qmldir.target
+}

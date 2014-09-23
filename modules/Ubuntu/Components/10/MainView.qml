@@ -16,7 +16,7 @@
 
 import QtQuick 2.2
 import Ubuntu.Components 1.1 as Toolkit
-import Ubuntu.Components.Internals 0.1
+import "../Internals"
 import Ubuntu.PerformanceMetrics 1.0
 import QtQuick.Window 2.0
 
@@ -476,7 +476,7 @@ PageTreeNode {
 
         // Even when using MainView 1.1, we still support Page 1.0.
         // PageBase (=Page 1.0) is the superclass of Page 1.1.
-        property PageBase activePage: isPage(mainView.activeLeafNode) ? mainView.activeLeafNode : null
+        property var activePage: isPage(mainView.activeLeafNode) ? mainView.activeLeafNode : null
 
         function isPage(item) {
             return item && item.hasOwnProperty("__isPageTreeNode") && item.__isPageTreeNode &&

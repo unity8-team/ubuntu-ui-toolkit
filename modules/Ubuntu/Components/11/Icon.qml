@@ -15,8 +15,7 @@
  */
 
 import QtQuick 2.0
-import Ubuntu.Components 1.0 as Toolkit10
-
+import "../10" as Toolkit10
 /*
   \qmlabstract
   */

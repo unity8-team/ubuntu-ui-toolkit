@@ -15,7 +15,7 @@
  */
 
 import QtQuick 2.2
-import Ubuntu.Components.Internals 0.1
+import "../Internals"
 
 /*!
     \qmltype Header

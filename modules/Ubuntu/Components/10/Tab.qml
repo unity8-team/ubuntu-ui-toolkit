@@ -16,7 +16,7 @@
 
 import QtQuick 2.2
 import Ubuntu.Components 1.1
-import Ubuntu.Components.Internals 0.1
+import "../Internals"
 /*!
     \qmltype Tab
     \inqmlmodule Ubuntu.Components 1.1

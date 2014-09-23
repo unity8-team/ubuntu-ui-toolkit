@@ -53,7 +53,9 @@ private:
     static QUrl m_baseUrl;
     void registerTypesToVersion(const char *uri, int major, int minor);
     QUrl fileLocation();
+    bool loadedFromResources();
     void registerQmlTypes(const char *uri, const QmlType *types, uint count);
 };
+
 #endif // UBUNTU_COMPONENTS_PLUGIN_H
 

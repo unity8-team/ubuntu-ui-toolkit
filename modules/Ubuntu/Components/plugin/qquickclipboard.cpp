@@ -132,6 +132,11 @@ QQuickClipboard::QQuickClipboard(QObject *parent) :
 {
 }
 
+QQuickClipboard::~QQuickClipboard()
+{
+
+}
+
 /*!
  * \qmlproperty MimeData Clipboard::data
  * Provides access to the Clipboard's current data.
