@@ -187,6 +187,51 @@ MainView {
                     }
                     Component.onCompleted: clicked.connect(toggle.clicked)
                 }
+                ListItem {
+                    StandardLayout {
+                        image.shape.color: UbuntuColors.green
+                        captions {
+                            title.text: "Captions (title)"
+                            subtitle.text: "Subtitle text"
+                        }
+                        details {
+                            title.text: "Text"
+                            subtitle.text: "Text"
+                        }
+                    }
+                    trailingActions: ListItemActions {
+                        actions: [
+                            Action {
+                                iconName: "alarm-clock"
+                                onTriggered: print(iconName, "triggered", value)
+                            },
+                            Action {
+                                iconName: "camcorder"
+                                onTriggered: print(iconName, "triggered", value)
+                            },
+                            Action {
+                                iconName: "stock_website"
+                                onTriggered: print(iconName, "triggered", value)
+                            }
+                        ]
+//                        customPanel: Rectangle {
+//                            property bool leadingPanel: ListItemActions.list.status == ListItemActions.Leading
+//                            property Item contentItem: (ListItemActions.list && ListItemActions.list.connectedItem) ?
+//                                                           ListItemActions.list.connectedItem.contentItem : null
+//                            anchors {
+//                                left: contentItem ? (leadingPanel ? undefined : contentItem.right) : undefined
+//                                right: contentItem ? (leadingPanel ? contentItem.left : undefined) : undefined
+//                                top: contentItem ? contentItem.top : undefined
+//                                bottom: contentItem ? contentItem.bottom : undefined
+//                            }
+//                            width: contentItem ? contentItem.width : units.gu(30)
+//                            color: "tan"
+//                            ListItemActions.onListChanged: {
+//                                for (var p in ListItemActions.list) print (p)
+//                            }
+//                        }
+                    }
+                }
             }
         }
     }

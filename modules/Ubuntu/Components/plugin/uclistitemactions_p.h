@@ -35,6 +35,7 @@ public:
     bool foregroundColorChanged:1;
     UCListItemActions::Status status;
     QQmlComponent *delegate;
+    QQmlComponent *customPanel;
     QQuickItem *panelItem;
     QColor backgroundColor;
     QColor foregroundColor;
@@ -54,6 +55,7 @@ public:
     static qreal snap(UCListItemActions *options);
 
     QQuickItem *createPanelItem();
+    QQuickItem *createCustomPanelItem();
     void updateColor(const char *property, const QColor &color);
 };
 

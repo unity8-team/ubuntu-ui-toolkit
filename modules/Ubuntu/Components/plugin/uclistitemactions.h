@@ -20,6 +20,26 @@
 #include <QtCore/QObject>
 #include "uclistitem_p.h"
 
+class UCListItemActions;
+class UCListItemActionsAttached : public QObject
+{
+    Q_OBJECT
+    Q_PROPERTY(UCListItemActions *list MEMBER m_listItemActions NOTIFY listChanged)
+    Q_PROPERTY(qreal offsetVisible READ offsetVisible NOTIFY offsetVisibleChanged)
+public:
+    UCListItemActionsAttached(QObject *parent = 0);
+    ~UCListItemActionsAttached();
+    void setList(UCListItemActions *list);
+    qreal offsetVisible();
+
+Q_SIGNALS:
+    void listChanged();
+    void offsetVisibleChanged();
+
+private:
+    UCListItemActions *m_listItemActions;
+};
+
 class QQmlComponent;
 class UCAction;
 class UCListItemActionsPrivate;
@@ -27,6 +47,7 @@ class UCListItemActions : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QQmlComponent *delegate READ delegate WRITE setDelegate NOTIFY delegateChanged)
+    Q_PROPERTY(QQmlComponent *customPanel READ customPanel WRITE setCustomPanel NOTIFY customPanelChanged)
     Q_PROPERTY(QQmlListProperty<UCAction> actions READ actions CONSTANT)
     Q_PROPERTY(QQuickItem *panelItem READ panelItem NOTIFY panelItemChanged)
     Q_PROPERTY(Status status READ status NOTIFY statusChanged)
@@ -46,8 +67,12 @@ public:
     explicit UCListItemActions(QObject *parent = 0);
     ~UCListItemActions();
 
+    static UCListItemActionsAttached *qmlAttachedProperties(QObject *owner);
+
     QQmlComponent *delegate() const;
     void setDelegate(QQmlComponent *delegate);
+    QQmlComponent *customPanel() const;
+    void setCustomPanel(QQmlComponent *panel);
     QQmlListProperty<UCAction> actions();
     QQuickItem *panelItem() const;
     Status status() const;
@@ -60,6 +85,7 @@ public:
 
 Q_SIGNALS:
     void delegateChanged();
+    void customPanelChanged();
     void panelItemChanged();
     void statusChanged();
     void connectedItemChanged();
@@ -73,5 +99,7 @@ private:
     Q_PRIVATE_SLOT(d_func(), void _q_handlePanelDrag())
     Q_PRIVATE_SLOT(d_func(), void _q_handlePanelWidth())
 };
+
+QML_DECLARE_TYPEINFO(UCListItemActions, QML_HAS_ATTACHED_PROPERTIES)
 
 #endif // UCLISTITEMACTIONS_H

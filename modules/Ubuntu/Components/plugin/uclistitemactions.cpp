@@ -24,12 +24,40 @@
 #include <QtQuick/private/qquickitem_p.h>
 #include "ucaction.h"
 
+
+UCListItemActionsAttached::UCListItemActionsAttached(QObject *parent)
+    : QObject(parent)
+    , m_listItemActions(0)
+{
+}
+
+UCListItemActionsAttached::~UCListItemActionsAttached()
+{
+}
+
+void UCListItemActionsAttached::setList(UCListItemActions *list)
+{
+    if (list == m_listItemActions) {
+        return;
+    }
+    m_listItemActions = list;
+    Q_EMIT listChanged();
+}
+
+qreal UCListItemActionsAttached::offsetVisible()
+{
+    Q_ASSERT(m_listItemActions);
+    return UCListItemActionsPrivate::get(m_listItemActions)->offsetDragged;
+}
+
+
 UCListItemActionsPrivate::UCListItemActionsPrivate()
     : QObjectPrivate()
     , backgroundColorChanged(false)
     , foregroundColorChanged(false)
     , status(UCListItemActions::Disconnected)
     , delegate(0)
+    , customPanel(0)
     , panelItem(0)
     , backgroundColor(Qt::transparent)
     , foregroundColor(Qt::transparent)
@@ -89,10 +117,11 @@ bool UCListItemActionsPrivate::connectToListItem(UCListItemActions *actions, UCL
         return false;
     }
     _this->panelItem->setProperty("listItemIndex", UCListItemPrivate::get(listItem)->index);
-    _this->panelItem->setProperty("leadingPanel", leading);
     _this->panelItem->setParentItem(listItem);
     _this->offsetDragged = 0.0;
-    QObject::connect(_this->panelItem, SIGNAL(selected()), _this->panelItem->parentItem(), SLOT(_q_rebound()));
+    if (!_this->customPanel) {
+        QObject::connect(_this->panelItem, SIGNAL(selected()), _this->panelItem->parentItem(), SLOT(_q_rebound()));
+    }
     _this->status = (leading) ?  UCListItemActions::Leading :  UCListItemActions::Trailing;
     Q_EMIT actions->statusChanged();
     Q_EMIT actions->connectedItemChanged();
@@ -106,7 +135,9 @@ void UCListItemActionsPrivate::disconnectFromListItem(UCListItemActions *actions
         return;
     }
 
-    QObject::disconnect(_this->panelItem, SIGNAL(selected()), _this->panelItem->parentItem(), SLOT(_q_rebound()));
+    if (!_this->customPanel) {
+        QObject::disconnect(_this->panelItem, SIGNAL(selected()), _this->panelItem->parentItem(), SLOT(_q_rebound()));
+    }
     _this->panelItem->setParentItem(0);
     _this->status = UCListItemActions::Disconnected;
     Q_EMIT actions->statusChanged();
@@ -148,36 +179,56 @@ QQuickItem *UCListItemActionsPrivate::createPanelItem()
         return panelItem;
     }
     Q_Q(UCListItemActions);
-    QUrl panelDocument = UbuntuComponentsPlugin::pluginUrl().
-            resolved(QUrl::fromLocalFile("ListItemPanel.qml"));
-    QQmlComponent component(qmlEngine(q), panelDocument);
-    if (!component.isError()) {
-        panelItem = qobject_cast<QQuickItem*>(component.beginCreate(qmlContext(q)));
+    UCListItemActionsAttached *attached = 0;
+    if (customPanel) {
+        panelItem = qobject_cast<QQuickItem*>(customPanel->beginCreate(qmlContext(q)));
         if (panelItem) {
             QQml_setParent_noEvent(panelItem, q);
-            if (delegate) {
-                panelItem->setProperty("delegate", QVariant::fromValue(delegate));
+            // create attached property!
+            attached = static_cast<UCListItemActionsAttached*>(
+                        qmlAttachedPropertiesObject<UCListItemActions>(panelItem));
+            if (attached) {
+                attached->setList(q);
             }
-            panelItem->setProperty("actionList", QVariant::fromValue(q));
-            component.completeCreate();
-            if (backgroundColorChanged) {
-                updateColor("backgroundColor", backgroundColor);
-            }
-            if (foregroundColorChanged) {
-                updateColor("foregroundColor", foregroundColor);
-            }
-            Q_EMIT q->panelItemChanged();
-
-            // calculate option's slot size
-            offsetDragged = 0.0;
-            optionsVisible = 0;
-            _q_handlePanelWidth();
-            // connect to panel to catch dragging
-            QObject::connect(panelItem, SIGNAL(widthChanged()), q, SLOT(_q_handlePanelWidth()));
-            QObject::connect(panelItem, SIGNAL(xChanged()), q, SLOT(_q_handlePanelDrag()));
+            customPanel->completeCreate();
         }
     } else {
-        qmlInfo(q) << component.errorString();
+        QUrl panelDocument = UbuntuComponentsPlugin::pluginUrl().
+                resolved(QUrl::fromLocalFile("ListItemPanel.qml"));
+        QQmlComponent component(qmlEngine(q), panelDocument);
+        if (!component.isError()) {
+            panelItem = qobject_cast<QQuickItem*>(component.beginCreate(qmlContext(q)));
+            if (panelItem) {
+                QQml_setParent_noEvent(panelItem, q);
+                // create attached property!
+                attached = static_cast<UCListItemActionsAttached*>(
+                            qmlAttachedPropertiesObject<UCListItemActions>(panelItem));
+                if (attached) {
+                    attached->setList(q);
+                }
+                component.completeCreate();
+            }
+        } else {
+            qmlInfo(q) << component.errorString();
+        }
+    }
+    if (panelItem) {
+//        if (backgroundColorChanged) {
+//            updateColor("backgroundColor", backgroundColor);
+//        }
+//        if (foregroundColorChanged) {
+//            updateColor("foregroundColor", foregroundColor);
+//        }
+        Q_EMIT q->panelItemChanged();
+
+        // calculate option's slot size
+        offsetDragged = 0.0;
+        optionsVisible = 0;
+        _q_handlePanelWidth();
+        // connect to panel to catch dragging
+        QObject::connect(panelItem, SIGNAL(widthChanged()), q, SLOT(_q_handlePanelWidth()));
+        QObject::connect(panelItem, SIGNAL(xChanged()), q, SLOT(_q_handlePanelDrag()));
+        QObject::connect(attached, SIGNAL(offsetVisibleChanged()), panelItem, SIGNAL(xChanged()));
     }
     return panelItem;
 }
@@ -306,6 +357,11 @@ UCListItemActions::~UCListItemActions()
 {
 }
 
+UCListItemActionsAttached *UCListItemActions::qmlAttachedProperties(QObject *owner)
+{
+    return new UCListItemActionsAttached(owner);
+}
+
 /*!
  * \qmlproperty Component ListItemActions::delegate
  * Custom delegate which overrides the default one used by the ListItem. If the
@@ -382,6 +438,31 @@ void UCListItemActions::setDelegate(QQmlComponent *delegate)
         d->panelItem->setProperty("delegate", QVariant::fromValue(delegate));
     }
     Q_EMIT delegateChanged();
+}
+
+QQmlComponent *UCListItemActions::customPanel() const
+{
+    Q_D(const UCListItemActions);
+    return d->customPanel;
+}
+void UCListItemActions::setCustomPanel(QQmlComponent *panel)
+{
+    Q_D(UCListItemActions);
+    if (d->customPanel == panel) {
+        return;
+    }
+    // delete previous panel before we set the new one
+    if (d->panelItem) {
+        d->queuedItem.clear();
+        UCListItem *listItem = static_cast<UCListItem*>(d->panelItem->parentItem());
+        UCListItemPrivate *pListItem = UCListItemPrivate::get(listItem);
+        // prompt rebounding and disconnect
+        pListItem->cleanup();
+        delete d->panelItem;
+        d->panelItem = 0;
+    }
+    d->customPanel = panel;
+    Q_EMIT customPanelChanged();
 }
 
 /*!

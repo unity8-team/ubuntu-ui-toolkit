@@ -15,7 +15,7 @@
  */
 
 import QtQuick 2.2
-import Ubuntu.Components 1.1
+import Ubuntu.Components 1.2
 
 /*
   This component is the holder of the ListItem options.
@@ -38,22 +38,23 @@ Item {
     /*
       Specifies whether the panel is used to visualize leading or trailing options.
       */
-    property bool leadingPanel: false
+    property bool leadingPanel: (ListItemActions.list.status === ListItemActions.Leading)
     /*
       The delegate to be used to visualize the options
       */
-    property Component delegate
+    property Component delegate: ListItemActions.list.delegate
 
     /*
       Actions
       */
-    property var actionList
+    property var actionList: ListItemActions.list.actions
+    onActionListChanged: print(actionList, actionList.length)
 
     /*
       Panel and text colors
       */
-    property color backgroundColor
-    property color foregroundColor
+    property color backgroundColor: ListItemActions.list.backgroundColor
+    property color foregroundColor: ListItemActions.list.foregroundColor
 
     /*
       Emitted when action is triggered
@@ -91,10 +92,10 @@ Item {
             leftMargin: spacing
         }
 
-        property real maxItemWidth: panel.parent ? (panel.parent.width / panel.actionList.actions.length) : 0
+        property real maxItemWidth: panel.parent ? (panel.parent.width / panel.actionList.length) : 0
 
         Repeater {
-            model: panel.actionList.actions
+            model: panel.actionList
             AbstractButton {
                 action: modelData
                 visible: action.visible && action.enabled
