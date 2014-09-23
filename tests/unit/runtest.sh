@@ -51,8 +51,9 @@ function create_test_cmd {
   if [ "$_MINIMAL" = "minimal" ]; then
       _CMD="$_CMD -platform minimal"
   fi
-
-  _CMD="$_CMD -input $_TESTFILEPATH"
+  if [ $_TARGETPATH != $_TESTFILEPATH ]; then
+      _CMD="$_CMD -input $_TESTFILEPATH"
+  fi
   _CMD="$_CMD -maxwarnings 40"
 }
 

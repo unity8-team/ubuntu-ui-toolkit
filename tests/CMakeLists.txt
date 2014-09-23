@@ -41,9 +41,22 @@ add_custom_target(qmluitests
 
 list(APPEND licence_dirs "modules" "examples" "documentation" "debian" "scripts" "tests" "manual-tests" "po")
 foreach(CHECK_DIR ${licence_dirs})
-    add_custom_target(license_${CHECK_DIR} ALL
+    add_custom_target(license_${CHECK_DIR}
     COMMAND ${CMAKE_SOURCE_DIR}/tests/license/checklicense.sh
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/${CHECK_DIR}
     )
+    list(APPEND CHECK_LICENSE_TARGETS license_${CHECK_DIR})
 endforeach()
+
+add_custom_target(license
+    DEPENDS ${CHECK_LICENSE_TARGETS}
+)
+
+add_test(
+    NAME "tst_apicheck"
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/qmlapicheck.sh ${CMAKE_CURRENT_BINARY_DIR}
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_property(TEST "tst_apicheck" PROPERTY LABELS "tst_apicheck")
+
 

@@ -63,5 +63,4 @@ foreach(TEST ${TESTS})
     set_property(TEST ${TARGET}_${TEST_NAME} PROPERTY ENVIRONMENT
         LD_LIBRARY_PATH=${LD_PATH_STRING}
     )
-    #check.commands += sh tests/qmlapicheck.sh || exit 1;
 endforeach()

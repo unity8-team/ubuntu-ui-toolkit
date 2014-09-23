@@ -51,7 +51,9 @@ if(TEST_LD_LIBRARY_PATH)
     endforeach()
 endif()
 
-add_test(NAME ${TARGET} COMMAND ${TARGET})
+add_test(NAME ${TARGET}
+    COMMAND ${CMAKE_SOURCE_DIR}/tests/unit/runtest.sh ${CMAKE_CURRENT_BINARY_DIR}/${TARGET} ${CMAKE_CURRENT_BINARY_DIR}/${TARGET} "" \"${CMAKE_BINARY_DIR}/modules\"
+)
 set_property(TEST ${TARGET} PROPERTY LABELS unit_x11_${TARGET} )
 set_property(TEST ${TARGET} PROPERTY ENVIRONMENT
     QML_IMPORT_PATH=${CMAKE_BINARY_DIR}/modules

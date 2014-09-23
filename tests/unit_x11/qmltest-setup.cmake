@@ -61,6 +61,5 @@ foreach(TEST ${TESTS})
     )
     set_property(TEST ${TARGET}_${TEST_NAME} PROPERTY DEPENDS test_install )
     set_property(TEST ${TARGET}_${TEST_NAME} PROPERTY LABELS  unit_x11_${TARGET}_${TEST_NAME})
-    #check.commands += sh tests/qmlapicheck.sh || exit 1;
 endforeach()
 

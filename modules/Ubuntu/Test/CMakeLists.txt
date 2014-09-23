@@ -20,7 +20,7 @@ add_custom_target(UbuntuTest_uncompiled_files ALL SOURCES ${QMLDIR_FILE} ${QML_F
 # https://bugs.launchpad.net/ubuntu-ui-toolkit/+bug/1256999
 # https://bugreports.qt-project.org/browse/QTBUG-36243
 add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/plugins.qmltypes
-                   COMMAND env ALARM_BACKEND=memory ${QT_INSTALL_BINS}/qmlplugindump -notrelocatable Ubuntu.Test 0.1  2>/dev/null > ${CMAKE_CURRENT_BINARY_DIR}/plugins.qmltypes
+                   COMMAND ALARM_BACKEND=memory ${QT_INSTALL_BINS}/qmlplugindump -notrelocatable Ubuntu.Test 0.1  2>/dev/null > ${CMAKE_CURRENT_BINARY_DIR}/plugins.qmltypes
                    DEPENDS UbuntuTest
                    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/modules")
 
