@@ -18,33 +18,54 @@
 ################################################################################
 
 _CMD=""
-_TARGET=$1
-_TESTFILE=$2
+_TARGETPATH=$1
+_TESTFILEPATH=$2
 _MINIMAL=$3
+_TESTROOT_IMPORT_PATH=$4
+
+_TARGET=$(basename $1)
+_TESTFILE=$(basename $2)
+
 _XML="../../test_$_TARGET_$_TESTFILE.xml"
 _ARGS="-o $_XML,xunitxml -o -,txt"
+
+#support for cmake based build
+if [ -z ${_TESTROOT_IMPORT_PATH} ]; then
+  _IMPORT_PATH=../../../modules:$QML2_IMPORT_PATH  
+  _THEMES_PATH=../../../modules  
+else
+  _IMPORT_PATH="${_TESTROOT_IMPORT_PATH}:$QML2_IMPORT_PATH"
+  _THEMES_PATH=${_TESTROOT_IMPORT_PATH}
+fi  
+
 set +e
 
 function create_test_cmd {
-  _CMD="./$_TARGET"
+	if [[ "$_TARGETPATH" = /* ]]; then
+			echo "Absolute"
+		  _CMD="$_TARGETPATH"
+	else
+			echo "Relative"
+		  _CMD="./$_TARGETPATH"
+	fi
   if [ "$_MINIMAL" = "minimal" ]; then
       _CMD="$_CMD -platform minimal"
   fi
-  if [ $_TARGET != $_TESTFILE ]; then
-      _CMD="$_CMD -input $_TESTFILE"
-  fi
+
+  _CMD="$_CMD -input $_TESTFILEPATH"
   _CMD="$_CMD -maxwarnings 40"
 }
 
 function execute_test_cmd {
   echo "Executing $_CMD $_ARGS"
-  if [ ! -x $_TARGET ]; then
+  if [ ! -x $_TARGETPATH ]; then
     echo "Error: $_TARGET wasn't built!"
     RESULT=2
   elif [ $DISPLAY ]; then
     # https://bugs.launchpad.net/ubuntu-ui-toolkit/+bug/1256999
     # https://bugreports.qt-project.org/browse/QTBUG-36243
-    QML2_IMPORT_PATH=../../../modules:$QML2_IMPORT_PATH UBUNTU_UI_TOOLKIT_THEMES_PATH=../../../modules \
+	
+    QML2_IMPORT_PATH=${_IMPORT_PATH} UBUNTU_UI_TOOLKIT_THEMES_PATH=${_THEMES_PATH} \
     ALARM_BACKEND=memory \
     $_CMD $_ARGS 2>&1 | grep -v 'QFontDatabase: Cannot find font directory'
     # Note: Get first command before the pipe, $? would be ambiguous

@@ -24,6 +24,10 @@
 
 #include "uctheme.h"
 
+#ifndef UBUNTU_QML_IMPORT_PATH
+#define UBUNTU_QML_IMPORT_PATH QStringLiteral("../../../modules")
+#endif
+
 class tst_Performance : public QObject
 {
     Q_OBJECT
@@ -47,7 +51,7 @@ private Q_SLOTS:
 
     void initTestCase()
     {
-        QString modules("../../../modules");
+        QString modules(UBUNTU_QML_IMPORT_PATH);
         QVERIFY(QDir(modules).exists());
 
         quickView = new QQuickView(0);

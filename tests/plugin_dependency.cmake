@@ -1,0 +1,23 @@
+set(MODULES_PATH  ${CMAKE_SOURCE_DIR}/modules/Ubuntu)
+
+list(APPEND TEST_INCLUDE_DIRS
+    ${MODULES_PATH}/Components/plugin
+    ${MODULES_PATH}/Test/plugin
+)
+
+list(APPEND TEST_COMPILE_DEFINITIONS
+    QUICK_TEST_SOURCE_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}\"
+)
+
+list(APPEND TEST_LINK_FLAGS
+    "-Werror"
+)
+
+list(APPEND TEST_TARGET_LINK_LIBRARIES
+    UbuntuComponents UbuntuTest
+)
+
+list(APPEND TEST_LD_LIBRARY_PATH
+    "${TESTROOT}${QT_INSTALL_QML}/Ubuntu/Components"
+    "${TESTROOT}${QT_INSTALL_QML}/Ubuntu/Test"
+)

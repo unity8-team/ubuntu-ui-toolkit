@@ -21,6 +21,10 @@
 #include <QtQuick/QQuickView>
 #include <QtQuick/QQuickItem>
 
+#ifndef UBUNTU_QML_IMPORT_PATH
+#define UBUNTU_QML_IMPORT_PATH QStringLiteral("../../../modules")
+#endif
+
 class RecreateViewTest : public QObject
 {
     Q_OBJECT
@@ -38,7 +42,7 @@ private:
 
 void RecreateViewTest::initTestCase()
 {
-    QString modules("../../../modules");
+    QString modules(UBUNTU_QML_IMPORT_PATH);
     QVERIFY(QDir(modules).exists());
 
     m_modulePath = QDir(modules).absolutePath();

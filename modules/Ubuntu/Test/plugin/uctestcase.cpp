@@ -28,13 +28,18 @@
 
 Q_DECLARE_METATYPE(QList<QQmlError>)
 
+#ifndef UBUNTU_QML_IMPORT_PATH
+#define UBUNTU_QML_IMPORT_PATH QStringLiteral("../../../modules")
+#endif
+
+
 /*!
  * \ingroup ubuntu
  * \brief UbuntuTestCase is the C++ pendant to the QML UbuntuTestCase.
  */
 UbuntuTestCase::UbuntuTestCase(const QString& file, QWindow* parent) : QQuickView(parent)
 {
-    QString modules("../../../modules");
+    QString modules(UBUNTU_QML_IMPORT_PATH);
     Q_ASSERT(QDir(modules).exists());
     QString modulePath(QDir(modules).absolutePath());
     engine()->addImportPath(modulePath);

@@ -23,6 +23,10 @@
 #include <QDir>
 #include <QUrl>
 
+#ifndef UBUNTU_COMPONENT_PATH
+#define UBUNTU_COMPONENT_PATH QStringLiteral("../../../modules/Ubuntu/Components")
+#endif
+
 class tst_components_benchmark: public QObject
 {
     Q_OBJECT
@@ -32,7 +36,7 @@ private Q_SLOTS:
         QTest::addColumn<QString>("fileName");
 
         QDir dir;
-        dir.setPath("../../../modules/Ubuntu/Components");
+        dir.setPath(UBUNTU_COMPONENT_PATH);
         QStringList nameFilters;
         nameFilters << "*.qml";
         dir.setNameFilters(nameFilters);
@@ -41,6 +45,9 @@ private Q_SLOTS:
 
         QFileInfoList list = dir.entryInfoList();
 
+        qDebug() << UBUNTU_COMPONENT_PATH;
+        qDebug() << dir;
+        qDebug() << "Default" << dir.absolutePath() << "Path";
         qDebug() << "Found" << list.size() << "tests.";
 
         for (int i = 0; i < list.size(); ++i) {
@@ -67,7 +74,7 @@ private Q_SLOTS:
         QTest::addColumn<QString>("fileName");
 
         QDir dir;
-        dir.setPath("../../../modules/Ubuntu/Components/ListItems");
+        dir.setPath(QString(UBUNTU_COMPONENT_PATH)+"/ListItems");
         QStringList nameFilters;
         nameFilters << "*.qml";
         dir.setNameFilters(nameFilters);

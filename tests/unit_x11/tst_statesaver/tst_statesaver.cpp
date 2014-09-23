@@ -42,6 +42,10 @@
 #undef private
 #undef protected
 
+#ifndef UBUNTU_QML_IMPORT_PATH
+#define UBUNTU_QML_IMPORT_PATH QStringLiteral("../../../modules")
+#endif
+
 class tst_StateSaverTest : public QObject
 {
     Q_OBJECT
@@ -88,7 +92,7 @@ private Q_SLOTS:
     {
         QCoreApplication::setApplicationName("tst_statesaver");
         QCoreApplication::setOrganizationName("");
-        QDir modules ("../../../modules");
+        QDir modules (UBUNTU_QML_IMPORT_PATH);
         QVERIFY(modules.exists());
         m_modulePath = modules.absolutePath();
         // invoke initialization
@@ -553,7 +557,7 @@ private Q_SLOTS:
         QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
         env.insert("APP_ID", "NormalAppClose");
         testApp.setProcessEnvironment(env);
-        testApp.start("qmlscene", QStringList() << "-I" <<  "../../../modules" << "NormalAppClose.qml");
+        testApp.start("qmlscene", QStringList() << "-I" <<  UBUNTU_QML_IMPORT_PATH << "NormalAppClose.qml");
         testApp.waitForFinished();
 
         QString fileName = stateFile("NormalAppClose");

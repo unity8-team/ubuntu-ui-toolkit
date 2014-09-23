@@ -32,6 +32,10 @@
 #include <private/qquickevents_p_p.h>
 #include <private/qquickmousearea_p.h>
 
+#ifndef UBUNTU_QML_IMPORT_PATH
+#define UBUNTU_QML_IMPORT_PATH QStringLiteral("../../../modules")
+#endif
+
 template<typename T>
 T *attachedFilter(QQuickItem *item, const QString &objectName)
 {
@@ -116,7 +120,7 @@ private Q_SLOTS:
 
     void initTestCase()
     {
-        QString modules("../../../modules");
+        QString modules(UBUNTU_QML_IMPORT_PATH);
         QVERIFY(QDir(modules).exists());
 
         m_modulePath = QDir(modules).absolutePath();

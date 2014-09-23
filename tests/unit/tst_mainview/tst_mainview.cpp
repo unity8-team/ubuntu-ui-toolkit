@@ -37,6 +37,10 @@
 #include "ucunits.h"
 #include "uctestcase.h"
 
+#ifndef UBUNTU_QML_IMPORT_PATH
+#define UBUNTU_QML_IMPORT_PATH QStringLiteral("../../../modules")
+#endif
+
 class tst_MainView : public QObject
 {
     Q_OBJECT
@@ -72,7 +76,7 @@ private Q_SLOTS:
 
     void initTestCase()
     {
-        QString modules("../../../modules");
+        QString modules(UBUNTU_QML_IMPORT_PATH);
         QVERIFY(QDir(modules).exists());
 
         view = new QQuickView;
@@ -82,6 +86,7 @@ private Q_SLOTS:
         //add modules folder so we have access to the plugin from QML
         QStringList imports = quickEngine->importPathList();
         imports.prepend(QDir(modules).absolutePath());
+        qDebug()<<"Modules "<<imports;
         quickEngine->setImportPathList(imports);
     }
 

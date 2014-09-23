@@ -39,6 +39,10 @@ namespace C {
 #include "ucunits.h"
 #include "i18n.h"
 
+#ifndef UBUNTU_QML_IMPORT_PATH
+#define UBUNTU_QML_IMPORT_PATH QStringLiteral("../../../modules")
+#endif
+
 class tst_I18n : public QObject
 {
     Q_OBJECT
@@ -82,7 +86,7 @@ private Q_SLOTS:
         // Verify that we set it correctly
         QVERIFY(QFileInfo(testAppDir + "/share/locale/en/LC_MESSAGES/localizedApp.mo").exists());
 
-        QString modules("../../../modules");
+        QString modules(UBUNTU_QML_IMPORT_PATH);
         QVERIFY(QDir(modules).exists());
 
         view = new QQuickView;
@@ -92,6 +96,7 @@ private Q_SLOTS:
         //add modules folder so we have access to the plugin from QML
         QStringList imports = quickEngine->importPathList();
         imports.prepend(QDir(modules).absolutePath());
+        qDebug()<<imports;
         quickEngine->setImportPathList(imports);
     }
 
