@@ -50,6 +50,7 @@ private Q_SLOTS:
     }
 
     void benchmark_creation_components() {
+        QSKIP("Files are not accessible yet, must return when they are available in qrc!");
         QFETCH(QString, fileName);
 
         qDebug() << "Loading" << fileName;
@@ -85,6 +86,7 @@ private Q_SLOTS:
     }
 
     void benchmark_creation_listitems() {
+        QSKIP("Files are not accessible yet, must return when they are available in qrc!");
         QFETCH(QString, fileName);
 
         qDebug() << "Loading" << fileName;

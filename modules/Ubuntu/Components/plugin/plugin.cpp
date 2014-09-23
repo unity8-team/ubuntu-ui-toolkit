@@ -125,6 +125,11 @@ static const QmlType internalTypes [] = {
     {"PageBase", "10/Page.qml", false, 0, 1},
 };
 
+static void initResources()
+{
+//    Q_INIT_RESOURCE(components);
+}
+
 QUrl UbuntuComponentsPlugin::m_baseUrl = QUrl();
 
 /*
@@ -246,8 +251,12 @@ void UbuntuComponentsPlugin::registerTypesToVersion(const char *uri, int major, 
 
 void UbuntuComponentsPlugin::registerTypes(const char *uri)
 {
-    qDebug() << "REGISTER";
+    // initialize baseURL
+    m_baseUrl = QUrl(baseUrl().toString() + '/');
+
     Q_ASSERT(uri == QLatin1String("Ubuntu.Components"));
+
+    initResources();
 
     // register 0.1 for backward compatibility
     registerTypesToVersion(uri, 0, 1);
@@ -270,12 +279,6 @@ void UbuntuComponentsPlugin::registerTypes(const char *uri)
 
 void UbuntuComponentsPlugin::initializeEngine(QQmlEngine *engine, const char *uri)
 {
-    qDebug() << "INIT";
-    // initialize baseURL
-    if (m_baseUrl.isEmpty()) {
-        m_baseUrl = QUrl(baseUrl().toString() + '/');
-    }
-
     // register internal types
     registerQmlTypes("Ubuntu.Components.Internals", internalTypes, sizeof(internalTypes) / sizeof(internalTypes[0]));
 
