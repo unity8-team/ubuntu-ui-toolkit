@@ -15,8 +15,8 @@
  */
 
 import QtQuick 2.0
-import Ubuntu.Components 1.0
+import "../10" as Toolkit10
 
-ProgressBar {
+Toolkit10.ProgressBar {
     property bool showProgressPercentage: true
 }
