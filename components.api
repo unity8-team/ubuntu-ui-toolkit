@@ -6,12 +6,6 @@ ActionItem
     property bool hovered
     property bool __acceptEvents
     property internal __mouseArea
-Action 0.1 1.0
-UnityActions.Action
-    property url iconSource
-    property string iconName
-    property bool visible
-    property Component itemHint
 ActionItem 0.1 1.0
 StyledItem
     property Action action
@@ -40,6 +34,13 @@ AbstractButton
     property Gradient gradient
     property font font
     property string iconPosition
+Captions 1.2
+MouseArea
+    property string preset
+    property Label title
+    property Label subtitle
+    default property list<QtObject> data
+    property real spacing
 CheckBox 0.1 1.0
 AbstractButton
     property bool checked
@@ -79,9 +80,15 @@ Item
 Icon 1.1
 Icon10
     property url source
+ImageContainer 1.2
+MouseArea
+    property UbuntuShape shape
+    property list<QtObject> overlay
 Label 0.1 1.0
 Text
     property string fontSize
+ListItemLayout 1.2
+RowLayout
 Base 0.1 1.0
 Empty
     property variant icon
@@ -202,7 +209,7 @@ PageTreeNode
     property bool useDeprecatedToolbar
     default property internal contentsItem
     property list<Action> actions
-    property UnityActions.ActionManager actionManager
+    property ActionManager actionManager
 Object 0.1 1.0
 QtObject
     default property internal children
@@ -758,6 +765,60 @@ plugins.qmltypes
     exports: ["SortBehavior 1.1"]
     Property { name: "property"; type: "string" }
     Property { name: "order"; type: "Qt::SortOrder" }
+    name: "UCAction"
+    prototype: "QObject"
+    exports: ["Action 0.1", "Action 1.0"]
+    name: "Type"
+    Property { name: "name"; type: "string" }
+    Property { name: "text"; type: "string" }
+    Property { name: "iconName"; type: "string" }
+    Property { name: "description"; type: "string" }
+    Property { name: "keywords"; type: "string" }
+    Property { name: "enabled"; type: "bool" }
+    Property { name: "parameterType"; type: "Type" }
+    Property { name: "iconSource"; type: "QUrl" }
+    Property { name: "visible"; type: "bool" }
+    Property { name: "itemHint"; type: "QQmlComponent"; isPointer: true }
+    Signal {
+    name: "triggered"
+    Parameter { name: "value"; type: "QVariant" }
+    Method {
+    name: "trigger"
+    Parameter { name: "value"; type: "QVariant" }
+    Method { name: "trigger" }
+    name: "UCActionContext"
+    prototype: "QObject"
+    exports: ["ActionContext 0.1", "ActionContext 1.0"]
+    Property { name: "actions"; type: "QObject"; isList: true; isReadonly: true }
+    Property { name: "active"; type: "bool" }
+    Signal {
+    name: "activeChanged"
+    Parameter { type: "bool" }
+    Method {
+    name: "addAction"
+    Parameter { name: "action"; type: "QObject"; isPointer: true }
+    Method {
+    name: "removeAction"
+    Parameter { name: "action"; type: "QObject"; isPointer: true }
+    name: "UCActionManager"
+    prototype: "QObject"
+    exports: ["ActionManager 0.1", "ActionManager 1.0"]
+    Property { name: "actions"; type: "QObject"; isList: true; isReadonly: true }
+    Property { name: "localContexts"; type: "QObject"; isList: true; isReadonly: true }
+    Property { name: "globalContext"; type: "UCActionContext"; isReadonly: true; isPointer: true }
+    Signal { name: "quit" }
+    Method {
+    name: "addAction"
+    Parameter { name: "action"; type: "QObject"; isPointer: true }
+    Method {
+    name: "removeAction"
+    Parameter { name: "action"; type: "QObject"; isPointer: true }
+    Method {
+    name: "addLocalContext"
+    Parameter { name: "context"; type: "QObject"; isPointer: true }
+    Method {
+    name: "removeLocalContext"
+    Parameter { name: "context"; type: "QObject"; isPointer: true }
     name: "UCAlarm"
     prototype: "QObject"
     exports: ["Alarm 0.1", "Alarm 1.0"]
@@ -814,6 +875,41 @@ plugins.qmltypes
     name: "UCInverseMouse"
     prototype: "UCMouse"
     exports: ["InverseMouse 0.1", "InverseMouse 1.0"]
+    name: "UCListItem"
+    prototype: "UCStyledItemBase"
+    exports: ["ListItem 1.2"]
+    Property { name: "contentItem"; type: "QQuickItem"; isReadonly: true; isPointer: true }
+    Property { name: "divider"; type: "UCListItemDivider"; isReadonly: true; isPointer: true }
+    Property { name: "leadingActions"; type: "UCListItemActions"; isPointer: true }
+    Property { name: "trailingActions"; type: "UCListItemActions"; isPointer: true }
+    Property { name: "pressed"; type: "bool"; isReadonly: true }
+    Property { name: "color"; type: "QColor" }
+    Property { name: "pressedColor"; type: "QColor" }
+    Property { name: "selectable"; type: "bool" }
+    Property { name: "selected"; type: "bool" }
+    Property { name: "data"; type: "QObject"; isList: true; isReadonly: true }
+    Property { name: "children"; type: "QQuickItem"; isList: true; isReadonly: true }
+    Signal { name: "clicked" }
+    Signal { name: "pressAndHold" }
+    name: "UCListItemActions"
+    prototype: "QObject"
+    exports: ["ListItemActions 1.2"]
+    name: "Status"
+    Property { name: "delegate"; type: "QQmlComponent"; isPointer: true }
+    Property { name: "actions"; type: "UCAction"; isList: true; isReadonly: true }
+    Property { name: "panelItem"; type: "QQuickItem"; isReadonly: true; isPointer: true }
+    Property { name: "status"; type: "Status"; isReadonly: true }
+    Property { name: "connectedItem"; type: "UCListItem"; isReadonly: true; isPointer: true }
+    Property { name: "backgroundColor"; type: "QColor" }
+    Property { name: "foregroundColor"; type: "QColor" }
+    Property { name: "data"; type: "QObject"; isList: true; isReadonly: true }
+    name: "UCListItemDivider"
+    prototype: "QObject"
+    Property { name: "visible"; type: "bool" }
+    Property { name: "leftMargin"; type: "double" }
+    Property { name: "rightMargin"; type: "double" }
+    Property { name: "colorFrom"; type: "QColor" }
+    Property { name: "colorTo"; type: "QColor" }
     name: "UCMouse"
     prototype: "QObject"
     exports: ["Mouse 0.1", "Mouse 1.0"]
