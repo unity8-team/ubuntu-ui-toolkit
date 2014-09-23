@@ -46,18 +46,6 @@ execute_process(
 )
 
 enable_testing()
-
-set(TESTROOT "${CMAKE_BINARY_DIR}/.testroot")
-message(STATUS ${TESTROOT})
-
-#this test will install the package into a dedicated directory
-#to execute the qml based tests there
-add_test(
-    NAME test_install
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-    COMMAND make DESTDIR=${TESTROOT} install
-)
-
 add_subdirectory(documentation)
 add_subdirectory(modules)
 add_subdirectory(tests)

@@ -13,6 +13,7 @@ install(
 add_subdirectory(unit)
 add_subdirectory(unit_x11)
 add_subdirectory(launcher)
+add_subdirectory(autopilot)
 
 add_custom_target(test-xvfb
     COMMAND ${CMAKE_SOURCE_DIR}/tests/xvfb.sh ctest -V

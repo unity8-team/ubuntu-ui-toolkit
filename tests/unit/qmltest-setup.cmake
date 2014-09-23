@@ -32,8 +32,6 @@ if(TEST_TARGET_LINK_LIBRARIES)
     target_link_libraries(${TARGET} ${TEST_TARGET_LINK_LIBRARIES})
 endif()
 
-set_property(TARGET ${TARGET} PROPERTY SKIP_BUILD_RPATH TRUE )
-
 if(TEST_LD_LIBRARY_PATH)
     foreach(PATH ${TEST_LD_LIBRARY_PATH})
         if(LD_PATH_STRING)
@@ -58,10 +56,9 @@ foreach(TEST ${TESTS})
     get_filename_component(TEST_FILE ${TEST} NAME )
     add_test(
         NAME ${TARGET}_${TEST_NAME}
-        COMMAND ${CMAKE_SOURCE_DIR}/tests/unit/runtest.sh ${CMAKE_CURRENT_BINARY_DIR}/${TARGET} ${TEST} minimal \"${TESTROOT}${QT_INSTALL_QML}\"
+        COMMAND ${CMAKE_SOURCE_DIR}/tests/unit/runtest.sh ${CMAKE_CURRENT_BINARY_DIR}/${TARGET} ${TEST} minimal \"${CMAKE_BINARY_DIR}/modules\"
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     )
-    set_property(TEST ${TARGET}_${TEST_NAME} PROPERTY DEPENDS test_install )
     set_property(TEST ${TARGET}_${TEST_NAME} PROPERTY LABELS ${TARGET}_${TEST_NAME})
     set_property(TEST ${TARGET}_${TEST_NAME} PROPERTY ENVIRONMENT
         LD_LIBRARY_PATH=${LD_PATH_STRING}

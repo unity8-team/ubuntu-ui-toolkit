@@ -16,8 +16,3 @@ list(APPEND TEST_LINK_FLAGS
 list(APPEND TEST_TARGET_LINK_LIBRARIES
     UbuntuComponents UbuntuTest
 )
-
-list(APPEND TEST_LD_LIBRARY_PATH
-    "${TESTROOT}${QT_INSTALL_QML}/Ubuntu/Components"
-    "${TESTROOT}${QT_INSTALL_QML}/Ubuntu/Test"
-)
