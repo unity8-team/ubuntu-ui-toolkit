@@ -21,31 +21,30 @@ _CMD=""
 _TARGETPATH=$1
 _TESTFILEPATH=$2
 _MINIMAL=$3
-_TESTROOT_IMPORT_PATH=$4
+_BUILD_DIR=$4
 
 _TARGET=$(basename $1)
 _TESTFILE=$(basename $2)
 
-_XML="../../test_$_TARGET_$_TESTFILE.xml"
-_ARGS="-o $_XML,xunitxml -o -,txt"
-
 #support for cmake based build
-if [ -z ${_TESTROOT_IMPORT_PATH} ]; then
+if [ -z ${_BUILD_DIR} ]; then
   _IMPORT_PATH=../../../modules:$QML2_IMPORT_PATH  
   _THEMES_PATH=../../../modules  
+	_XML="../../test_$_TARGET_$_TESTFILE.xml"
 else
-  _IMPORT_PATH="${_TESTROOT_IMPORT_PATH}:$QML2_IMPORT_PATH"
-  _THEMES_PATH=${_TESTROOT_IMPORT_PATH}
+  _IMPORT_PATH="${_BUILD_DIR}/modules:$QML2_IMPORT_PATH"
+  _THEMES_PATH="${_BUILD_DIR}/modules"
+	_XML="${_BUILD_DIR}/tests/test_$_TARGET_$_TESTFILE.xml"
 fi  
+
+_ARGS="-o $_XML,xunitxml -o -,txt"
 
 set +e
 
 function create_test_cmd {
 	if [[ "$_TARGETPATH" = /* ]]; then
-			echo "Absolute"
 		  _CMD="$_TARGETPATH"
 	else
-			echo "Relative"
 		  _CMD="./$_TARGETPATH"
 	fi
   if [ "$_MINIMAL" = "minimal" ]; then

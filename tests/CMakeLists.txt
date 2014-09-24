@@ -48,7 +48,7 @@ foreach(CHECK_DIR ${licence_dirs})
     list(APPEND CHECK_LICENSE_TARGETS license_${CHECK_DIR})
 endforeach()
 
-add_custom_target(license
+add_custom_target(license ALL
     DEPENDS ${CHECK_LICENSE_TARGETS}
 )
 

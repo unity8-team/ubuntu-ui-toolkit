@@ -56,7 +56,7 @@ foreach(TEST ${TESTS})
     get_filename_component(TEST_FILE ${TEST} NAME )
     add_test(
         NAME ${TARGET}_${TEST_NAME}
-        COMMAND ${CMAKE_SOURCE_DIR}/tests/unit/runtest.sh ${CMAKE_CURRENT_BINARY_DIR}/${TARGET} ${TEST} "" \"${CMAKE_BINARY_DIR}/modules\"
+        COMMAND ${CMAKE_SOURCE_DIR}/tests/unit/runtest.sh ${CMAKE_CURRENT_BINARY_DIR}/${TARGET} ${TEST} "" "${CMAKE_BINARY_DIR}"
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     )
     set_property(TEST ${TARGET}_${TEST_NAME} PROPERTY DEPENDS test_install )

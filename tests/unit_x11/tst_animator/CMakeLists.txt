@@ -12,3 +12,5 @@ include(../test-setup.cmake)
 
 message(STATUS ${CMAKE_SYSTEM_PROCESSOR})
 
+set_property(TEST ${TARGET} PROPERTY WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
+
