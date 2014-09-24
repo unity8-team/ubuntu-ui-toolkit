@@ -20,45 +20,7 @@
 #include <QtCore/QObject>
 #include "uclistitem_p.h"
 
-class UCListItemActions;
-class UCListItemActionsAttached : public QObject
-{
-    Q_OBJECT
-    Q_PROPERTY(UCListItemActions *container MEMBER m_listItemActions NOTIFY containerChanged)
-    Q_PROPERTY(qreal offsetVisible READ offsetVisible NOTIFY offsetVisibleChanged)
-    Q_PROPERTY(QList<qreal> snapStops MEMBER m_snapStops)
-    Q_PROPERTY(int itemIndex MEMBER m_itemIndex NOTIFY itemIndexChanged)
-public:
-    UCListItemActionsAttached(QObject *parent = 0);
-    ~UCListItemActionsAttached();
-    void setList(UCListItemActions *list);
-    qreal offsetVisible();
-
-    QList<qreal> snapStops() const
-    {
-        return m_snapStops;
-    }
-    void setItemIndex(int index) {
-        if (m_itemIndex == index) {
-            return;
-        }
-        m_itemIndex = index;
-        Q_EMIT itemIndexChanged();
-    }
-
-Q_SIGNALS:
-    void containerChanged();
-    void offsetVisibleChanged();
-    void itemIndexChanged();
-    void dragStarted();
-    void dragEnded();
-
-private:
-    UCListItemActions *m_listItemActions;
-    QList<qreal> m_snapStops;
-    int m_itemIndex;
-};
-
+class UCListItemActionsAttached;
 class QQmlComponent;
 class UCAction;
 class UCListItemActionsPrivate;
@@ -117,6 +79,39 @@ private:
     Q_DECLARE_PRIVATE(UCListItemActions)
     Q_PRIVATE_SLOT(d_func(), void _q_handlePanelDrag())
     Q_PRIVATE_SLOT(d_func(), void _q_handlePanelWidth())
+};
+
+class UCListItemActionsAttached : public QObject
+{
+    Q_OBJECT
+    Q_PROPERTY(UCListItemActions *container MEMBER m_listItemActions NOTIFY containerChanged)
+    Q_PROPERTY(qreal offsetVisible READ offsetVisible NOTIFY offsetVisibleChanged)
+    Q_PROPERTY(int itemIndex MEMBER m_itemIndex NOTIFY itemIndexChanged)
+    Q_PROPERTY(UCListItemActions::Status status READ status NOTIFY statusChanged)
+    Q_PROPERTY(bool dragging MEMBER m_dragging NOTIFY draggingChanged)
+public:
+    UCListItemActionsAttached(QObject *parent = 0);
+    ~UCListItemActionsAttached();
+    void setList(UCListItemActions *list);
+    void setItemIndex(int index);
+    void setDrag(bool value);
+    qreal offsetVisible();
+    UCListItemActions::Status status();
+
+public Q_SLOTS:
+    void snapToPosition(qreal position);
+
+Q_SIGNALS:
+    void containerChanged();
+    void offsetVisibleChanged();
+    void itemIndexChanged();
+    void statusChanged();
+    void draggingChanged();
+
+private:
+    UCListItemActions *m_listItemActions;
+    int m_itemIndex;
+    bool m_dragging;
 };
 
 QML_DECLARE_TYPEINFO(UCListItemActions, QML_HAS_ATTACHED_PROPERTIES)

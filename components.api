@@ -440,6 +440,11 @@ StyledItem
     signal touched(bool onThumb)
     function formatValue(v)
     property internal __internals
+StandardLayout 1.2
+ListItemLayout
+    property ImageContainer image
+    property Captions captions
+    property Captions details
 StyledItem 0.1 1.0 1.1
 StyledItemBase
     property Component style
@@ -896,6 +901,7 @@ plugins.qmltypes
     exports: ["ListItemActions 1.2"]
     name: "Status"
     Property { name: "delegate"; type: "QQmlComponent"; isPointer: true }
+    Property { name: "customPanel"; type: "QQmlComponent"; isPointer: true }
     Property { name: "actions"; type: "UCAction"; isList: true; isReadonly: true }
     Property { name: "panelItem"; type: "QQuickItem"; isReadonly: true; isPointer: true }
     Property { name: "status"; type: "Status"; isReadonly: true }
@@ -903,6 +909,16 @@ plugins.qmltypes
     Property { name: "backgroundColor"; type: "QColor" }
     Property { name: "foregroundColor"; type: "QColor" }
     Property { name: "data"; type: "QObject"; isList: true; isReadonly: true }
+    name: "UCListItemActionsAttached"
+    prototype: "QObject"
+    Property { name: "container"; type: "UCListItemActions"; isPointer: true }
+    Property { name: "offsetVisible"; type: "double"; isReadonly: true }
+    Property { name: "itemIndex"; type: "int" }
+    Property { name: "status"; type: "UCListItemActions::Status"; isReadonly: true }
+    Property { name: "dragging"; type: "bool" }
+    Method {
+    name: "snapToPosition"
+    Parameter { name: "position"; type: "double" }
     name: "UCListItemDivider"
     prototype: "QObject"
     Property { name: "visible"; type: "bool" }

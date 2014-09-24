@@ -218,7 +218,7 @@ MainView {
                         foregroundColor: "white"
 
                         // DropBox's Mailbox
-                        //depending on the offset dragged in, show different actions
+                        // depending on the offset dragged in, show different actions
                         // trigger the action when released
                         customPanel: Rectangle {
                             id: panel
@@ -226,16 +226,16 @@ MainView {
                             property Item contentItem: (ListItemActions.container && ListItemActions.container.connectedItem) ?
                                                            ListItemActions.container.connectedItem.contentItem : null
                             anchors {
-                                left: contentItem ? (leadingPanel ? undefined : contentItem.right) : undefined
-                                right: contentItem ? (leadingPanel ? contentItem.left : undefined) : undefined
+                                left: contentItem ? contentItem.right : undefined
                                 top: contentItem ? contentItem.top : undefined
                                 bottom: contentItem ? contentItem.bottom : undefined
                             }
-                            width: contentItem ? contentItem.width : units.gu(30)
+                            width: contentItem ? (contentItem.width - units.gu(10)) : 0
                             color: colors[visibleAction]
 
-                            property real slotSize: width / ListItemActions.container.actions.length
-                            property int visibleAction: ListItemActions.offsetVisible / slotSize
+                            property real slotSize: panel.width / ListItemActions.container.actions.length
+                            // give a small margin so we don't jump to the next item
+                            property int visibleAction: (slotSize > 0) ? (ListItemActions.offsetVisible - 1) / slotSize : 0
                             property var colors: [UbuntuColors.blue, UbuntuColors.lightGrey, UbuntuColors.coolGrey]
 
                             Item {
@@ -244,7 +244,6 @@ MainView {
                                     top: parent.top
                                     bottom: parent.bottom
                                 }
-
                                 width: height
                                 Icon {
                                     width: units.gu(3)
@@ -255,11 +254,13 @@ MainView {
                                 }
                             }
 
-                            function triggerAction() {
-                                panel.ListItemActions.container.actions[visibleAction].triggered(panel.ListItemActions.itemIndex)
+                            ListItemActions.onDraggingChanged: {
+                                if (!ListItemActions.dragging) {
+                                    // snap first, then trigger
+                                    ListItemActions.snapToPosition((visibleAction + 1) * slotSize);
+                                    panel.ListItemActions.container.actions[visibleAction].triggered(panel.ListItemActions.itemIndex)
+                                }
                             }
-
-                            ListItemActions.onDragEnded: triggerAction()
                         }
                     }
                 }

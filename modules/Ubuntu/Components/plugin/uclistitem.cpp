@@ -792,12 +792,6 @@ void UCListItem::mousePressEvent(QMouseEvent *event)
         d->flickableControl->listenToRebind(true);
         // start pressandhold timer
         d->pressAndHoldTimer.start(DefaultPressAndHoldDelay, this);
-        // if there was a move before, emit attached signals
-        if (d->moved) {
-            // emit drag started
-            UCListItemActionsPrivate::drag(d->leadingActions, this, true);
-            UCListItemActionsPrivate::drag(d->trailingActions, this, true);
-        }
     }
     // accept the event so we get the rest of the events as well
     event->setAccepted(true);
@@ -816,9 +810,6 @@ void UCListItem::mouseReleaseEvent(QMouseEvent *event)
     if (d->pressed) {
         // disconnect the flickable
         d->flickableControl->listenToRebind(false);
-        // emit drag ended
-        UCListItemActionsPrivate::drag(d->leadingActions, this, false);
-        UCListItemActionsPrivate::drag(d->trailingActions, this, false);
 
         if (!d->suppressClick) {
             Q_EMIT clicked();
@@ -840,6 +831,9 @@ void UCListItem::mouseReleaseEvent(QMouseEvent *event)
                 d->reboundTo(snapPosition);
             }
         }
+        // emit drag ended
+        UCListItemActionsPrivate::drag(d->leadingActions, this, false);
+        UCListItemActionsPrivate::drag(d->trailingActions, this, false);
     }
     d->setPressed(false);
 }
@@ -872,9 +866,6 @@ void UCListItem::mouseMoveEvent(QMouseEvent *event)
             trailingAttached = d->grabPanel(d->trailingActions, true);
             // stop pressAndHold timer as we started to drag
             d->pressAndHoldTimer.stop();
-            // emit drag started
-            UCListItemActionsPrivate::drag(d->leadingActions, this, true);
-            UCListItemActionsPrivate::drag(d->trailingActions, this, true);
         }
     }
 
@@ -884,6 +875,9 @@ void UCListItem::mouseMoveEvent(QMouseEvent *event)
         d->lastPos = event->localPos();
 
         if (dx) {
+            // emit drag started
+            UCListItemActionsPrivate::drag(d->leadingActions, this, true);
+            UCListItemActionsPrivate::drag(d->trailingActions, this, true);
             // clamp X into allowed dragging area
             d->clampX(x, dx);
             // block flickable

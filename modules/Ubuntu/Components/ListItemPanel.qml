@@ -33,7 +33,7 @@ Item {
       Index of the ListItem, if the ListItem is inside a ListView or has been
       created using a Repeater.
       */
-    property int listItemIndex: ListItemActions.itemIndex
+    property int listItemIndex
 
     /*
       Specifies whether the panel is used to visualize leading or trailing options.
@@ -54,11 +54,6 @@ Item {
       */
     property color backgroundColor: ListItemActions.container.backgroundColor
     property color foregroundColor: ListItemActions.container.foregroundColor
-
-    /*
-      Emitted when action is triggered
-      */
-    signal selected()
 
     // fire selected action when parent is removed
     onParentChanged: {
@@ -107,9 +102,10 @@ Item {
 
                 function trigger() {
                     // save the action as we trigger when the rebound animation is over
-                    // to make sure we properly clean up the blockade of teh Flickables
+                    // to make sure we properly clean up the blockade of the Flickables
                     panel.selectedAction = action;
-                    panel.selected();
+                    listItemIndex = panel.ListItemActions.itemIndex;
+                    panel.ListItemActions.snapToPosition(0.0);
                 }
 
                 Loader {
