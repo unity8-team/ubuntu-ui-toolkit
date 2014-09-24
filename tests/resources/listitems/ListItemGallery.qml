@@ -214,22 +214,53 @@ MainView {
                                 onTriggered: print(iconName, "triggered", value)
                             }
                         ]
-//                        customPanel: Rectangle {
-//                            property bool leadingPanel: ListItemActions.list.status == ListItemActions.Leading
-//                            property Item contentItem: (ListItemActions.list && ListItemActions.list.connectedItem) ?
-//                                                           ListItemActions.list.connectedItem.contentItem : null
-//                            anchors {
-//                                left: contentItem ? (leadingPanel ? undefined : contentItem.right) : undefined
-//                                right: contentItem ? (leadingPanel ? contentItem.left : undefined) : undefined
-//                                top: contentItem ? contentItem.top : undefined
-//                                bottom: contentItem ? contentItem.bottom : undefined
-//                            }
-//                            width: contentItem ? contentItem.width : units.gu(30)
-//                            color: "tan"
-//                            ListItemActions.onListChanged: {
-//                                for (var p in ListItemActions.list) print (p)
-//                            }
-//                        }
+                        backgroundColor: UbuntuColors.lightGrey
+                        foregroundColor: "white"
+
+                        // DropBox's Mailbox
+                        //depending on the offset dragged in, show different actions
+                        // trigger the action when released
+                        customPanel: Rectangle {
+                            id: panel
+                            property bool leadingPanel: ListItemActions.container.status == ListItemActions.Leading
+                            property Item contentItem: (ListItemActions.container && ListItemActions.container.connectedItem) ?
+                                                           ListItemActions.container.connectedItem.contentItem : null
+                            anchors {
+                                left: contentItem ? (leadingPanel ? undefined : contentItem.right) : undefined
+                                right: contentItem ? (leadingPanel ? contentItem.left : undefined) : undefined
+                                top: contentItem ? contentItem.top : undefined
+                                bottom: contentItem ? contentItem.bottom : undefined
+                            }
+                            width: contentItem ? contentItem.width : units.gu(30)
+                            color: colors[visibleAction]
+
+                            property real slotSize: width / ListItemActions.container.actions.length
+                            property int visibleAction: ListItemActions.offsetVisible / slotSize
+                            property var colors: [UbuntuColors.blue, UbuntuColors.lightGrey, UbuntuColors.coolGrey]
+
+                            Item {
+                                anchors {
+                                    left: parent.left
+                                    top: parent.top
+                                    bottom: parent.bottom
+                                }
+
+                                width: height
+                                Icon {
+                                    width: units.gu(3)
+                                    height: width
+                                    anchors.centerIn: parent
+                                    color: "white"
+                                    name: panel.ListItemActions.container.actions[visibleAction].iconName
+                                }
+                            }
+
+                            function triggerAction() {
+                                panel.ListItemActions.container.actions[visibleAction].triggered(panel.ListItemActions.itemIndex)
+                            }
+
+                            ListItemActions.onDragEnded: triggerAction()
+                        }
                     }
                 }
             }

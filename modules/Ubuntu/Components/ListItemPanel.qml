@@ -33,28 +33,27 @@ Item {
       Index of the ListItem, if the ListItem is inside a ListView or has been
       created using a Repeater.
       */
-    property int listItemIndex: -1
+    property int listItemIndex: ListItemActions.itemIndex
 
     /*
       Specifies whether the panel is used to visualize leading or trailing options.
       */
-    property bool leadingPanel: (ListItemActions.list.status === ListItemActions.Leading)
+    property bool leadingPanel: (ListItemActions.container.status === ListItemActions.Leading)
     /*
       The delegate to be used to visualize the options
       */
-    property Component delegate: ListItemActions.list.delegate
+    property Component delegate: ListItemActions.container.delegate
 
     /*
       Actions
       */
-    property var actionList: ListItemActions.list.actions
-    onActionListChanged: print(actionList, actionList.length)
+    property var actionList: ListItemActions.container.actions
 
     /*
       Panel and text colors
       */
-    property color backgroundColor: ListItemActions.list.backgroundColor
-    property color foregroundColor: ListItemActions.list.foregroundColor
+    property color backgroundColor: ListItemActions.container.backgroundColor
+    property color foregroundColor: ListItemActions.container.foregroundColor
 
     /*
       Emitted when action is triggered

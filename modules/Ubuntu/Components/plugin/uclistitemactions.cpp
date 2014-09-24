@@ -35,26 +35,40 @@ UCListItemActionsAttached::~UCListItemActionsAttached()
 {
 }
 
+/*!
+ * \qmlattachedproperty list<real> ListItemActions::snapStops
+ * The property configures the snapping stops on custom panel implementations.
+ * The values set are taken into account only on custom panels, those are omitted
+ * when the default panel is used.
+ */
+
+/*!
+ * \qmlattachedproperty ListItemActions ListItemActions::instance
+ * The property holds the instance of the ListItemActions the \l panelItem is
+ * attached to.
+ */
 void UCListItemActionsAttached::setList(UCListItemActions *list)
 {
     if (list == m_listItemActions) {
         return;
     }
     m_listItemActions = list;
-    Q_EMIT listChanged();
+    Q_EMIT containerChanged();
 }
 
+/*!
+ * \qmlattachedproperty real ListItemActions::offsetVisible
+ * The property returns the offset the \l panelItem is visible. This can be used
+ * to do different animations on the panel and on the action visualizations.
+ */
 qreal UCListItemActionsAttached::offsetVisible()
 {
     Q_ASSERT(m_listItemActions);
     return UCListItemActionsPrivate::get(m_listItemActions)->offsetDragged;
 }
 
-
 UCListItemActionsPrivate::UCListItemActionsPrivate()
     : QObjectPrivate()
-    , backgroundColorChanged(false)
-    , foregroundColorChanged(false)
     , status(UCListItemActions::Disconnected)
     , delegate(0)
     , customPanel(0)
@@ -116,10 +130,13 @@ bool UCListItemActionsPrivate::connectToListItem(UCListItemActions *actions, UCL
         _this->queuedItem = listItem;
         return false;
     }
-    _this->panelItem->setProperty("listItemIndex", UCListItemPrivate::get(listItem)->index);
+//    _this->panelItem->setProperty("listItemIndex", UCListItemPrivate::get(listItem)->index);
+    _this->attachedObject()->setItemIndex(UCListItemPrivate::get(listItem)->index);
     _this->panelItem->setParentItem(listItem);
     _this->offsetDragged = 0.0;
-    if (!_this->customPanel) {
+
+    // if the panel has selected() signal, connect to it
+    if (_this->panelItem->metaObject()->indexOfMethod("selected") >= 0) {
         QObject::connect(_this->panelItem, SIGNAL(selected()), _this->panelItem->parentItem(), SLOT(_q_rebound()));
     }
     _this->status = (leading) ?  UCListItemActions::Leading :  UCListItemActions::Trailing;
@@ -135,9 +152,10 @@ void UCListItemActionsPrivate::disconnectFromListItem(UCListItemActions *actions
         return;
     }
 
-    if (!_this->customPanel) {
+    if (_this->panelItem->metaObject()->indexOfMethod("selected") >= 0) {
         QObject::disconnect(_this->panelItem, SIGNAL(selected()), _this->panelItem->parentItem(), SLOT(_q_rebound()));
     }
+    _this->attachedObject()->setItemIndex(-1);
     _this->panelItem->setParentItem(0);
     _this->status = UCListItemActions::Disconnected;
     Q_EMIT actions->statusChanged();
@@ -158,20 +176,69 @@ bool UCListItemActionsPrivate::isConnectedTo(UCListItemActions *actions, UCListI
             (_this->panelItem->parentItem() == listItem);
 }
 
+void UCListItemActionsPrivate::drag(UCListItemActions *options, UCListItem *listItem, bool started)
+{
+    UCListItemActionsPrivate *_this = get(options);
+    if (!_this || !_this->panelItem || !isConnectedTo(options, listItem)) {
+        return;
+    }
+    if (started) {
+        Q_EMIT _this->attachedObject()->dragStarted();
+    } else {
+        Q_EMIT _this->attachedObject()->dragEnded();
+    }
+}
+
 qreal UCListItemActionsPrivate::snap(UCListItemActions *options)
 {
     UCListItemActionsPrivate *_this = get(options);
     if (!_this || !_this->panelItem) {
         return 0.0;
     }
-    qreal ratio = _this->offsetDragged / _this->optionSlotWidth;
-    int visible = _this->optionsVisible;
-    if (ratio > 0.0 && (ratio - trunc(ratio)) > 0.5) {
-        visible++;
+    qreal result = 0.0;
+    if (_this->customPanel) {
+        // check if the attached property has snapStops set
+        UCListItemActionsAttached *attached = _this->attachedObject();
+        if (attached && (attached->snapStops().count() > 0)) {
+            QList<qreal> stops(attached->snapStops());
+            // append the full width to the stops so we can snap to it too
+            stops.append(_this->panelItem->width());
+            for (int i = 0; i < stops.count(); i++) {
+                if (stops[i] < _this->offsetDragged) {
+                    continue;
+                }
+                // get the interval
+                qreal min = (i > 1) ? stops[i - 1] : 0.0;
+                qreal max = stops[i];
+                if (_this->offsetDragged - min > (max - min) / 2) {
+                    result = max;
+                    break;
+                }
+            }
+        } else {
+            // no snapping, return the offset as is.
+            result = _this->offsetDragged;
+        }
+    } else {
+        // default panel, do snapping based on the actions
+        qreal ratio = _this->offsetDragged / _this->optionSlotWidth;
+        int visible = _this->optionsVisible;
+        if (ratio > 0.0 && (ratio - trunc(ratio)) > 0.5) {
+            visible++;
+        }
+        result = visible * _this->optionSlotWidth;
     }
-    return visible * _this->optionSlotWidth * (_this->status ==  UCListItemActions::Leading ? 1 : -1);
+    return result * (_this->status ==  UCListItemActions::Leading ? 1 : -1);
 }
 
+UCListItemActionsAttached *UCListItemActionsPrivate::attachedObject()
+{
+    if (!panelItem) {
+        return 0;
+    }
+    return static_cast<UCListItemActionsAttached*>(
+                qmlAttachedPropertiesObject<UCListItemActions>(panelItem, false));
+}
 
 QQuickItem *UCListItemActionsPrivate::createPanelItem()
 {
@@ -213,12 +280,6 @@ QQuickItem *UCListItemActionsPrivate::createPanelItem()
         }
     }
     if (panelItem) {
-//        if (backgroundColorChanged) {
-//            updateColor("backgroundColor", backgroundColor);
-//        }
-//        if (foregroundColorChanged) {
-//            updateColor("foregroundColor", foregroundColor);
-//        }
         Q_EMIT q->panelItemChanged();
 
         // calculate option's slot size
@@ -228,18 +289,9 @@ QQuickItem *UCListItemActionsPrivate::createPanelItem()
         // connect to panel to catch dragging
         QObject::connect(panelItem, SIGNAL(widthChanged()), q, SLOT(_q_handlePanelWidth()));
         QObject::connect(panelItem, SIGNAL(xChanged()), q, SLOT(_q_handlePanelDrag()));
-        QObject::connect(attached, SIGNAL(offsetVisibleChanged()), panelItem, SIGNAL(xChanged()));
+        QObject::connect(panelItem, SIGNAL(xChanged()), attached, SIGNAL(offsetVisibleChanged()));
     }
     return panelItem;
-}
-
-void UCListItemActionsPrivate::updateColor(const char *property, const QColor &color)
-{
-    if (!panelItem) {
-        return;
-    }
-    Q_Q(UCListItemActions);
-    panelItem->setProperty(property, QVariant::fromValue(color));
 }
 
 /*!
@@ -433,13 +485,22 @@ void UCListItemActions::setDelegate(QQmlComponent *delegate)
         return;
     }
     d->delegate = delegate;
-    if (d->panelItem) {
-        // update panel's delegate as well
-        d->panelItem->setProperty("delegate", QVariant::fromValue(delegate));
-    }
     Q_EMIT delegateChanged();
 }
 
+/*!
+ * \qmlproperty Component ListItemActions::customPanel
+ * The property configures the component the \l panelItem is created from. Defaults
+ * to \c null.
+ *
+ * When a custom component is set, action triggering, snapping, coloring and sizing
+ * must be handled by the custom component. The \l ListItemActions instance the
+ * panel belongs to can be accessed through the \c ListItemActions.container
+ * attached property and the amount of width visible is reported by the \c
+ * ListItemActions.offsetVisible attached property. Snapping can be controlled by
+ * the \c ListItemActions.snapStops array. If no value is set, no snapping will be
+ * performed.
+ */
 QQmlComponent *UCListItemActions::customPanel() const
 {
     Q_D(const UCListItemActions);
@@ -553,9 +614,6 @@ void UCListItemActions::setBackgroundColor(const QColor &color)
         return;
     }
     d->backgroundColor = color;
-    d->backgroundColorChanged = true;
-    // update panelItem's color
-    d->updateColor("backgroundColor", d->backgroundColor);
     Q_EMIT backgroundColorChanged();
 }
 
@@ -576,9 +634,6 @@ void UCListItemActions::setForegroundColor(const QColor &color)
         return;
     }
     d->foregroundColor = color;
-    d->foregroundColorChanged = true;
-    // update panelItem's color
-    d->updateColor("foregroundColor", d->foregroundColor);
     Q_EMIT foregroundColorChanged();
 }
 

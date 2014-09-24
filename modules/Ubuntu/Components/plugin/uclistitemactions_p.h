@@ -31,8 +31,6 @@ public:
         return actions ? actions->d_func() : 0;
     }
 
-    bool backgroundColorChanged:1;
-    bool foregroundColorChanged:1;
     UCListItemActions::Status status;
     QQmlComponent *delegate;
     QQmlComponent *customPanel;
@@ -52,11 +50,12 @@ public:
     static bool connectToListItem(UCListItemActions *options, UCListItem *listItem, bool leading);
     static void disconnectFromListItem(UCListItemActions *options);
     static bool isConnectedTo(UCListItemActions *options, UCListItem *listItem);
+    static void drag(UCListItemActions *options, UCListItem *listItem, bool started);
     static qreal snap(UCListItemActions *options);
+    UCListItemActionsAttached *attachedObject();
 
     QQuickItem *createPanelItem();
     QQuickItem *createCustomPanelItem();
-    void updateColor(const char *property, const QColor &color);
 };
 
 #endif // UCLISTITEMACTIONS_P_H

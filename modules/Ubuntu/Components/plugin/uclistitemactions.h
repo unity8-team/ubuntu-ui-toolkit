@@ -24,20 +24,39 @@ class UCListItemActions;
 class UCListItemActionsAttached : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(UCListItemActions *list MEMBER m_listItemActions NOTIFY listChanged)
+    Q_PROPERTY(UCListItemActions *container MEMBER m_listItemActions NOTIFY containerChanged)
     Q_PROPERTY(qreal offsetVisible READ offsetVisible NOTIFY offsetVisibleChanged)
+    Q_PROPERTY(QList<qreal> snapStops MEMBER m_snapStops)
+    Q_PROPERTY(int itemIndex MEMBER m_itemIndex NOTIFY itemIndexChanged)
 public:
     UCListItemActionsAttached(QObject *parent = 0);
     ~UCListItemActionsAttached();
     void setList(UCListItemActions *list);
     qreal offsetVisible();
 
+    QList<qreal> snapStops() const
+    {
+        return m_snapStops;
+    }
+    void setItemIndex(int index) {
+        if (m_itemIndex == index) {
+            return;
+        }
+        m_itemIndex = index;
+        Q_EMIT itemIndexChanged();
+    }
+
 Q_SIGNALS:
-    void listChanged();
+    void containerChanged();
     void offsetVisibleChanged();
+    void itemIndexChanged();
+    void dragStarted();
+    void dragEnded();
 
 private:
     UCListItemActions *m_listItemActions;
+    QList<qreal> m_snapStops;
+    int m_itemIndex;
 };
 
 class QQmlComponent;
