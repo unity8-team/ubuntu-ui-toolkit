@@ -603,8 +603,19 @@ Item {
             var testItem = data.item.contentItem;
             flick(testItem, centerOf(testItem).x, centerOf(testItem).y, data.dx, 0);
             waitForRendering(testItem, 800);
-            compare(data.list.status, data.expectedStatus, "Status on the option list differs.");
-            compare(data.list.connectedItem, data.item, "connectedItem is not the tugged item.");
+            compare(data.list.ListItemActions.status, data.expectedStatus, "Status on the option list differs.");
+            compare(data.list.ListItemActions.listItem, data.item, "connectedItem is not the tugged item.");
+        }
+
+        function test_listitem_blockks_ascendant_flickables() {
+            var testItem = findChild(nestedListView, "listItem0");
+            verify(testItem, "Cannot find test item");
+            interactiveSpy.target = testFlickable;
+            // tug leading
+            flick(testItem, centerOf(testItem).x, centerOf(testItem).y, testItem.width / 2, 0);
+            waitForRendering(testItem, 800);
+            // check if interactive got changed
+            interactiveSpy.wait();
         }
 
         function test_listitem_blockks_ascendant_flickables() {
