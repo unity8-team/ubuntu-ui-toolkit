@@ -28,14 +28,11 @@ _TESTFILE=$(basename $2)
 
 #support for cmake based build
 if [ -z ${_BUILD_DIR} ]; then
-  _IMPORT_PATH=../../../modules:$QML2_IMPORT_PATH  
-  _THEMES_PATH=../../../modules  
-	_XML="../../test_$_TARGET_$_TESTFILE.xml"
-else
-  _IMPORT_PATH="${_BUILD_DIR}/modules:$QML2_IMPORT_PATH"
-  _THEMES_PATH="${_BUILD_DIR}/modules"
-	_XML="${_BUILD_DIR}/tests/test_$_TARGET_$_TESTFILE.xml"
-fi  
+  _BUILD_DIR=../../..
+fi
+_IMPORT_PATH="${_BUILD_DIR}/modules:$QML2_IMPORT_PATH"
+_THEMES_PATH="${_BUILD_DIR}/modules"
+_XML="${_BUILD_DIR}/tests/test_$_TARGET_$_TESTFILE.xml"
 
 _ARGS="-o $_XML,xunitxml -o -,txt"
 
