@@ -15,7 +15,7 @@
  */
 
 import QtQuick 2.2
-import Ubuntu.Components 1.1
+import Ubuntu.Components 1.2
 
 /*
   This component is the holder of the ListItem options.
@@ -23,6 +23,9 @@ import Ubuntu.Components 1.1
 Item {
     id: panel
     width: optionsRow.childrenRect.width
+
+    // for testing
+    objectName: "ListItemPanel"
 
     /*
       Property holding the ListItem's contentItem instance
@@ -33,34 +36,19 @@ Item {
       Index of the ListItem, if the ListItem is inside a ListView or has been
       created using a Repeater.
       */
-    property int listItemIndex: -1
+    property int listItemIndex
 
     /*
       Specifies whether the panel is used to visualize leading or trailing options.
       */
-    property bool leadingPanel: false
-    /*
-      The delegate to be used to visualize the options
-      */
-    property Component delegate
+    property bool leadingPanel: ListItemActions.status == ListItemActions.Leading
 
     /*
       Actions
       */
-    property var actionList
+    property var actionList: ListItemActions.container ? ListItemActions.container.actions : undefined
 
-    /*
-      Panel and text colors
-      */
-    property color backgroundColor
-    property color foregroundColor
-
-    /*
-      Emitted when action is triggered
-      */
-    signal selected()
-
-    // fire selected action when parent is removed
+    // fire selected action when disconnected
     onParentChanged: {
         if (!parent && selectedAction) {
             selectedAction.triggered(listItemIndex >= 0 ? listItemIndex : null);
@@ -79,7 +67,8 @@ Item {
     Rectangle {
         anchors.fill: parent
         // FIXME: use Palette colors instead when available
-        color: (panel.backgroundColor != "#000000") ? panel.backgroundColor : (leadingPanel ? UbuntuColors.red : "white")
+        color: (panel.ListItemActions.container.backgroundColor != "#000000") ?
+                   panel.ListItemActions.container.backgroundColor : (leadingPanel ? UbuntuColors.red : "white")
     }
 
     Row {
@@ -91,10 +80,10 @@ Item {
             leftMargin: spacing
         }
 
-        property real maxItemWidth: panel.parent ? (panel.parent.width / panel.actionList.actions.length) : 0
+        property real maxItemWidth: panel.parent ? (panel.parent.width / panel.actionList.length) : 0
 
         Repeater {
-            model: panel.actionList.actions
+            model: panel.actionList
             AbstractButton {
                 action: modelData
                 visible: action.visible && action.enabled
@@ -107,15 +96,17 @@ Item {
 
                 function trigger() {
                     // save the action as we trigger when the rebound animation is over
-                    // to make sure we properly clean up the blockade of teh Flickables
+                    // to make sure we properly clean up the blockade of the Flickables
                     panel.selectedAction = action;
-                    panel.selected();
+                    panel.listItemIndex = panel.ListItemActions.listItemIndex;
+                    panel.ListItemActions.snapToPosition(0.0);
                 }
 
                 Loader {
                     id: delegateLoader
                     height: parent.height
-                    sourceComponent: panel.delegate ? panel.delegate : defaultDelegate
+                    sourceComponent: (panel.ListItemActions.container && panel.ListItemActions.container.delegate) ?
+                                         panel.ListItemActions.container.delegate : defaultDelegate
                     property Action action: modelData
                     property int index: index
                     onItemChanged: {
@@ -138,8 +129,8 @@ Item {
                 height: width
                 name: action.iconName
                 // FIXME: use Palette colors instead when available
-                color: (panel.foregroundColor != "#000000") ?
-                           panel.foregroundColor : (panel.leadingPanel ? "white" : UbuntuColors.darkGrey)
+                color: (panel.ListItemActions.container.foregroundColor != "#000000") ?
+                           panel.ListItemActions.container.foregroundColor : (panel.leadingPanel ? "white" : UbuntuColors.darkGrey)
                 anchors.centerIn: parent
             }
         }
