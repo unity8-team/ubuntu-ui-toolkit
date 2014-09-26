@@ -30,18 +30,22 @@ file(GLOB PICKER_FILES Pickers/* )
 file(GLOB STYLES_FILES Styles/* )
 
 # qmldir
-set(QMLDIR_FILE qmldir )
+file(GLOB_RECURSE QMLDIR_FILES qmldir )
 
 #make sure the qmldir file is available in the import path for the tests
-file(COPY ${QMLDIR_FILE} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+foreach(QMLDIR_FILE IN LISTS QMLDIR_FILES)
+    file(RELATIVE_PATH QMLDIR_REL ${CMAKE_CURRENT_SOURCE_DIR} ${QMLDIR_FILE})
+    string(REPLACE "qmldir" "" QMLDIR_FOL ${QMLDIR_REL})
+    file(COPY ${QMLDIR_FILE} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/${QMLDIR_FOL})
+endforeach()
 
 add_custom_target(Components_uncompiled_files ALL SOURCES ${QML_FILES} ${JS_FILES}
                         ${ARTWORK_FILES} ${LISTITEMS_FILES}
                         ${LISTITEMS_ARTWORK_FILES} ${POPUPS_FILES}
-                        ${PICKER_FILES} ${STYLES_FILES} ${QMLDIR_FILE})
+                        ${PICKER_FILES} ${STYLES_FILES} ${QMLDIR_FILES})
 
 # define deployment for found deployables
-install(FILES ${QMLDIR_FILE} DESTINATION ${install_path})
+install(FILES ${QMLDIR_FILES} DESTINATION ${install_path})
 install(FILES ${QML_FILES} DESTINATION ${install_path})
 install(FILES ${JS_FILES} DESTINATION ${install_path})
 install(FILES ${ARTWORK_FILES} DESTINATION ${install_path}/artwork)
