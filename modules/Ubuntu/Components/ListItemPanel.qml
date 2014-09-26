@@ -65,6 +65,7 @@ Item {
     }
 
     Rectangle {
+        objectName: "panel_background"
         anchors.fill: parent
         // FIXME: use Palette colors instead when available
         color: (panel.ListItemActions.container.backgroundColor != "#000000") ?
@@ -103,6 +104,7 @@ Item {
                 }
 
                 Loader {
+                    objectName: "icon_loader"
                     id: delegateLoader
                     height: parent.height
                     sourceComponent: (panel.ListItemActions.container && panel.ListItemActions.container.delegate) ?
@@ -125,6 +127,7 @@ Item {
         Item {
             width: height
             Icon {
+                objectName: "action_icon"
                 width: units.gu(2.5)
                 height: width
                 name: action.iconName

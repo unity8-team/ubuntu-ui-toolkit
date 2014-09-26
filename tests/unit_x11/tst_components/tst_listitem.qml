@@ -420,6 +420,7 @@ Item {
             verify(custom, "Custom delegate not in use");
             // cleanup
             mouseClick(main, 0, 0);
+
         }
 
         // execute as last so we make sure we have the panel created
@@ -565,32 +566,17 @@ Item {
             compare(clickSpy.count, 0, "Click must be suppressed when long pressed");
         }
 
-        function test_ListItemActions_status_data() {
-            var drag = testItem.contentItem.width / 2;
-            return [
-                {tag:"Leading", item: testItem, dx: drag, list: testItem.leadingActions, expectedStatus: ListItemActions.Leading},
-                {tag:"Trailing", item: testItem, dx: -drag, list: testItem.trailingActions, expectedStatus: ListItemActions.Trailing},
-            ];
-        }
-        function test_ListItemActions_status(data) {
-            var testItem = data.item.contentItem;
-            flick(testItem, centerOf(testItem).x, centerOf(testItem).y, data.dx, 0);
-            waitForRendering(testItem, 800);
-            compare(data.list.ListItemActions.status, data.expectedStatus, "Status on the option list differs.");
-        }
-
         // keep these as last ones so we make sure the panel has been created by the previous swipes
         function test_x_backgroundColor_change() {
             // change panel color for the leading and observe the trailing panelItem color change
             leading.backgroundColor = UbuntuColors.blue;
-            compare(leading.panelItem.backgroundColor, UbuntuColors.blue, "leading panelItem color differs");
-            compare(trailing.panelItem.backgroundColor, UbuntuColors.blue, "trailing panelItem color has not been set");
+            compare(findChild(panelItem(leading), "panel_background").color, UbuntuColors.blue, "leading panelItem color differs");
+            compare(findChild(panelItem(trailing), "panel_background").color, UbuntuColors.blue, "trailing panelItem color has not been set");
         }
         function test_x_foregroundColor_change() {
             // change panel color for the leading and observe the trailing panelItem color change
             leading.foregroundColor = UbuntuColors.green;
-            compare(leading.panelItem.foregroundColor, UbuntuColors.green, "leading panelItem color differs");
-            compare(trailing.panelItem.foregroundColor, UbuntuColors.green, "trailing panelItem color has not been set");
+            compare(findChild(panelItem(leading), "action_icon").color, UbuntuColors.green, "leading panelItem color differs");
         }
     }
 }

@@ -326,7 +326,8 @@ UCListItemActionsAttached *UCListItemActions::qmlAttachedProperties(QObject *own
                 attached->setList(actions);
                 break;
             }
-            pl = pl->parent();
+            QQuickItem *pi = qobject_cast<QQuickItem*>(pl);
+            pl = pi ? pi->parentItem() : pl->parent();
         }
     }
     if (!attached->container()) {
