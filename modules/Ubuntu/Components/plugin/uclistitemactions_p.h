@@ -31,9 +31,7 @@ public:
         return actions ? actions->d_func() : 0;
     }
 
-    bool backgroundColorChanged:1;
-    bool foregroundColorChanged:1;
-    UCListItemActions::Status status;
+    bool dragging:1;
     QQmlComponent *delegate;
     QQuickItem *panelItem;
     QColor backgroundColor;
@@ -44,17 +42,19 @@ public:
     qreal optionSlotWidth;
     qreal offsetDragged;
     int optionsVisible;
+    UCListItemActions::Status status;
 
     void _q_handlePanelDrag();
     void _q_handlePanelWidth();
+    UCListItemActionsAttached *attachedObject();
 
     static bool connectToListItem(UCListItemActions *options, UCListItem *listItem, bool leading);
     static void disconnectFromListItem(UCListItemActions *options);
     static bool isConnectedTo(UCListItemActions *options, UCListItem *listItem);
     static qreal snap(UCListItemActions *options);
+    static void setDragging(UCListItemActions *actions, UCListItem *listItem, bool dragging);
 
     QQuickItem *createPanelItem();
-    void updateColor(const char *property, const QColor &color);
 };
 
 #endif // UCLISTITEMACTIONS_P_H

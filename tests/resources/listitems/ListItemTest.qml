@@ -40,10 +40,10 @@ MainView {
                 iconName: "delete"
                 onTriggered: { print(iconName, "triggered", value)
                     leading.backgroundColor = Qt.binding(function() {
-                        return (leading.status == ListItemActions.Leading) ? UbuntuColors.green : UbuntuColors.lightGrey;
+                        return (leading.ListItemActions.status == ListItemActions.Leading) ? UbuntuColors.green : UbuntuColors.lightGrey;
                     })
                     leading.foregroundColor = Qt.binding(function() {
-                        return (leading.status == ListItemActions.Leading) ? "white" : UbuntuColors.red;
+                        return (leading.ListItemActions.status == ListItemActions.Leading) ? "white" : UbuntuColors.red;
                     })
                 }
             },
