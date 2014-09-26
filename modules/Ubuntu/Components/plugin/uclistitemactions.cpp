@@ -26,9 +26,7 @@
 
 UCListItemActionsPrivate::UCListItemActionsPrivate()
     : QObjectPrivate()
-    , backgroundColorChanged(false)
-    , foregroundColorChanged(false)
-    , status(UCListItemActions::Disconnected)
+    , dragging(false)
     , delegate(0)
     , panelItem(0)
     , backgroundColor(Qt::transparent)
@@ -36,6 +34,7 @@ UCListItemActionsPrivate::UCListItemActionsPrivate()
     , optionSlotWidth(0.0)
     , offsetDragged(0.0)
     , optionsVisible(0)
+    , status(UCListItemActions::Disconnected)
 {
 }
 UCListItemActionsPrivate::~UCListItemActionsPrivate()
@@ -74,6 +73,16 @@ void UCListItemActionsPrivate::_q_handlePanelWidth()
     _q_handlePanelDrag();
 }
 
+UCListItemActionsAttached *UCListItemActionsPrivate::attachedObject()
+{
+    if (!panelItem) {
+        return 0;
+    }
+    return static_cast<UCListItemActionsAttached*>(
+                qmlAttachedPropertiesObject<UCListItemActions>(panelItem, false));
+}
+
+
 bool UCListItemActionsPrivate::connectToListItem(UCListItemActions *actions, UCListItem *listItem, bool leading)
 {
     UCListItemActionsPrivate *_this = get(actions);
@@ -88,14 +97,10 @@ bool UCListItemActionsPrivate::connectToListItem(UCListItemActions *actions, UCL
         _this->queuedItem = listItem;
         return false;
     }
-    _this->panelItem->setProperty("listItemIndex", UCListItemPrivate::get(listItem)->index);
-    _this->panelItem->setProperty("leadingPanel", leading);
     _this->panelItem->setParentItem(listItem);
     _this->offsetDragged = 0.0;
-    QObject::connect(_this->panelItem, SIGNAL(selected()), _this->panelItem->parentItem(), SLOT(_q_rebound()));
-    _this->status = (leading) ?  UCListItemActions::Leading :  UCListItemActions::Trailing;
-    Q_EMIT actions->statusChanged();
-    Q_EMIT actions->connectedItemChanged();
+    _this->status = leading ? UCListItemActions::Leading : UCListItemActions::Trailing;
+    Q_EMIT actions->__statusChanged();
     return true;
 }
 
@@ -106,11 +111,9 @@ void UCListItemActionsPrivate::disconnectFromListItem(UCListItemActions *actions
         return;
     }
 
-    QObject::disconnect(_this->panelItem, SIGNAL(selected()), _this->panelItem->parentItem(), SLOT(_q_rebound()));
     _this->panelItem->setParentItem(0);
     _this->status = UCListItemActions::Disconnected;
-    Q_EMIT actions->statusChanged();
-    Q_EMIT actions->connectedItemChanged();
+    Q_EMIT actions->__statusChanged();
     // if there was a queuedItem, make it grab the actions list
     if (_this->queuedItem) {
         UCListItemPrivate::get(_this->queuedItem.data())->grabPanel(actions, true);
@@ -138,9 +141,19 @@ qreal UCListItemActionsPrivate::snap(UCListItemActions *options)
     if (ratio > 0.0 && (ratio - trunc(ratio)) > 0.5) {
         visible++;
     }
-    return visible * _this->optionSlotWidth * (_this->status ==  UCListItemActions::Leading ? 1 : -1);
+    return visible * _this->optionSlotWidth * (_this->status == UCListItemActions::Leading ? 1 : -1);
 }
 
+void UCListItemActionsPrivate::setDragging(UCListItemActions *actions, UCListItem *listItem, bool dragging)
+{
+    UCListItemActionsPrivate *_this = get(actions);
+    if (!_this || !_this->panelItem || !isConnectedTo(actions, listItem) || (_this->dragging == dragging)) {
+        return;
+    }
+
+    _this->dragging = dragging;
+    Q_EMIT actions->__draggingChanged();
+}
 
 QQuickItem *UCListItemActionsPrivate::createPanelItem()
 {
@@ -155,18 +168,21 @@ QQuickItem *UCListItemActionsPrivate::createPanelItem()
         panelItem = qobject_cast<QQuickItem*>(component.beginCreate(qmlContext(q)));
         if (panelItem) {
             QQml_setParent_noEvent(panelItem, q);
-            if (delegate) {
-                panelItem->setProperty("delegate", QVariant::fromValue(delegate));
+            // add panelItem to data so we can access it in case is needed (i.e. tests)
+            data.append(panelItem);
+            UCListItemActionsAttached *attached = static_cast<UCListItemActionsAttached*>(
+                        qmlAttachedPropertiesObject<UCListItemActions>(panelItem));
+            if (attached) {
+                if (!attached->container()) {
+                    attached->setList(q);
+                } else {
+                    // container is set, but we need to emit the signal again so we get the
+                    // attached props updated for those cases when the attached property is
+                    // created before the statement above
+                    Q_EMIT attached->containerChanged();
+                }
             }
-            panelItem->setProperty("actionList", QVariant::fromValue(q));
             component.completeCreate();
-            if (backgroundColorChanged) {
-                updateColor("backgroundColor", backgroundColor);
-            }
-            if (foregroundColorChanged) {
-                updateColor("foregroundColor", foregroundColor);
-            }
-            Q_EMIT q->panelItemChanged();
 
             // calculate option's slot size
             offsetDragged = 0.0;
@@ -175,20 +191,15 @@ QQuickItem *UCListItemActionsPrivate::createPanelItem()
             // connect to panel to catch dragging
             QObject::connect(panelItem, SIGNAL(widthChanged()), q, SLOT(_q_handlePanelWidth()));
             QObject::connect(panelItem, SIGNAL(xChanged()), q, SLOT(_q_handlePanelDrag()));
+            if (attached) {
+                QObject::connect(panelItem, &QQuickItem::xChanged,
+                                 attached, &UCListItemActionsAttached::offsetChanged);
+            }
         }
     } else {
         qmlInfo(q) << component.errorString();
     }
     return panelItem;
-}
-
-void UCListItemActionsPrivate::updateColor(const char *property, const QColor &color)
-{
-    if (!panelItem) {
-        return;
-    }
-    Q_Q(UCListItemActions);
-    panelItem->setProperty(property, QVariant::fromValue(color));
 }
 
 /*!
@@ -209,7 +220,7 @@ void UCListItemActionsPrivate::updateColor(const char *property, const QColor &c
  * visualization of the actions can be overridden using the \l delegate property,
  * and the default implementation uses the \c name property of the Action.
  *
- * The leading and trailing actions are placed on \l panelItem, which is created
+ * The leading and trailing actions are placed on a panel item, which is created
  * the first time the actions are accessed. The colors of the panel is taken from
  * the theme's palette.
  *
@@ -304,6 +315,42 @@ UCListItemActions::UCListItemActions(QObject *parent)
 }
 UCListItemActions::~UCListItemActions()
 {
+}
+
+UCListItemActionsAttached *UCListItemActions::qmlAttachedProperties(QObject *owner)
+{
+    UCListItemActionsAttached *attached = new UCListItemActionsAttached(owner);
+    /*
+     * Detect the attachee, whether is it the panelItem, the ListItemAction owned
+     * by the
+     * The attached property can be attached to any item, therefore if used in panelItem
+     * or the ListItemAttached dirrectly, we can get the container from the closest
+     * ListItemAction
+     * However, if the given owner is ListItemPanel, we only set the list.
+     */
+    if (QuickUtils::className(owner) == "ListItemPanel") {
+        attached->setList(qobject_cast<UCListItemActions*>(owner->parent()));
+    } else {
+        // the only QObject we can attach this is ListItemActions itself, do not deal with any other QObject!
+        UCListItemActions *actions = qobject_cast<UCListItemActions*>(owner);
+        if (actions) {
+            attached->setList(actions);
+        } else {
+            QQuickItem *item = qobject_cast<QQuickItem*>(owner);
+            while (item) {
+                if (QuickUtils::className(item) == "ListItemPanel") {
+                    attached->setList(qobject_cast<UCListItemActions*>(item->parent()));
+                    break;
+                }
+                item = item->parentItem();
+            }
+        }
+        if (!attached->container()) {
+            qmlInfo(owner) << UbuntuI18n::instance().
+                              tr("Warning: Attached ListItemActions object will be inactive in this context!");
+        }
+    }
+    return attached;
 }
 
 /*!
@@ -404,47 +451,6 @@ QQmlListProperty<UCAction> UCListItemActions::actions()
 }
 
 /*!
- * \qmlproperty Item ListItemActions::panelItem
- * The property presents the Item holding the visualized actions. The panel is
- * created when used the first time.
- */
-QQuickItem *UCListItemActions::panelItem() const
-{
-    Q_D(const UCListItemActions);
-    return d->panelItem;
-}
-
-/*!
- * \qmlproperty enum ListItemActions::status
- * \readonly
- * The property holds the status of the ListItemActions, whether is connected
- * as leading or as trailing option list to a \l ListItem. Possible valueas are:
- * \list A
- *  \li \b \c Disconnected - default, the options list is not connected to any \l ListItem
- *  \li \b \c LeadingOptions - the options list is connected as leading list
- *  \li \b \c TrailingOptions - the options list is connected as trailing list
- * \endlist
- * \sa connectedItem
- */
-UCListItemActions::Status UCListItemActions::status() const
-{
-    Q_D(const UCListItemActions);
-    return d->status;
-}
-
-/*!
- * \qmlproperty ListItem ListItemActions::connectedItem
- * \readonly
- * The property holds the \l ListItem the options list is connected to. It is
- * null by default and when the status is \c Disconnected.
- * \sa status
- */
-UCListItem *UCListItemActions::connectedItem() const
-{
-    Q_D(const UCListItemActions);
-    return d->panelItem ? qobject_cast<UCListItem*>(d->panelItem->parentItem()) : 0;
-}
-/*!
  * \internal
  * \qmlproperty list<QtObject> ListItemActions::data
  * \default
@@ -472,9 +478,6 @@ void UCListItemActions::setBackgroundColor(const QColor &color)
         return;
     }
     d->backgroundColor = color;
-    d->backgroundColorChanged = true;
-    // update panelItem's color
-    d->updateColor("backgroundColor", d->backgroundColor);
     Q_EMIT backgroundColorChanged();
 }
 
@@ -495,9 +498,6 @@ void UCListItemActions::setForegroundColor(const QColor &color)
         return;
     }
     d->foregroundColor = color;
-    d->foregroundColorChanged = true;
-    // update panelItem's color
-    d->updateColor("foregroundColor", d->foregroundColor);
     Q_EMIT foregroundColorChanged();
 }
 

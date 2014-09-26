@@ -22,15 +22,13 @@
 
 class QQmlComponent;
 class UCAction;
+class UCListItemActionsAttached;
 class UCListItemActionsPrivate;
 class UCListItemActions : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QQmlComponent *delegate READ delegate WRITE setDelegate NOTIFY delegateChanged)
     Q_PROPERTY(QQmlListProperty<UCAction> actions READ actions CONSTANT)
-    Q_PROPERTY(QQuickItem *panelItem READ panelItem NOTIFY panelItemChanged)
-    Q_PROPERTY(Status status READ status NOTIFY statusChanged)
-    Q_PROPERTY(UCListItem *connectedItem READ connectedItem NOTIFY connectedItemChanged)
     Q_PROPERTY(QColor backgroundColor READ backgroundColor WRITE setBackgroundColor NOTIFY backgroundColorChanged)
     Q_PROPERTY(QColor foregroundColor READ foregroundColor WRITE setForegroundColor NOTIFY foregroundColorChanged)
     Q_PROPERTY(QQmlListProperty<QObject> data READ data)
@@ -38,7 +36,7 @@ class UCListItemActions : public QObject
     Q_ENUMS(Status)
 public:
     enum Status {
-        Disconnected = 0,
+        Disconnected,
         Leading,
         Trailing
     };
@@ -46,12 +44,11 @@ public:
     explicit UCListItemActions(QObject *parent = 0);
     ~UCListItemActions();
 
+    static UCListItemActionsAttached *qmlAttachedProperties(QObject *owner);
+
     QQmlComponent *delegate() const;
     void setDelegate(QQmlComponent *delegate);
     QQmlListProperty<UCAction> actions();
-    QQuickItem *panelItem() const;
-    Status status() const;
-    UCListItem *connectedItem() const;
     QColor backgroundColor() const;
     void setBackgroundColor(const QColor &color);
     QColor foregroundColor() const;
@@ -60,18 +57,60 @@ public:
 
 Q_SIGNALS:
     void delegateChanged();
-    void panelItemChanged();
-    void statusChanged();
-    void connectedItemChanged();
     void backgroundColorChanged();
     void foregroundColorChanged();
 
-public Q_SLOTS:
+    // keep it as private signal
+    void __statusChanged();
+    void __draggingChanged();
 
 private:
     Q_DECLARE_PRIVATE(UCListItemActions)
     Q_PRIVATE_SLOT(d_func(), void _q_handlePanelDrag())
     Q_PRIVATE_SLOT(d_func(), void _q_handlePanelWidth())
 };
+
+class UCListItemActionsAttached : public QObject
+{
+    Q_OBJECT
+    Q_PROPERTY(UCListItemActions *container READ container NOTIFY containerChanged)
+    Q_PROPERTY(UCListItem *listItem READ listItem NOTIFY listItemChanged)
+    Q_PROPERTY(int listItemIndex READ listItemIndex NOTIFY listItemIndexChanged)
+    Q_PROPERTY(qreal offset READ offset NOTIFY offsetChanged)
+    Q_PROPERTY(UCListItemActions::Status status READ status NOTIFY statusChanged)
+    Q_PROPERTY(bool dragging READ dragging NOTIFY draggingChanged)
+public:
+    UCListItemActionsAttached(QObject *parent = 0);
+    ~UCListItemActionsAttached();
+    void setList(UCListItemActions *list);
+
+    UCListItem *listItem();
+    int listItemIndex();
+    bool dragging();
+    qreal offset();
+    UCListItemActions::Status status();
+
+    UCListItemActions *container() const
+    {
+        return m_container.data();
+    }
+
+public Q_SLOTS:
+    void snapToPosition(qreal position);
+
+Q_SIGNALS:
+    void containerChanged();
+    void listItemChanged();
+    void listItemIndexChanged();
+    void offsetChanged();
+    void statusChanged();
+    void draggingChanged();
+
+private:
+    QPointer<UCListItemActions> m_container;
+    friend class UCListItemAction;
+};
+
+QML_DECLARE_TYPEINFO(UCListItemActions, QML_HAS_ATTACHED_PROPERTIES)
 
 #endif // UCLISTITEMACTIONS_H
