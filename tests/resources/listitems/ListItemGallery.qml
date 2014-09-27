@@ -25,10 +25,12 @@ MainView {
     applicationName: "TestSuite"
     useDeprecatedToolbar: false
 
+    property string longText: "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum."
+
     Tabs {
         Tab {
+            title: "ListItemLayout"
             page: Page {
-                title: "ListItemLayout"
                 Column {
                     width: parent.width
                     spacing: units.gu(0.5)
@@ -80,33 +82,59 @@ MainView {
                         }
                     }
                 }
-                ListItem {
-                    ListItemLayout {
-                        Captions {
-                            title.text: "Caption (title)"
-                            subtitle.text: "Subtitle"
-                            enabled: true
-                            preventStealing: true
-                            onClicked: print("Captions clicked");
-                        }
-                        Captions {
-                            preset: "details"
-                            title.text: "Text"
-                            subtitle.text: "Text"
-                        }
-                    }
-                    onClicked: print("ListItem clicked")
-                }
-                ListItem {
-                    ListItemLayout {
-                        Captions {
-                            title.text: "Caption (title)"
-                            subtitle.text: "Subtitle"
-                        }
-                        Switch {
+            }
+        }
+
+        Tab {
+            title: "Captions"
+            page: Page {
+                Column {
+                    width: parent.width
+                    ListItem {
+                        ListItemLayout {
+                            Captions {
+                                title.text: longText
+                                subtitle.text: "subtitle"
+                            }
+                            Captions {
+                                preset: "summary"
+                                title.text: "Text"
+                                subtitle.text: "Text"
+                            }
                         }
                     }
-                    onClicked: print("clicked on ListItem")
+                    ListItem {
+//                        height: units.gu(10)
+                        ListItemLayout {
+                            Captions {
+                                title.text: "Caption (title) click on captions and"
+                                subtitle.text: longText
+                                MouseArea {
+                                    anchors.fill: parent
+                                    onClicked: print("Captions clicked");
+                                }
+                            }
+
+                            Captions {
+                                preset: "summary"
+                                title.text: "Text"
+                                subtitle.text: "Text"
+                            }
+                        }
+                        onClicked: print("ListItem clicked")
+                    }
+                    ListItem {
+                        ListItemLayout {
+                            Captions {
+                                title.text: "Caption (title)"
+                                subtitle.text: "Subtitle"
+                                Component.onCompleted: subtitle.Layout.alignment = Qt.AlignRight
+                            }
+                            Switch {
+                            }
+                        }
+                        onClicked: print("clicked on ListItem")
+                    }
                 }
             }
         }

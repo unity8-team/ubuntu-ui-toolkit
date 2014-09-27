@@ -16,6 +16,7 @@
 
 import QtQuick 2.2
 import QtQuick.Layouts 1.1
+import "mathUtils.js" as MathUtils
 
 /*!
   \qmltype Captions
@@ -69,7 +70,7 @@ import QtQuick.Layouts 1.1
                Component.onCompleted: subtitle.Layout.alignment = Qt.AlignRight
            }
            Captions {
-               preset: "details"
+               preset: "summary"
                title.text: "Text"
                subtitle.text: "Text"
            }
@@ -109,8 +110,8 @@ import QtQuick.Layouts 1.1
       }
       Captions {
           id: details
-          preset: "details"
-          title.text: "Details"
+          preset: "summary"
+          title.text: "summary"
           states: State {
               name: "hidden"
               PropertyChanges {
@@ -122,7 +123,7 @@ import QtQuick.Layouts 1.1
   }
   \endqml
   */
-MouseArea {
+Item {
     id: captions
 
     /*!
@@ -135,7 +136,7 @@ MouseArea {
             to right and the container can take a maximum of 6 grid units.
       \endlist
       */
-    property string preset: "titles"
+    property string preset: "caption"
 
     /*!
       \qmlproperty Label title
@@ -154,7 +155,7 @@ MouseArea {
       \default
       Default property holding the data of the container.
       */
-    default property alias data: layout.data
+//    property alias layout: layout.data
 
     /*!
       \qmlproperty real spacing
@@ -164,37 +165,54 @@ MouseArea {
     property alias spacing: layout.spacing
 
     clip: true
-    enabled: false
     visible: (title.text !== "" || subtitle.text !== "")
-    Layout.fillWidth: (preset === "titles")
+    Layout.fillWidth: (preset === "caption")
     Layout.alignment: Qt.AlignVCenter
     Layout.minimumWidth: 0
-    Layout.maximumWidth: (preset === "details") ? units.gu(6) : parent.width
-    Layout.preferredWidth: (preset === "details") ? Layout.maximumWidth : childrenRect.width
+    Layout.maximumWidth: (preset === "summary") ? units.gu(6) : parent.width
+    Layout.preferredWidth: (preset === "summary") ? Layout.maximumWidth : 0
     Layout.minimumHeight: 0
     Layout.maximumHeight: parent.height
     Layout.preferredHeight: childrenRect.height
 
-    ColumnLayout {
+    Column {
         id: layout
-        spacing: units.gu(0.5)
+        spacing: (preset === "caption") ?
+                     ((subtitleLabel.lineCount > 1) ? units.gu(0.1) : units.gu(0.5)) :
+                     units.gu(0.5)
         anchors {
             left: parent.left
             right: parent.right
         }
-        Layout.preferredHeight: childrenRect.height
+        clip: true
+//        Layout.preferredHeight: childrenRect.height
+        height: childrenRect.height
 
         Label {
             id: titleLabel
-            fontSize: (captions.preset === "titles") ? "large" : "medium"
-            Layout.alignment: (captions.preset === "details") ? Qt.AlignRight : Qt.AlignLeft
+            anchors {
+                left: parent.left
+                right: parent.right
+            }
+            fontSize: "medium"
+            horizontalAlignment: (preset === "summary") ? Text.AlignRight : Text.AlignLeft
             visible: text !== ""
+            elide: (preset === "caption") ? Text.ElideRight : Text.ElideNone
         }
         Label {
             id: subtitleLabel
-            fontSize: "small"
-            Layout.alignment: (captions.preset === "details") ? Qt.AlignRight : Qt.AlignLeft
+            anchors {
+                left: parent.left
+                right: parent.right
+            }
+//            height: maximumLineCount * paintedHeight
+            onHeightChanged: print(height)
+            fontSize: (lineCount > 1) ? "xx-small" : "x-small"
+            horizontalAlignment: (preset === "summary") ? Text.AlignRight : Text.AlignLeft
             visible: text !== ""
+            maximumLineCount: (preset === "caption") ? 2 : 1
+            wrapMode: (preset === "caption") ? Text.Wrap : Text.NoWrap
+            elide: (preset === "caption") ? Text.ElideRight : Text.ElideNone
         }
     }
 }
