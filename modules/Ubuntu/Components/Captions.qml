@@ -151,23 +151,15 @@ Item {
     property alias subtitle: subtitleLabel
 
     /*!
-      \qmlproperty list<QtObject> data
-      \default
-      Default property holding the data of the container.
+      \qmlproperty Column layout
+      Property holding the layout.
       */
-//    property alias layout: layout.data
-
-    /*!
-      \qmlproperty real spacing
-      The property configures the spacing between the contained labels. The default
-      spacing is 0.5 grid units.
-      */
-    property alias spacing: layout.spacing
+    property alias layout: layoutContainer
 
     clip: true
     visible: (title.text !== "" || subtitle.text !== "")
     Layout.fillWidth: (preset === "caption")
-    Layout.alignment: Qt.AlignVCenter
+    Layout.alignment: Qt.AlignVCenter | ((preset == "summary") ? Qt.AlignRight : Qt.AlignLeft)
     Layout.minimumWidth: 0
     Layout.maximumWidth: (preset === "summary") ? units.gu(6) : parent.width
     Layout.preferredWidth: (preset === "summary") ? Layout.maximumWidth : 0
@@ -176,17 +168,17 @@ Item {
     Layout.preferredHeight: childrenRect.height
 
     Column {
-        id: layout
-        spacing: (preset === "caption") ?
-                     ((subtitleLabel.lineCount > 1) ? units.gu(0.1) : units.gu(0.5)) :
-                     units.gu(0.5)
+        id: layoutContainer
         anchors {
             left: parent.left
             right: parent.right
         }
-        clip: true
-//        Layout.preferredHeight: childrenRect.height
         height: childrenRect.height
+
+        clip: true
+        spacing: (preset === "caption") ?
+                     ((subtitleLabel.lineCount > 1) ? units.gu(0.1) : units.gu(0.5)) :
+                     units.gu(0.5)
 
         Label {
             id: titleLabel
@@ -205,8 +197,6 @@ Item {
                 left: parent.left
                 right: parent.right
             }
-//            height: maximumLineCount * paintedHeight
-            onHeightChanged: print(height)
             fontSize: (lineCount > 1) ? "xx-small" : "x-small"
             horizontalAlignment: (preset === "summary") ? Text.AlignRight : Text.AlignLeft
             visible: text !== ""
@@ -215,4 +205,5 @@ Item {
             elide: (preset === "caption") ? Text.ElideRight : Text.ElideNone
         }
     }
+    Rectangle {anchors.fill: parent; color: "transparent"; border.width: 1}
 }

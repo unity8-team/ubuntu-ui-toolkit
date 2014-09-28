@@ -104,7 +104,6 @@ MainView {
                         }
                     }
                     ListItem {
-//                        height: units.gu(10)
                         ListItemLayout {
                             Captions {
                                 title.text: "Caption (title) click on captions and"
@@ -134,6 +133,25 @@ MainView {
                             }
                         }
                         onClicked: print("clicked on ListItem")
+                    }
+                    Rectangle {
+                        width: units.gu(40)
+                        height: units.gu(30)
+
+                        ListItemLayout {
+                            direction: Qt.Vertical
+                            Captions {
+                                title.text: "Caption: " + longText
+                                subtitle.text: "Subtitle: " + longText
+                            }
+                            Switch {
+                            }
+                            Captions {
+                                preset: "summary"
+                                title.text: "Text"
+                                subtitle.text: "Text"
+                            }
+                        }
                     }
                 }
             }
