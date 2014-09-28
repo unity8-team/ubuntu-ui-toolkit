@@ -464,7 +464,7 @@ QQmlListProperty<QObject> UCListItemActions::data()
 
 /*!
  * \qmlproperty color ListItemActions::backgroundColor
- * The property overrides the default colouring of the \l panelItem.
+ * The property overrides the default colouring of the panel item.
  */
 QColor UCListItemActions::backgroundColor() const
 {
