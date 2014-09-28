@@ -24,36 +24,15 @@ import QtQuick.Layouts 1.1
   \brief Container providing presets for a twin-label colun that can be used in
   \l ListItemLayout.
 
-  The labels are placed in a column layout and can be configured through \l title
-  and \l subtitle properties. The spacing between the labels is driven by the
-  \l spacing property. \l preset property configures these labels.
+  The labels are placed in a column and can be accessed through \l title and
+  \l subtitle properties. The default spacing between the labels is driven by the
+  amount of lines to be displayed in the \l subtitle label, however it can also
+  be configured  through the \l layout property.
 
   The container only shows the labels whos text is set to a valid string. The
-  labels not having any text set are not occupying the space. The labels are
-  arranged vertically centered, which means if one label is set, that one will
-  be shown centered.
-
-  Being derived from MouseArea, Captions provides the ability to handle mouse
-  related events on the area covered. When used with the ListItem, the component
-  can provide different handling when pressed over or on other areas of the
-  ListItem. By default, the container is disabled. When enabled, the ListItem
-  clicked signal is suppressed when clicked over the container.
-  \qml
-  import QtQuick 2.2
-  import Ubuntu.Components 1.2
-
-  ListItem {
-      ListLayout {
-           Captions {
-               enabled: true
-               onClicked: console.log("Captions clicked")
-           }
-           Switch {
-           }
-           onClicked: console.log("clicked on ListItem")
-      }
-  }
-  \endqml
+  labels not having any text set are not occupying the space. The container, if
+  embedded into a positioner or in a \l ListItemLayout, is aligned vertically
+  centered.
 
   Properties of the labels can be altered by overriding the properties of individual
   labels.
@@ -69,7 +48,7 @@ import QtQuick.Layouts 1.1
                Component.onCompleted: subtitle.Layout.alignment = Qt.AlignRight
            }
            Captions {
-               preset: "details"
+               preset: "summary"
                title.text: "Text"
                subtitle.text: "Text"
            }
@@ -78,21 +57,23 @@ import QtQuick.Layouts 1.1
   \endqml
 
   Additional items can also be added to the layout after the two labels. These
-  can be simply declared as child items to the container.
+  can be simply declared as child items to the \l layout property.
   \qml
   Captions {
        title.text: "Caption"
        subtitle.text: "Subtitle"
-       Label {
-           text: "third line"
-           fontSize: "x-small"
-       }
+       layout.data: [
+           Label {
+               text: "third line"
+               fontSize: "x-small"
+           }
+       ]
   }
   \endqml
 
   The Captions is not visible if neither the label content is set. Altering \c
-  visible property may destroy the handling. Therefore should be altered only
-  through \c PropertyChanges so visibility control is preserved.
+  visible property may destroy the handling. To preserve visibility control use
+  \c PropertyChanges and states when altering \c visible property.
   \qml
   import QtQuick 2.2
   import QtQuick.Layouts 1.1
@@ -109,8 +90,8 @@ import QtQuick.Layouts 1.1
       }
       Captions {
           id: details
-          preset: "details"
-          title.text: "Details"
+          preset: "summary"
+          title.text: "summary"
           states: State {
               name: "hidden"
               PropertyChanges {
@@ -121,80 +102,118 @@ import QtQuick.Layouts 1.1
       }
   }
   \endqml
+
+  When used with \l ListItem, there can be situations when tapping or clicking
+  over the Captions requires a different action than when clicking on the rest
+  of the \l ListItem. This can be achieved by simply placing a MouseArea as child
+  of Captions. In this case \l ListItem will not emit the \l {ListItem::clicked}
+  {clicked()} signal when clicked/tapped over the Captions area.
+  \qml
+  ListItem {
+      ListItemLayout {
+          Captions {
+              title.text: "Caption (title) click on captions and"
+              subtitle.text: longText
+              MouseArea {
+                  anchors.fill: parent
+                  onClicked: console.log("Captions clicked");
+              }
+          }
+          Captions {
+              preset: "summary"
+              title.text: "Text"
+              subtitle.text: "Text"
+          }
+      }
+    onClicked: console.log("ListItem clicked")
+  }
+  \endqml
   */
-MouseArea {
+Item {
     id: captions
 
     /*!
       The property configures the arrangement and font sizes of the Labels in the
       component. It can take the following values:
       \list
-        \li \b titles - (default) large title fontSize, small subtitle fontSize, both aligned
-            to left and the container fills the remainder space on the layout.
-        \li \b details - medium title fontSize, small subtitle fontSize, both aligned
-            to right and the container can take a maximum of 6 grid units.
+        \li \b caption - (default) typical configuration for a left aligned twin-label
+            setup, where the text covers the remaining area on a list layout.
+        \li \b summary - configuration for a right-aligned twin label setup, with
+            6 grid units width.
       \endlist
       */
-    property string preset: "titles"
+    property string preset: "caption"
 
     /*!
       \qmlproperty Label title
+      \readonly
       Label occupying the top area of the container.
       */
     property alias title: titleLabel
 
     /*!
       \qmlproperty Label subtitle
+      \readonly
       Label occupying the bottom area of the container.
       */
     property alias subtitle: subtitleLabel
 
     /*!
-      \qmlproperty list<QtObject> data
-      \default
-      Default property holding the data of the container.
+      \qmlproperty Column layout
+      \readonly
+      Property holding the layout. The property can be used to add additional
+      components or to alter spacing used in layout.
       */
-    default property alias data: layout.data
-
-    /*!
-      \qmlproperty real spacing
-      The property configures the spacing between the contained labels. The default
-      spacing is 0.5 grid units.
-      */
-    property alias spacing: layout.spacing
+    property alias layout: layoutContainer
 
     clip: true
-    enabled: false
     visible: (title.text !== "" || subtitle.text !== "")
-    Layout.fillWidth: (preset === "titles")
-    Layout.alignment: Qt.AlignVCenter
+    Layout.fillWidth: (preset === "caption")
+    Layout.alignment: Qt.AlignVCenter | ((preset === "summary") ? Qt.AlignRight : Qt.AlignLeft)
     Layout.minimumWidth: 0
-    Layout.maximumWidth: (preset === "details") ? units.gu(6) : parent.width
-    Layout.preferredWidth: (preset === "details") ? Layout.maximumWidth : childrenRect.width
+    Layout.maximumWidth: (preset === "summary") ? units.gu(6) : parent.width
+    Layout.preferredWidth: (preset === "summary") ? Layout.maximumWidth : 0
     Layout.minimumHeight: 0
     Layout.maximumHeight: parent.height
     Layout.preferredHeight: childrenRect.height
 
-    ColumnLayout {
-        id: layout
-        spacing: units.gu(0.5)
+    Column {
+        id: layoutContainer
         anchors {
             left: parent.left
             right: parent.right
         }
-        Layout.preferredHeight: childrenRect.height
+        height: childrenRect.height
+
+        clip: true
+        spacing: (preset === "caption") ?
+                     ((subtitleLabel.lineCount > 1) ? units.gu(0.1) : units.gu(0.5)) :
+                     units.gu(0.5)
 
         Label {
             id: titleLabel
-            fontSize: (captions.preset === "titles") ? "large" : "medium"
-            Layout.alignment: (captions.preset === "details") ? Qt.AlignRight : Qt.AlignLeft
+            anchors {
+                left: parent.left
+                right: parent.right
+            }
+            fontSize: "medium"
+            horizontalAlignment: (preset === "summary") ? Text.AlignRight : Text.AlignLeft
             visible: text !== ""
+            elide: (preset === "caption") ? Text.ElideRight : Text.ElideNone
         }
         Label {
             id: subtitleLabel
-            fontSize: "small"
-            Layout.alignment: (captions.preset === "details") ? Qt.AlignRight : Qt.AlignLeft
+            anchors {
+                left: parent.left
+                right: parent.right
+            }
+            fontSize: (lineCount > 1) ? "xx-small" : "x-small"
+            horizontalAlignment: (preset === "summary") ? Text.AlignRight : Text.AlignLeft
             visible: text !== ""
+            maximumLineCount: (preset === "caption") ? 2 : 1
+            wrapMode: (preset === "caption") ? Text.Wrap : Text.NoWrap
+            elide: (preset === "caption") ? Text.ElideRight : Text.ElideNone
         }
     }
+//    Rectangle {anchors.fill: parent; color: "transparent"; border.width: 1}
 }

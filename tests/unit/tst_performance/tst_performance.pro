@@ -26,4 +26,5 @@ OTHER_FILES += \
     ListItemWithInlineOptionsList.qml \
     ListItemsEmptyList.qml \
     ListItemsBaseList.qml \
+    ListOfCaptions.qml \
     ListOfStandard.qml

@@ -69,8 +69,7 @@ Item {
         }
 
         function test_0_defaults() {
-            compare(defaults.enabled, false, "The container is disabled by default");
-            compare(defaults.preset, "titles", "Defautl preset is 'titles'");
+            compare(defaults.preset, "", "Default preset is 'titles'");
             compare(defaults.height, 0, "default height is 0");
             compare(defaults.width, 0, "default width is 0")
             compare(defaults.Layout.alignment, Qt.AlignVCenter, "center vertically by default");

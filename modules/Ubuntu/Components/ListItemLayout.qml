@@ -23,15 +23,17 @@ import QtQuick.Layouts 1.1
   \ingroup unstable-ubuntu-listitems
   \brief Standard ListItem layout for vertical flowing lists.
 
-  The component is a simple RowLayout providing positioning of the different containers,
-  which can be one of the predefined containers or any other component. It fills
-  the entire item it is embedded in, with 1 grid unit margin on top and bottom,
-  as well as 2 grid units margin on left and right. The spacing in between the
-  containers is 1 grid unit. Component sizes can be driven using the layouting
-  mechanism provided by QtQuick.
+  The component is a GridLayout providing positioning of the different containers
+  either horizontally or vertically, where the container can be one of the
+  predefined containers or any other component. It fills the entire item it is
+  declared in, with 1 grid unit margin on top and bottom and 2 grid units margin
+  on left and right for horizontal, respectively 2 brid units on top and bottom
+  and 1 grid unit left and right for vertical direction. The spacing in between the
+  containers is 1 grid unit in both of the cases. Component sizes can be driven
+  using the layouting mechanism provided by QtQuick.
 
   It is designed to be used with \l ListItem, however it can be used with any
-  Item in any context.
+  Item in any context, especially that ListItem does not provide vertical direction.
 
   \qml
   import QtQuick 2.2
@@ -64,15 +66,36 @@ import QtQuick.Layouts 1.1
   }
   \endqml
  */
-RowLayout {
+GridLayout {
     id: layout
 
-    spacing: units.gu(1)
+    /*!
+      The property specifies the direction of the layout. It can take one of the
+      following values: \c Qt.Horizontal, \c Qt.Vertical. Defailts to \c Qt.Horizontal.
+      */
+    property int direction: Qt.Horizontal
+
+    columns: (direction == Qt.Horizontal) ? -1 : 1
+    rows: (direction == Qt.Vertical) ? -1 : 1
+    rowSpacing: (direction == Qt.Horizontal) ? 0 : units.gu(1)
+    columnSpacing: (direction == Qt.Vertical) ? 0 : units.gu(1)
+    flow: (direction == Qt.Horizontal) ? GridLayout.LeftToRight : GridLayout.TopToBottom
     anchors {
         fill: parent
-        leftMargin: units.gu(2)
-        rightMargin: units.gu(2)
-        topMargin: units.gu(1)
-        bottomMargin: units.gu(1)
+        leftMargin: (direction == Qt.Horizontal) ? units.gu(2) : units.gu(1)
+        rightMargin: (direction == Qt.Horizontal) ? units.gu(2) : units.gu(1)
+        topMargin: (direction == Qt.Vertical) ? units.gu(2) : units.gu(1)
+        bottomMargin: (direction == Qt.Vertical) ? units.gu(2) : units.gu(1)
     }
+
+    // direction verification
+    onDirectionChanged: {
+        if (direction != Qt.Horizontal && direction != Qt.Vertical) {
+            console.error(i18n.tr("Value entered is not one of the supported values."), direction);
+        }
+    }
+
+    // layout mirroring configuration!
+    LayoutMirroring.enabled: Qt.application.layoutDirection == Qt.RightToLeft
+    LayoutMirroring.childrenInherit: true
 }
