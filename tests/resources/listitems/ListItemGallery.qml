@@ -93,7 +93,7 @@ MainView {
                     ListItem {
                         ListItemLayout {
                             Captions {
-                                title.text: longText
+                                title.text: "Text"
                                 subtitle.text: "subtitle"
                             }
                             Captions {
@@ -143,6 +143,14 @@ MainView {
                             Captions {
                                 title.text: "Caption: " + longText
                                 subtitle.text: "Subtitle: " + longText
+                                layout {
+                                    data: [
+                                        Label {
+                                            text: "Third line"
+                                        }
+                                    ]
+                                    spacing: units.gu(1)
+                                }
                             }
                             Switch {
                             }

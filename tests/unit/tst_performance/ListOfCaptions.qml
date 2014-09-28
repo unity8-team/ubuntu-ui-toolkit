@@ -20,17 +20,12 @@ import Ubuntu.Components 1.2
 Column {
     width: 800
     height: 600
-    property alias count: repeater.count
     Repeater {
         id: repeater
         model: 5000
-        Item {
-            width: 100
-            height: 56
+        ListItem {
             ListItemLayout {
                 Captions {
-//                    title.text: "Text"
-//                    subtitle.text: "Text"
                 }
             }
         }
