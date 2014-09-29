@@ -30,7 +30,7 @@ Item {
                 Captions {
                 }
                 Captions {
-                    preset: "details"
+                    preset: "summary"
                 }
             }
         }
