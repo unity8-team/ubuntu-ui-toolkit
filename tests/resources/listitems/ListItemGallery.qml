@@ -186,7 +186,7 @@ MainView {
                                 subtitle.text: "Subtitle text"
                             }
                             Captions {
-                                preset: "details"
+                                preset: "summary"
                                 title.text: "Text"
                                 subtitle.text: "Text"
                             }
@@ -204,7 +204,23 @@ MainView {
                                 subtitle.text: "Subtitle text"
                             }
                             Captions {
-                                preset: "details"
+                                preset: "summary"
+                                title.text: "Text"
+                                subtitle.text: "Text"
+                            }
+                        }
+                    }
+                    ListItem {
+                        ListItemLayout {
+                            ImageContainer {
+                                shape.color: UbuntuColors.blue
+                            }
+                            Captions {
+                                title.text: "Caption (title)"
+                                subtitle.text: "Subtitle text"
+                            }
+                            Captions {
+                                preset: "summary"
                                 title.text: "Text"
                                 subtitle.text: "Text"
                             }
