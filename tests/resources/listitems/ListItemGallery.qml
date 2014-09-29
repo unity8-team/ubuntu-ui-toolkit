@@ -23,242 +23,366 @@ MainView {
     height: units.gu(100)
 
     applicationName: "TestSuite"
+    useDeprecatedToolbar: false
 
-    Page {
-        title: "ListItemLayout test suite"
-        active: true
+    property string longText: "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum."
 
-        Flickable {
-            anchors.fill: parent
-            contentHeight: childrenRect.height
-            Column {
-                width: parent.width
-                ListItem {
-                    ListItemLayout {
-                        ColumnLayout {
-                            spacing: units.gu(0.5)
-                            Layout.alignment: Qt.AlignVCenter
-                            Layout.maximumHeight: parent.height
-                            Layout.maximumWidth: parent.width
-                            Layout.preferredWidth: childrenRect.width
-                            Layout.fillWidth: true
-                            Label {
-                                text: "Title"
-                                fontSize: "large"
+    Tabs {
+        Tab {
+            title: "ListItemLayout"
+            page: Page {
+                Column {
+                    width: parent.width
+                    spacing: units.gu(0.5)
+                    ListItem {
+                        ListItemLayout {
+                            ColumnLayout {
+                                spacing: units.gu(0.5)
+                                Layout.alignment: Qt.AlignVCenter
+                                Layout.maximumHeight: parent.height
+                                Layout.maximumWidth: parent.width
+                                Layout.preferredWidth: childrenRect.width
+                                Layout.fillWidth: true
+                                Label {
+                                    text: "Horizontal layout"
+                                    fontSize: "large"
+                                }
+                                Label {
+                                    text: "Subtitle"
+                                    fontSize: "small"
+                                }
                             }
-                            Label {
-                                text: "Subtitle"
-                                fontSize: "small"
+                            Switch {
                             }
                         }
-                        Switch {
-                        }
                     }
-                }
-                ListItem {
-                    ListItemLayout {
-                        Captions {
-                            title.text: "Caption (title)"
-                            subtitle.text: "Subtitle"
-                            enabled: true
-                            preventStealing: true
-                            onClicked: print("Captions clicked");
-                        }
-                        Captions {
-                            preset: "details"
-                            title.text: "Text"
-                            subtitle.text: "Text"
-                        }
+                    // vertical item
+                    Label {
+                        text: "Vertical layout"
+                        fontSize: "large"
                     }
-                    onClicked: print("ListItem clicked")
-                }
-                ListItem {
-                    ListItemLayout {
-                        Captions {
-                            title.text: "Caption (title)"
-                            subtitle.text: "Subtitle"
-                        }
-                        Switch {
-                        }
-                    }
-                    onClicked: print("clicked on ListItem")
-                }
-                ListItem {
-                    ListItemLayout {
-                        ImageContainer {
-                            shape.image: Image { source: "images.png" }
-                        }
-                        Captions {
-                            title.text: "Caption (title)"
-                            subtitle.text: "Subtitle text"
-                        }
-                        Captions {
-                            preset: "details"
-                            title.text: "Text"
-                            subtitle.text: "Text"
-                        }
-                    }
-                }
-                ListItem {
-                    ListItemLayout {
-                        ImageContainer {
-                            shape.image: Image { source: "images.png" }
-                            shape.width: units.gu(3)
-                            shape.height: units.gu(3)
-                            enabled: true
-                        }
-                        Captions {
-                            title.text: "Caption (title)"
-                            subtitle.text: "Subtitle text"
-                        }
-                        Captions {
-                            preset: "details"
-                            title.text: "Text"
-                            subtitle.text: "Text"
-                        }
-                    }
-                }
-                ListItem {
-                    ListItemLayout {
-                        ImageContainer {
-                            shape.color: UbuntuColors.blue
-                        }
-                        Captions {
-                            title.text: "Caption (title)"
-                            subtitle.text: "Subtitle text"
-                        }
-                        Captions {
-                            preset: "details"
-                            title.text: "Text"
-                            subtitle.text: "Text"
-                        }
-                    }
-                }
-                ListItem {
-                    StandardLayout {
-                        image.shape.color: UbuntuColors.blue
-                        captions {
-                            title.text: "Captions (title)"
-                            subtitle.text: "Subtitle text"
-                        }
-                        details {
-                            title.text: "Text"
-                            subtitle.text: "Text"
-                        }
-                    }
-                }
-                ListItem {
-                    ListItemLayout {
-                        ImageContainer {
-                            shape.color: UbuntuColors.blue
-                        }
-                        Captions {
-                            title.text: "Caption (title)"
-                            subtitle.text: "Subtitle text"
-                        }
-                        Switch {
-                        }
-                        Captions {
-                            preset: "details"
-                            title.text: "Text"
-                            subtitle.text: "Text"
-                        }
-                    }
-                }
-                ListItem {
-                    id: customItem
-                    StandardLayout {
-                        image {
-                            shape.color: UbuntuColors.blue
-                            enabled: true
-                            onClicked: console.log("clicked over the image, Switch is not toggled")
-                        }
-                        captions {
-                            title.text: "Captions (title)"
-                            subtitle.text: "Subtitle text"
-                        }
-                        details {
-                            title.text: "Text"
-                            subtitle.text: "Text"
-                        }
-                        Switch {
-                            id: toggle
-                        }
-                    }
-                    Component.onCompleted: clicked.connect(toggle.clicked)
-                }
-                ListItem {
-                    StandardLayout {
-                        image.shape.color: UbuntuColors.green
-                        captions {
-                            title.text: "Captions (title)"
-                            subtitle.text: "Subtitle text"
-                        }
-                        details {
-                            title.text: "Text"
-                            subtitle.text: "Text"
-                        }
-                    }
-                    trailingActions: ListItemActions {
-                        actions: [
-                            Action {
-                                iconName: "alarm-clock"
-                                onTriggered: print(iconName, "triggered", value)
-                            },
-                            Action {
-                                iconName: "camcorder"
-                                onTriggered: print(iconName, "triggered", value)
-                            },
-                            Action {
-                                iconName: "stock_website"
-                                onTriggered: print(iconName, "triggered", value)
+                    Rectangle {
+                        width: units.gu(40)
+                        height: units.gu(30)
+
+                        ListItemLayout {
+                            direction: Qt.Vertical
+                            UbuntuShape {
+                                width: units.gu(5)
+                                height: width
+                                color: UbuntuColors.blue
                             }
-                        ]
-                        backgroundColor: UbuntuColors.lightGrey
-                        foregroundColor: "white"
-
-                        // DropBox's Mailbox
-                        // depending on the offset dragged in, show different actions
-                        // trigger the action when released
-                        customPanel: Rectangle {
-                            id: panel
-                            property bool leadingPanel: ListItemActions.container.status == ListItemActions.Leading
-                            property Item contentItem: (ListItemActions.container && ListItemActions.container.connectedItem) ?
-                                                           ListItemActions.container.connectedItem.contentItem : null
-                            anchors {
-                                left: contentItem ? contentItem.right : undefined
-                                top: contentItem ? contentItem.top : undefined
-                                bottom: contentItem ? contentItem.bottom : undefined
+                            Switch {
                             }
-                            width: contentItem ? (contentItem.width - units.gu(10)) : 0
-                            color: colors[visibleAction]
+                            UbuntuShape {
+                                width: units.gu(5)
+                                height: width
+                                color: UbuntuColors.blue
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
-                            property real slotSize: panel.width / ListItemActions.container.actions.length
-                            // give a small margin so we don't jump to the next item
-                            property int visibleAction: (slotSize > 0) ? (ListItemActions.offsetVisible - 1) / slotSize : 0
-                            property var colors: [UbuntuColors.blue, UbuntuColors.lightGrey, UbuntuColors.coolGrey]
+        // Captions
+        Tab {
+            title: "Captions"
+            page: Page {
+                Column {
+                    width: parent.width
+                    ListItem {
+                        ListItemLayout {
+                            Captions {
+                                title.text: "Text"
+                                subtitle.text: "subtitle"
+                            }
+                            Captions {
+                                preset: "summary"
+                                title.text: "Text"
+                                subtitle.text: "Text"
+                            }
+                        }
+                    }
+                    ListItem {
+                        ListItemLayout {
+                            Captions {
+                                title.text: "Caption (title) click on captions and"
+                                subtitle.text: longText
+                                MouseArea {
+                                    anchors.fill: parent
+                                    onClicked: print("Captions clicked");
+                                }
+                            }
 
-                            Item {
+                            Captions {
+                                preset: "summary"
+                                title.text: "Text"
+                                subtitle.text: "Text"
+                            }
+                        }
+                        onClicked: print("ListItem clicked")
+                    }
+                    ListItem {
+                        ListItemLayout {
+                            Captions {
+                                title.text: "Caption (title)"
+                                subtitle.text: "Subtitle"
+                                Component.onCompleted: subtitle.Layout.alignment = Qt.AlignRight
+                            }
+                            Switch {
+                            }
+                        }
+                        onClicked: print("clicked on ListItem")
+                    }
+                    Label {
+                        text: "Vertical layout"
+                        fontSize: "large"
+                    }
+                    Rectangle {
+                        width: units.gu(40)
+                        height: units.gu(30)
+
+                        ListItemLayout {
+                            direction: Qt.Vertical
+                            Captions {
+                                title.text: "Caption: " + longText
+                                subtitle.text: "Subtitle: " + longText
+                                layout {
+                                    data: [
+                                        Label {
+                                            text: "Third line"
+                                        }
+                                    ]
+                                    spacing: units.gu(1)
+                                }
+                            }
+                            Switch {
+                            }
+                            Captions {
+                                preset: "summary"
+                                title.text: "Text"
+                                subtitle.text: "Text"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // ImageContainer
+        Tab {
+            title: "ImageContainer"
+            page: Page {
+                Column {
+                    width: parent.width
+                    ListItem {
+                        ListItemLayout {
+                            ImageContainer {
+                                shape.image: Image { source: "images.png" }
+                            }
+                            Captions {
+                                title.text: "Caption (title)"
+                                subtitle.text: "Subtitle text"
+                            }
+                            Captions {
+                                preset: "summary"
+                                title.text: "Text"
+                                subtitle.text: "Text"
+                            }
+                        }
+                    }
+                    ListItem {
+                        ListItemLayout {
+                            ImageContainer {
+                                shape.image: Image { source: "images.png" }
+                                shape.width: units.gu(3)
+                                shape.height: units.gu(3)
+                            }
+                            Captions {
+                                title.text: "Caption (title)"
+                                subtitle.text: "Subtitle text"
+                            }
+                            Captions {
+                                preset: "summary"
+                                title.text: "Text"
+                                subtitle.text: "Text"
+                            }
+                        }
+                    }
+                    ListItem {
+                        ListItemLayout {
+                            ImageContainer {
+                                shape.color: UbuntuColors.blue
+                            }
+                            Captions {
+                                title.text: "Caption (title)"
+                                subtitle.text: "Subtitle text"
+                            }
+                            Captions {
+                                preset: "summary"
+                                title.text: "Text"
+                                subtitle.text: "Text"
+                            }
+                        }
+                    }
+                    Label {
+                        text: "Vertical layout"
+                        fontSize: "large"
+                    }
+                    Rectangle {
+                        width: units.gu(10)
+                        height: units.gu(30)
+
+                        ListItemLayout {
+                            direction: Qt.Vertical
+                            ImageContainer {
+                                shape.color: UbuntuColors.blue
+                            }
+                            Switch {
+                            }
+                            ImageContainer {
+                                shape.color: UbuntuColors.green
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // StandardLayout
+        Tab {
+            title: "StandardLayout"
+            page: Page {
+                Column {
+                    width: parent.width
+                    ListItem {
+                        StandardLayout {
+                            image.shape.color: UbuntuColors.blue
+                            caption {
+                                title.text: "Captions (title)"
+                                subtitle.text: "Subtitle text"
+                            }
+                            summary {
+                                title.text: "Text"
+                                subtitle.text: "Text"
+                            }
+                        }
+                    }
+                    ListItem {
+                        id: customItem
+                        trailingActions: ListItemActions {
+                            actions: [
+                                Action {
+                                    iconName: "alarm-clock"
+                                    onTriggered: print(iconName, "triggered", value)
+                                },
+                                Action {
+                                    iconName: "camcorder"
+                                    onTriggered: print(iconName, "triggered", value)
+                                },
+                                Action {
+                                    iconName: "stock_website"
+                                    onTriggered: print(iconName, "triggered", value)
+                                }
+                            ]
+                        }
+                        StandardLayout {
+                            id: layout1
+                            image {
+                                shape.color: UbuntuColors.blue
+                            }
+                            caption {
+                                title.text: "Captions (title)"
+                                subtitle.text: "Subtitle text"
+                            }
+                            summary {
+                                title.text: "Text"
+                                subtitle.text: "Text"
+                            }
+                            MouseArea {
+                                anchors.fill: layout1.image
+                                onClicked: print("ImageContainer clicked")
+                            }
+                            Switch {
+                                id: toggle
+                            }
+                        }
+                        Component.onCompleted: clicked.connect(toggle.clicked)
+                    }
+                    ListItem {
+                        StandardLayout {
+                            image.shape.color: UbuntuColors.green
+                            caption {
+                                title.text: "Captions (title)"
+                                subtitle.text: "Subtitle text"
+                            }
+                            summary {
+                                title.text: "Text"
+                                subtitle.text: "Text"
+                            }
+                        }
+                        trailingActions: ListItemActions {
+                            actions: [
+                                Action {
+                                    iconName: "alarm-clock"
+                                    onTriggered: print(iconName, "triggered", value)
+                                },
+                                Action {
+                                    iconName: "camcorder"
+                                    onTriggered: print(iconName, "triggered", value)
+                                },
+                                Action {
+                                    iconName: "stock_website"
+                                    onTriggered: print(iconName, "triggered", value)
+                                }
+                            ]
+                            backgroundColor: UbuntuColors.lightGrey
+                            foregroundColor: "white"
+
+                            // DropBox's Mailbox
+                            // depending on the offset dragged in, show different actions
+                            // trigger the action when released
+                            customPanel: Rectangle {
+                                id: panel
+                                property bool leadingPanel: ListItemActions.container.status == ListItemActions.Leading
+                                property Item contentItem: (ListItemActions.listItem) ?
+                                                               ListItemActions.listItem.contentItem : null
                                 anchors {
-                                    left: parent.left
-                                    top: parent.top
-                                    bottom: parent.bottom
+                                    left: contentItem ? contentItem.right : undefined
+                                    top: contentItem ? contentItem.top : undefined
+                                    bottom: contentItem ? contentItem.bottom : undefined
                                 }
-                                width: height
-                                Icon {
-                                    width: units.gu(3)
-                                    height: width
-                                    anchors.centerIn: parent
-                                    color: "white"
-                                    name: panel.ListItemActions.container.actions[visibleAction].iconName
-                                }
-                            }
+                                width: contentItem ? (contentItem.width - units.gu(10)) : 0
+                                color: colors[visibleAction]
 
-                            ListItemActions.onDraggingChanged: {
-                                if (!ListItemActions.dragging) {
-                                    // snap first, then trigger
-                                    ListItemActions.snapToPosition((visibleAction + 1) * slotSize);
-                                    panel.ListItemActions.container.actions[visibleAction].triggered(panel.ListItemActions.itemIndex)
+                                property real slotSize: panel.width / ListItemActions.container.actions.length
+                                // give a small margin so we don't jump to the next item
+                                property int visibleAction: (slotSize > 0) ? (ListItemActions.offset - 1) / slotSize : 0
+                                property var colors: [UbuntuColors.blue, UbuntuColors.lightGrey, UbuntuColors.coolGrey]
+
+                                Item {
+                                    anchors {
+                                        left: parent.left
+                                        top: parent.top
+                                        bottom: parent.bottom
+                                    }
+                                    width: height
+                                    Icon {
+                                        width: units.gu(3)
+                                        height: width
+                                        anchors.centerIn: parent
+                                        color: "white"
+                                        name: ListItemActions.container.actions[visibleAction].iconName
+                                    }
+                                }
+
+                                ListItemActions.onDraggingChanged: {
+                                    if (!ListItemActions.dragging) {
+                                        // snap first, then trigger
+                                        ListItemActions.snapToPosition((visibleAction + 1) * slotSize);
+                                        ListItemActions.container.actions[visibleAction].triggered(ListItemActions.listItemIndex)
+                                    }
                                 }
                             }
                         }

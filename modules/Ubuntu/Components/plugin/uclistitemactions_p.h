@@ -31,7 +31,7 @@ public:
         return actions ? actions->d_func() : 0;
     }
 
-    UCListItemActions::Status status;
+    bool dragging:1;
     QQmlComponent *delegate;
     QQmlComponent *customPanel;
     QQuickItem *panelItem;
@@ -43,19 +43,21 @@ public:
     qreal optionSlotWidth;
     qreal offsetDragged;
     int optionsVisible;
+    UCListItemActions::Status status;
 
     void _q_handlePanelDrag();
     void _q_handlePanelWidth();
+    UCListItemActionsAttached *attachedObject();
 
     static bool connectToListItem(UCListItemActions *options, UCListItem *listItem, bool leading);
     static void disconnectFromListItem(UCListItemActions *options);
     static bool isConnectedTo(UCListItemActions *options, UCListItem *listItem);
-    static void drag(UCListItemActions *options, UCListItem *listItem, bool started);
     static qreal snap(UCListItemActions *options);
-    UCListItemActionsAttached *attachedObject();
+    static void setDragging(UCListItemActions *actions, UCListItem *listItem, bool dragging);
 
+    void createItem(QQmlComponent *component);
     QQuickItem *createPanelItem();
-    QQuickItem *createCustomPanelItem();
+    void deletePanelItem();
 };
 
 #endif // UCLISTITEMACTIONS_P_H

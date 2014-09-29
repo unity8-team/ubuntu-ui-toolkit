@@ -35,12 +35,11 @@ AbstractButton
     property font font
     property string iconPosition
 Captions 1.2
-MouseArea
+Item
     property string preset
     property Label title
     property Label subtitle
-    default property list<QtObject> data
-    property real spacing
+    property Column layout
 CheckBox 0.1 1.0
 AbstractButton
     property bool checked
@@ -81,14 +80,14 @@ Icon 1.1
 Icon10
     property url source
 ImageContainer 1.2
-MouseArea
-    property UbuntuShape shape
-    property list<QtObject> overlay
+Item
+    property Shape shape
 Label 0.1 1.0
 Text
     property string fontSize
 ListItemLayout 1.2
-RowLayout
+GridLayout
+    property int direction
 Base 0.1 1.0
 Empty
     property variant icon
@@ -443,8 +442,8 @@ StyledItem
 StandardLayout 1.2
 ListItemLayout
     property ImageContainer image
-    property Captions captions
-    property Captions details
+    property Captions caption
+    property Captions summary
 StyledItem 0.1 1.0 1.1
 StyledItemBase
     property Component style
@@ -903,19 +902,19 @@ plugins.qmltypes
     Property { name: "delegate"; type: "QQmlComponent"; isPointer: true }
     Property { name: "customPanel"; type: "QQmlComponent"; isPointer: true }
     Property { name: "actions"; type: "UCAction"; isList: true; isReadonly: true }
-    Property { name: "panelItem"; type: "QQuickItem"; isReadonly: true; isPointer: true }
-    Property { name: "status"; type: "Status"; isReadonly: true }
-    Property { name: "connectedItem"; type: "UCListItem"; isReadonly: true; isPointer: true }
     Property { name: "backgroundColor"; type: "QColor" }
     Property { name: "foregroundColor"; type: "QColor" }
     Property { name: "data"; type: "QObject"; isList: true; isReadonly: true }
+    Signal { name: "__statusChanged" }
+    Signal { name: "__draggingChanged" }
     name: "UCListItemActionsAttached"
     prototype: "QObject"
-    Property { name: "container"; type: "UCListItemActions"; isPointer: true }
-    Property { name: "offsetVisible"; type: "double"; isReadonly: true }
-    Property { name: "itemIndex"; type: "int" }
+    Property { name: "container"; type: "UCListItemActions"; isReadonly: true; isPointer: true }
+    Property { name: "listItem"; type: "UCListItem"; isReadonly: true; isPointer: true }
+    Property { name: "listItemIndex"; type: "int"; isReadonly: true }
+    Property { name: "offset"; type: "double"; isReadonly: true }
     Property { name: "status"; type: "UCListItemActions::Status"; isReadonly: true }
-    Property { name: "dragging"; type: "bool" }
+    Property { name: "dragging"; type: "bool"; isReadonly: true }
     Method {
     name: "snapToPosition"
     Parameter { name: "position"; type: "double" }

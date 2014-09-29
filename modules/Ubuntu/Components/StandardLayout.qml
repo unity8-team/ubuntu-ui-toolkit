@@ -180,16 +180,16 @@ ListItemLayout {
     property alias image: imageContainer
 
     /*!
-      \qmlproperty Captions captions
+      \qmlproperty Captions caption
       The property holds the \l Captions container with \b defaults preset.
       */
-    property alias captions: captionsContainer
+    property alias caption: captionsContainer
 
     /*!
-      \qmlproperty Captions details
+      \qmlproperty Captions summary
       The property holds the \l Captions container with \b details preset.
       */
-    property alias details: detailsContainer
+    property alias summary: summaryContainer
 
     ImageContainer {
         id: imageContainer
@@ -198,7 +198,7 @@ ListItemLayout {
         id: captionsContainer
     }
     Captions {
-        id: detailsContainer
-        preset: "details"
+        id: summaryContainer
+        preset: "summary"
     }
 }

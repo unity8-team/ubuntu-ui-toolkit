@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 Canonical Ltd.
+ * Copyright 2014 Canonical Ltd.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,21 +16,16 @@
 
 import QtQuick 2.0
 import Ubuntu.Components 1.2
-import QtQuick.Layouts 1.1
 
-Item {
+Column {
     width: 800
     height: 600
     Repeater {
+        id: repeater
         model: 5000
         ListItem {
             ListItemLayout {
-                ImageContainer {
-                }
                 Captions {
-                }
-                Captions {
-                    preset: "summary"
                 }
             }
         }

@@ -24,6 +24,9 @@ Item {
     id: panel
     width: optionsRow.childrenRect.width
 
+    // for testing
+    objectName: "ListItemPanel"
+
     /*
       Property holding the ListItem's contentItem instance
       */
@@ -38,24 +41,14 @@ Item {
     /*
       Specifies whether the panel is used to visualize leading or trailing options.
       */
-    property bool leadingPanel: (ListItemActions.container.status === ListItemActions.Leading)
-    /*
-      The delegate to be used to visualize the options
-      */
-    property Component delegate: ListItemActions.container.delegate
+    property bool leadingPanel: ListItemActions.status == ListItemActions.Leading
 
     /*
       Actions
       */
-    property var actionList: ListItemActions.container.actions
+    property var actionList: ListItemActions.container ? ListItemActions.container.actions : undefined
 
-    /*
-      Panel and text colors
-      */
-    property color backgroundColor: ListItemActions.container.backgroundColor
-    property color foregroundColor: ListItemActions.container.foregroundColor
-
-    // fire selected action when parent is removed
+    // fire selected action when disconnected
     onParentChanged: {
         if (!parent && selectedAction) {
             selectedAction.triggered(listItemIndex >= 0 ? listItemIndex : null);
@@ -72,9 +65,11 @@ Item {
     }
 
     Rectangle {
+        objectName: "panel_background"
         anchors.fill: parent
         // FIXME: use Palette colors instead when available
-        color: (panel.backgroundColor != "#000000") ? panel.backgroundColor : (leadingPanel ? UbuntuColors.red : "white")
+        color: (ListItemActions.container.backgroundColor != "#000000") ?
+                   ListItemActions.container.backgroundColor : (leadingPanel ? UbuntuColors.red : "white")
     }
 
     Row {
@@ -104,14 +99,16 @@ Item {
                     // save the action as we trigger when the rebound animation is over
                     // to make sure we properly clean up the blockade of the Flickables
                     panel.selectedAction = action;
-                    listItemIndex = panel.ListItemActions.itemIndex;
-                    panel.ListItemActions.snapToPosition(0.0);
+                    panel.listItemIndex = ListItemActions.listItemIndex;
+                    ListItemActions.snapToPosition(0.0);
                 }
 
                 Loader {
+                    objectName: "icon_loader"
                     id: delegateLoader
                     height: parent.height
-                    sourceComponent: panel.delegate ? panel.delegate : defaultDelegate
+                    sourceComponent: (ListItemActions.container && ListItemActions.container.delegate) ?
+                                         ListItemActions.container.delegate : defaultDelegate
                     property Action action: modelData
                     property int index: index
                     onItemChanged: {
@@ -130,12 +127,13 @@ Item {
         Item {
             width: height
             Icon {
+                objectName: "action_icon"
                 width: units.gu(2.5)
                 height: width
                 name: action.iconName
                 // FIXME: use Palette colors instead when available
-                color: (panel.foregroundColor != "#000000") ?
-                           panel.foregroundColor : (panel.leadingPanel ? "white" : UbuntuColors.darkGrey)
+                color: (ListItemActions.container.foregroundColor != "#000000") ?
+                           ListItemActions.container.foregroundColor : (panel.leadingPanel ? "white" : UbuntuColors.darkGrey)
                 anchors.centerIn: parent
             }
         }

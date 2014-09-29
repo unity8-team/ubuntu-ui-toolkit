@@ -80,6 +80,7 @@ private Q_SLOTS:
         QTest::newRow("list with new ListItem") << "ListItemList.qml" << QUrl();
         QTest::newRow("list with new ListItem with options") << "ListItemWithOptionsList.qml" << QUrl();
         QTest::newRow("list with new ListItem with inline options") << "ListItemWithInlineOptionsList.qml" << QUrl();
+        QTest::newRow("list with Captions, preset: caption") << "ListOfCaptions.qml" << QUrl();
         QTest::newRow("list of standard layout") << "ListOfStandard.qml" << QUrl();
         QTest::newRow("list of StandardLayout") << "ListOfStandardLayout.qml" << QUrl();
         QTest::newRow("list of StandardLayout with options") << "ListOfStandardLayoutWithOptions.qml" << QUrl();
