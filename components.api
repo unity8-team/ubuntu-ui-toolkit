@@ -80,9 +80,8 @@ Icon 1.1
 Icon10
     property url source
 ImageContainer 1.2
-MouseArea
-    property UbuntuShape shape
-    property list<QtObject> overlay
+Item
+    property Shape shape
 Label 0.1 1.0
 Text
     property string fontSize

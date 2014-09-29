@@ -85,6 +85,7 @@ MainView {
             }
         }
 
+        // Captions
         Tab {
             title: "Captions"
             page: Page {
@@ -134,6 +135,10 @@ MainView {
                         }
                         onClicked: print("clicked on ListItem")
                     }
+                    Label {
+                        text: "Vertical layout"
+                        fontSize: "large"
+                    }
                     Rectangle {
                         width: units.gu(40)
                         height: units.gu(30)
@@ -164,6 +169,8 @@ MainView {
                 }
             }
         }
+
+        // ImageContainer
         Tab {
             title: "ImageContainer"
             page: Page {
@@ -200,6 +207,26 @@ MainView {
                                 preset: "details"
                                 title.text: "Text"
                                 subtitle.text: "Text"
+                            }
+                        }
+                    }
+                    Label {
+                        text: "Vertical layout"
+                        fontSize: "large"
+                    }
+                    Rectangle {
+                        width: units.gu(10)
+                        height: units.gu(30)
+
+                        ListItemLayout {
+                            direction: Qt.Vertical
+                            ImageContainer {
+                                shape.color: UbuntuColors.blue
+                            }
+                            Switch {
+                            }
+                            ImageContainer {
+                                shape.color: UbuntuColors.green
                             }
                         }
                     }

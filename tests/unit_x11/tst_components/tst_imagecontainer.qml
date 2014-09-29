@@ -26,18 +26,17 @@ Item {
 
     Column {
         width: parent.width
-        ImageContainer {
-            id: defaults
-        }
-        ImageContainer {
-            id: testItem
-        }
         ListItem {
-            id: listItem
             ListItemLayout {
                 ImageContainer {
-                    id: image
-                    shape.color: UbuntuColors.blue
+                    id: defaults
+                }
+            }
+        }
+        ListItem {
+            ListItemLayout {
+                ImageContainer {
+                    id: testItem
                 }
             }
         }
@@ -47,50 +46,17 @@ Item {
         name: "ImageContainerAPI"
         when: windowShown
 
-        SignalSpy {
-            id: listItemClickSpy
-            target: listItem
-            signalName: "clicked"
-        }
-        SignalSpy {
-            id: clickSpy
-            signalName: "clicked"
-        }
-
-        function cleanup() {
-            clickSpy.target = null;
-            clickSpy.clear();
-            listItemClickSpy.clear();
-            testItem.enabled = false;
-            image.enabled = false;
-        }
-
         function test_0_defaults() {
             verify(QuickUtils.inherits(defaults.shape, "ShapeItem"), "shape is not UbuntuShape!");
-            compare(defaults.overlay.length, 0, "Nothing in teh overlay");
-            compare(defaults.enabled, false, "Container must be disabled by default");
             compare(defaults.shape.color, Qt.rgba(0, 0, 0, 0), "No color is set to container");
             compare(defaults.shape.image, null, "No image is set to container");
             compare(defaults.visible, false, "Container is not visible when no color or image set.");
         }
 
-        function test_captions_clisk_data() {
-            return [
-                {tag: "disabled container", enabled: false},
-                {tag: "enabled container", enabled: true},
-            ];
-        }
-        function test_captions_clisk(data) {
-            image.enabled = data.enabled;
-            clickSpy.target = image;
-            mouseClick(image, centerOf(image).x, centerOf(image).y);
-            if (data.enabled) {
-                clickSpy.wait();
-                compare(listItemClickSpy.count, 0, "Click must be suppressed when container is enabled.");
-            } else {
-                listItemClickSpy.wait();
-                compare(clickSpy.count, 0, "Container should not emit clicked signal when disabled.");
-            }
+        function test_set_color_makes_visible() {
+            testItem.shape.color = "red";
+            waitForRendering(testItem);
+            compare(testItem.visible, true, "ImageContainer is not visible!");
         }
     }
 }
