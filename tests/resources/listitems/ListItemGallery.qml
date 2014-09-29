@@ -231,74 +231,53 @@ MainView {
                         }
                     }
                 }
-                ListItem {
-                    ListItemLayout {
-                        ImageContainer {
-                            shape.color: UbuntuColors.blue
-                        }
-                        Captions {
-                            title.text: "Caption (title)"
-                            subtitle.text: "Subtitle text"
-                        }
-                        Captions {
-                            preset: "details"
-                            title.text: "Text"
-                            subtitle.text: "Text"
-                        }
-                    }
-                }
-                ListItem {
-                    StandardLayout {
-                        image.shape.color: UbuntuColors.blue
-                        captions {
-                            title.text: "Captions (title)"
-                            subtitle.text: "Subtitle text"
-                        }
-                        details {
-                            title.text: "Text"
-                            subtitle.text: "Text"
+            }
+        }
+
+        // StandardLayout
+        Tab {
+            title: "StandardLayout"
+            page: Page {
+                Column {
+                    width: parent.width
+                    ListItem {
+                        StandardLayout {
+                            image.shape.color: UbuntuColors.blue
+                            captions {
+                                title.text: "Captions (title)"
+                                subtitle.text: "Subtitle text"
+                            }
+                            details {
+                                title.text: "Text"
+                                subtitle.text: "Text"
+                            }
                         }
                     }
-                }
-                ListItem {
-                    ListItemLayout {
-                        ImageContainer {
-                            shape.color: UbuntuColors.blue
+                    ListItem {
+                        id: customItem
+                        StandardLayout {
+                            id: layout1
+                            image {
+                                shape.color: UbuntuColors.blue
+                            }
+                            captions {
+                                title.text: "Captions (title)"
+                                subtitle.text: "Subtitle text"
+                            }
+                            details {
+                                title.text: "Text"
+                                subtitle.text: "Text"
+                            }
+                            MouseArea {
+                                anchors.fill: layout1.image
+                                onClicked: print("ImageContainer clicked")
+                            }
+                            Switch {
+                                id: toggle
+                            }
                         }
-                        Captions {
-                            title.text: "Caption (title)"
-                            subtitle.text: "Subtitle text"
-                        }
-                        Switch {
-                        }
-                        Captions {
-                            preset: "details"
-                            title.text: "Text"
-                            subtitle.text: "Text"
-                        }
+                        Component.onCompleted: clicked.connect(toggle.clicked)
                     }
-                }
-                ListItem {
-                    id: customItem
-                    StandardLayout {
-                        image {
-                            shape.color: UbuntuColors.blue
-                            enabled: true
-                            onClicked: console.log("clicked over the image, Switch is not toggled")
-                        }
-                        captions {
-                            title.text: "Captions (title)"
-                            subtitle.text: "Subtitle text"
-                        }
-                        details {
-                            title.text: "Text"
-                            subtitle.text: "Text"
-                        }
-                        Switch {
-                            id: toggle
-                        }
-                    }
-                    Component.onCompleted: clicked.connect(toggle.clicked)
                 }
             }
         }
