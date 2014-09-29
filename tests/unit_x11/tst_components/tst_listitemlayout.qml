@@ -23,8 +23,13 @@ Item {
     width: units.gu(40)
     height: units.gu(71)
 
-    ListItemLayout {
-        id: defaults
+    Column {
+        ListItemLayout {
+            id: defaults
+        }
+        ListItemLayout {
+            id: layout
+        }
     }
 
     UbuntuTestCase {
@@ -36,7 +41,22 @@ Item {
             compare(defaults.anchors.rightMargin, units.gu(2), "Right margin wrong");
             compare(defaults.anchors.topMargin, units.gu(1), "Top margin wrong");
             compare(defaults.anchors.bottomMargin, units.gu(1), "Bottom margin wrong");
-            compare(defaults.spacing, units.gu(1), "Wrong spacing");
+            compare(defaults.columnSpacing, units.gu(1), "Wrong spacing");
+            compare(defaults.rowSpacing, 0, "Wrong vertical spacing");
+            compare(defaults.rows, 1, "only one row is allowed");
+            compare(defaults.columns, -1, "infinite columns");
+        }
+
+        function test_vertical_layout() {
+            layout.direction = Qt.Vertical;
+            compare(layout.anchors.leftMargin, units.gu(1), "Left margin wrong");
+            compare(layout.anchors.rightMargin, units.gu(1), "Right margin wrong");
+            compare(layout.anchors.topMargin, units.gu(2), "Top margin wrong");
+            compare(layout.anchors.bottomMargin, units.gu(2), "Bottom margin wrong");
+            compare(layout.columnSpacing, 0, "Wrong spacing");
+            compare(layout.rowSpacing, units.gu(1), "Wrong vertical spacing");
+            compare(layout.rows, -1, "infinite rows");
+            compare(layout.columns, 1, "only one column is allowed");
         }
     }
 }

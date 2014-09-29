@@ -26,22 +26,17 @@ Item {
 
     Column {
         width: parent.width
-        Captions {
-            id: defaults
-        }
-        Captions {
-            id: testCaptions
+        ListItem {
+            ListItemLayout {
+                Captions {
+                    id: defaults
+                }
+            }
         }
         ListItem {
-            id: listItem
             ListItemLayout {
-                id: layout
                 Captions {
-                    id: titles
-                    title.text: "Text"
-                }
-                Switch {
-                    id: testComponent
+                    id: testCaptions
                 }
             }
         }
@@ -51,63 +46,47 @@ Item {
         name: "CaptionsAPI"
         when: windowShown
 
-        SignalSpy {
-            id: listItemClickSpy
-            target: listItem
-            signalName: "clicked"
-        }
-
-        SignalSpy {
-            id: clickSpy
-            signalName: "clicked"
-        }
-
-        function cleanup() {
-            titles.enabled = false;
-            listItemClickSpy.clear();
-            clickSpy.clear();
-        }
-
         function test_0_defaults() {
-            compare(defaults.enabled, false, "The container is disabled by default");
-            compare(defaults.preset, "titles", "Defautl preset is 'titles'");
+            compare(defaults.preset, "caption", "Default preset is 'titles'");
             compare(defaults.height, 0, "default height is 0");
             compare(defaults.width, 0, "default width is 0")
-            compare(defaults.Layout.alignment, Qt.AlignVCenter, "center vertically by default");
-            compare(defaults.spacing, units.gu(0.5), "default spacing failure");
+            compare(defaults.Layout.alignment, Qt.AlignVCenter | Qt.AlignLeft, "center vertically and left horizontally by default");
+            compare(defaults.layout.spacing, units.gu(0.5), "default spacing failure");
         }
 
         function test_captions_data() {
             return [
-                {tag: "titles, title", preset: "titles", label: "title", fontSize: "large", alignment: Qt.AlignLeft},
-                {tag: "titles, subtitle", preset: "titles", label: "subtitle", fontSize: "small", alignment: Qt.AlignLeft},
-                {tag: "details, title", preset: "details", label: "title", fontSize: "medium", alignment: Qt.AlignRight},
-                {tag: "details, subtitle", preset: "details", label: "subtitle", fontSize: "small", alignment: Qt.AlignRight},
-            ];
+                        {tag: "caption, title.fontSize", preset: "caption", label: "title", property: "fontSize", value: "medium"},
+                        {tag: "caption, title.horizontalAlignment", preset: "caption", label: "title", property: "horizontalAlignment", value: Text.AlignLeft},
+                        {tag: "caption, title.elide", preset: "caption", label: "title", property: "elide", value: Text.ElideRight},
+                        {tag: "caption, subtitle.fontSize", preset: "caption", label: "subtitle", property: "fontSize", value: "x-small"},
+                        {tag: "caption, subtitle.horizontalAlignment", preset: "caption", label: "subtitle", property: "horizontalAlignment", value: Text.AlignLeft},
+                        {tag: "caption, subtitle.maximumLineCount", preset: "caption", label: "subtitle", property: "maximumLineCount", value: 2},
+                        {tag: "caption, subtitle.wrapMode", preset: "caption", label: "subtitle", property: "wrapMode", value: Text.Wrap},
+                        {tag: "caption, subtitle.elide", preset: "caption", label: "subtitle", property: "elide", value: Text.ElideRight},
+
+                        {tag: "summary, title.fontSize", preset: "summary", label: "title", property: "fontSize", value: "medium"},
+                        {tag: "summary, title.horizontalAlignment", preset: "summary", label: "title", property: "horizontalAlignment", value: Text.AlignRight},
+                        {tag: "summary, title.elide", preset: "summary", label: "title", property: "elide", value: Text.ElideNone},
+                        {tag: "summary, subtitle.fontSize", preset: "summary", label: "subtitle", property: "fontSize", value: "x-small"},
+                        {tag: "summary, subtitle.horizontalAlignment", preset: "summary", label: "subtitle", property: "horizontalAlignment", value: Text.AlignRight},
+                        {tag: "summary, subtitle.maximumLineCount", preset: "summary", label: "subtitle", property: "maximumLineCount", value: 1},
+                        {tag: "summary, subtitle.wrapMode", preset: "summary", label: "subtitle", property: "wrapMode", value: Text.NoWrap},
+                        {tag: "summary, subtitle.elide", preset: "summary", label: "subtitle", property: "elide", value: Text.ElideNone},
+                    ];
         }
         function test_captions(data) {
             testCaptions.preset = data.preset;
-            compare(testCaptions[data.label].fontSize, data.fontSize, "fontSize differs");
-            compare(testCaptions[data.label].Layout.alignment, data.alignment, "alignment differs");
+            compare(testCaptions[data.label][data.property], data.value, data.tag + " values differ");
         }
 
-        function test_captions_clisk_data() {
-            return [
-                {tag: "disabled container", enabled: false},
-                {tag: "enabled container", enabled: true},
-            ];
-        }
-        function test_captions_clisk(data) {
-            titles.enabled = data.enabled;
-            clickSpy.target = titles;
-            mouseClick(titles, centerOf(titles).x, centerOf(titles).y);
-            if (titles.enabled) {
-                clickSpy.wait();
-                compare(listItemClickSpy.count, 0, "Click must be suppressed when container is enabled.");
-            } else {
-                listItemClickSpy.wait();
-                compare(clickSpy.count, 0, "Container should not emit clicked signal when disabled.");
-            }
+        function test_change_config_based_on_text_length() {
+            testCaptions.preset = "caption";
+            testCaptions.title.text = "Title";
+            testCaptions.subtitle.text = "line1\r\nline2";
+            waitForRendering(testCaptions);
+            compare(testCaptions.subtitle.lineCount, 2, "there should be two lines reported by the subtitle label.");
+            compare(testCaptions.layout.spacing, units.gu(0.1), "Spacing must be smaller than the default one to fit 7GU default size");
         }
     }
 }

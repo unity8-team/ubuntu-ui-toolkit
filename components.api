@@ -35,12 +35,11 @@ AbstractButton
     property font font
     property string iconPosition
 Captions 1.2
-MouseArea
+Item
     property string preset
     property Label title
     property Label subtitle
-    default property list<QtObject> data
-    property real spacing
+    property Column layout
 CheckBox 0.1 1.0
 AbstractButton
     property bool checked
@@ -81,14 +80,14 @@ Icon 1.1
 Icon10
     property url source
 ImageContainer 1.2
-MouseArea
-    property UbuntuShape shape
-    property list<QtObject> overlay
+Item
+    property Shape shape
 Label 0.1 1.0
 Text
     property string fontSize
 ListItemLayout 1.2
-RowLayout
+GridLayout
+    property int direction
 Base 0.1 1.0
 Empty
     property variant icon
