@@ -44,7 +44,6 @@ Item {
     property alias shape: frameItem
 
     enabled: false
-    clip: true
     Layout.alignment: Qt.AlignVCenter
     width: units.gu(5)
     Layout.minimumHeight: 0
