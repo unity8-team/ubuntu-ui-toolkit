@@ -68,8 +68,8 @@ Item {
         objectName: "panel_background"
         anchors.fill: parent
         // FIXME: use Palette colors instead when available
-        color: (ListItemActions.container.backgroundColor != "#000000") ?
-                   ListItemActions.container.backgroundColor : (leadingPanel ? UbuntuColors.red : "white")
+        color: (panel.ListItemActions.container.backgroundColor != "#000000") ?
+                   panel.ListItemActions.container.backgroundColor : (leadingPanel ? UbuntuColors.red : "white")
     }
 
     Row {
@@ -99,16 +99,16 @@ Item {
                     // save the action as we trigger when the rebound animation is over
                     // to make sure we properly clean up the blockade of the Flickables
                     panel.selectedAction = action;
-                    panel.listItemIndex = ListItemActions.listItemIndex;
-                    ListItemActions.snapToPosition(0.0);
+                    panel.listItemIndex = panel.ListItemActions.listItemIndex;
+                    panel.ListItemActions.snapToPosition(0.0);
                 }
 
                 Loader {
                     objectName: "icon_loader"
                     id: delegateLoader
                     height: parent.height
-                    sourceComponent: (ListItemActions.container && ListItemActions.container.delegate) ?
-                                         ListItemActions.container.delegate : defaultDelegate
+                    sourceComponent: (panel.ListItemActions.container && panel.ListItemActions.container.delegate) ?
+                                         panel.ListItemActions.container.delegate : defaultDelegate
                     property Action action: modelData
                     property int index: index
                     onItemChanged: {
@@ -132,8 +132,8 @@ Item {
                 height: width
                 name: action.iconName
                 // FIXME: use Palette colors instead when available
-                color: (ListItemActions.container.foregroundColor != "#000000") ?
-                           ListItemActions.container.foregroundColor : (panel.leadingPanel ? "white" : UbuntuColors.darkGrey)
+                color: (panel.ListItemActions.container.foregroundColor != "#000000") ?
+                           panel.ListItemActions.container.foregroundColor : (panel.leadingPanel ? "white" : UbuntuColors.darkGrey)
                 anchors.centerIn: parent
             }
         }
