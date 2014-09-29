@@ -439,6 +439,11 @@ StyledItem
     signal touched(bool onThumb)
     function formatValue(v)
     property internal __internals
+StandardLayout 1.2
+ListItemLayout
+    property ImageContainer image
+    property Captions caption
+    property Captions summary
 StyledItem 0.1 1.0 1.1
 StyledItemBase
     property Component style

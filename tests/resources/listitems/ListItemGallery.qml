@@ -259,11 +259,11 @@ MainView {
                     ListItem {
                         StandardLayout {
                             image.shape.color: UbuntuColors.blue
-                            captions {
+                            caption {
                                 title.text: "Captions (title)"
                                 subtitle.text: "Subtitle text"
                             }
-                            details {
+                            summary {
                                 title.text: "Text"
                                 subtitle.text: "Text"
                             }
@@ -276,11 +276,11 @@ MainView {
                             image {
                                 shape.color: UbuntuColors.blue
                             }
-                            captions {
+                            caption {
                                 title.text: "Captions (title)"
                                 subtitle.text: "Subtitle text"
                             }
-                            details {
+                            summary {
                                 title.text: "Text"
                                 subtitle.text: "Text"
                             }
