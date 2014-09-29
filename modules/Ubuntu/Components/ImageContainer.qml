@@ -25,44 +25,23 @@ import Ubuntu.Components 1.1
   \brief Container providing presets for a framed image that can be used in
   \l ListItemLayout.
 
-  The component, similarly to \l Captions, is a container which clips an image
-  into a \l shape. Derived from MouseArea, it can handle mouse events over the shape
-  when enabled. Also similarly to \l Captions, the default state is disabled, meaning
-  no mouse events are handled.
+  The component is a container which clips an image into a \l shape. The container
+  has a fixed width of 5 grid units and a height as its parent, and the shape is
+  centered into the container. Similarly to \l Captions, the container is not
+  visible thus not occupying space in the layout when the shape has no color or
+  image set. As well as in \l Captions, altering the visible property must be
+  handled with states to preserve property handling.
 
-  Another similarity to \l Captions is the handling of visibility. The container
-  is hidden when no color or image is specified to the shape. Therefore visible
-  property should be handled using PropertyChange to preserve internal visible
-  handling.
-
-  The component also provides the possibility to place an item overlay. This can
-  be useful when additional content needs to be provided over the image or shape.
-  \qml
-  ImageContainer {
-       shape.color: UbuntuColors.blue
-       overlay: Label {
-           anchors.fill: parent
-           horizontalAlignment: Text.AlignHCenter
-           verticalAlignment: Text.AlignVCenter
-           text: "XY"
-       }
-  }
-  \endqml
   */
-MouseArea {
+Item {
     id: imageContainer
 
     /*!
-      \qmlproperty UbuntuShape shape
-      Container for the image or color
+      \qmlproperty Shape shape
+      \readonly
+      Container for the image or color.
       */
     property alias shape: frameItem
-
-    /*!
-      \qmlproperty list<QtObject> overlay
-      The property holds items placed overlay the shape.
-      */
-    property alias overlay: overlayItem.data
 
     enabled: false
     clip: true
@@ -73,15 +52,11 @@ MouseArea {
     Layout.preferredHeight: childrenRect.height
     visible: (frameItem.image || (frameItem.color.a > 0))
 
-    UbuntuShape {
+    Shape {
         id: frameItem
         width: parent.width
-        height: imageContainer.Layout.maximumHeight
+        height: width
         anchors.horizontalCenter: parent.horizontalCenter
         color: "#00000000"
-        Item {
-            id: overlayItem
-            anchors.fill: parent
-        }
     }
 }

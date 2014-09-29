@@ -162,38 +162,45 @@ MainView {
                         }
                     }
                 }
-                ListItem {
-                    ListItemLayout {
-                        ImageContainer {
-                            shape.image: Image { source: "images.png" }
-                        }
-                        Captions {
-                            title.text: "Caption (title)"
-                            subtitle.text: "Subtitle text"
-                        }
-                        Captions {
-                            preset: "details"
-                            title.text: "Text"
-                            subtitle.text: "Text"
+            }
+        }
+        Tab {
+            title: "ImageContainer"
+            page: Page {
+                Column {
+                    width: parent.width
+                    ListItem {
+                        ListItemLayout {
+                            ImageContainer {
+                                shape.image: Image { source: "images.png" }
+                            }
+                            Captions {
+                                title.text: "Caption (title)"
+                                subtitle.text: "Subtitle text"
+                            }
+                            Captions {
+                                preset: "details"
+                                title.text: "Text"
+                                subtitle.text: "Text"
+                            }
                         }
                     }
-                }
-                ListItem {
-                    ListItemLayout {
-                        ImageContainer {
-                            shape.image: Image { source: "images.png" }
-                            shape.width: units.gu(3)
-                            shape.height: units.gu(3)
-                            enabled: true
-                        }
-                        Captions {
-                            title.text: "Caption (title)"
-                            subtitle.text: "Subtitle text"
-                        }
-                        Captions {
-                            preset: "details"
-                            title.text: "Text"
-                            subtitle.text: "Text"
+                    ListItem {
+                        ListItemLayout {
+                            ImageContainer {
+                                shape.image: Image { source: "images.png" }
+                                shape.width: units.gu(3)
+                                shape.height: units.gu(3)
+                            }
+                            Captions {
+                                title.text: "Caption (title)"
+                                subtitle.text: "Subtitle text"
+                            }
+                            Captions {
+                                preset: "details"
+                                title.text: "Text"
+                                subtitle.text: "Text"
+                            }
                         }
                     }
                 }
