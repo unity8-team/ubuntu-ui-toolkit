@@ -46,6 +46,7 @@ public:
 
     // override setFocusable()
     void setFocusable();
+    bool isPressAndHoldConnected();
 
     void _q_updateColors();
     void _q_dimmDisabled();
@@ -64,9 +65,10 @@ public:
     void clampX(qreal &x, qreal dx);
     QQuickItem *createSelectionPanel();
     void toggleSelectionMode();
+    bool canHighlight();
 
     bool pressed:1;
-    bool pressedColorChanged:1;
+    bool highlightColorChanged:1;
     bool moved:1;
     bool suppressClick:1;
     bool ready:1;
@@ -78,7 +80,7 @@ public:
     QPointF lastPos;
     QPointF pressedPos;
     QColor color;
-    QColor pressedColor;
+    QColor highlightColor;
     FlickableControl *flickableControl;
     QPointer<QQuickFlickable> flickable;
     QQuickPropertyAnimation *reboundAnimation;
@@ -88,6 +90,7 @@ public:
     UCListItemActions *leadingActions;
     UCListItemActions *trailingActions;
     QQuickItem *selectionPanel;
+    UCAction *action;
 };
 
 // controls all ascendant Flickables
