@@ -175,6 +175,7 @@ Item {
         }
 
         function cleanup() {
+            testItem.action = null;
             testItem.selected = false;
             testItem.selectable = false;
             waitForRendering(testItem, 200);
@@ -642,6 +643,34 @@ Item {
             waitForRendering(testItem, 800);
             // check if interactive got changed
             interactiveSpy.wait();
+        }
+
+        function test_action_type_set() {
+            stockAction.parameterType = Action.None;
+            compare(stockAction.parameterType, Action.None, "No parameter type for stockAction!");
+            testItem.action = stockAction;
+            compare(stockAction.parameterType, Action.Integer, "No parameter type for stockAction!");
+        }
+
+        function test_action_triggered_on_clicked() {
+            testItem.action = stockAction;
+            actionSpy.target = stockAction;
+            clickSpy.target = testItem;
+            mouseClick(testItem, centerOf(testItem).x, centerOf(testItem).y);
+            clickSpy.wait();
+            actionSpy.wait();
+        }
+
+        function test_action_suppressed_on_longpress() {
+            testItem.action = stockAction;
+            actionSpy.target = stockAction;
+            clickSpy.target = testItem;
+            pressAndHoldSpy.target = testItem;
+            mouseLongPress(testItem, centerOf(testItem).x, centerOf(testItem).y);
+            mouseRelease(testItem, centerOf(testItem).x, centerOf(testItem).y);
+            pressAndHoldSpy.wait();
+            compare(clickSpy.count, 0, "Click must be suppressed.");
+            compare(actionSpy.count, 0, "Action triggered must be suppressed");
         }
 
         // keep these as last ones so we make sure the panel has been created by the previous swipes

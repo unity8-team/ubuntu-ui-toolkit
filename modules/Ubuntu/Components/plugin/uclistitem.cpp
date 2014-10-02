@@ -25,6 +25,7 @@
 #include "i18n.h"
 #include "quickutils.h"
 #include "plugin.h"
+#include "ucaction.h"
 #include <QtQml/QQmlInfo>
 #include <QtQuick/private/qquickitem_p.h>
 #include <QtQuick/private/qquickflickable_p.h>
@@ -845,6 +846,9 @@ void UCListItem::mouseReleaseEvent(QMouseEvent *event)
 
         if (!d->suppressClick) {
             Q_EMIT clicked();
+            if (d->action) {
+                Q_EMIT d->action->trigger(d->index);
+            }
             d->_q_rebound();
         } else {
             // snap
@@ -1098,7 +1102,12 @@ void UCListItem::setColor(const QColor &color)
 
 /*!
  * \qmlproperty color ListItem::highlightColor
- * Configures the color when pressed. Defaults to the theme palette's background color.
+ * Configures the color when highlighted. Defaults to the theme palette's background color.
+ *
+ * An item is highlighted when selected, or when pressed and it has \l leadingActions or
+ * \l trailingActions set or when there is a valid default \l action attached to it.
+ *
+ * \sa action, leadingActions, trailingActions
  */
 QColor UCListItem::highlightColor() const
 {
@@ -1168,12 +1177,38 @@ void UCListItem::setSelected(bool selected)
 
 /*!
  * \qmlproperty Action ListItem::action
- * The property holds the action attached to the list item. ListItem will not do
- * anything with the action visualization, that one is up to the content placed
- * inside the item. However, when set, the ListItem will highlight on pressed and
- * will trigger the action on clicked. Note that handling pressAndHold will suppress
- * the action triggering, and if the action triggering is still needed, it must be
+ * The property holds the default action attached to the list item which will be
+ * triggered when the ListItem is clicked. ListItem will not visualize the action,
+ * that is the responsibility of the components placed inside the list item.
+ * However, when set, the ListItem will be highlighted on press.
+ *
+ * If the action set has no value type set, ListItem will set its type to \c
+ * Action.Integer and the \l {Action::triggered}{triggered} signal will be getting
+ * the ListItem index as \e value parameter.
+ *
+ * \note Handling pressAndHold will suppress the action triggering as the clicked
+ * signal is also suppressed. If the action triggering is still needed, it must be
  * triggered manually on \l pressed changed.
+ * \qml
+ * import Ubuntu.Components 1.2
+ *
+ * ListItem {
+ *     property bool emitActionTriggered: false
+ *     action: Action {
+ *         onTriggered: console.log("action triggered", value)
+ *     }
+ *     onPresseAndHold: {
+ *         console.log("suppresses clicked() signal, also action triggered");
+ *         emitActionTriggered = true;
+ *     }
+ *     onPressedChanged: {
+ *         if (!pressed && emitActionTriggered) {
+ *             emitActionTriggered = false;
+ *             action.trigger(index);
+ *         }
+ *     }
+ * }
+ * \endqml
  *
  * Defaults no null.
  */
@@ -1189,6 +1224,9 @@ void UCListItem::setAction(UCAction *action)
         return;
     }
     d->action = action;
+    if (d->action && (d->action->property("parameterType").toInt() == UCAction::None)) {
+        d->action->setProperty("parameterType", UCAction::Integer);
+    }
     Q_EMIT actionChanged();
 }
 
