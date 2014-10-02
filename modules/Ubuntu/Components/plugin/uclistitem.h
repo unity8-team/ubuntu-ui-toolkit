@@ -23,6 +23,7 @@
 class UCListItemContent;
 class UCListItemDivider;
 class UCListItemActions;
+class UCAction;
 class UCListItemPrivate;
 class UCListItem : public UCStyledItemBase
 {
@@ -36,6 +37,7 @@ class UCListItem : public UCStyledItemBase
     Q_PROPERTY(QColor highlightColor READ highlightColor WRITE setHighlightColor NOTIFY highlightColorChanged)
     Q_PROPERTY(bool selectable READ selectable WRITE setSelectable NOTIFY selectableChanged)
     Q_PROPERTY(bool selected READ selected WRITE setSelected NOTIFY selectedChanged)
+    Q_PROPERTY(UCAction *action READ action WRITE setAction NOTIFY actionChanged DESIGNABLE false)
     Q_PROPERTY(QQmlListProperty<QObject> data READ data DESIGNABLE false)
     Q_PROPERTY(QQmlListProperty<QQuickItem> children READ children NOTIFY childrenChanged DESIGNABLE false)
     Q_CLASSINFO("DefaultProperty", "data")
@@ -58,6 +60,8 @@ public:
     void setSelectable(bool selectable);
     bool selected() const;
     void setSelected(bool selected);
+    UCAction *action() const;
+    void setAction(UCAction *action);
 
 protected:
     void componentComplete();
@@ -79,6 +83,7 @@ Q_SIGNALS:
     void selectableChanged();
     void selectedChanged();
     void childrenChanged();
+    void actionChanged();
 
     void clicked();
     void pressAndHold();

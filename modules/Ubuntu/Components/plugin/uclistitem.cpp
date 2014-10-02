@@ -132,8 +132,8 @@ QSGNode *UCListItemDivider::paint(const QRectF &rect)
         QSGRectangleNode *rectNode = m_listItem->sceneGraphContext()->createRectangleNode();
         // margins are only applied when the ListItem is in normal state, when pressed,
         // the divider is painted from edge to edge
-        qreal left = (m_listItem && m_listItem->pressed) ? 0 : m_leftMargin;
-        qreal right = (m_listItem && m_listItem->pressed) ? rect.width() : rect.width() - m_leftMargin - m_rightMargin;
+        qreal left = (m_listItem && m_listItem->canHighlight()) ? 0 : m_leftMargin;
+        qreal right = (m_listItem && m_listItem->canHighlight()) ? rect.width() : rect.width() - m_leftMargin - m_rightMargin;
         rectNode->setRect(QRectF(left, rect.height() - m_thickness, right, m_thickness));
         rectNode->setGradientStops(m_gradient);
         rectNode->update();
@@ -307,6 +307,7 @@ UCListItemPrivate::UCListItemPrivate()
     , leadingActions(0)
     , trailingActions(0)
     , selectionPanel(0)
+    , action(0)
 {
 }
 UCListItemPrivate::~UCListItemPrivate()
@@ -576,6 +577,11 @@ void UCListItemPrivate::toggleSelectionMode()
     _q_updateSelected();
 }
 
+bool UCListItemPrivate::canHighlight()
+{
+    return ((pressed && (action || leadingActions || trailingActions)) || (selectable && selected));
+}
+
 /*!
  * \qmltype ListItem
  * \instantiates UCListItem
@@ -749,7 +755,9 @@ QSGNode *UCListItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *data
     Q_UNUSED(data);
 
     Q_D(UCListItem);
-    QColor color = (d->pressed || (d->selectable && d->selected))? d->highlightColor : d->color;
+    // do highlight only if at least one of action, leadingActions or trailingAction
+    // properties is set
+    QColor color = d->canHighlight() ? d->highlightColor : d->color;
 
     delete oldNode;
     if (width() <= 0 || height() <= 0) {
@@ -1121,6 +1129,33 @@ void UCListItem::setSelected(bool selected)
     }
     Q_EMIT selectedChanged();
 }
+
+/*!
+ * \qmlproperty Action ListItem::action
+ * The property holds the action attached to the list item. ListItem will not do
+ * anything with the action visualization, that one is up to the content placed
+ * inside the item. However, when set, the ListItem will highlight on pressed and
+ * will trigger the action on clicked. Note that handling pressAndHold will suppress
+ * the action triggering, and if the action triggering is still needed, it must be
+ * triggered manually on \l pressed changed.
+ *
+ * Defaults no null.
+ */
+UCAction *UCListItem::action() const
+{
+    Q_D(const UCListItem);
+    return d->action;
+}
+void UCListItem::setAction(UCAction *action)
+{
+    Q_D(UCListItem);
+    if (d->action == action) {
+        return;
+    }
+    d->action = action;
+    Q_EMIT actionChanged();
+}
+
 
 /*!
  * \qmlproperty list<Object> ListItem::data

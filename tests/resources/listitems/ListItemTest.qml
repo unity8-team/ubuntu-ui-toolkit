@@ -21,6 +21,7 @@ MainView {
     id: main
     width: units.gu(50)
     height: units.gu(100)
+    useDeprecatedToolbar: false
 
     property bool override: false
 
@@ -190,6 +191,12 @@ MainView {
                         onClicked: divider.visible = !divider.visible
                     }
                 }
+            }
+        }
+        ListItem {
+            height: units.gu(7)
+            Label {
+                text: "No action, no trailing/leading actions"
             }
         }
     }
