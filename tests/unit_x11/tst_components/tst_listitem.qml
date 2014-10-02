@@ -84,6 +84,15 @@ Item {
                 anchors.fill: parent
             }
         }
+        ListItem {
+            id: controlItem
+            Button {
+                id: button
+                anchors.centerIn: parent
+                text: "Button"
+            }
+        }
+
         ListView {
             id: listView
             width: parent.width
@@ -153,6 +162,8 @@ Item {
             actionSpy.clear();
             xChangeSpy.clear();
             draggingSpy.clear();
+            pressAndHoldSpy.clear();
+            buttonSpy.clear();
             listView.interactive = true;
             // tap on the first item to make sure we are rebounding all
             mouseClick(defaults, 0, 0);
@@ -204,10 +215,12 @@ Item {
         }
 
         function test_clicked_on_mouse() {
+            clickSpy.target = testItem;
             mouseClick(testItem, testItem.width / 2, testItem.height / 2);
             clickSpy.wait();
         }
         function test_clicked_on_tap() {
+            clickSpy.target = testItem;
             TestExtras.touchClick(0, testItem, centerOf(testItem));
             clickSpy.wait();
         }
@@ -555,6 +568,11 @@ Item {
             id: pressAndHoldSpy
             signalName: "pressAndHold"
         }
+        SignalSpy {
+            id: buttonSpy
+            signalName: "clicked"
+            target: button
+        }
         function test_pressandhold_suppress_click() {
             var center = centerOf(testItem);
             pressAndHoldSpy.target = testItem;
@@ -564,6 +582,14 @@ Item {
             mouseRelease(testItem, center.x, center.y);
             pressAndHoldSpy.wait();
             compare(clickSpy.count, 0, "Click must be suppressed when long pressed");
+        }
+
+        function test_click_on_button_suppresses_listitem_click() {
+            buttonSpy.target = button;
+            clickSpy.target = controlItem;
+            mouseClick(button, centerOf(button).x, centerOf(button).y);
+            buttonSpy.wait();
+            compare(clickSpy.count, 0, "ListItem clicked() must be suppressed");
         }
 
         // keep these as last ones so we make sure the panel has been created by the previous swipes
