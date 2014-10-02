@@ -45,6 +45,7 @@ public:
 
     // override setFocusable()
     void setFocusable();
+    bool isPressAndHoldConnected();
 
     void _q_updateColors();
     void _q_dimmDisabled();
