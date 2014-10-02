@@ -1,3 +1,4 @@
 version=3
 opts=dversionmangle=s/\-gles// \
 https://launchpad.net/~ci-train-ppa-service/+archive/ubuntu-rtm/landing-014/+files/ubuntu-ui-toolkit_([^-]*)\.orig.tar.gz
+http://ppa.launchpad.net/ci-train-ppa-service/landing-020/ubuntu-rtm
