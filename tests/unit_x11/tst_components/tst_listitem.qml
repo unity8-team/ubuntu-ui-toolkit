@@ -644,17 +644,6 @@ Item {
             interactiveSpy.wait();
         }
 
-        function test_listitem_blockks_ascendant_flickables() {
-            var testItem = findChild(nestedListView, "listItem0");
-            verify(testItem, "Cannot find test item");
-            interactiveSpy.target = testFlickable;
-            // tug leading
-            flick(testItem, centerOf(testItem).x, centerOf(testItem).y, testItem.width / 2, 0);
-            waitForRendering(testItem, 800);
-            // check if interactive got changed
-            interactiveSpy.wait();
-        }
-
         // keep these as last ones so we make sure the panel has been created by the previous swipes
         function test_x_backgroundColor_change() {
             // change panel color for the leading and observe the trailing panelItem color change
