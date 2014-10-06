@@ -593,7 +593,11 @@ void UCListItemPrivate::toggleSelectionMode()
 
 bool UCListItemPrivate::canHighlight()
 {
-    return ((pressed && (action || leadingActions || trailingActions)) || (selectable && selected));
+    // do we have a child which has an active (enabled) MouseArea?
+    Q_Q(UCListItem);
+    QQuickMouseArea *mouseArea = q->findChild<QQuickMouseArea*>();
+    bool hasActiveMouseArea = mouseArea && mouseArea->isEnabled() && mouseArea->isVisible();
+    return ((pressed && (action || leadingActions || trailingActions || hasActiveMouseArea)) || (selectable && selected));
 }
 
 /*!
@@ -1102,10 +1106,33 @@ void UCListItem::setColor(const QColor &color)
 
 /*!
  * \qmlproperty color ListItem::highlightColor
- * Configures the color when highlighted. Defaults to the theme palette's background color.
+ * Configures the color when highlighted. Defaults to the theme palette's background
+ * color.
  *
- * An item is highlighted when selected, or when pressed and it has \l leadingActions or
- * \l trailingActions set or when there is a valid default \l action attached to it.
+ * An item is highlighted when selected, or when pressed and it has \l leadingActions
+ * or \l trailingActions set, when there is a valid default \l action attached
+ * to it or if the ListItem has an active component child, such as a \l Button,
+ * a \l Switch, or in general, if an active (enabled and visible) \c MouseArea
+ * is added as a child component.
+ *
+ * \note Adding an active component does not mean the component will be activated
+ * when the ListItem will be tapped/clicked outside of the component area. If
+ * such a behavior is needed, this must be done explicitly.
+ * \qml
+ * import QtQiock 2.3
+ * import Ubuntu.Components 1.2
+ *
+ * ListItem {
+ *     Label {
+ *         text: "This is a label"
+ *     }
+ *     Switch {
+ *         id: toggle
+ *         anchors.right: parent.right
+ *     }
+ *     Component.onCompleted: clicked.connect(toggle.clicked)
+ * }
+ * \endqml
  *
  * \sa action, leadingActions, trailingActions
  */
