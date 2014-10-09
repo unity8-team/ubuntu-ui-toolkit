@@ -142,19 +142,19 @@ void UCStateSaverAttachedPrivate::watchComponent(bool watch)
  * \instantiates UCStateSaverAttached
  * \inqmlmodule Ubuntu.Components 1.1
  * \ingroup ubuntu-services
- * \brief Attached propertyes to save component property states.
+ * \brief Attached properties to save component property states.
  *
- * StateSaver attached object provides the ability to save component property values
- * that can be restored after an inproper application close. The properties subject
- * of serialization must be given in the \l properties as a string, separated with
- * commas. The serialization will happen automatically on component's completion
- * time, as well as when the application is deactivated. Automatic serialization
- * of a component can be turned off by simply setting false to \l enabled property.
+ * The StateSaver attached object provides the ability to save component property values
+ * so they can be restored after an inproper application close. The names of the properties
+ * to be serialized are listed in the \l properties property.
+ * The storage will happen automatically at the component's completion
+ * time or when the application is deactivated. Automatic serialization
+ * of a component can be disabled by setting the \l enabled property to false.
  *
- * \note The application name must be set correctly to the package name so that
- * state saving can work (e.g. com.ubuntu.calendar) through \l MainView::applicationName.
+ * \note The application name must be set in \l MainView::applicationName and match the
+ * package name so that state saving can work (e.g. com.ubuntu.calendar).
  *
- * States saved are discarded when the application is closed properly. The state
+ * Saved states are discarded when the application is closed properly. The state
  * loading is ignored (but not discarded) when the application is launched through
  * UriHandler.
  *
@@ -187,10 +187,10 @@ void UCStateSaverAttachedPrivate::watchComponent(bool watch)
  * \endqml
  *
  * StateSaver computes a unique identifier for the attachee using the component's
- * and all its parents' \a{id}. Therefore attachee component as well as all its
+ * and all its parents' \a{id}s. Therefore attachee component as well as all its
  * parents must have a valid ID set.
  *
- * The following example will give error for the \a input, as the root component
+ * The following example will give an error for \a input, as the root component
  * has no id specified:
  * \qml
  * Item {
@@ -223,7 +223,7 @@ void UCStateSaverAttachedPrivate::watchComponent(bool watch)
  *
  * When used with Repeater, each created item from the Repeater's delegate will
  * be saved separately. Note that due to the way Repeater works, Repeaters do not
- * need to have id specified.
+ * need to have an id specified.
  *
  * \qml
  * Item {
@@ -265,7 +265,7 @@ UCStateSaverAttached::~UCStateSaverAttached()
 // getter/setter
 /*!
  * \qmlproperty bool StateSaver::enabled
- * The property drives the automatic state saving. When disabled, state saving
+ * This property drives the automatic state saving. When disabled, state saving
  * will not happen on properties.
  *
  * The default value is true.
@@ -292,7 +292,7 @@ void UCStateSaverAttached::setEnabled(bool v)
  * List of properties to be serialized, separated with commas. Properties must be
  * writable and can only be \l{http://qt-project.org/doc/qt-5.0/qtqml/qtqml-typesystem-basictypes.html}{QML base types}.
  *
- * A custom singl eline input which saves the text, polaceholderText, font and color would look as follows:
+ * A custom single line input which saves the text, placeholderText, font and color would look as follows:
  * \qml
  * TextField {
  *     id: input
