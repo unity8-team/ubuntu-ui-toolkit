@@ -1,9 +1,9 @@
-ubuntu-ui-toolkit-gles (1.1.1286+14.10.20141010-0ubuntu1) UNRELEASED; urgency=medium
+ubuntu-ui-toolkit-gles (1.1.1286+14.10.20141010-0ubuntu1) 14.09; urgency=medium
 
   [ Zoltán Balogh ]
   * Sync with 1.1.1286+14.10.20141010-0ubuntu1 
 
- -- Zoltán Balogh <zoltan@bakter.hu>  Fri, 10 Oct 2014 16:31:58 +0300
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Fri, 10 Oct 2014 13:40:17 +0000
 
 ubuntu-ui-toolkit-gles (1.1.1269+14.10.20141001-0ubuntu1) 14.09; urgency=medium
 
