@@ -929,11 +929,13 @@ void UCListItem::mouseMoveEvent(QMouseEvent *event)
 
 bool UCListItem::childMouseEventFilter(QQuickItem *child, QEvent *event)
 {
-    QQuickMouseArea *mouseArea = qobject_cast<QQuickMouseArea*>(child);
-    if (mouseArea && mouseArea->isEnabled()) {
+    if (event->type() == QEvent::MouseButtonPress) {
         // suppress click event if pressed over an active mouse area
-        Q_D(UCListItem);
-        d->suppressClick = true;
+        QQuickMouseArea *mouseArea = qobject_cast<QQuickMouseArea*>(child);
+        if (mouseArea && mouseArea->isEnabled()) {
+            Q_D(UCListItem);
+            d->suppressClick = true;
+        }
     }
     return UCStyledItemBase::childMouseEventFilter(child, event);
 }
