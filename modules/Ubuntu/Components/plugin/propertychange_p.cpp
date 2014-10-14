@@ -15,6 +15,7 @@
  */
 
 #include "propertychange_p.h"
+#include <QtQuick/private/qquickanimation_p.h>
 
 #include <QtQml/private/qqmlabstractbinding_p.h>
 #define foreach Q_FOREACH //workaround to fix private includes
@@ -25,14 +26,49 @@
  * The class is used to save properties and their bindings while the property is
  * altered temporarily.
  */
-PropertyChange::PropertyChange(QObject *item, const char *property)
-    : m_backedUp(false)
+PropertyChange::PropertyChange(QObject *item, const char *property, QObject *parent)
+    : QObject(parent)
+    , m_backedUp(false)
     , qmlProperty(item, property, qmlContext(item))
+    , animation(0)
 {
 }
 PropertyChange::~PropertyChange()
 {
     restore(this);
+}
+
+void PropertyChange::completeRestore()
+{
+    QObject::disconnect(animation, SIGNAL(stopped()), this, SLOT(completeRestore()));
+    if (m_backedUp) {
+        // if there was a binding, restore it
+        if (backup.first) {
+            QQmlAbstractBinding *prevBinding = QQmlPropertyPrivate::setBinding(qmlProperty, backup.first);
+            if (prevBinding && prevBinding != backup.first) {
+                prevBinding->destroy();
+            }
+        } else {
+            // there was no binding, restore previous value
+            qmlProperty.write(backup.second);
+        }
+        m_backedUp = false;
+        Q_EMIT restoreCompleted();
+    }
+}
+
+/*
+ * Set animation to be used when value is changed.
+ */
+void PropertyChange::setAnimation(PropertyChange *change, QQuickPropertyAnimation *animation)
+{
+    if (change == NULL) {
+        return;
+    }
+    if (change->animation && change->animation->isRunning()) {
+        change->animation->complete();
+    }
+    change->animation = animation;
 }
 
 /*
@@ -49,7 +85,14 @@ void PropertyChange::setValue(PropertyChange *change, const QVariant &value)
         change->backup.second = change->qmlProperty.read();
         change->m_backedUp = true;
     }
-    change->qmlProperty.write(value);
+    if (change->animation) {
+        change->animation->complete();
+        change->animation->setFrom(change->qmlProperty.read());
+        change->animation->setTo(value);
+        change->animation->start();
+    } else {
+        change->qmlProperty.write(value);
+    }
 }
 
 /*
@@ -60,17 +103,21 @@ void PropertyChange::restore(PropertyChange *change)
     if (!change) {
         return;
     }
-    if (change->m_backedUp) {
-        // if there was a binding, restore it
-        if (change->backup.first) {
-            QQmlAbstractBinding *prevBinding = QQmlPropertyPrivate::setBinding(change->qmlProperty, change->backup.first);
-            if (prevBinding && prevBinding != change->backup.first) {
-                prevBinding->destroy();
-            }
-        } else {
-            // there was no binding, restore previous value
-            change->qmlProperty.write(change->backup.second);
-        }
-        change->m_backedUp = false;
+    if (change->animation) {
+        change->animation->stop();
+        change->animation->setFrom(change->qmlProperty.read());
+        change->animation->setTo(change->backup.second);
+        QObject::connect(change->animation, SIGNAL(stopped()), change, SLOT(completeRestore()));
+        change->animation->start();
+    } else {
+        change->completeRestore();
     }
+}
+
+/*
+ * Return teh original value of the property.
+ */
+QVariant PropertyChange::originalValue(PropertyChange *change)
+{
+    return change ? change->backup.second : QVariant();
 }

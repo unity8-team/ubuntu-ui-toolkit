@@ -22,17 +22,29 @@
 #include <QtQml/QQmlProperty>
 
 class QQmlAbstractBinding;
-class PropertyChange
+class QQuickPropertyAnimation;
+class PropertyChange : public QObject
 {
+    Q_OBJECT
 public:
-    PropertyChange(QObject *item, const char *property);
+    PropertyChange(QObject *item, const char *property, QObject *parent = 0);
     ~PropertyChange();
 
+    static void setAnimation(PropertyChange *change, QQuickPropertyAnimation *animation);
     static void setValue(PropertyChange* change, const QVariant &value);
     static void restore(PropertyChange* change);
+    static QVariant originalValue(PropertyChange *change);
+
+Q_SIGNALS:
+    void restoreCompleted();
+
+private Q_SLOTS:
+    void completeRestore();
+
 private:
     bool m_backedUp;
     QQmlProperty qmlProperty;
+    QQuickPropertyAnimation *animation;
     QPair<QQmlAbstractBinding*, QVariant> backup;
 };
 

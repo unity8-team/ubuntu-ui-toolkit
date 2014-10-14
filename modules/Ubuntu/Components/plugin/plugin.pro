@@ -116,7 +116,8 @@ SOURCES += plugin.cpp \
     uclistitem.cpp \
     uclistitemactions.cpp \
     propertychange_p.cpp \
-    uclistitemactionsattached.cpp
+    uclistitemactionsattached.cpp \
+    uclistitemexpansion_p.cpp
 
 # adapters
 SOURCES += adapters/alarmsadapter_organizer.cpp

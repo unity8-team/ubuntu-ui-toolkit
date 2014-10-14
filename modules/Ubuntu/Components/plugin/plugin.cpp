@@ -169,6 +169,7 @@ void UbuntuComponentsPlugin::registerTypes(const char *uri)
     // ListItem and related types, released to 1.2
     qmlRegisterType<UCListItem, 2>(uri, 1, 2, "ListItem");
     qmlRegisterType<UCListItemDivider>();
+    qmlRegisterType<UCListItemExpansion>();
     qmlRegisterType<UCListItemActions, 2>(uri, 1, 2, "ListItemActions");
     qmlRegisterType<UCListItemActions>(uri, 1, 2, "ListItemActions");
 }

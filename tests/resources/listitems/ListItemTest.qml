@@ -89,9 +89,14 @@ MainView {
             objectName: "single"
             selectable: main.selectable
             color: "lime"
+            expansion {
+                height: units.gu(10)
+            }
+
             onClicked: {
                 print("click")
                 main.override = !main.override
+                expansion.expanded = !expansion.expanded
             }
             onPressAndHold: print("pressAndHold", objectName)
             Label {
@@ -142,8 +147,20 @@ MainView {
                 id: listItem
                 selectable: main.selectable
                 selected: true
-                onClicked: print(" clicked")
+                onClicked: {
+                    print(" clicked")
+                    expansion.expanded = true;
+                }
                 leadingActions: leading
+                expansion {
+                    height: units.gu(10)
+                    content: Rectangle {
+                        anchors.fill: parent
+                        color: "teal"
+                        radius: units.gu(0.5)
+                    }
+                }
+
                 Label {
                     text: modelData + " item"
                 }

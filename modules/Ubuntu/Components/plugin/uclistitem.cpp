@@ -311,6 +311,7 @@ UCListItemPrivate::UCListItemPrivate()
     , trailingActions(0)
     , selectionPanel(0)
     , action(0)
+    , expansion(new UCListItemExpansion)
 {
 }
 UCListItemPrivate::~UCListItemPrivate()
@@ -325,6 +326,7 @@ void UCListItemPrivate::init()
     QQml_setParent_noEvent(contentItem, q);
     contentItem->setParentItem(q);
     divider->init(q);
+    expansion->init(q);
     // content will be redirected to the contentItem, therefore we must report
     // children changes as it would come from the main component
     QObject::connect(contentItem, &QQuickItem::childrenChanged,
@@ -524,7 +526,11 @@ void UCListItemPrivate::resize()
     if (divider && divider->m_visible) {
         rect.setHeight(rect.height() - divider->m_thickness);
     }
-    contentItem->setSize(rect.size());
+    if (expansion->isExpanded()) {
+        contentItem->setSize(QSizeF(rect.width(), expansion->collapsedHeight()));
+    } else {
+        contentItem->setSize(rect.size());
+    }
 }
 
 void UCListItemPrivate::update()
@@ -689,6 +695,48 @@ bool UCListItemPrivate::canHighlight()
  * }
  * \endqml
  * \sa ListItemActions
+ *
+ * \section3 Expansion
+ * One additional and useful feature of the ListItem is the ability to expand. This
+ * feature is driven by the \l expansion group. The component can expand if at least
+ * \l expansion.height or \l expansion.content is specified. \l expansion.flags can
+ * drive how the \l expansion.content will be placed when expanded, either below the
+ * \l contentItem or inside the \l contentItem. In the first case the \l contentItem
+ * height will be preserved to the collapsed height and the ListItem will expand to
+ * the height specified in \l expansion.height. This implies that the heigth given
+ * in \l expansion.height must be greater than the collapsed height of the ListItem.
+ *
+ * If only height is specified, the ListItem will simply expand to the height
+ * given. If only content is specified, the item will expand considering the height
+ * set by the content. In case both heigth and content is set, heigth acts as
+ * maximum allowed expansion limit. This means that expansion may be less than the
+ * maximum heigth specified.
+ * \qml
+ * import QtQuick 2.3
+ * import Ubuntu.Components 1.2
+ *
+ * ListView {
+ *     width: units.gu(40)
+ *     height: units.gu(50)
+ *     model: 50
+ *     delegate: ListItem {
+ *         Label {
+ *             anchors.fill: parent
+ *             text: "Item #" + index
+ *         }
+ *         expansion {
+ *             flags: ListItem.CollapseOnClick
+ *             height: units.gu(10)
+ *             content: Rectangle {
+ *                 height: units.gu(6)
+ *                 width: parent.width
+ *                 color: "blue"
+ *             }
+ *         }
+ *         onPressAndHold: expansion.expanded = true
+ *     }
+ * }
+ * \endqml
  */
 
 /*!
@@ -721,6 +769,11 @@ UCListItem::~UCListItem()
 {
 }
 
+UCListItemAttached * UCListItem::qmlAttachedProperties(QObject *owner)
+{
+    return new UCListItemAttached(owner);
+}
+
 void UCListItem::componentComplete()
 {
     UCStyledItemBase::componentComplete();
@@ -746,15 +799,25 @@ void UCListItem::itemChange(ItemChange change, const ItemChangeData &data)
     UCStyledItemBase::itemChange(change, data);
     if (change == ItemParentHasChanged) {
         Q_D(UCListItem);
+
         // make sure we are not connected to any previous Flickable
         d->flickableControl->listenToRebind(false);
         // check if we are in a positioner, and if that positioner is in a Flickable
         QQuickBasePositioner *positioner = qobject_cast<QQuickBasePositioner*>(data.item);
+        if (positioner) {
+            // create the attached property for the positioner;
+            d->attached = static_cast<UCListItemAttached*>(
+                            qmlAttachedPropertiesObject<UCListItem>(positioner));
+        }
         if (positioner && positioner->parentItem()) {
             d->flickable = qobject_cast<QQuickFlickable*>(positioner->parentItem()->parentItem());
         } else if (data.item && data.item->parentItem()){
             // check if we are in a Flickable then
             d->flickable = qobject_cast<QQuickFlickable*>(data.item->parentItem());
+            if (d->flickable) {
+                d->attached = static_cast<UCListItemAttached*>(
+                                qmlAttachedPropertiesObject<UCListItem>(d->flickable));
+            }
         }
 
         if (d->flickable) {
@@ -891,7 +954,7 @@ void UCListItem::mouseMoveEvent(QMouseEvent *event)
     // accept the tugging only if the move is within the threshold
     bool leadingAttached = UCListItemActionsPrivate::isConnectedTo(d->leadingActions, this);
     bool trailingAttached = UCListItemActionsPrivate::isConnectedTo(d->trailingActions, this);
-    if (d->pressed && !(leadingAttached || trailingAttached)) {
+    if (!d->expansion->isExpanded() && d->pressed && !(leadingAttached || trailingAttached)) {
         // check if we can initiate the drag at all
         // only X direction matters, if Y-direction leaves the threshold, but X not, the tug is not valid
         qreal threshold = UCUnits::instance().gu(d->xAxisMoveThresholdGU);
@@ -971,7 +1034,7 @@ void UCListItem::timerEvent(QTimerEvent *event)
     Q_D(UCListItem);
     if (event->timerId() == d->pressAndHoldTimer.timerId()) {
         d->pressAndHoldTimer.stop();
-        if (isEnabled() && d->isPressAndHoldConnected()) {
+        if (!d->moved && isEnabled() && d->isPressAndHoldConnected()) {
             d->suppressClick = true;
             Q_EMIT pressAndHold();
         }
@@ -1259,6 +1322,85 @@ void UCListItem::setAction(UCAction *action)
     Q_EMIT actionChanged();
 }
 
+/*!
+ * \qmlpropertygroup ::ListItem::expansion
+ * \qmlproperty bool ListItem::expansion.expanded
+ * \qmlproperty flags ListItem::expansion.flags
+ * \qmlproperty real ListItem::expansion.height
+ * \qmlproperty Component ListItem::expansion.content
+ *
+ * The property group controls the expansion of the ListItem. The \b height drives
+ * how much the item should be expanded at maximum, \b content specifies what
+ * should be placed when expanded. \b expanded drives whether the ListItem should
+ * be expanded or not and the way it expands and the way the content behaves or
+ * is rendered into the ListItem is driven by the \b flags.
+ *
+ * If \b height is set only, the expansion will proceed but will not place anything
+ * in the expanded area. If \b content is set but \b height is not (or set to zero),
+ * the expansion will proceed to the size specified in the \b content in the following
+ * way:
+ * \list
+ *  \li - if the \c ExpandContentItem flag is set, the height refers to the entire
+ *      height of the ListItem
+ *  \li - if the \c ExpandContentItem flag is not set, the height specifies the
+ *      additional height to be added to the collapsed height of the ListItem.
+ * \endlist
+ *
+ * The component given in \b content is placed either inside the \l contentItem,
+ * or under the \l contentItem, depending whether the \e ExpandContentItem
+ * flag is set or not.
+ *
+ * Expansion will not happen if no \b height or \b content is set, or if \b height
+ * is less than the ListItem's collapsed height.
+ *
+ * The \b flags can take one or a set of the following values:
+ * \list
+ * \li * \b CollapseOnClick - when set, the expanded ListItem is collapsed when
+ *      clicked on it. This requires to click on an area where there is no active
+ *      component, meaning that an enabled MouseArea can suppress this behavior,
+ *      thus collapse will need to be handled explicitly:
+ * \qml
+ * import QtQuick 2.3
+ * import Ubuntu.Components 1.2
+ * ListItem {
+ *     width: units.gu(40)
+ *     onPressAndHold: expansion.expanded = true
+ *     expansion {
+ *         flags: ListItem.CollapseOnClick
+ *         height: units.gu(6)
+ *         content: Rectangle {
+ *             id: expandedContext
+ *             anchors.fill: parent
+ *             color: "blue"
+ *             MouseArea {
+ *                 width: units.gu(5)
+ *                 height: width
+ *                 onClicked: console.log("suppress clicked event")
+ *                 onPressAndHold: expandedContext.ListItem.collapse()
+ *             }
+ *         }
+ *     }
+ * }
+ * \endqml
+ * \li * \b CollapseOnExternalClick - when set, clicking outside the area of the
+ *      expanded ListItem will cause collapsing the ListItem. \e {Set as default.}
+ * \li * \b GrabNextInView - when set, expanding the list item will bring in the
+ *      next available item in a ListView or Flickable. Setting the flag in any
+ *      other cases has no effect.
+ * \li * \b ExpandContentItem - when set, the expansion will proceeded on the
+ *      \l contentItem and not below it.
+ * \li * \b ExclusiveExpand - when set, the expansion of a ListItem implies collapsion
+ *      of other expanded ListItems in a ListView or Flickable.
+ * \endlist
+ *
+ * The default values set for the \b flags is \e {CollapseOnExternalClick |
+ * GrabNextInView | ExclusiveExpand }.
+ */
+UCListItemExpansion *UCListItem::expansion() const
+{
+    Q_D(const UCListItem);
+    return d->expansion;
+}
 
 /*!
  * \qmlproperty list<Object> ListItem::data
@@ -1279,6 +1421,51 @@ QQmlListProperty<QQuickItem> UCListItem::children()
 {
     Q_D(UCListItem);
     return QQuickItemPrivate::get(d->contentItem)->children();
+}
+
+/*-----------------------------------------------------------------------------
+ * ListItem attached properties
+ */
+
+UCListItemAttachedPrivate::UCListItemAttachedPrivate(UCListItemAttached *qq)
+    : q_ptr(qq)
+    , m_item(0)
+    , m_expandedIndex(-1)
+{
+}
+
+/*!
+ * \qmlattachedproperty int ListItem::expandedIndex
+ * The property specifies the index of the expanded ListItem in a view (ListView
+ * or Flickable). The proeprty is attached to ListView or positioner (Column, Row)
+ * and to the expanded content specified in \l expansion.content.
+ */
+int UCListItemAttachedPrivate::expandedIndex() const
+{
+    return m_expandedIndex;
+}
+
+/*!
+ * \qmlattachedproperty ListItem ListItem::item
+ * The proeprty holds the instance of the ListItem. The proeprty is valid when
+ * attached to the expanded content created from \l expansion.content.
+ */
+UCListItem *UCListItemAttachedPrivate::item() const
+{
+    return m_item;
+}
+
+UCListItemAttached::UCListItemAttached(QObject *owner)
+    : QObject(owner)
+{
+    new UCListItemAttachedPrivate(this);
+}
+
+void UCListItemAttached::setItem(UCListItem *item)
+{
+    Q_D(UCListItemAttached);
+    d->m_item = item;
+    Q_EMIT itemChanged();
 }
 
 #include "moc_uclistitem.cpp"

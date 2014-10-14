@@ -883,6 +883,8 @@ plugins.qmltypes
     name: "UCListItem"
     prototype: "UCStyledItemBase"
     exports: ["ListItem 1.2"]
+    name: "ExpansionFlag"
+    name: "ExpansionFlags"
     Property { name: "contentItem"; type: "QQuickItem"; isReadonly: true; isPointer: true }
     Property { name: "divider"; type: "UCListItemDivider"; isReadonly: true; isPointer: true }
     Property { name: "leadingActions"; type: "UCListItemActions"; isPointer: true }
@@ -893,6 +895,7 @@ plugins.qmltypes
     Property { name: "selectable"; type: "bool" }
     Property { name: "selected"; type: "bool" }
     Property { name: "action"; type: "UCAction"; isPointer: true }
+    Property { name: "expansion"; type: "UCListItemExpansion"; isReadonly: true; isPointer: true }
     Property { name: "data"; type: "QObject"; isList: true; isReadonly: true }
     Property { name: "children"; type: "QQuickItem"; isList: true; isReadonly: true }
     Signal { name: "clicked" }
@@ -920,6 +923,10 @@ plugins.qmltypes
     Method {
     name: "snapToPosition"
     Parameter { name: "position"; type: "double" }
+    name: "UCListItemAttached"
+    prototype: "QObject"
+    Property { name: "expandedIndex"; type: "int"; isReadonly: true }
+    Property { name: "item"; type: "UCListItem"; isReadonly: true; isPointer: true }
     name: "UCListItemDivider"
     prototype: "QObject"
     Property { name: "visible"; type: "bool" }
@@ -927,6 +934,12 @@ plugins.qmltypes
     Property { name: "rightMargin"; type: "double" }
     Property { name: "colorFrom"; type: "QColor" }
     Property { name: "colorTo"; type: "QColor" }
+    name: "UCListItemExpansion"
+    prototype: "QObject"
+    Property { name: "expanded"; type: "bool" }
+    Property { name: "flags"; type: "UCListItem::ExpansionFlags" }
+    Property { name: "height"; type: "double" }
+    Property { name: "content"; type: "QQmlComponent"; isPointer: true }
     name: "UCMouse"
     prototype: "QObject"
     exports: ["Mouse 0.1", "Mouse 1.0"]

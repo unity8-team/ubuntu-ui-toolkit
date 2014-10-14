@@ -30,6 +30,7 @@ class UCListItemDivider;
 class UCListItemActions;
 class PropertyChange;
 class FlickableControl;
+class UCListItemExpansion;
 class UCListItemPrivate : public UCStyledItemBasePrivate
 {
     Q_DECLARE_PUBLIC(UCListItem)
@@ -91,6 +92,8 @@ public:
     UCListItemActions *trailingActions;
     QQuickItem *selectionPanel;
     UCAction *action;
+    UCListItemExpansion *expansion;
+    QPointer<UCListItemAttached> attached;
 };
 
 // controls all ascendant Flickables
@@ -167,6 +170,64 @@ private:
     UCListItemPrivate *m_listItem;
     friend class UCListItem;
     friend class UCListItemPrivate;
+};
+
+class UCListItemExpansion : public QObject
+{
+    Q_OBJECT
+    Q_PROPERTY(bool expanded READ isExpanded WRITE setExpanded NOTIFY expandedChanged)
+    Q_PROPERTY(UCListItem::ExpansionFlags flags MEMBER flags WRITE setFlags NOTIFY flagsChanged)
+    Q_PROPERTY(qreal height MEMBER height WRITE setHeight NOTIFY heightChanged)
+    Q_PROPERTY(QQmlComponent *content MEMBER content WRITE setContent NOTIFY contentChanged)
+public:
+
+    explicit UCListItemExpansion(QObject *parent = 0);
+    ~UCListItemExpansion();
+
+    void init(UCListItem *item);
+
+    bool isExpanded() const;
+    void setExpanded(bool expanded);
+    void setFlags(UCListItem::ExpansionFlags flags);
+    void setHeight(qreal height);
+    void setContent(QQmlComponent *content);
+
+    qreal collapsedHeight();
+
+Q_SIGNALS:
+    void expandedChanged();
+    void flagsChanged();
+    void heightChanged();
+    void contentChanged();
+
+private Q_SLOTS:
+    void completeCollapse();
+
+protected:
+    UCListItem *item;
+    QQmlComponent *content;
+    PropertyChange *heightChange;
+    QQuickPropertyAnimation *heightAnimation;
+    bool expanded:1;
+    bool collapsed:1; // set when height animation completes on height restore
+    UCListItem::ExpansionFlags flags;
+    qreal height;
+
+    bool createAnimation();
+};
+
+class UCListItemAttachedPrivate
+{
+    Q_DECLARE_PUBLIC(UCListItemAttached)
+public:
+    UCListItemAttachedPrivate(UCListItemAttached *qq);
+    int expandedIndex() const;
+    UCListItem *item() const;
+
+private:
+    UCListItemAttached *q_ptr;
+    UCListItem *m_item;
+    int m_expandedIndex;
 };
 
 QColor getPaletteColor(const char *profile, const char *color);
