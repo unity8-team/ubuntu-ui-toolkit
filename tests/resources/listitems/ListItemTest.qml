@@ -149,11 +149,11 @@ MainView {
                 selected: true
                 onClicked: {
                     print(" clicked")
-                    expansion.expanded = true;
+                    expansion.expanded = !expansion.expanded;
                 }
                 leadingActions: leading
                 expansion {
-                    height: units.gu(10)
+                    height: units.gu(15)
                     content: Rectangle {
                         anchors.fill: parent
                         color: "teal"

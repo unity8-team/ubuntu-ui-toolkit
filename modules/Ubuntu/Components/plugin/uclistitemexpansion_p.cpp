@@ -24,6 +24,7 @@ UCListItemExpansion::UCListItemExpansion(QObject *parent)
     : QObject(parent)
     , item(0)
     , content(0)
+    , contentItem(0)
     , heightChange(0)
     , heightAnimation(0)
     , expanded(false)
@@ -44,6 +45,11 @@ void UCListItemExpansion::init(UCListItem *item)
 qreal UCListItemExpansion::collapsedHeight()
 {
     return PropertyChange::originalValue(heightChange).toReal();
+}
+
+bool UCListItemExpansion::hasFlag(UCListItem::ExpansionFlag flag)
+{
+    return (flags & flag) == flag;
 }
 
 void UCListItemExpansion::completeCollapse()
@@ -71,7 +77,19 @@ void UCListItemExpansion::setExpanded(bool expanded)
 
     if (expanded) {
         this->expanded = true;
-        PropertyChange::setValue(heightChange, item->height() + height);
+        qreal expandedHeight = 0.0;
+        if (!height && createContent()) {
+            // height is not set, but content is, get height from content
+            expandedHeight = contentItem->height();
+            if (!hasFlag(UCListItem::ExpandContentItem)) {
+                // policy sais we should add the ListItem's height
+                expandedHeight += item->height();
+            }
+        } else if (height) {
+            // TODO: the height depends on the content's height as well
+            expandedHeight = height;
+        }
+        PropertyChange::setValue(heightChange, expandedHeight);
     } else {
         PropertyChange::restore(heightChange);
     }
@@ -84,12 +102,20 @@ bool UCListItemExpansion::createAnimation()
         UCUbuntuAnimation animationCodes;
         heightAnimation = new QQuickPropertyAnimation(this);
         heightAnimation->setEasing(animationCodes.StandardEasing());
-        heightAnimation->setDuration(animationCodes.SleepyDuration());
+        heightAnimation->setDuration(animationCodes.SnapDuration());
         heightAnimation->setTargetObject(item);
         heightAnimation->setProperty("height");
         heightAnimation->setAlwaysRunToEnd(false);
     }
     return (heightAnimation != NULL);
+}
+
+bool UCListItemExpansion::createContent()
+{
+    if (content) {
+
+    }
+    return (contentItem != NULL);
 }
 
 void UCListItemExpansion::setFlags(UCListItem::ExpansionFlags flags)

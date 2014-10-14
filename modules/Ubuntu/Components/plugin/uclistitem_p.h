@@ -23,6 +23,10 @@
 #include <QtCore/QBasicTimer>
 #include <QtQuick/private/qquickrectangle_p.h>
 
+#define MIN(x, y)           ((x < y) ? x : y)
+#define MAX(x, y)           ((x > y) ? x : y)
+#define CLAMP(v, min, max)  (min <= max) ? MAX(min, MIN(v, max)) : MAX(max, MIN(v, min))
+
 class QQuickFlickable;
 class QQuickPropertyAnimation;
 class UCListItemContent;
@@ -193,6 +197,7 @@ public:
     void setContent(QQmlComponent *content);
 
     qreal collapsedHeight();
+    bool hasFlag(UCListItem::ExpansionFlag flag);
 
 Q_SIGNALS:
     void expandedChanged();
@@ -206,6 +211,7 @@ private Q_SLOTS:
 protected:
     UCListItem *item;
     QQmlComponent *content;
+    QQuickItem *contentItem;
     PropertyChange *heightChange;
     QQuickPropertyAnimation *heightAnimation;
     bool expanded:1;
@@ -214,6 +220,7 @@ protected:
     qreal height;
 
     bool createAnimation();
+    bool createContent();
 };
 
 class UCListItemAttachedPrivate

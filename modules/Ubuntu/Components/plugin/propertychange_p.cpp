@@ -40,7 +40,9 @@ PropertyChange::~PropertyChange()
 
 void PropertyChange::completeRestore()
 {
-    QObject::disconnect(animation, SIGNAL(stopped()), this, SLOT(completeRestore()));
+    if (animation) {
+        QObject::disconnect(animation, SIGNAL(stopped()), this, SLOT(completeRestore()));
+    }
     if (m_backedUp) {
         // if there was a binding, restore it
         if (backup.first) {

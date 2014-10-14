@@ -34,10 +34,6 @@
 #include <QtGui/QGuiApplication>
 #include <QtGui/QStyleHints>
 
-#define MIN(x, y)           ((x < y) ? x : y)
-#define MAX(x, y)           ((x > y) ? x : y)
-#define CLAMP(v, min, max)  (min <= max) ? MAX(min, MIN(v, max)) : MAX(max, MIN(v, min))
-
 QColor getPaletteColor(const char *profile, const char *color)
 {
     QColor result;
@@ -526,7 +522,7 @@ void UCListItemPrivate::resize()
     if (divider && divider->m_visible) {
         rect.setHeight(rect.height() - divider->m_thickness);
     }
-    if (expansion->isExpanded()) {
+    if (expansion->isExpanded() && !expansion->hasFlag(UCListItem::ExpandContentItem)) {
         contentItem->setSize(QSizeF(rect.width(), expansion->collapsedHeight()));
     } else {
         contentItem->setSize(rect.size());
@@ -709,8 +705,9 @@ bool UCListItemPrivate::canHighlight()
  * If only height is specified, the ListItem will simply expand to the height
  * given. If only content is specified, the item will expand considering the height
  * set by the content. In case both heigth and content is set, heigth acts as
- * maximum allowed expansion limit. This means that expansion may be less than the
- * maximum heigth specified.
+ * maximum allowed expansion limit. This means that expansion can be less than the
+ * maximum heigth specified, and the content of the \l expansion.content will be
+ * cut to this maximum value if exceeds.
  * \qml
  * import QtQuick 2.3
  * import Ubuntu.Components 1.2
@@ -1330,10 +1327,11 @@ void UCListItem::setAction(UCAction *action)
  * \qmlproperty Component ListItem::expansion.content
  *
  * The property group controls the expansion of the ListItem. The \b height drives
- * how much the item should be expanded at maximum, \b content specifies what
- * should be placed when expanded. \b expanded drives whether the ListItem should
- * be expanded or not and the way it expands and the way the content behaves or
- * is rendered into the ListItem is driven by the \b flags.
+ * how much the item should be expanded at maximum and includes the height of the
+ * entire ListItem, \b content specifies what should be placed when expanded.
+ * \b expanded drives whether the ListItem should be expanded or not and the way
+ * it expands and the way the content behaves or is rendered into the ListItem
+ * is driven by the \b flags.
  *
  * If \b height is set only, the expansion will proceed but will not place anything
  * in the expanded area. If \b content is set but \b height is not (or set to zero),
