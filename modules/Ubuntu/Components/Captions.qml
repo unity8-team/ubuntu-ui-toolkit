@@ -27,7 +27,7 @@ import QtQuick.Layouts 1.1
   The labels are placed in a column and can be accessed through \l title and
   \l subtitle properties. The default spacing between the labels is driven by the
   amount of lines to be displayed in the \l subtitle label, however it can also
-  be configured  through the \l layout property.
+  be configured through the \l layout property.
 
   The container only shows the labels whos text is set to a valid string. The
   labels not having any text set are not occupying the space. The container, if
@@ -186,9 +186,7 @@ Item {
         height: childrenRect.height
 
         clip: true
-        spacing: (preset === "caption") ?
-                     ((subtitleLabel.lineCount > 1) ? units.gu(0.1) : units.gu(0.5)) :
-                     units.gu(0.5)
+        spacing: units.gu(0.5)
 
         Label {
             id: titleLabel
@@ -207,7 +205,7 @@ Item {
                 left: parent.left
                 right: parent.right
             }
-            fontSize: (lineCount > 1) ? "xx-small" : "x-small"
+            fontSize: "x-small"
             horizontalAlignment: (preset === "summary") ? Text.AlignRight : Text.AlignLeft
             visible: text !== ""
             maximumLineCount: (preset === "caption") ? 2 : 1
