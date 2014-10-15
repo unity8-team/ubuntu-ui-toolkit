@@ -882,7 +882,7 @@ void UCListItem::mousePressEvent(QMouseEvent *event)
         // while moving, we cannot select or tug any items
         return;
     }
-    if (!d->pressed && event->button() == Qt::LeftButton) {
+    if (!d->pressed && event->button() == Qt::LeftButton && d->contentItem->contains(event->localPos())) {
         d->setPressed(true);
         d->lastPos = d->pressedPos = event->localPos();
         // connect the Flickable to know when to rebound
@@ -891,7 +891,7 @@ void UCListItem::mousePressEvent(QMouseEvent *event)
         d->pressAndHoldTimer.start(QGuiApplication::styleHints()->mousePressAndHoldInterval(), this);
     }
     // accept the event so we get the rest of the events as well
-    event->setAccepted(true);
+    event->accept();
 }
 
 void UCListItem::mouseReleaseEvent(QMouseEvent *event)
@@ -991,10 +991,15 @@ bool UCListItem::childMouseEventFilter(QQuickItem *child, QEvent *event)
 {
     if (event->type() == QEvent::MouseButtonPress) {
         // suppress click event if pressed over an active mouse area
+        Q_D(UCListItem);
         QQuickMouseArea *mouseArea = qobject_cast<QQuickMouseArea*>(child);
         if (mouseArea && mouseArea->isEnabled()) {
-            Q_D(UCListItem);
             d->suppressClick = true;
+        } else {
+            QQuickFlickable *flickable = qobject_cast<QQuickFlickable*>(child);
+            if (flickable && flickable->isInteractive()) {
+                d->suppressClick = true;
+            }
         }
     }
     return UCStyledItemBase::childMouseEventFilter(child, event);

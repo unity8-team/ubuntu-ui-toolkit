@@ -155,12 +155,23 @@ MainView {
                 leadingActions: leading
                 clip: true
                 expansion {
-//                    height: units.gu(15)
-                    content: Rectangle {
+//                    height: units.gu(20)
+//                    flags: ListItem.ExpandContentItem
+                    content: Flickable {
+                        opacity: 0.5
                         height: units.gu(20)
-                        width: parent ? parent.width : 0
-                        color: "teal"
-                        radius: units.gu(0.5)
+                        anchors {
+                            margins: units.gu(1)
+                        }
+
+                        contentHeight: rect.height
+                        Rectangle {
+                            id: rect
+                            width: parent.width
+                            height: units.gu(40)
+                            color: "blue"
+                            radius: units.gu(1)
+                        }
                     }
                 }
 

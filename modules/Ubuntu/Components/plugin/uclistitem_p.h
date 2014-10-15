@@ -211,7 +211,7 @@ private Q_SLOTS:
 protected:
     UCListItem *listItem;
     QQmlComponent *content;
-    QQuickFlickable *contentItem;
+    QQuickItem *contentItem;
     PropertyChange *heightChange;
     QQuickPropertyAnimation *heightAnimation;
     bool expanded:1;
