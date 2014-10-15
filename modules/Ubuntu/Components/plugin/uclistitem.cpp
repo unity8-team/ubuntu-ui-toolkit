@@ -250,8 +250,10 @@ void FlickableControl::grab(bool grab)
     Q_FOREACH(const Record &record, list) {
         if (grab) {
             PropertyChange::setValue(record.interactive, false);
+            qDebug() << "GRAB" << record.flickable << record.flickable->isInteractive();
         } else {
             PropertyChange::restore(record.interactive);
+            qDebug() << "UNGRAB" << record.flickable << record.flickable->isInteractive();
         }
     }
 }
@@ -329,8 +331,9 @@ void UCListItemPrivate::init()
                      q, &UCListItem::childrenChanged);
     q->setFlag(QQuickItem::ItemHasContents);
     // turn activeFocusOnPress on
-    activeFocusOnPress = true;
-    setFocusable();
+//    activeFocusOnPress = true;
+//    setFocusable();
+    q->setActiveFocusOnPress(true);
 
     // create flickable controller
     flickableControl = new FlickableControl(q);
@@ -356,13 +359,13 @@ void UCListItemPrivate::init()
     reboundAnimation->setAlwaysRunToEnd(true);
 }
 
-void UCListItemPrivate::setFocusable()
-{
-    // always accept mouse events
-    Q_Q(UCListItem);
-    q->setAcceptedMouseButtons(Qt::LeftButton | Qt::MiddleButton | Qt::RightButton);
-    q->setFiltersChildMouseEvents(true);
-}
+//void UCListItemPrivate::setFocusable()
+//{
+//    // always accept mouse events
+//    Q_Q(UCListItem);
+//    q->setAcceptedMouseButtons(Qt::LeftButton | Qt::MiddleButton | Qt::RightButton);
+//    q->setFiltersChildMouseEvents(true);
+//}
 
 // inspired from IS_SIGNAL_CONNECTED(q, UCListItem, pressAndHold, ())
 // the macro cannot be used due to Arguments cannot be an empty ()
@@ -507,7 +510,9 @@ bool UCListItemPrivate::grabPanel(UCListItemActions *actionsList, bool isMoved)
     Q_Q(UCListItem);
     if (isMoved) {
         bool grab = UCListItemActionsPrivate::connectToListItem(actionsList, q, (actionsList == leadingActions));
-        flickableControl->grab(grab);
+        if (actionsList) {
+            flickableControl->grab(grab);
+        }
         return grab;
     } else {
         UCListItemActionsPrivate::disconnectFromListItem(actionsList);

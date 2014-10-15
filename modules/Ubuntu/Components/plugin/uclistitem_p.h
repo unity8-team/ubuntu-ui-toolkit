@@ -50,7 +50,7 @@ public:
     }
 
     // override setFocusable()
-    void setFocusable();
+//    void setFocusable();
     bool isPressAndHoldConnected();
 
     void _q_updateColors();

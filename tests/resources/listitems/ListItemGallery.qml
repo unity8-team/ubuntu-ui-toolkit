@@ -105,8 +105,10 @@ MainView {
                         }
                     }
                     ListItem {
+                        height: units.gu(9)
                         ListItemLayout {
                             Captions {
+                                id: main
                                 title.text: "Caption (title) click on captions and"
                                 subtitle.text: longText
                                 MouseArea {
