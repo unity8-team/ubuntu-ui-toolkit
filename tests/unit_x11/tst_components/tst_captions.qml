@@ -79,14 +79,5 @@ Item {
             testCaptions.preset = data.preset;
             compare(testCaptions[data.label][data.property], data.value, data.tag + " values differ");
         }
-
-        function test_change_config_based_on_text_length() {
-            testCaptions.preset = "caption";
-            testCaptions.title.text = "Title";
-            testCaptions.subtitle.text = "line1\r\nline2";
-            waitForRendering(testCaptions);
-            compare(testCaptions.subtitle.lineCount, 2, "there should be two lines reported by the subtitle label.");
-            compare(testCaptions.layout.spacing, units.gu(0.1), "Spacing must be smaller than the default one to fit 7GU default size");
-        }
     }
 }
