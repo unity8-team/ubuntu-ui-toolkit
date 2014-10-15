@@ -90,7 +90,8 @@ MainView {
             selectable: main.selectable
             color: "lime"
             expansion {
-                height: units.gu(10)
+                flags: ListItem.ExpandContentItem
+                height: units.gu(15)
             }
 
             onClicked: {
@@ -152,10 +153,12 @@ MainView {
                     expansion.expanded = !expansion.expanded;
                 }
                 leadingActions: leading
+                clip: true
                 expansion {
-                    height: units.gu(15)
+//                    height: units.gu(15)
                     content: Rectangle {
-                        anchors.fill: parent
+                        height: units.gu(20)
+                        width: parent ? parent.width : 0
                         color: "teal"
                         radius: units.gu(0.5)
                     }

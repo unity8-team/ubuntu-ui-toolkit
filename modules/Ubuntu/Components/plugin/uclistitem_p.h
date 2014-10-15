@@ -209,9 +209,9 @@ private Q_SLOTS:
     void completeCollapse();
 
 protected:
-    UCListItem *item;
+    UCListItem *listItem;
     QQmlComponent *content;
-    QQuickItem *contentItem;
+    QQuickFlickable *contentItem;
     PropertyChange *heightChange;
     QQuickPropertyAnimation *heightAnimation;
     bool expanded:1;
@@ -221,6 +221,7 @@ protected:
 
     bool createAnimation();
     bool createContent();
+    void updateExpanded();
 };
 
 class UCListItemAttachedPrivate
