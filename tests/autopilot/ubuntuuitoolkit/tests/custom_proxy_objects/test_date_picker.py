@@ -36,6 +36,53 @@ MainView {
             id: datePicker
             objectName: 'datePicker'
             mode: 'Years|Months|Days'
+            date: {
+                var d = new Date()
+                d.setFullYear('2010')
+                d.setMonth('5')
+                d.setDate('15')
+                return d
+            }
+        }
+        DatePicker {
+            id: timePicker
+            objectName: 'timePicker'
+            mode: 'Hours|Minutes|Seconds'
+            date: {
+                var d = new Date()
+                d.setHours(12)
+                d.setMinutes('30')
+                d.setSeconds('30')
+                return d
+            }
+        }
+    }
+}
+""")
+
+    def setUp(self):
+        super(DatePickerBaseTestCase, self).setUp()
+        self.date_picker = self.main_view.select_single(
+            pickers.DatePicker, objectName='datePicker')
+        self.time_picker = self.main_view.select_single(
+            pickers.DatePicker, objectName='timePicker')
+
+class DatePickerBaseTestCaseWithMinMax(DatePickerBaseTestCase):
+
+    test_qml = ("""
+import QtQuick 2.0
+import Ubuntu.Components 1.1
+import Ubuntu.Components.Pickers 1.0
+
+MainView {
+    width: units.gu(48)
+    height: units.gu(60)
+
+    Column {
+        DatePicker {
+            id: datePicker
+            objectName: 'datePicker'
+            mode: 'Years|Months|Days'
             maximum: {
                 var d = new Date()
                 d.setFullYear('2030')
@@ -79,14 +126,6 @@ MainView {
     }
 }
 """)
-
-    def setUp(self):
-        super(DatePickerBaseTestCase, self).setUp()
-        self.date_picker = self.main_view.select_single(
-            pickers.DatePicker, objectName='datePicker')
-        self.time_picker = self.main_view.select_single(
-            pickers.DatePicker, objectName='timePicker')
-
 
 class DatePickerTestCase(DatePickerBaseTestCase):
 
@@ -217,3 +256,12 @@ class PickTimeFromDatePickerTestCase(DatePickerBaseTestCase):
     def test_pick_time(self):
         self.time_picker.pick_time(self.time_to_pick)
         self.assertEqual(self.time_picker.get_time(), self.time_to_pick)
+
+class DatePickerTestCaseWithMinMax(DatePickerTestCase):
+    """Repeat tests with min/max qml"""
+
+class PickDateFromDatePickerTestCaseWithMinMax(PickDateFromDatePickerTestCase):
+    """Repeat tests with min/max qml"""
+
+class PickTimeFromDatePickerTestCaseWithMinMax(PickTimeFromDatePickerTestCase):
+    """Repeat tests with min/max qml"""
