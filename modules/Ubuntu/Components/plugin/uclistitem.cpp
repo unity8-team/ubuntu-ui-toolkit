@@ -253,10 +253,8 @@ void FlickableControl::grab(bool grab)
     Q_FOREACH(const Record &record, list) {
         if (grab) {
             PropertyChange::setValue(record.interactive, false);
-            qDebug() << "GRAB" << record.flickable << record.flickable->isInteractive();
         } else {
             PropertyChange::restore(record.interactive);
-            qDebug() << "UNGRAB" << record.flickable << record.flickable->isInteractive();
         }
     }
 }
