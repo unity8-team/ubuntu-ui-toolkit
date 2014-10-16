@@ -459,8 +459,8 @@ void UCListItemActions::setDelegate(QQmlComponent *delegate)
 
 /*!
  * \qmlproperty Component ListItemActions::customPanel
- * The property configures the component the \l panelItem is created from. Defaults
- * to \c null.
+ * The property configures the component the panel item holding the actions is
+ * created from. Defaults to \c null.
  *
  * When a custom component is set, action triggering, snapping, coloring and sizing
  * must be handled by the custom component. The \l ListItemActions instance the

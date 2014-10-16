@@ -22,10 +22,10 @@ import QtQuick.Layouts 1.1
   \inqmlmodule Ubuntu.Components 1.2
   \ingroup unstable-ubuntu-listitems
   \brief Helper component composing a \l ImageContainer and two \l Captions containers,
-  one for the titles and one for details.
+  one for the titles and one for summary.
 
   The three building elements are accessible and configurable through the \l image,
-  \l captions and \l details properties. The following example illustrates how the
+  \l captions and \l summary properties. The following example illustrates how the
   StandardLayout helps on easing your code:
   \qml
   import QtQuick 2.2
@@ -44,7 +44,7 @@ import QtQuick.Layouts 1.1
                   subtitle.text: "Subtitle text"
               }
               Captions {
-                  preset: "details"
+                  preset: "summary"
                   title.text: "Text"
                   subtitle.text: "Text"
               }
@@ -57,7 +57,7 @@ import QtQuick.Layouts 1.1
                   title.text: "Captions (title)"
                   subtitle.text: "Subtitle text"
               }
-              details {
+              summary {
                   title.text: "Text"
                   subtitle.text: "Text"
               }
@@ -90,7 +90,7 @@ import QtQuick.Layouts 1.1
               Switch {
               }
               Captions {
-                  preset: "details"
+                  preset: "summary"
                   title.text: "Text"
                   subtitle.text: "Text"
               }
@@ -103,7 +103,7 @@ import QtQuick.Layouts 1.1
                   title.text: "Captions (title)"
                   subtitle.text: "Subtitle text"
               }
-              details {
+              summary {
                   title.text: "Text"
                   subtitle.text: "Text"
               }
@@ -131,7 +131,7 @@ import QtQuick.Layouts 1.1
               title.text: "Captions (title)"
               subtitle.text: "Subtitle text"
           }
-          details {
+          summary {
               title.text: "Text"
               subtitle.text: "Text"
           }
@@ -160,7 +160,7 @@ import QtQuick.Layouts 1.1
               title.text: "Captions (title)"
               subtitle.text: "Subtitle text"
           }
-          details {
+          summary {
               title.text: "Text"
               subtitle.text: "Text"
           }
@@ -187,7 +187,7 @@ ListItemLayout {
 
     /*!
       \qmlproperty Captions summary
-      The property holds the \l Captions container with \b details preset.
+      The property holds the \l Captions container with \b summary preset.
       */
     property alias summary: summaryContainer
 
