@@ -72,6 +72,8 @@ public:
     void toggleSelectionMode();
     bool canHighlight();
 
+    UCListItemAttachedPrivate *parentAttached();
+
     bool pressed:1;
     bool highlightColorChanged:1;
     bool moved:1;
@@ -97,7 +99,6 @@ public:
     QQuickItem *selectionPanel;
     UCAction *action;
     UCListItemExpansion *expansion;
-    QPointer<UCListItemAttached> attached;
 };
 
 // controls all ascendant Flickables
@@ -229,12 +230,23 @@ class UCListItemAttachedPrivate
     Q_DECLARE_PUBLIC(UCListItemAttached)
 public:
     UCListItemAttachedPrivate(UCListItemAttached *qq);
+    static UCListItemAttachedPrivate *get(UCListItemAttached *object)
+    {
+        return object->d_func();
+    }
+
     int expandedIndex() const;
     UCListItem *item() const;
 
+    void setExpandedItem(UCListItem *listItem);
+    void collapseExpanded(bool signalChange = true);
+
+    //private slots
+    void _q_updateExpandedIndex(int index);
 private:
     UCListItemAttached *q_ptr;
-    UCListItem *m_item;
+    UCListItem *m_attacheeItem;
+    QPointer<UCListItem> m_expandedItem;
     int m_expandedIndex;
 };
 

@@ -439,6 +439,11 @@ void UCListItemPrivate::_q_updateIndex(QObject *ownerItem)
     if (context) {
         QVariant indexProperty = context->contextProperty("index");
         index = indexProperty.isValid() ? indexProperty.toInt() : -1;
+        UCListItemAttachedPrivate *attached = parentAttached();
+        if (index >= 0 && attached && attached->expandedIndex() == index) {
+            // expand!
+            expansion->setExpanded(true);
+        }
     }
     divider->m_lastItem = ready && index == (ownerItem->property("count").toInt() - 1);
 }
@@ -606,6 +611,22 @@ bool UCListItemPrivate::canHighlight()
     bool hasActiveMouseArea = mouseArea && mouseArea->isEnabled() && mouseArea->isVisible();
     return ((pressed && (action || leadingActions || trailingActions || hasActiveMouseArea)) || (selectable && selected));
 }
+
+// returns the ListItem attached to the ListView or Positioner parent
+UCListItemAttachedPrivate *UCListItemPrivate::parentAttached()
+{
+    Q_Q(UCListItem);
+    UCListItemAttached *attached = NULL;
+    if (flickable) {
+        attached = static_cast<UCListItemAttached*>(
+                    qmlAttachedPropertiesObject<UCListItem>(flickable, false));
+    } else if (parentItem) {
+        attached = static_cast<UCListItemAttached*>(
+                    qmlAttachedPropertiesObject<UCListItem>(parentItem, false));
+    }
+    return attached ? UCListItemAttachedPrivate::get(attached) : NULL;
+}
+
 
 /*!
  * \qmltype ListItem
@@ -808,8 +829,7 @@ void UCListItem::itemChange(ItemChange change, const ItemChangeData &data)
         QQuickBasePositioner *positioner = qobject_cast<QQuickBasePositioner*>(data.item);
         if (positioner) {
             // create the attached property for the positioner;
-            d->attached = static_cast<UCListItemAttached*>(
-                            qmlAttachedPropertiesObject<UCListItem>(positioner));
+            qmlAttachedPropertiesObject<UCListItem>(positioner);
         }
         if (positioner && positioner->parentItem()) {
             d->flickable = qobject_cast<QQuickFlickable*>(positioner->parentItem()->parentItem());
@@ -817,8 +837,7 @@ void UCListItem::itemChange(ItemChange change, const ItemChangeData &data)
             // check if we are in a Flickable then
             d->flickable = qobject_cast<QQuickFlickable*>(data.item->parentItem());
             if (d->flickable) {
-                d->attached = static_cast<UCListItemAttached*>(
-                                qmlAttachedPropertiesObject<UCListItem>(d->flickable));
+                qmlAttachedPropertiesObject<UCListItem>(d->flickable);
             }
         }
 
@@ -1000,11 +1019,6 @@ bool UCListItem::childMouseEventFilter(QQuickItem *child, QEvent *event)
         QQuickMouseArea *mouseArea = qobject_cast<QQuickMouseArea*>(child);
         if (mouseArea && mouseArea->isEnabled()) {
             d->suppressClick = true;
-        } else {
-            QQuickFlickable *flickable = qobject_cast<QQuickFlickable*>(child);
-            if (flickable && flickable->isInteractive()) {
-                d->suppressClick = true;
-            }
         }
     }
     return UCStyledItemBase::childMouseEventFilter(child, event);
@@ -1363,46 +1377,19 @@ void UCListItem::setAction(UCAction *action)
  *
  * The \b flags can take one or a set of the following values:
  * \list
- * \li * \b CollapseOnClick - when set, the expanded ListItem is collapsed when
- *      clicked on it. This requires to click on an area where there is no active
- *      component, meaning that an enabled MouseArea can suppress this behavior,
- *      thus collapse will need to be handled explicitly:
- * \qml
- * import QtQuick 2.3
- * import Ubuntu.Components 1.2
- * ListItem {
- *     width: units.gu(40)
- *     onPressAndHold: expansion.expanded = true
- *     expansion {
- *         flags: ListItem.CollapseOnClick
- *         height: units.gu(6)
- *         content: Rectangle {
- *             id: expandedContext
- *             anchors.fill: parent
- *             color: "blue"
- *             MouseArea {
- *                 width: units.gu(5)
- *                 height: width
- *                 onClicked: console.log("suppress clicked event")
- *                 onPressAndHold: expandedContext.ListItem.collapse()
- *             }
- *         }
- *     }
- * }
- * \endqml
  * \li * \b CollapseOnExternalClick - when set, clicking outside the area of the
  *      expanded ListItem will cause collapsing the ListItem. \e {Set as default.}
  * \li * \b GrabNextInView - when set, expanding the list item will bring in the
  *      next available item in a ListView or Flickable. Setting the flag in any
  *      other cases has no effect.
+ * \li * \b DimmOthersOnExpand - dimm collapsed ListItems when expanding an item
+ *      when used in a view.
  * \li * \b ExpandContentItem - when set, the expansion will proceeded on the
  *      \l contentItem and not below it.
- * \li * \b ExclusiveExpand - when set, the expansion of a ListItem implies collapsion
- *      of other expanded ListItems in a ListView or Flickable.
  * \endlist
  *
  * The default values set for the \b flags is \e {CollapseOnExternalClick |
- * GrabNextInView | ExclusiveExpand }.
+ * GrabNextInView | DimmOthersOnExpand}.
  */
 UCListItemExpansion *UCListItem::expansion() const
 {
@@ -1429,51 +1416,6 @@ QQmlListProperty<QQuickItem> UCListItem::children()
 {
     Q_D(UCListItem);
     return QQuickItemPrivate::get(d->contentItem)->children();
-}
-
-/*-----------------------------------------------------------------------------
- * ListItem attached properties
- */
-
-UCListItemAttachedPrivate::UCListItemAttachedPrivate(UCListItemAttached *qq)
-    : q_ptr(qq)
-    , m_item(0)
-    , m_expandedIndex(-1)
-{
-}
-
-/*!
- * \qmlattachedproperty int ListItem::expandedIndex
- * The property specifies the index of the expanded ListItem in a view (ListView
- * or Flickable). The proeprty is attached to ListView or positioner (Column, Row)
- * and to the expanded content specified in \l expansion.content.
- */
-int UCListItemAttachedPrivate::expandedIndex() const
-{
-    return m_expandedIndex;
-}
-
-/*!
- * \qmlattachedproperty ListItem ListItem::item
- * The proeprty holds the instance of the ListItem. The proeprty is valid when
- * attached to the expanded content created from \l expansion.content.
- */
-UCListItem *UCListItemAttachedPrivate::item() const
-{
-    return m_item;
-}
-
-UCListItemAttached::UCListItemAttached(QObject *owner)
-    : QObject(owner)
-{
-    new UCListItemAttachedPrivate(this);
-}
-
-void UCListItemAttached::setItem(UCListItem *item)
-{
-    Q_D(UCListItemAttached);
-    d->m_item = item;
-    Q_EMIT itemChanged();
 }
 
 #include "moc_uclistitem.cpp"

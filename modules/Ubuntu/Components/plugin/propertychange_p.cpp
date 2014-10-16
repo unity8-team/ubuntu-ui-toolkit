@@ -29,6 +29,7 @@
 PropertyChange::PropertyChange(QObject *item, const char *property, QObject *parent)
     : QObject(parent)
     , m_backedUp(false)
+    , m_restoreInProggress(false)
     , qmlProperty(item, property, qmlContext(item))
     , animation(0)
 {
@@ -55,6 +56,7 @@ void PropertyChange::completeRestore()
             qmlProperty.write(backup.second);
         }
         m_backedUp = false;
+        m_restoreInProggress = false;
         Q_EMIT restoreCompleted();
     }
 }
@@ -106,6 +108,10 @@ void PropertyChange::restore(PropertyChange *change)
         return;
     }
     if (change->animation) {
+        if (change->m_restoreInProggress) {
+            return;
+        }
+        change->m_restoreInProggress = true;
         change->animation->stop();
         change->animation->setFrom(change->qmlProperty.read());
         change->animation->setTo(change->backup.second);

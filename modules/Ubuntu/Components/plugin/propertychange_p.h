@@ -42,7 +42,8 @@ private Q_SLOTS:
     void completeRestore();
 
 private:
-    bool m_backedUp;
+    bool m_backedUp:1;
+    bool m_restoreInProggress:1;
     QQmlProperty qmlProperty;
     QQuickPropertyAnimation *animation;
     QPair<QQmlAbstractBinding*, QVariant> backup;

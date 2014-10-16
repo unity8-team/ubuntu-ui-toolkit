@@ -141,7 +141,7 @@ MainView {
             clip: true
             width: parent.width
             height: units.gu(36)
-            model: 10
+            model: 100
             pressDelay: 0
             delegate: ListItem {
                 objectName: "ListItem" + index
@@ -160,16 +160,17 @@ MainView {
                     content: Flickable {
                         opacity: 0.5
                         height: units.gu(20)
-                        anchors {
-                            margins: units.gu(1)
-                        }
 
+                        ListItem.onExpandedIndexChanged: print("expanded item index=", index)
                         contentHeight: rect.height
                         Rectangle {
                             id: rect
                             width: parent.width
                             height: units.gu(40)
-                            color: "blue"
+                            gradient: Gradient {
+                                GradientStop { position: 0.0; color: "green" }
+                                GradientStop { position: 1.0; color: "lightsteelblue" }
+                            }
                             radius: units.gu(1)
                         }
                     }

@@ -31,7 +31,7 @@ UCListItemExpansion::UCListItemExpansion(QObject *parent)
     , heightChange(0)
     , heightAnimation(0)
     , expanded(false)
-    , flags(UCListItem::CollapseOnExternalClick | UCListItem::GrabNextInView | UCListItem::ExclusiveExpand)
+    , flags(UCListItem::CollapseOnExternalClick | UCListItem::GrabNextInView | UCListItem::DimmOthersOnExpand)
     , height(0.0)
 {
 }
@@ -59,7 +59,9 @@ void UCListItemExpansion::completeCollapse()
 {
     expanded = false;
     if (contentItem) {
-        contentItem->setVisible(false);
+        // do not consume memory while collapsed
+        delete contentItem;
+        contentItem = 0;
     }
 }
 
@@ -78,11 +80,19 @@ void UCListItemExpansion::setExpanded(bool expanded)
         heightChange = new PropertyChange(listItem, "height", this);
         connect(heightChange, SIGNAL(restoreCompleted()), this, SLOT(completeCollapse()));
     }
+    UCListItemAttachedPrivate *groupAttached = UCListItemPrivate::get(listItem)->parentAttached();
     if (expanded) {
         this->expanded = true;
+        // collapse other expanded before we start expansion
+        if (groupAttached) {
+            groupAttached->setExpandedItem(listItem);
+        }
         updateExpanded();
     } else {
         PropertyChange::restore(heightChange);
+        if (groupAttached) {
+            groupAttached->collapseExpanded();
+        }
     }
     Q_EMIT expandedChanged();
 }
@@ -107,6 +117,11 @@ bool UCListItemExpansion::createContent()
         QQuickItem *item = qobject_cast<QQuickItem*>(content->beginCreate(qmlContext(listItem)));
         if (item) {
             QQml_setParent_noEvent(item, listItem);
+            UCListItemAttached *attached = static_cast<UCListItemAttached*>(
+                        qmlAttachedPropertiesObject<UCListItem>(item));
+            if (attached) {
+                attached->setItem(listItem);
+            }
             item->setParentItem(listItem);
             QQuickAnchors *anchors = QQuickItemPrivate::get(item)->anchors();
             anchors->setLeft(UCListItemPrivate::get(listItem)->left());
@@ -211,4 +226,90 @@ void UCListItemExpansion::setContent(QQmlComponent *content)
         updateExpanded();
     }
     Q_EMIT contentChanged();
+}
+
+/*-----------------------------------------------------------------------------
+ * ListItem attached properties
+ */
+
+UCListItemAttachedPrivate::UCListItemAttachedPrivate(UCListItemAttached *qq)
+    : q_ptr(qq)
+    , m_attacheeItem(0)
+    , m_expandedIndex(-1)
+{
+}
+
+/*!
+ * \qmlattachedproperty int ListItem::expandedIndex
+ * The property specifies the index of the expanded ListItem in a view (ListView
+ * or Flickable). The proeprty is attached to ListView or positioner (Column, Row)
+ * and to the expanded content specified in \l expansion.content.
+ */
+int UCListItemAttachedPrivate::expandedIndex() const
+{
+    return m_expandedIndex;
+}
+
+/*!
+ * \qmlattachedproperty ListItem ListItem::item
+ * The proeprty holds the instance of the ListItem. The proeprty is valid when
+ * attached to the expanded content created from \l expansion.content.
+ */
+UCListItem *UCListItemAttachedPrivate::item() const
+{
+    return m_attacheeItem;
+}
+
+void UCListItemAttachedPrivate::setExpandedItem(UCListItem *listItem)
+{
+    Q_Q(UCListItemAttached);
+    // collapse the already expanded one
+    UCListItemPrivate *item = UCListItemPrivate::get(listItem);
+    collapseExpanded(false);
+    m_expandedItem = listItem;
+    if (m_expandedIndex != item->index) {
+        m_expandedIndex = item->index;
+        Q_EMIT q->expandedIndexChanged(m_expandedIndex);
+    }
+}
+
+void UCListItemAttachedPrivate::collapseExpanded(bool signalChange)
+{
+    if (m_expandedIndex >= 0 && m_expandedItem && m_expandedItem->expansion()->isExpanded()) {
+        // collapse may result in loop, so set the expansion index first
+        m_expandedIndex = -1;
+        m_expandedItem->expansion()->setExpanded(false);
+        m_expandedItem.clear();
+        if (signalChange) {
+            Q_Q(UCListItemAttached);
+            Q_EMIT q->expandedIndexChanged(m_expandedIndex);
+        }
+    }
+}
+
+// slot connected when the ListItemAttached is attached to the expansion.content
+void UCListItemAttachedPrivate::_q_updateExpandedIndex(int index)
+{
+    m_expandedIndex = index;
+    Q_EMIT q_ptr->expandedIndexChanged(index);
+}
+
+UCListItemAttached::UCListItemAttached(QObject *owner)
+    : QObject(owner)
+    , d_ptr(new UCListItemAttachedPrivate(this))
+{
+}
+
+void UCListItemAttached::setItem(UCListItem *item)
+{
+    Q_D(UCListItemAttached);
+    d->m_attacheeItem = item;
+    // when attached to expansion.content, the expandedIndex updates are coming from the one
+    // attached to the ListItem's owning flickable or positioner, so we must connect to that one
+    UCListItemAttachedPrivate *parentAttached = UCListItemPrivate::get(item)->parentAttached();
+    if (parentAttached) {
+        connect(parentAttached->q_ptr, SIGNAL(expandedIndexChanged(int)),
+                this, SLOT(_q_updateExpandedIndex(int)));
+    }
+    Q_EMIT itemChanged();
 }

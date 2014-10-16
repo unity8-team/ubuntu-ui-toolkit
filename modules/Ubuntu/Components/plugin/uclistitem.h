@@ -48,11 +48,10 @@ class UCListItem : public UCStyledItemBase
     Q_FLAGS(ExpansionFlags)
 public:
     enum ExpansionFlag {
-        CollapseOnClick         = 0x0001, // collapse when clicked on the item
-        CollapseOnExternalClick = 0x0002, // collapse when clicked outside the item
-        GrabNextInView          = 0x0004, // grab next item into the view when expanding last visible item
-        ExpandContentItem       = 0x0008, // expand contentItem instead of expanding the item itself, means the content will be placed over the contentItem
-        ExclusiveExpand         = 0x0010, // collapse other expanded items when this one expands
+        CollapseOnExternalClick = 0x0001, // collapse when clicked outside the item
+        GrabNextInView          = 0x0002, // grab next item into the view when expanding last visible item
+        DimmOthersOnExpand      = 0x0004, // dimms other collapsed items when expanded
+        ExpandContentItem       = 0x0100, // expand contentItem instead of expanding the item itself, means the content will be placed over the contentItem
     };
     Q_DECLARE_FLAGS(ExpansionFlags, ExpansionFlag)
     explicit UCListItem(QQuickItem *parent = 0);
@@ -132,11 +131,13 @@ public:
     void setItem(UCListItem *item);
 
 Q_SIGNALS:
-    void expandedIndexChanged();
+    void expandedIndexChanged(int index);
     void itemChanged();
 
 private:
     Q_DECLARE_PRIVATE(UCListItemAttached)
+    Q_PRIVATE_SLOT(d_func(), void _q_updateExpandedIndex(int))
+    QScopedPointer<UCListItemAttachedPrivate> d_ptr;
 };
 
 QML_DECLARE_TYPEINFO(UCListItem, QML_HAS_ATTACHED_PROPERTIES)
