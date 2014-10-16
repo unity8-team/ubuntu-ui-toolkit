@@ -257,11 +257,11 @@ class PickTimeFromDatePickerTestCase(DatePickerBaseTestCase):
         self.time_picker.pick_time(self.time_to_pick)
         self.assertEqual(self.time_picker.get_time(), self.time_to_pick)
 
-class DatePickerTestCaseWithMinMax(DatePickerTestCase):
-    """Repeat tests with min/max qml"""
+#class DatePickerTestCaseWithMinMax(DatePickerTestCase):
+    #"""Repeat tests with min/max qml"""
 
-class PickDateFromDatePickerTestCaseWithMinMax(PickDateFromDatePickerTestCase):
-    """Repeat tests with min/max qml"""
+#class PickDateFromDatePickerTestCaseWithMinMax(PickDateFromDatePickerTestCase):
+    #"""Repeat tests with min/max qml"""
 
-class PickTimeFromDatePickerTestCaseWithMinMax(PickTimeFromDatePickerTestCase):
-    """Repeat tests with min/max qml"""
+#class PickTimeFromDatePickerTestCaseWithMinMax(PickTimeFromDatePickerTestCase):
+    #"""Repeat tests with min/max qml"""
