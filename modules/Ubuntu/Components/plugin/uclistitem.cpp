@@ -85,10 +85,10 @@ void UCListItemDivider::unitsChanged()
 {
     m_thickness = UCUnits::instance().dp(2);
     if (!m_leftMarginChanged) {
-        m_leftMargin = UCUnits::instance().gu(2);
+        m_leftMargin = UCUnits::instance().dp(2);
     }
     if (!m_rightMarginChanged) {
-        m_rightMargin = UCUnits::instance().gu(2);
+        m_rightMargin = UCUnits::instance().dp(2);
     }
     if (m_listItem) {
         m_listItem->update();
@@ -331,8 +331,6 @@ void UCListItemPrivate::init()
                      q, &UCListItem::childrenChanged);
     q->setFlag(QQuickItem::ItemHasContents);
     // turn activeFocusOnPress on
-//    activeFocusOnPress = true;
-//    setFocusable();
     q->setActiveFocusOnPress(true);
 
     // create flickable controller
@@ -358,14 +356,6 @@ void UCListItemPrivate::init()
     reboundAnimation->setProperty("x");
     reboundAnimation->setAlwaysRunToEnd(true);
 }
-
-//void UCListItemPrivate::setFocusable()
-//{
-//    // always accept mouse events
-//    Q_Q(UCListItem);
-//    q->setAcceptedMouseButtons(Qt::LeftButton | Qt::MiddleButton | Qt::RightButton);
-//    q->setFiltersChildMouseEvents(true);
-//}
 
 // inspired from IS_SIGNAL_CONNECTED(q, UCListItem, pressAndHold, ())
 // the macro cannot be used due to Arguments cannot be an empty ()
