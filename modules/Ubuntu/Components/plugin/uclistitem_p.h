@@ -43,8 +43,6 @@ public:
         return that->d_func();
     }
 
-    // override setFocusable()
-    void setFocusable();
     bool isPressAndHoldConnected();
 
     void _q_updateColors();
