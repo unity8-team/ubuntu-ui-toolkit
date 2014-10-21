@@ -21,7 +21,10 @@ TemplateSection {
     id: section
     property alias delegate: repeater.delegate
     property alias count: repeater.count
-    documentation: "qml-ubuntu-components-listitems-%1.html".arg(className.toLowerCase())
+    property bool newListItem: false
+    documentation: newListItem ?
+                       "qml-ubuntu-components-%1.html".arg(className.toLowerCase()) :
+                       "qml-ubuntu-components-listitems-%1.html".arg(className.toLowerCase())
 
     function itemAt(index)
     {
