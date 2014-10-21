@@ -28,6 +28,7 @@ UCListItemActionsPrivate::UCListItemActionsPrivate()
     : QObjectPrivate()
     , dragging(false)
     , delegate(0)
+    , customPanel(0)
     , panelItem(0)
     , backgroundColor(Qt::transparent)
     , foregroundColor(Qt::transparent)
@@ -136,12 +137,20 @@ qreal UCListItemActionsPrivate::snap(UCListItemActions *options)
     if (!_this || !_this->panelItem) {
         return 0.0;
     }
-    qreal ratio = _this->offsetDragged / _this->optionSlotWidth;
-    int visible = _this->optionsVisible;
-    if (ratio > 0.0 && (ratio - trunc(ratio)) > 0.5) {
-        visible++;
+    qreal result = 0.0;
+    if (_this->customPanel) {
+        // no snapping, return the offset as is.
+        result = _this->offsetDragged;
+    } else {
+        // default panel, do snapping based on the actions
+        qreal ratio = _this->offsetDragged / _this->optionSlotWidth;
+        int visible = _this->optionsVisible;
+        if (ratio > 0.0 && (ratio - trunc(ratio)) > 0.5) {
+            visible++;
+        }
+        result = visible * _this->optionSlotWidth;
     }
-    return visible * _this->optionSlotWidth * (_this->status == UCListItemActions::Leading ? 1 : -1);
+    return result * (_this->status ==  UCListItemActions::Leading ? 1 : -1);
 }
 
 void UCListItemActionsPrivate::setDragging(UCListItemActions *actions, UCListItem *listItem, bool dragging)
@@ -155,52 +164,81 @@ void UCListItemActionsPrivate::setDragging(UCListItemActions *actions, UCListIte
     Q_EMIT actions->__draggingChanged();
 }
 
+void UCListItemActionsPrivate::createItem(QQmlComponent *component)
+{
+    Q_Q(UCListItemActions);
+    if (!component->isError()) {
+        panelItem = qobject_cast<QQuickItem*>(component->beginCreate(qmlContext(q)));
+        if (panelItem) {
+            QQml_setParent_noEvent(panelItem, q);
+            data.append(panelItem);
+            // create attached property!
+            UCListItemActionsAttached *attached = static_cast<UCListItemActionsAttached*>(
+                        qmlAttachedPropertiesObject<UCListItemActions>(panelItem));
+            if (!attached->container()) {
+                attached->setList(q);
+            } else {
+                // container is set, but we need to emit the signal again so we get the
+                // attached props updated for those cases when the attached property is
+                // created before the statement above
+                Q_EMIT attached->containerChanged();
+            }
+            component->completeCreate();
+        }
+    } else {
+        qmlInfo(q) << component->errorString();
+    }
+}
+
 QQuickItem *UCListItemActionsPrivate::createPanelItem()
 {
     if (panelItem) {
         return panelItem;
     }
     Q_Q(UCListItemActions);
-    QUrl panelDocument = UbuntuComponentsPlugin::pluginUrl().
-            resolved(QUrl::fromLocalFile("ListItemPanel.qml"));
-    QQmlComponent component(qmlEngine(q), panelDocument);
-    if (!component.isError()) {
-        panelItem = qobject_cast<QQuickItem*>(component.beginCreate(qmlContext(q)));
-        if (panelItem) {
-            QQml_setParent_noEvent(panelItem, q);
-            // add panelItem to data so we can access it in case is needed (i.e. tests)
-            data.append(panelItem);
-            UCListItemActionsAttached *attached = static_cast<UCListItemActionsAttached*>(
-                        qmlAttachedPropertiesObject<UCListItemActions>(panelItem));
-            if (attached) {
-                if (!attached->container()) {
-                    attached->setList(q);
-                } else {
-                    // container is set, but we need to emit the signal again so we get the
-                    // attached props updated for those cases when the attached property is
-                    // created before the statement above
-                    Q_EMIT attached->containerChanged();
-                }
-            }
-            component.completeCreate();
 
-            // calculate option's slot size
-            offsetDragged = 0.0;
-            optionsVisible = 0;
-            _q_handlePanelWidth();
-            // connect to panel to catch dragging
-            QObject::connect(panelItem, SIGNAL(widthChanged()), q, SLOT(_q_handlePanelWidth()));
-            QObject::connect(panelItem, SIGNAL(xChanged()), q, SLOT(_q_handlePanelDrag()));
-            if (attached) {
-                QObject::connect(panelItem, &QQuickItem::xChanged,
-                                 attached, &UCListItemActionsAttached::offsetChanged);
-            }
-        }
+    if (customPanel) {
+        createItem(customPanel);
     } else {
-        qmlInfo(q) << component.errorString();
+        QUrl panelDocument = UbuntuComponentsPlugin::pluginUrl().
+                resolved(QUrl::fromLocalFile("ListItemPanel.qml"));
+        QQmlComponent component(qmlEngine(q), panelDocument);
+        createItem(&component);
+    }
+
+    if (panelItem) {
+        // calculate option's slot size
+        offsetDragged = 0.0;
+        optionsVisible = 0;
+        _q_handlePanelWidth();
+        // connect to panel to catch dragging
+        QObject::connect(panelItem, SIGNAL(widthChanged()), q, SLOT(_q_handlePanelWidth()));
+        QObject::connect(panelItem, SIGNAL(xChanged()), q, SLOT(_q_handlePanelDrag()));
+        if (attachedObject()) {
+            QObject::connect(panelItem, &QQuickItem::xChanged,
+                             attachedObject(), &UCListItemActionsAttached::offsetChanged);
+        }
     }
     return panelItem;
 }
+
+void UCListItemActionsPrivate::deletePanelItem()
+{
+    if (!panelItem) {
+        return;
+    }
+    // empty queue list
+    queuedItem.clear();
+    UCListItem *listItem = static_cast<UCListItem*>(panelItem->parentItem());
+    if (listItem) {
+        UCListItemPrivate *pListItem = UCListItemPrivate::get(listItem);
+        // prompt rebounding and disconnect
+        pListItem->cleanup();
+    }
+    delete panelItem;
+    panelItem = 0;
+}
+
 
 /*!
  * \qmltype ListItemActions
@@ -416,11 +454,119 @@ void UCListItemActions::setDelegate(QQmlComponent *delegate)
         return;
     }
     d->delegate = delegate;
-    if (d->panelItem) {
-        // update panel's delegate as well
-        d->panelItem->setProperty("delegate", QVariant::fromValue(delegate));
-    }
     Q_EMIT delegateChanged();
+}
+
+/*!
+ * \qmlproperty Component ListItemActions::customPanel
+ * The property configures the component the panel item holding the actions is
+ * created from. Defaults to \c null.
+ *
+ * When a custom component is set, action triggering, snapping, coloring and sizing
+ * must be handled by the custom component. The \l ListItemActions instance the
+ * panel belongs to can be accessed through the \c ListItemActions.container
+ * attached property and the amount of width visible is reported by the \c
+ * ListItemActions.offsetVisible attached property. Snapping can be controlled
+ * by the \c ListItemActions.snapStops array. If no value is set, no snapping
+ * will be performed.
+ *
+ * The following example illustrates how a custom panel can be implemented. The
+ * actions are triggered each time the tug is stopped. There will be only one
+ * action shown depending how far the content is tugged, and teh color of teh
+ * panel is changing depending on which action is shown.
+ * \qml
+ * import QtQuick 2.2
+ * import Ubuntu.Components 1.2
+ *
+ * UbuntuListView {
+ *     model: 100
+ *     delegate: ListItem {
+ *         StandardLayout {
+ *             captions.title.text: "Caption (title text)"
+ *             details {
+ *                 title.text: "Text"
+ *                 subtitle.text: "Text"
+ *             }
+ *         }
+ *         trailingActions: trailing
+ *     }
+ *     ListItemActions {
+ *         id: trailing
+ *         actions: [
+ *             Action {
+ *                 iconName: "alarm-clock"
+ *                 onTriggered: print(iconName, "triggered", value)
+ *             },
+ *             Action {
+ *                 iconName: "camcorder"
+ *                 onTriggered: print(iconName, "triggered", value)
+ *             },
+ *             Action {
+ *                 iconName: "stock_website"
+ *                 onTriggered: print(iconName, "triggered", value)
+ *             }
+ *         ]
+ *         customPanel: Rectangle {
+ *             id: panel
+ *             property bool leadingPanel: ListItemActions.status == ListItemActions.Leading
+ *             property Item contentItem: (ListItemActions.container && ListItemActions.container.connectedItem) ?
+ *                                            ListItemActions.container.connectedItem.contentItem : null
+ *             anchors {
+ *                 left: contentItem ? contentItem.right : undefined
+ *                 top: contentItem ? contentItem.top : undefined
+ *                 bottom: contentItem ? contentItem.bottom : undefined
+ *             }
+ *             width: contentItem ? (contentItem.width - units.gu(10)) : 0
+ *             color: colors[visibleAction]
+ *
+ *             property real slotSize: panel.width / ListItemActions.container.actions.length
+ *             // give a small margin so we don't jump to the next item
+ *             property int visibleAction: (slotSize > 0) ? (ListItemActions.offsetVisible - 1) / slotSize : 0
+ *             property var colors: [UbuntuColors.blue, UbuntuColors.lightGrey, UbuntuColors.coolGrey]
+ *
+ *             Item {
+ *                 anchors {
+ *                     left: parent.left
+ *                     top: parent.top
+ *                     bottom: parent.bottom
+ *                 }
+ *                 width: height
+ *                 Icon {
+ *                     width: units.gu(3)
+ *                     height: width
+ *                     anchors.centerIn: parent
+ *                     color: "white"
+ *                     name: panel.ListItemActions.container.actions[visibleAction].iconName
+ *                 }
+ *             }
+ *
+ *             ListItemActions.onDraggingChanged: {
+ *                 if (!ListItemActions.dragging) {
+ *                     // snap first, then trigger
+ *                     ListItemActions.snapToPosition((visibleAction + 1) * slotSize);
+ *                     panel.ListItemActions.container.actions[visibleAction].triggered(panel.ListItemActions.itemIndex)
+ *                 }
+ *             }
+ *         }
+ *     }
+ * }
+ * \endqml
+ */
+QQmlComponent *UCListItemActions::customPanel() const
+{
+    Q_D(const UCListItemActions);
+    return d->customPanel;
+}
+void UCListItemActions::setCustomPanel(QQmlComponent *panel)
+{
+    Q_D(UCListItemActions);
+    if (d->customPanel == panel) {
+        return;
+    }
+    // delete previous panel before we set the new one
+    d->deletePanelItem();
+    d->customPanel = panel;
+    Q_EMIT customPanelChanged();
 }
 
 /*!

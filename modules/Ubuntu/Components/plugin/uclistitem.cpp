@@ -1168,6 +1168,7 @@ void UCListItem::setSelectable(bool selectable)
     if (d->selectable == selectable) {
         return;
     }
+    d->cleanup();
     d->selectable = selectable;
     d->toggleSelectionMode();
     Q_EMIT selectableChanged();

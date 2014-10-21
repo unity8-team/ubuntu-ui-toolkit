@@ -20,6 +20,7 @@
 #include <QtCore/QObject>
 #include "uclistitem_p.h"
 
+class UCListItemActionsAttached;
 class QQmlComponent;
 class UCAction;
 class UCListItemActionsAttached;
@@ -28,6 +29,7 @@ class UCListItemActions : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QQmlComponent *delegate READ delegate WRITE setDelegate NOTIFY delegateChanged)
+    Q_PROPERTY(QQmlComponent *customPanel READ customPanel WRITE setCustomPanel NOTIFY customPanelChanged)
     Q_PROPERTY(QQmlListProperty<UCAction> actions READ actions CONSTANT)
     Q_PROPERTY(QColor backgroundColor READ backgroundColor WRITE setBackgroundColor NOTIFY backgroundColorChanged)
     Q_PROPERTY(QColor foregroundColor READ foregroundColor WRITE setForegroundColor NOTIFY foregroundColorChanged)
@@ -48,6 +50,8 @@ public:
 
     QQmlComponent *delegate() const;
     void setDelegate(QQmlComponent *delegate);
+    QQmlComponent *customPanel() const;
+    void setCustomPanel(QQmlComponent *panel);
     QQmlListProperty<UCAction> actions();
     QColor backgroundColor() const;
     void setBackgroundColor(const QColor &color);
@@ -57,6 +61,7 @@ public:
 
 Q_SIGNALS:
     void delegateChanged();
+    void customPanelChanged();
     void backgroundColorChanged();
     void foregroundColorChanged();
 

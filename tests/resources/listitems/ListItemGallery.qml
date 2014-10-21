@@ -166,5 +166,99 @@ MainView {
                 }
             }
         }
+
+        // Custom panel
+        Tab {
+            title: "Custom panel"
+            page: Page {
+                ListView {
+                    anchors.fill: parent
+                    model: 50
+                    delegate: ListItem {
+                        ListItemLayout {
+                            Shape {
+                                Layout.preferredWidth: units.gu(5)
+                                Layout.preferredHeight: units.gu(5)
+                                color: UbuntuColors.blue
+                            }
+
+                            Captions {
+                                title.text: "Captions (title)"
+                                subtitle.text: "Subtitle text"
+                            }
+                            Captions {
+                                preset: "summary"
+                                title.text: "Text"
+                                subtitle.text: "Text"
+                            }
+                        }
+                        trailingActions: ListItemActions {
+                            actions: [
+                                Action {
+                                    iconName: "alarm-clock"
+                                    onTriggered: print(iconName, "triggered", value)
+                                },
+                                Action {
+                                    iconName: "camcorder"
+                                    onTriggered: print(iconName, "triggered", value)
+                                },
+                                Action {
+                                    iconName: "stock_website"
+                                    onTriggered: print(iconName, "triggered", value)
+                                }
+                            ]
+                            backgroundColor: UbuntuColors.lightGrey
+                            foregroundColor: "white"
+
+                            // DropBox's Mailbox
+                            // depending on the offset dragged in, show different actions
+                            // trigger the action when released
+                            customPanel: Rectangle {
+                                id: panel
+                                property bool leadingPanel: ListItemActions.container.status == ListItemActions.Leading
+                                property Item contentItem: (ListItemActions.listItem) ?
+                                                               ListItemActions.listItem.contentItem : null
+                                anchors {
+                                    left: contentItem ? contentItem.right : undefined
+                                    top: contentItem ? contentItem.top : undefined
+                                    bottom: contentItem ? contentItem.bottom : undefined
+                                }
+                                width: contentItem ? (contentItem.width - units.gu(10)) : 0
+                                color: colors[visibleAction]
+
+                                property real slotSize: panel.width / ListItemActions.container.actions.length
+                                // give a small margin so we don't jump to the next item
+                                property int visibleAction: (slotSize > 0) ? (ListItemActions.offset - 1) / slotSize : 0
+                                property var colors: [UbuntuColors.blue, UbuntuColors.lightGrey, UbuntuColors.coolGrey]
+
+                                Item {
+                                    anchors {
+                                        left: parent.left
+                                        top: parent.top
+                                        bottom: parent.bottom
+                                    }
+                                    width: height
+                                    Icon {
+                                        width: units.gu(3)
+                                        height: width
+                                        anchors.centerIn: parent
+                                        color: "white"
+                                        name: ListItemActions.container.actions[visibleAction].iconName
+                                    }
+                                }
+
+                                ListItemActions.onDraggingChanged: {
+                                    if (!ListItemActions.dragging) {
+                                        // snap first, then trigger
+                                        ListItemActions.snapToPosition((visibleAction + 1) * slotSize);
+                                        ListItemActions.container.actions[visibleAction].triggered(ListItemActions.listItemIndex)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }

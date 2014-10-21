@@ -33,6 +33,7 @@ public:
 
     bool dragging:1;
     QQmlComponent *delegate;
+    QQmlComponent *customPanel;
     QQuickItem *panelItem;
     QColor backgroundColor;
     QColor foregroundColor;
@@ -54,7 +55,9 @@ public:
     static qreal snap(UCListItemActions *options);
     static void setDragging(UCListItemActions *actions, UCListItem *listItem, bool dragging);
 
+    void createItem(QQmlComponent *component);
     QQuickItem *createPanelItem();
+    void deletePanelItem();
 };
 
 #endif // UCLISTITEMACTIONS_P_H

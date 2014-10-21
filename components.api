@@ -894,6 +894,7 @@ plugins.qmltypes
     exports: ["ListItemActions 1.2"]
     name: "Status"
     Property { name: "delegate"; type: "QQmlComponent"; isPointer: true }
+    Property { name: "customPanel"; type: "QQmlComponent"; isPointer: true }
     Property { name: "actions"; type: "UCAction"; isList: true; isReadonly: true }
     Property { name: "backgroundColor"; type: "QColor" }
     Property { name: "foregroundColor"; type: "QColor" }
