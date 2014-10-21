@@ -137,6 +137,7 @@ Q_SIGNALS:
 private:
     Q_DECLARE_PRIVATE(UCListItemAttached)
     Q_PRIVATE_SLOT(d_func(), void _q_updateExpandedIndex(int))
+    Q_PRIVATE_SLOT(d_func(), void _q_adjustFlickableContentY())
     QScopedPointer<UCListItemAttachedPrivate> d_ptr;
 };
 

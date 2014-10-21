@@ -36,6 +36,7 @@ public:
     static QVariant originalValue(PropertyChange *change);
 
 Q_SIGNALS:
+    void setCompleted();
     void restoreCompleted();
 
 private Q_SLOTS:

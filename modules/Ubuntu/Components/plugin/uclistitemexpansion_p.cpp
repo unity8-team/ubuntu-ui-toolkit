@@ -21,7 +21,8 @@
 #include <QtQuick/private/qquickanimation_p.h>
 #include <QtQuick/private/qquickitem_p.h>
 #include <QtQuick/private/qquickanchors_p.h>
-
+#include <QtQuick/private/qquickflickable_p.h>
+#include <QtQuick/private/qquickitemview_p.h>
 
 UCListItemExpansion::UCListItemExpansion(QObject *parent)
     : QObject(parent)
@@ -55,6 +56,14 @@ bool UCListItemExpansion::hasFlag(UCListItem::ExpansionFlag flag)
     return (flags & flag) == flag;
 }
 
+void UCListItemExpansion::completeExpand()
+{
+    UCListItemAttachedPrivate *groupAttached = UCListItemPrivate::get(listItem)->parentAttached();
+    if (groupAttached) {
+        groupAttached->expansionCompleted();
+    }
+}
+
 void UCListItemExpansion::completeCollapse()
 {
     expanded = false;
@@ -79,6 +88,7 @@ void UCListItemExpansion::setExpanded(bool expanded)
     if (!heightChange) {
         heightChange = new PropertyChange(listItem, "height", this);
         connect(heightChange, SIGNAL(restoreCompleted()), this, SLOT(completeCollapse()));
+        connect(heightChange, SIGNAL(setCompleted()), this, SLOT(completeExpand()));
     }
     UCListItemAttachedPrivate *groupAttached = UCListItemPrivate::get(listItem)->parentAttached();
     if (expanded) {
@@ -145,19 +155,19 @@ void UCListItemExpansion::updateExpanded()
     createAnimation();
     PropertyChange::setAnimation(heightChange, heightAnimation);
 
-    qreal expansionHeight = listItem->height();
+    effectiveExpansionHeight = listItem->height();
     if (!height && createContent()) {
         // content height drives the expansion height
         if (hasFlag(UCListItem::ExpandContentItem)) {
             // update contentItem's top anchor
             QQuickAnchors *anchors = QQuickItemPrivate::get(contentItem)->anchors();
             anchors->setTop(UCListItemPrivate::get(listItem)->top());
-            expansionHeight = contentItem->height();
+            effectiveExpansionHeight = contentItem->height();
         } else {
             // expand under item->contentItem, so anchor its top to item->contentItem
             QQuickAnchors *anchors = QQuickItemPrivate::get(contentItem)->anchors();
             anchors->setTop(QQuickItemPrivate::get(listItem->contentItem())->bottom());
-            expansionHeight = contentItem->height() + listItem->height();
+            effectiveExpansionHeight = contentItem->height() + listItem->height();
         }
     } else if (height && height > listItem->height()) {
         if (createContent()) {
@@ -165,26 +175,26 @@ void UCListItemExpansion::updateExpanded()
                 // update contentItem's top anchor
                 QQuickAnchors *anchors = QQuickItemPrivate::get(contentItem)->anchors();
                 anchors->setTop(UCListItemPrivate::get(listItem)->top());
-                expansionHeight = contentItem->height();
+                effectiveExpansionHeight = contentItem->height();
             } else {
                 // expand under item->contentItem, so anchor its top to item->contentItem
                 QQuickAnchors *anchors = QQuickItemPrivate::get(contentItem)->anchors();
                 anchors->setTop(QQuickItemPrivate::get(listItem->contentItem())->bottom());
-                expansionHeight = contentItem->height() + listItem->height();
+                effectiveExpansionHeight = contentItem->height() + listItem->height();
             }
-            expansionHeight = CLAMP(expansionHeight, listItem->height(), height);
+            effectiveExpansionHeight = CLAMP(effectiveExpansionHeight, listItem->height(), height);
             if (hasFlag(UCListItem::ExpandContentItem)) {
-                contentItem->setHeight(expansionHeight);
+                contentItem->setHeight(effectiveExpansionHeight);
             } else {
-                contentItem->setHeight(expansionHeight - listItem->height());
+                contentItem->setHeight(effectiveExpansionHeight - listItem->height());
             }
         } else {
-            expansionHeight = height;
+            effectiveExpansionHeight = height;
         }
     }
 
     // apply new height
-    PropertyChange::setValue(heightChange, expansionHeight);
+    PropertyChange::setValue(heightChange, effectiveExpansionHeight);
     // make contentItem visible
     if (contentItem) {
         contentItem->setVisible(true);
@@ -270,7 +280,28 @@ void UCListItemAttachedPrivate::setExpandedItem(UCListItem *listItem)
     if (m_expandedIndex != item->index) {
         m_expandedIndex = item->index;
         Q_EMIT q->expandedIndexChanged(m_expandedIndex);
+        // position the view!
+        if (item->flickable) {
+            // check if positionViewAtIndex is available, if yes, invoke it
+            const QMetaObject *mo = item->flickable->metaObject();
+            int slotIndex = mo->indexOfSlot("positionViewAtIndex(int,int)");
+            if (slotIndex >= 0) {
+                // first set the currentIndex
+                item->flickable->setProperty("currentIndex", item->index);
+                mo->invokeMethod(item->flickable, "positionViewAtIndex", Q_ARG(int, item->index), Q_ARG(int, QQuickItemView::End));
+            }
+            // connect expansion progress to adjust content; we can track expansion by connecting to the item's height change
+            QObject::connect(listItem, SIGNAL(heightChanged()), q, SLOT(_q_adjustFlickableContentY()));
+        }
     }
+}
+
+// called when expansion animation completes
+void UCListItemAttachedPrivate::expansionCompleted()
+{
+    // disconnect expansion progress
+    Q_Q(UCListItemAttached);
+    QObject::disconnect(m_expandedItem.data(), SIGNAL(heightChanged()), q, SLOT(_q_adjustFlickableContentY()));
 }
 
 void UCListItemAttachedPrivate::collapseExpanded(bool signalChange)
@@ -292,6 +323,23 @@ void UCListItemAttachedPrivate::_q_updateExpandedIndex(int index)
 {
     m_expandedIndex = index;
     Q_EMIT q_ptr->expandedIndexChanged(index);
+}
+
+// slots adjusting contentY of ListView or Flickable
+void UCListItemAttachedPrivate::_q_adjustFlickableContentY()
+{
+    // check if we have to connect to the height animation
+    UCListItemPrivate *item = UCListItemPrivate::get(m_expandedItem.data());
+//    qreal expansionHeight = MIN(item->expansion->effectiveHeight(), item->flickable->height() - item->expansion->collapsedHeight());
+    qreal contentY = item->flickable->contentY();
+    qreal originY = item->flickable->originY();
+
+    qreal to = contentY + m_expandedItem->height() + originY;
+    qreal dy = to - item->flickable->height();
+    qDebug() << "DY" << dy;
+    if (dy > 0) {
+        item->flickable->setContentY(contentY - dy - originY);
+    }
 }
 
 UCListItemAttached::UCListItemAttached(QObject *owner)

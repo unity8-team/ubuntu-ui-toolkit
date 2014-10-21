@@ -93,6 +93,7 @@ void PropertyChange::setValue(PropertyChange *change, const QVariant &value)
         change->animation->complete();
         change->animation->setFrom(change->qmlProperty.read());
         change->animation->setTo(value);
+        QObject::connect(change->animation, SIGNAL(stopped()), change, SIGNAL(setCompleted()), Qt::UniqueConnection);
         change->animation->start();
     } else {
         change->qmlProperty.write(value);
@@ -115,7 +116,7 @@ void PropertyChange::restore(PropertyChange *change)
         change->animation->stop();
         change->animation->setFrom(change->qmlProperty.read());
         change->animation->setTo(change->backup.second);
-        QObject::connect(change->animation, SIGNAL(stopped()), change, SLOT(completeRestore()));
+        QObject::connect(change->animation, SIGNAL(stopped()), change, SLOT(completeRestore()), Qt::UniqueConnection);
         change->animation->start();
     } else {
         change->completeRestore();

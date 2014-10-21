@@ -198,6 +198,11 @@ public:
     void setContent(QQmlComponent *content);
 
     qreal collapsedHeight();
+    qreal effectiveHeight()
+    {
+        return effectiveExpansionHeight;
+    }
+
     bool hasFlag(UCListItem::ExpansionFlag flag);
 
 Q_SIGNALS:
@@ -207,6 +212,7 @@ Q_SIGNALS:
     void contentChanged();
 
 private Q_SLOTS:
+    void completeExpand();
     void completeCollapse();
 
 protected:
@@ -219,6 +225,7 @@ protected:
     bool collapsed:1; // set when height animation completes on height restore
     UCListItem::ExpansionFlags flags;
     qreal height;
+    qreal effectiveExpansionHeight;
 
     bool createAnimation();
     bool createContent();
@@ -239,10 +246,12 @@ public:
     UCListItem *item() const;
 
     void setExpandedItem(UCListItem *listItem);
+    void expansionCompleted();
     void collapseExpanded(bool signalChange = true);
 
     //private slots
     void _q_updateExpandedIndex(int index);
+    void _q_adjustFlickableContentY();
 private:
     UCListItemAttached *q_ptr;
     UCListItem *m_attacheeItem;
