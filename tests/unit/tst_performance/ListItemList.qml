@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Canonical Ltd.
+ * Copyright 2014 Canonical Ltd.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,30 +15,16 @@
  */
 
 import QtQuick 2.0
-import Ubuntu.Components 0.1
+import Ubuntu.Components 1.2
 
-TemplateSection {
-    id: section
-    property alias delegate: repeater.delegate
+Column {
+    width: 800
+    height: 600
     property alias count: repeater.count
-    property bool newListItem: false
-    documentation: newListItem ?
-                       "qml-ubuntu-components-%1.html".arg(className.toLowerCase()) :
-                       "qml-ubuntu-components-listitems-%1.html".arg(className.toLowerCase())
-
-    function itemAt(index)
-    {
-       return repeater.itemAt(index)
-    }
-
-    Column {
-        id: column
-        anchors.left: parent.left
-        anchors.right: parent.right
-
-        Repeater {
-            id: repeater
-            model: 4
+    Repeater {
+        id: repeater
+        model: 5000
+        ListItem {
         }
     }
 }
