@@ -21,29 +21,34 @@ import Ubuntu.Components.ListItems 0.1 as ListItem
 Template {
     objectName: "listItemsTemplate"
 
+    Toolkit.ListItemActions {
+        id: leading
+        actions: Toolkit.Action {
+            iconName: "delete"
+        }
+    }
+    Toolkit.ListItemActions {
+        id: trailing
+        actions: [
+            Toolkit.Action {
+                iconName: "edit"
+            },
+            Toolkit.Action {
+                iconName: "contact"
+            },
+            Toolkit.Action {
+                iconName: "email"
+            }
+        ]
+    }
     ListItemsSection {
-        title: i18n.tr("ListItem - without layout")
+        title: i18n.tr("ListItem")
         className: "ListItem"
+        newListItem: true
         clip: true
         delegate: Toolkit.ListItem {
-            leadingActions: Toolkit.ListItemActions {
-                actions: Toolkit.Action {
-                    iconName: "delete"
-                }
-            }
-            trailingActions: Toolkit.ListItemActions {
-                actions: [
-                    Toolkit.Action {
-                        iconName: "edit"
-                    },
-                    Toolkit.Action {
-                        iconName: "contact"
-                    },
-                    Toolkit.Action {
-                        iconName: "email"
-                    }
-                ]
-            }
+            leadingActions: leading
+            trailingActions: trailing
 
             Toolkit.Label {
                 anchors {
