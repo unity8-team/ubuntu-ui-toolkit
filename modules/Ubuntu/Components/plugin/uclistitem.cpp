@@ -830,6 +830,11 @@ void UCListItem::mousePressEvent(QMouseEvent *event)
         d->flickableControl->listenToRebind(true);
         // start pressandhold timer
         d->pressAndHoldTimer.start(QGuiApplication::styleHints()->mousePressAndHoldInterval(), this);
+        // if it was moved, grab the panels
+        if (d->moved) {
+            d->grabPanel(d->leadingActions, true);
+            d->grabPanel(d->trailingActions, true);
+        }
     }
     // accept the event so we get the rest of the events as well
     event->setAccepted(true);
