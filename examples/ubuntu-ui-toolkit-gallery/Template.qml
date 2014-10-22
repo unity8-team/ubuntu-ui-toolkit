@@ -23,7 +23,7 @@ Item {
     width: units.gu(40)
     height: units.gu(75)
 
-    default property alias content: layout.children
+    default property alias content: layout.data
     property alias spacing: layout.spacing
     property Item tools: null
     property Flickable flickable: flickable
