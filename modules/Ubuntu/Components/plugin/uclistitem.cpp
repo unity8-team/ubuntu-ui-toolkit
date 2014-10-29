@@ -131,7 +131,7 @@ void UCListItemDivider::updateGradient()
 QSGNode *UCListItemDivider::paint(QSGNode *node, const QRectF &rect)
 {
     QSGRectangleNode *dividerNode = static_cast<QSGRectangleNode*>(node);
-    if (m_visible && (m_gradient.size() > 0) && ((m_colorFrom.alphaF() >= (1.0f / 255.0f)) || (m_colorTo.alphaF() >= (1.0f / 255.0f)))) {
+    if (m_visible && !m_lastItem && (m_gradient.size() > 0) && ((m_colorFrom.alphaF() >= (1.0f / 255.0f)) || (m_colorTo.alphaF() >= (1.0f / 255.0f)))) {
         if (!dividerNode) {
             dividerNode = m_listItem->sceneGraphContext()->createRectangleNode();
         }
@@ -283,7 +283,7 @@ void FlickableControl::rebind()
         UCListItemPrivate::get(item)->_q_rebound();
     } else {
         // we simply do cleanup
-        UCListItemPrivate::get(item)->cleanup();
+        UCListItemPrivate::get(item)->promptRebount();
     }
 }
 
@@ -300,6 +300,7 @@ UCListItemPrivate::UCListItemPrivate()
     , selected(false)
     , index(-1)
     , xAxisMoveThresholdGU(1.5)
+    , overshootGU(2)
     , color(Qt::transparent)
     , highlightColor(Qt::transparent)
     , flickableControl(0)
@@ -351,8 +352,10 @@ void UCListItemPrivate::init()
     // create rebound animation
     UCUbuntuAnimation animationCodes;
     reboundAnimation = new QQuickPropertyAnimation(q);
-    reboundAnimation->setEasing(QEasingCurve(QEasingCurve::OutBack));
-    reboundAnimation->setDuration(animationCodes.SnapDuration());
+    QEasingCurve easing(QEasingCurve::OutElastic);
+    easing.setPeriod(0.5);
+    reboundAnimation->setEasing(easing);
+    reboundAnimation->setDuration(animationCodes.BriskDuration());
     reboundAnimation->setTargetObject(contentItem);
     reboundAnimation->setProperty("x");
     reboundAnimation->setAlwaysRunToEnd(true);
@@ -442,8 +445,8 @@ void UCListItemPrivate::_q_updateSelected()
     update();
 }
 
-// the function performs a cleanup on mouse release without any rebound animation
-void UCListItemPrivate::cleanup()
+// the function performs a rebound on mouse release without any animation
+void UCListItemPrivate::promptRebount()
 {
     setPressed(false);
     setMoved(false);
@@ -467,12 +470,19 @@ void UCListItemPrivate::_q_updateSize()
     q->setImplicitHeight(UCUnits::instance().gu(7));
 }
 
+// returns true if the click happened over an inactive component
+bool UCListItemPrivate::canHighlight(QMouseEvent *event)
+{
+    QQuickItem *child = contentItem->childAt(event->localPos().x(), event->localPos().y());
+    return !child || qobject_cast<QQuickText*>(child) ||
+           ((child->acceptedMouseButtons() & event->button()) != event->button());
+}
+
 // set pressed flag and update contentItem
 void UCListItemPrivate::setPressed(bool pressed)
 {
     if (this->pressed != pressed) {
         this->pressed = pressed;
-        suppressClick = false;
         Q_Q(UCListItem);
         q->update();
         Q_EMIT q->pressedChanged();
@@ -536,9 +546,9 @@ void UCListItemPrivate::clampX(qreal &x, qreal dx)
     UCListItemActionsPrivate *trailing = UCListItemActionsPrivate::get(trailingActions);
     x += dx;
     // min cannot be less than the trailing's panel width
-    qreal min = (trailing && trailing->panelItem) ? -trailing->panelItem->width() : 0;
+    qreal min = (trailing && trailing->panelItem) ? -trailing->panelItem->width() - UCUnits::instance().gu(overshootGU): 0;
     // max cannot be bigger than 0 or the leading's width in case we have leading panel
-    qreal max = (leading && leading->panelItem) ? leading->panelItem->width() : 0;
+    qreal max = (leading && leading->panelItem) ? leading->panelItem->width() + UCUnits::instance().gu(overshootGU): 0;
     x = CLAMP(x, min, max);
 }
 
@@ -836,13 +846,18 @@ void UCListItem::mousePressEvent(QMouseEvent *event)
         // while moving, we cannot select or tug any items
         return;
     }
-    if (!d->pressed && event->button() == Qt::LeftButton) {
+    if (!d->suppressClick && !d->pressed && event->button() == Qt::LeftButton && d->canHighlight(event)) {
         d->setPressed(true);
         d->lastPos = d->pressedPos = event->localPos();
         // connect the Flickable to know when to rebound
         d->flickableControl->listenToRebind(true);
         // start pressandhold timer
         d->pressAndHoldTimer.start(QGuiApplication::styleHints()->mousePressAndHoldInterval(), this);
+        // if it was moved, grab the panels
+        if (d->moved) {
+            d->grabPanel(d->leadingActions, true);
+            d->grabPanel(d->trailingActions, true);
+        }
     }
     // accept the event so we get the rest of the events as well
     event->setAccepted(true);
@@ -878,7 +893,7 @@ void UCListItem::mouseReleaseEvent(QMouseEvent *event)
             }
             if (d->contentItem->x() == 0.0) {
                 // do a cleanup, no need to rebound, the item has been dragged back to 0
-                d->cleanup();
+                d->promptRebount();
             } else if (snapPosition == 0.0){
                 d->_q_rebound();
             } else {
@@ -887,6 +902,8 @@ void UCListItem::mouseReleaseEvent(QMouseEvent *event)
             // unset dragging in panel item
             UCListItemActionsPrivate::setDragging(d->leadingActions, this, false);
             UCListItemActionsPrivate::setDragging(d->trailingActions, this, false);
+
+            d->suppressClick = false;
         }
     }
     d->setPressed(false);
@@ -943,13 +960,18 @@ void UCListItem::mouseMoveEvent(QMouseEvent *event)
 
 bool UCListItem::childMouseEventFilter(QQuickItem *child, QEvent *event)
 {
-    if (event->type() == QEvent::MouseButtonPress) {
-        // suppress click event if pressed over an active mouse area
-        QQuickMouseArea *mouseArea = qobject_cast<QQuickMouseArea*>(child);
-        if (mouseArea && mouseArea->isEnabled()) {
+    QEvent::Type type = event->type();
+    if (type == QEvent::MouseButtonPress) {
+        // suppress click event if pressed over an active area, except Text, which can also handle
+        // mouse clicks when content is an URL
+        QMouseEvent *mouse = static_cast<QMouseEvent*>(event);
+        if (child->isEnabled() && child->acceptedMouseButtons() & mouse->button() && !qobject_cast<QQuickText*>(child)) {
             Q_D(UCListItem);
             d->suppressClick = true;
         }
+    } else if (type == QEvent::MouseButtonRelease) {
+        Q_D(UCListItem);
+        d->suppressClick = false;
     }
     return UCStyledItemBase::childMouseEventFilter(child, event);
 }
@@ -1013,6 +1035,14 @@ void UCListItem::setLeadingActions(UCListItemActions *actions)
     if (d->leadingActions == actions) {
         return;
     }
+    // snap out before we change the actions
+    d->promptRebount();
+    // then delete panelItem
+    if (d->leadingActions) {
+        UCListItemActionsPrivate *list = UCListItemActionsPrivate::get(d->leadingActions);
+        delete list->panelItem;
+        list->panelItem = 0;
+    }
     d->leadingActions = actions;
     if (d->leadingActions == d->trailingActions && d->leadingActions) {
         qmlInfo(this) << UbuntuI18n::tr("leadingActions and trailingActions cannot share the same object!");
@@ -1038,6 +1068,14 @@ void UCListItem::setTrailingActions(UCListItemActions *actions)
     Q_D(UCListItem);
     if (d->trailingActions == actions) {
         return;
+    }
+    // snap out before we change the actions
+    d->promptRebount();
+    // then delete panelItem
+    if (d->trailingActions) {
+        UCListItemActionsPrivate *list = UCListItemActionsPrivate::get(d->trailingActions);
+        delete list->panelItem;
+        list->panelItem = 0;
     }
     d->trailingActions = actions;
     if (d->leadingActions == d->trailingActions && d->trailingActions) {
