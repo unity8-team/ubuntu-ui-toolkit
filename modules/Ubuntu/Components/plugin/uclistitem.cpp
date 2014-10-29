@@ -474,8 +474,9 @@ void UCListItemPrivate::_q_updateSize()
 bool UCListItemPrivate::canHighlight(QMouseEvent *event)
 {
     QQuickItem *child = contentItem->childAt(event->localPos().x(), event->localPos().y());
-    return !child || qobject_cast<QQuickText*>(child) ||
-           ((child->acceptedMouseButtons() & event->button()) != event->button());
+    bool activeComponent = child && (child->acceptedMouseButtons() & event->button()) && !qobject_cast<QQuickText*>(child);
+    // do highlight if not pressed above the active component
+    return !activeComponent;
 }
 
 // set pressed flag and update contentItem
@@ -593,15 +594,6 @@ void UCListItemPrivate::toggleSelectionMode()
         QObject::disconnect(selectionPanel, SIGNAL(checkedChanged()), q, SLOT(_q_updateSelected()));
     }
     _q_updateSelected();
-}
-
-bool UCListItemPrivate::canHighlight()
-{
-    // do we have a child which has an active (enabled) MouseArea?
-    Q_Q(UCListItem);
-    QQuickMouseArea *mouseArea = q->findChild<QQuickMouseArea*>();
-    bool hasActiveMouseArea = mouseArea && mouseArea->isEnabled() && mouseArea->isVisible();
-    return ((pressed && (action || leadingActions || trailingActions || hasActiveMouseArea)) || (selectable && selected));
 }
 
 /*!
@@ -791,7 +783,11 @@ QSGNode *UCListItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *data
     Q_D(UCListItem);
     // do highlight only if at least one of action, leadingActions or trailingAction
     // properties is set
-    QColor color = d->canHighlight() ? d->highlightColor : d->color;
+    QQuickMouseArea *ma = findChild<QQuickMouseArea*>();
+    bool activeMouseArea = ma && ma->isEnabled();
+    bool highlighted = (d->pressed && (d->action || d->leadingActions || d->trailingActions || activeMouseArea))
+            || (d->selectable && d->selected);
+    QColor color = highlighted ? d->highlightColor : d->color;
 
     if (width() <= 0 || height() <= 0) {
         delete oldNode;

@@ -64,7 +64,6 @@ public:
     void clampX(qreal &x, qreal dx);
     QQuickItem *createSelectionPanel();
     void toggleSelectionMode();
-    bool canHighlight();
 
     bool pressed:1;
     bool highlightColorChanged:1;
