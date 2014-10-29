@@ -52,7 +52,7 @@ public:
     void _q_completeRebinding();
     void _q_updateIndex(QObject *ownerItem = 0);
     void _q_updateSelected();
-    void cleanup();
+    void promptRebount();
     void reboundTo(qreal x);
     void setPressed(bool pressed);
     void setMoved(bool moved);
@@ -74,6 +74,7 @@ public:
     int index;
     qreal xAxisMoveThresholdGU;
     QBasicTimer pressAndHoldTimer;
+    qreal overshootGU;
     QPointF lastPos;
     QPointF pressedPos;
     QColor color;
