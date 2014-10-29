@@ -52,8 +52,9 @@ public:
     void _q_completeRebinding();
     void _q_updateIndex(QObject *ownerItem = 0);
     void _q_updateSelected();
-    void cleanup();
+    void promptRebount();
     void reboundTo(qreal x);
+    bool canHighlight(QMouseEvent *event);
     void setPressed(bool pressed);
     void setMoved(bool moved);
     bool grabPanel(UCListItemActions *optionList, bool isMoved);
@@ -74,6 +75,7 @@ public:
     int index;
     qreal xAxisMoveThresholdGU;
     QBasicTimer pressAndHoldTimer;
+    qreal overshootGU;
     QPointF lastPos;
     QPointF pressedPos;
     QColor color;

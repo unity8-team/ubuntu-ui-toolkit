@@ -23,6 +23,7 @@
 #include <QtQml/QQmlInfo>
 #include <QtQuick/private/qquickitem_p.h>
 #include "ucaction.h"
+#include "ucunits.h"
 
 UCListItemActionsPrivate::UCListItemActionsPrivate()
     : QObjectPrivate()
@@ -65,7 +66,7 @@ void UCListItemActionsPrivate::_q_handlePanelWidth()
     // FIXME: use Actions API when moved to C++
     int count = 0;
     for (int i = 0; i < actions.count(); i++) {
-        if (actions[i]->property("visible").toBool() && actions[i]->property("enabled").toBool()) {
+        if (actions[i]->property("visible").toBool()) {
             count++;
         }
     }
@@ -136,7 +137,9 @@ qreal UCListItemActionsPrivate::snap(UCListItemActions *options)
     if (!_this || !_this->panelItem) {
         return 0.0;
     }
-    if (_this->offsetDragged > _this->optionSlotWidth * 0.5) {
+    // if the drag is > overshootGU, snap in, otherwise snap out
+    UCListItemPrivate *listItem = UCListItemPrivate::get(static_cast<UCListItem*>(_this->panelItem->parentItem()));
+    if (_this->offsetDragged > UCUnits::instance().gu(listItem->overshootGU)) {
         return _this->panelItem->width() * (_this->status == UCListItemActions::Leading ? 1 : -1);
     }
     return 0.0;
