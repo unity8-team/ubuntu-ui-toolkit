@@ -378,6 +378,14 @@ void UCListItemPrivate::_q_updateSize()
     q->setImplicitHeight(UCUnits::instance().gu(7));
 }
 
+// returns true if the click happened over an inactive component
+bool UCListItemPrivate::canHighlight(QMouseEvent *event)
+{
+    QQuickItem *child = contentItem->childAt(event->localPos().x(), event->localPos().y());
+    return !child || qobject_cast<QQuickText*>(child) ||
+           ((child->acceptedMouseButtons() & event->button()) != event->button());
+}
+
 // set pressed flag and update contentItem
 void UCListItemPrivate::setPressed(bool pressed)
 {
@@ -758,7 +766,7 @@ void UCListItem::mousePressEvent(QMouseEvent *event)
         // while moving, we cannot select or tug any items
         return;
     }
-    if (event->button() == Qt::LeftButton) {
+    if (event->button() == Qt::LeftButton && d->canHighlight(event)) {
         d->setPressed(true);
         d->lastPos = d->pressedPos = event->localPos();
         // connect the Flickable to know when to rebound
@@ -863,9 +871,10 @@ void UCListItem::mouseMoveEvent(QMouseEvent *event)
 bool UCListItem::childMouseEventFilter(QQuickItem *child, QEvent *event)
 {
     if (event->type() == QEvent::MouseButtonPress) {
-        // suppress click event if pressed over an active mouse area
-        QQuickMouseArea *mouseArea = qobject_cast<QQuickMouseArea*>(child);
-        if (mouseArea && mouseArea->isEnabled()) {
+        // suppress click event if pressed over an active area, except Text, which can also handle
+        // mouse clicks when content is an URL
+        QMouseEvent *mouse = static_cast<QMouseEvent*>(event);
+        if (child->isEnabled() && child->acceptedMouseButtons() & mouse->button() && !qobject_cast<QQuickText*>(child)) {
             Q_D(UCListItem);
             d->suppressClick = true;
         }

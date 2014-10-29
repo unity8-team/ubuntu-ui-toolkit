@@ -54,6 +54,7 @@ public:
     void _q_updateSelected();
     void promptRebount();
     void reboundTo(qreal x);
+    bool canHighlight(QMouseEvent *event);
     void setPressed(bool pressed);
     void setMoved(bool moved);
     bool grabPanel(UCListItemActions *optionList, bool isMoved);

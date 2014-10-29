@@ -90,6 +90,11 @@ MainView {
                 anchors.fill: parent
                 text: units.gridUnit + "PX/unit"
             }
+            Button {
+                text: "Press me"
+                anchors.centerIn: parent
+            }
+
             leadingActions: ListItemActions {
                 objectName: "InlineLeading"
                 actions: [stock]
