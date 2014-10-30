@@ -1,8 +1,9 @@
-ubuntu-ui-toolkit-gles (1.1.1298+14.10.20141030~rtm-0ubuntu1) UNRELEASED; urgency=medium
+ubuntu-ui-toolkit-gles (1.1.1298+14.10.20141030~rtm-0ubuntu1) 14.09; urgency=medium
 
+  [ Timo Jyrinki ]
   * Sync with 1.1.1298+14.10.20141030~rtm-0ubuntu1
 
- -- Timo Jyrinki <timo-jyrinki@ubuntu.com>  Thu, 30 Oct 2014 09:40:04 +0200
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Thu, 30 Oct 2014 09:00:58 +0000
 
 ubuntu-ui-toolkit-gles (1.1.1286+14.10.20141010-0ubuntu1) 14.09; urgency=medium
 
