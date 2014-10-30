@@ -21,8 +21,8 @@ import Ubuntu.Components 1.2
 
 Item {
     id: main
-    width: units.gu(40)
-    height: units.gu(71)
+    width: units.gu(50)
+    height: units.gu(100)
 
     Action {
         id: stockAction
@@ -158,11 +158,6 @@ Item {
         }
 
         SignalSpy {
-            id: interactiveSpy
-            signalName: "interactiveChanged"
-        }
-
-        SignalSpy {
             id: draggingSpy
             signalName: "draggingChanged"
         }
@@ -199,7 +194,7 @@ Item {
             // tap on the first item to make sure we are rebounding all
             mouseClick(defaults, 0, 0);
             // make sure all events are processed
-            wait(200);
+            wait(400);
         }
 
         function test_0_defaults() {
@@ -410,7 +405,7 @@ Item {
         }
         function test_listview_not_interactive_while_tugged(data) {
             listView.positionViewAtBeginning();
-            interactiveSpy.target = data.view;
+            interactiveSpy.target = listView;
             compare(listView.interactive, true, "ListView is not interactive");
             if (data.mouse) {
                 flick(data.item, data.pos.x, data.pos.y, data.dx, data.dy);
@@ -418,7 +413,9 @@ Item {
                 TestExtras.touchDrag(0, data.item, data.pos, Qt.point(data.dx, data.dy));
             }
             waitForRendering(data.item, 800);
-            compare(listView.interactive, false, "The ListView is still interactive!");
+            // listview interactive is returned to true once the panel is snapped in, but we should get it changed at least twice!
+            verify(interactiveSpy.count > 0, "Item wasn't tugged!");
+            compare(listView.interactive, true, "The ListView is still non-interactive!");
             // interactive should be changed at least once!
             verify(interactiveSpy.count > 0, "Listview interactive did not change.");
             // dismiss
@@ -643,14 +640,18 @@ Item {
         }
 
         function test_listitem_blockks_ascendant_flickables() {
-            var testItem = findChild(nestedListView, "listItem0");
-            verify(testItem, "Cannot find test item");
+            var listItem = findChild(nestedListView, "listItem0");
+            verify(listItem, "Cannot find test item");
             interactiveSpy.target = testFlickable;
             // tug leading
-            flick(testItem, centerOf(testItem).x, centerOf(testItem).y, testItem.width / 2, 0);
-            waitForRendering(testItem, 800);
+            flick(listItem, centerOf(listItem).x, centerOf(listItem).y, listItem.width / 2, 0);
+            waitForRendering(listItem, 800);
             // check if interactive got changed
             interactiveSpy.wait();
+
+            // cleanup!!!
+            mouseClick(listItem, centerOf(listItem).x, centerOf(listItem).y);
+            tryCompareFunction(function() { return nestedListView.interactive; }, true, 1000);
         }
 
         // keep these as last ones so we make sure the panel has been created by the previous swipes
