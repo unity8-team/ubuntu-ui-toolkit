@@ -976,6 +976,8 @@ ActionItem {
             // FocusScope will forward focus to this component
             focus: true
             anchors.verticalCenter: parent.verticalCenter
+            width: flicker.width
+            height: flicker.height
             cursorDelegate: TextCursor {
                 handler: inputHandler
             }
