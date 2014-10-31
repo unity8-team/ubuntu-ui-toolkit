@@ -73,7 +73,7 @@ Ubuntu.StyledItem {
             return;
         }
         // open context menu only for cursorPosition or selectionEnd
-        if (positionProperty !== "selectionStart") {
+        if (positionProperty !== "selectionEnd") {
             if (inputHandler.popover != null)
                 inputHandler.popover.hide();
 
