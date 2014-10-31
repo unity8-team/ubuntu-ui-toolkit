@@ -47,7 +47,7 @@ echo cp -R c/Ubuntu/Components/* "\$DEST" '|| exit 1' >> $RUN/copy.sh
 
 for i in 10 11 ListItems Pickers Popups Styles Themes artwork; do
     adb push modules/Ubuntu/Components/$i/ $STONE/$i || exit 1
-    echo cp -R $i/ "\$DEST"/$i >> $RUN/copy.sh '|| exit 1' || exit 1
+    echo cp -R $i/* "\$DEST"/$i >> $RUN/copy.sh '|| exit 1' || exit 1
 done
 
 # Autopilot tests should always match the Toolkit
