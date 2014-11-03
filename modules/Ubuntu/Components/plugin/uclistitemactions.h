@@ -79,6 +79,7 @@ class UCListItemActionsAttached : public QObject
     Q_PROPERTY(qreal offset READ offset NOTIFY offsetChanged)
     Q_PROPERTY(UCListItemActions::Status status READ status NOTIFY statusChanged)
     Q_PROPERTY(bool dragging READ dragging NOTIFY draggingChanged)
+    Q_PROPERTY(qreal overshoot READ overshoot NOTIFY overshootChanged)
 public:
     UCListItemActionsAttached(QObject *parent = 0);
     ~UCListItemActionsAttached();
@@ -89,6 +90,7 @@ public:
     bool dragging();
     qreal offset();
     UCListItemActions::Status status();
+    qreal overshoot();
 
     UCListItemActions *container() const
     {
@@ -105,6 +107,7 @@ Q_SIGNALS:
     void offsetChanged();
     void statusChanged();
     void draggingChanged();
+    void overshootChanged();
 
 private:
     QPointer<UCListItemActions> m_container;
