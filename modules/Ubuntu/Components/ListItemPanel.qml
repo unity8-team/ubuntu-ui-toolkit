@@ -68,13 +68,36 @@ Item {
         objectName: "panel_background"
         anchors {
             fill: parent
-            // add overshoot margins to cover the background when tugged
-            leftMargin: leadingPanel ? -units.gu(2) : 0
-            rightMargin: leadingPanel ? 0 : -units.gu(2)
+            // add 4 times the overshoot margins to cover the background when tugged
+            leftMargin: leadingPanel ? -units.gu(4 * ListItemActions.overshoot) : 0
+            rightMargin: leadingPanel ? 0 : -units.gu(4 * ListItemActions.overshoot)
         }
         // FIXME: use Palette colors instead when available
         color: (panel.ListItemActions.container.backgroundColor != "#000000") ?
                    panel.ListItemActions.container.backgroundColor : (leadingPanel ? UbuntuColors.red : "white")
+    }
+
+    // track drag dirrection, so we know in which direction we should snap
+    property real prevX: 0.0
+    property bool leftToRight: false
+    onXChanged: {
+        leftToRight = prevX < x;
+        prevX = x;
+    }
+    // default snapping!
+    ListItemActions.onDraggingChanged: {
+        if (ListItemActions.dragging) {
+            // the dragging got started, set prevX
+            prevX = panel.x;
+            return;
+        }
+        if (!visible) {
+            return;
+        }
+        // snap in if the offset is bigger than the overshoot and the direction of the drag is to reveal the panel
+        var snapPos = (ListItemActions.offset > ListItemActions.overshoot &&
+                       (leftToRight && leadingPanel || !leftToRight && !leadingPanel)) ? panel.width : 0.0;
+        ListItemActions.snapToPosition(snapPos);
     }
 
     Row {
@@ -94,13 +117,13 @@ Item {
                 action: modelData
                 visible: action.visible
                 enabled: action.enabled
+                opacity: enabled ? 1.0 : 0.5
                 width: (!visible) ?
                            0 : MathUtils.clamp(delegateLoader.item ? delegateLoader.item.width : 0, height, optionsRow.maxItemWidth)
                 anchors {
                     top: parent.top
                     bottom: parent.bottom
                 }
-                opacity: enabled ? 1.0 : 0.5
 
                 function trigger() {
                     // save the action as we trigger when the rebound animation is over

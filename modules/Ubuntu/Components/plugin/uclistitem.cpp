@@ -55,7 +55,6 @@ QColor getPaletteColor(const char *profile, const char *color)
 UCListItemDivider::UCListItemDivider(QObject *parent)
     : QObject(parent)
     , m_visible(true)
-    , m_lastItem(false)
     , m_leftMarginChanged(false)
     , m_rightMarginChanged(false)
     , m_colorFromChanged(false)
@@ -130,7 +129,8 @@ void UCListItemDivider::updateGradient()
 QSGNode *UCListItemDivider::paint(QSGNode *node, const QRectF &rect)
 {
     QSGRectangleNode *dividerNode = static_cast<QSGRectangleNode*>(node);
-    if (m_visible && !m_lastItem && (m_gradient.size() > 0) && ((m_colorFrom.alphaF() >= (1.0f / 255.0f)) || (m_colorTo.alphaF() >= (1.0f / 255.0f)))) {
+    bool lastItem = m_listItem->countOwner ? (m_listItem->index() == (m_listItem->countOwner->property("count").toInt() - 1)): false;
+    if (m_visible && !lastItem && (m_gradient.size() > 0) && ((m_colorFrom.alphaF() >= (1.0f / 255.0f)) || (m_colorTo.alphaF() >= (1.0f / 255.0f)))) {
         if (!dividerNode) {
             dividerNode = m_listItem->sceneGraphContext()->createRectangleNode();
         }
@@ -208,11 +208,11 @@ UCListItemPrivate::UCListItemPrivate()
     : UCStyledItemBasePrivate()
     , pressed(false)
     , highlightColorChanged(false)
-    , moved(false)
+    , tugged(false)
     , ready(false)
+    , contentMoving(false)
     , selectable(false)
     , selected(false)
-    , index(-1)
     , xAxisMoveThresholdGU(1.5)
     , overshootGU(2)
     , color(Qt::transparent)
@@ -311,38 +311,83 @@ void UCListItemPrivate::_q_rebound()
     if (!UCListItemActionsPrivate::isConnectedTo(leadingActions, q) && !UCListItemActionsPrivate::isConnectedTo(trailingActions, q)) {
         return;
     }
-    setMoved(false);
-    //connect rebound completion so we can disconnect
-    QObject::connect(reboundAnimation, SIGNAL(stopped()), q, SLOT(_q_completeRebinding()));
+    setTugged(false);
+    // connect rebound completion so we can disconnect the action lists
     // then rebound to zero
-    reboundTo(0);
+    snapTo(0);
 }
 void UCListItemPrivate::_q_completeRebinding()
 {
-    Q_Q(UCListItem);
     // disconnect animation, otherwise snapping will disconnect the panel
-    QObject::disconnect(reboundAnimation, SIGNAL(stopped()), q, SLOT(_q_completeRebinding()));
+    QObject::disconnect(reboundAnimation, 0, 0, 0);
     // restore flickable's interactive and cleanup
     PropertyChange::restore(flickableInteractive);
     // disconnect actions
     grabPanel(leadingActions, false);
     grabPanel(trailingActions, false);
+    // set contentMoved to false
+    setContentMoved(false);
+}
+void UCListItemPrivate::_q_completeSnapping()
+{
+    QObject::disconnect(reboundAnimation, 0, 0, 0);
+    setContentMoved(false);
 }
 
-void UCListItemPrivate::_q_updateIndex(QObject *ownerItem)
+void UCListItemPrivate::_q_updateIndex()
 {
     Q_Q(UCListItem);
-    if (!ownerItem) {
-        ownerItem = q->sender();
-    }
-    Q_ASSERT(ownerItem);
-    // update the index as well
+    q->update();
+}
+
+// returns the index of the list item when used in model driven views,
+// and the child index in other cases
+int UCListItemPrivate::index()
+{
+    Q_Q(UCListItem);
+    // is there an index context property?
     QQmlContext *context = qmlContext(q);
-    if (context) {
-        QVariant indexProperty = context->contextProperty("index");
-        index = indexProperty.isValid() ? indexProperty.toInt() : -1;
+    QVariant index = context->contextProperty("index");
+    return index.isValid() ?
+                index.toInt() :
+                (parentItem ? QQuickItemPrivate::get(parentItem)->childItems.indexOf(q) : -1);
+}
+
+/*!
+ * \qmlproperty bool ListItem::moved
+ * The property signals the move of the list item's content. It is set whenever
+ * the content is tugged and reset when the snapping and rebounding animations
+ * complete.
+ *
+ * \sa movingStarted, movingEnded
+ */
+
+/*!
+ * \qmlsignal ListItem::movingStarted
+ * Signal emitted when the moving of the list item content is started.
+ */
+/*!
+ * \qmlsignal ListItem::movingEnded
+ * Signal emitted when the moving of the list item content is ended.
+ */
+bool UCListItemPrivate::isMoving() const
+{
+    return contentMoving;
+}
+// the function drives the moving property
+void UCListItemPrivate::setContentMoved(bool move)
+{
+    if (contentMoving == move) {
+        return;
     }
-    divider->m_lastItem = ready && index == (ownerItem->property("count").toInt() - 1);
+    contentMoving = move;
+    Q_Q(UCListItem);
+    if (move) {
+        Q_EMIT q->movingStarted();
+    } else {
+        Q_EMIT q->movingEnded();
+    }
+    Q_EMIT q->movingChanged();
 }
 
 void UCListItemPrivate::_q_updateSelected()
@@ -353,19 +398,27 @@ void UCListItemPrivate::_q_updateSelected()
     update();
 }
 
-// the function performs a rebound on mouse release without any animation
-void UCListItemPrivate::promptRebount()
+// the function performs a prompt rebound on mouse release without any animation
+void UCListItemPrivate::promptRebound()
 {
     setPressed(false);
-    setMoved(false);
+    setTugged(false);
     _q_completeRebinding();
 }
-
-void UCListItemPrivate::reboundTo(qreal x)
+// rebounds or snaps to a given x position
+void UCListItemPrivate::snapTo(qreal x)
 {
+    // if the value given is 0.0, we snap out (rebound), otherwise we snap in
+    if (x != 0.0) {
+        // snap
+        QObject::connect(reboundAnimation, SIGNAL(stopped()), q_ptr, SLOT(_q_completeSnapping()));
+    } else {
+        QObject::connect(reboundAnimation, SIGNAL(stopped()), q_ptr, SLOT(_q_completeRebinding()));
+    }
     reboundAnimation->setFrom(contentItem->x());
     reboundAnimation->setTo(x);
     reboundAnimation->restart();
+    setContentMoved(true);
 }
 
 // set pressed flag and update background
@@ -397,28 +450,28 @@ void UCListItemPrivate::setPressed(bool pressed)
         Q_EMIT q->pressedChanged();
     }
 }
-// toggles the moved flag and installs/removes event filter
-void UCListItemPrivate::setMoved(bool moved)
+// toggles the tugged flag and installs/removes event filter
+void UCListItemPrivate::setTugged(bool tugged)
 {
-    suppressClick = moved;
-    if (this->moved == moved) {
+    suppressClick = tugged;
+    if (this->tugged == tugged) {
         return;
     }
-    this->moved = moved;
+    this->tugged = tugged;
     Q_Q(UCListItem);
     QQuickWindow *window = q->window();
-    if (moved) {
+    if (tugged) {
         window->installEventFilter(q);
     } else {
         window->removeEventFilter(q);
     }
 }
 
-// sets the moved flag but also grabs the panels from the leading/trailing actions
-bool UCListItemPrivate::grabPanel(UCListItemActions *actionsList, bool isMoved)
+// sets the tugged flag but also grabs the panels from the leading/trailing actions
+bool UCListItemPrivate::grabPanel(UCListItemActions *actionsList, bool isTugged)
 {
     Q_Q(UCListItem);
-    if (isMoved) {
+    if (isTugged) {
         bool grab = UCListItemActionsPrivate::connectToListItem(actionsList, q, (actionsList == leadingActions));
         if (grab) {
             PropertyChange::setValue(flickableInteractive, false);
@@ -508,11 +561,15 @@ void UCListItemPrivate::toggleSelectionMode()
     if (selectable) {
         // move and dimm content item
         selectionPanel->setVisible(true);
-        reboundTo(selectionPanel->width());
+        snapTo(selectionPanel->width());
+        // sync selected flag with the attached selection array
+        if (attachedObject) {
+            q->setSelected(attachedObject->isItemSelected(q));
+        }
         QObject::connect(selectionPanel, SIGNAL(checkedChanged()), q, SLOT(_q_updateSelected()));
     } else {
         // remove content item dimming and destroy selection panel as well
-        reboundTo(0.0);
+        snapTo(0.0);
         selectionPanel->setVisible(false);
         QObject::disconnect(selectionPanel, SIGNAL(checkedChanged()), q, SLOT(_q_updateSelected()));
     }
@@ -650,13 +707,18 @@ void UCListItem::componentComplete()
      * of items. However, if the parent item, or Flickable declares a "count" property,
      * the ListItem will take use of it!
      */
-    QQuickItem *countOwner = (d->flickable && d->flickable->property("count").isValid()) ?
+    d->countOwner = (d->flickable && d->flickable->property("count").isValid()) ?
                 d->flickable :
                 (d->parentItem && d->parentItem->property("count").isValid()) ? d->parentItem : 0;
-    if (countOwner) {
-        QObject::connect(countOwner, SIGNAL(countChanged()),
+    if (d->countOwner) {
+        QObject::connect(d->countOwner.data(), SIGNAL(countChanged()),
                          this, SLOT(_q_updateIndex()), Qt::DirectConnection);
-        d->_q_updateIndex(countOwner);
+        update();
+    }
+
+    // get the selected state from the attached object
+    if (d->attachedObject) {
+        setSelected(d->attachedObject->isItemSelected(this));
     }
 }
 
@@ -670,10 +732,20 @@ void UCListItem::itemChange(ItemChange change, const ItemChangeData &data)
         // check if we are in a positioner, and if that positioner is in a Flickable
         QQuickBasePositioner *positioner = qobject_cast<QQuickBasePositioner*>(data.item);
         if (positioner && positioner->parentItem()) {
+            // count owner is a positioner
             d->flickable = qobject_cast<QQuickFlickable*>(positioner->parentItem()->parentItem());
         } else if (data.item && data.item->parentItem()){
             // check if we are in a Flickable then
             d->flickable = qobject_cast<QQuickFlickable*>(data.item->parentItem());
+        }
+
+        // attach ListItem properties to the flickable or parentItem
+        if (d->flickable) {
+            d->attachedObject = static_cast<UCListItemAttached*>(
+                        qmlAttachedPropertiesObject<UCListItem>(d->flickable));
+        } else if (data.item) {
+            d->attachedObject = static_cast<UCListItemAttached*>(
+                        qmlAttachedPropertiesObject<UCListItem>(data.item));
         }
 
         if (d->flickable) {
@@ -792,25 +864,11 @@ void UCListItem::mouseReleaseEvent(QMouseEvent *event)
         // disconnect the flickable
         d->listenToRebind(false);
 
+        d->setContentMoved(true);
         if (!d->suppressClick) {
             Q_EMIT clicked();
             d->_q_rebound();
         } else {
-            // snap
-            qreal snapPosition = 0.0;
-            if (d->contentItem->x() < 0) {
-                snapPosition = UCListItemActionsPrivate::snap(d->trailingActions);
-            } else if (d->contentItem->x() > 0) {
-                snapPosition = UCListItemActionsPrivate::snap(d->leadingActions);
-            }
-            if (d->contentItem->x() == 0.0) {
-                // do a cleanup, no need to rebound, the item has been dragged back to 0
-                d->promptRebount();
-            } else if (snapPosition == 0.0){
-                d->_q_rebound();
-            } else {
-                d->reboundTo(snapPosition);
-            }
             // unset dragging in panel item
             UCListItemActionsPrivate::setDragging(d->leadingActions, this, false);
             UCListItemActionsPrivate::setDragging(d->trailingActions, this, false);
@@ -856,11 +914,31 @@ void UCListItem::mouseMoveEvent(QMouseEvent *event)
         d->lastPos = event->localPos();
 
         if (dx) {
+            d->setContentMoved(true);
             // clamp X into allowed dragging area
             d->clampX(x, dx);
             // block flickable
-            d->setMoved(true);
+            d->setTugged(true);
             d->contentItem->setX(x);
+
+            // decide which panel is visible by checking the contentItem's X coordinates
+            if (d->contentItem->x() > 0) {
+                if (leadingAttached) {
+                    UCListItemActionsPrivate::get(d->leadingActions)->panelItem->setVisible(true);
+                }
+                if (trailingAttached) {
+                    UCListItemActionsPrivate::get(d->trailingActions)->panelItem->setVisible(false);
+                }
+            } else if (d->contentItem->x() < 0) {
+                // trailing revealed
+                if (leadingAttached) {
+                    UCListItemActionsPrivate::get(d->leadingActions)->panelItem->setVisible(false);
+                }
+                if (trailingAttached) {
+                    UCListItemActionsPrivate::get(d->trailingActions)->panelItem->setVisible(true);
+                }
+            }
+
             // set dragging in panel item
             UCListItemActionsPrivate::setDragging(d->leadingActions, this, true);
             UCListItemActionsPrivate::setDragging(d->trailingActions, this, true);
@@ -942,7 +1020,7 @@ void UCListItem::setLeadingActions(UCListItemActions *actions)
         return;
     }
     // snap out before we change the actions
-    d->promptRebount();
+    d->promptRebound();
     // then delete panelItem
     if (d->leadingActions) {
         UCListItemActionsPrivate *list = UCListItemActionsPrivate::get(d->leadingActions);
@@ -976,7 +1054,7 @@ void UCListItem::setTrailingActions(UCListItemActions *actions)
         return;
     }
     // snap out before we change the actions
-    d->promptRebount();
+    d->promptRebound();
     // then delete panelItem
     if (d->trailingActions) {
         UCListItemActionsPrivate *list = UCListItemActionsPrivate::get(d->trailingActions);
@@ -1127,6 +1205,14 @@ void UCListItem::setSelected(bool selected)
         return;
     }
     d->selected = selected;
+    // update attached list
+    if (d->attachedObject) {
+        if (selected) {
+            d->attachedObject->addSelectedItem(this);
+        } else {
+            d->attachedObject->removeSelectedItem(this);
+        }
+    }
     // update panel as well
     if (d->selectionPanel) {
         d->selectionPanel->setProperty("checked", d->selected);
@@ -1153,6 +1239,62 @@ QQmlListProperty<QQuickItem> UCListItem::children()
 {
     Q_D(UCListItem);
     return QQuickItemPrivate::get(d->contentItem)->children();
+}
+
+/******************************************************************************
+ * ListItem attached
+ */
+UCListItemAttached *UCListItem::qmlAttachedProperties(QObject *owner)
+{
+    return new UCListItemAttached(owner);
+}
+
+UCListItemAttached::UCListItemAttached(QObject *parent)
+    : QObject(parent)
+{
+}
+
+/*!
+ * \qmlattachedproperty list<int> ListItem::selectedIndexes
+ * The property is automatically attached to the ListItem's parent item, or to
+ * the ListView when used with ListView. Contains the indexes of the ListItems
+ * marked as selected. The indexes are model indexes when used in ListView, and
+ * child indexes in other contexts.
+ * \note Setting the ListItem's \l selected property to \c true will add the
+ * item index to the selection list automatically, and may destroy the initial
+ * state of the selection. Therefore it is recommended to drive the selection
+ * through the attached property rather through the \l ListItem::selected property.
+ * \sa ListItem::selectable, ListItem::selected
+ */
+QList<int> UCListItemAttached::selectedIndexes() const
+{
+    return m_indexes;
+}
+void UCListItemAttached::setSelectedIndexes(const QList<int> &list)
+{
+    if (m_indexes == list) {
+        return;
+    }
+    m_indexes = list;
+    Q_EMIT selectedIndexesChanged();
+}
+
+void UCListItemAttached::addSelectedItem(UCListItem *item)
+{
+    int index = UCListItemPrivate::get(item)->index();
+    if (!m_indexes.contains(index)) {
+        m_indexes.append(index);
+        Q_EMIT selectedIndexesChanged();
+    }
+}
+void UCListItemAttached::removeSelectedItem(UCListItem *item)
+{
+    m_indexes.removeAll(UCListItemPrivate::get(item)->index());
+}
+
+bool UCListItemAttached::isItemSelected(UCListItem *item)
+{
+    return m_indexes.contains(UCListItemPrivate::get(item)->index());
 }
 
 #include "moc_uclistitem.cpp"
