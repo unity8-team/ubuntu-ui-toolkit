@@ -710,29 +710,29 @@ Item {
             ];
         }
         function test_highlight_policy(data) {
-//            var prevPolicy = data.item.highlightPolicy;
-//            data.item.highlightPolicy = data.policy;
-//            if (data.property) {
-//                data.item[data.property] = data.value;
-//            }
-//            policySpy.signalName = data.signal;
-//            policySpy.target = data.item;
-//            policySpy.clear();
+            var prevPolicy = data.item.highlightPolicy;
+            data.item.highlightPolicy = data.policy;
+            if (data.property) {
+                data.item[data.property] = data.value;
+            }
+            policySpy.signalName = data.signal;
+            policySpy.target = data.item;
+            policySpy.clear();
 
-//            // perform action
-//            if (data.signal === "clicked") {
-//                mouseClick(data.item, centerOf(data.item).x, centerOf(data.item).y);
-//            } else if (data.signal === "pressAndHold") {
-//                mouseLongPress(data.item, centerOf(data.item).x, centerOf(data.item).y);
-//                mouseRelease(data.item, centerOf(data.item).x, centerOf(data.item).y);
-//            }
-//            if (data.emitted) {
-//                policySpy.wait();
-//            } else {
-//                compare(policySpy.count, 0, "Signal is emitted!");
-//            }
-//            // cleanup
-//            data.item.highlightPolicy = prevPolicy;
+            // perform action
+            if (data.signal === "clicked") {
+                mouseClick(data.item, centerOf(data.item).x, centerOf(data.item).y);
+            } else if (data.signal === "pressAndHold") {
+                mouseLongPress(data.item, centerOf(data.item).x, centerOf(data.item).y);
+                mouseRelease(data.item, centerOf(data.item).x, centerOf(data.item).y);
+            }
+            if (data.emitted) {
+                policySpy.wait();
+            } else {
+                compare(policySpy.count, 0, "Signal is emitted!");
+            }
+            // cleanup
+            data.item.highlightPolicy = prevPolicy;
         }
     }
 }
