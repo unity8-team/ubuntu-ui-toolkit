@@ -419,7 +419,7 @@ Item {
                 TestExtras.touchDrag(0, data.item, data.pos, Qt.point(data.dx, data.dy));
             }
             movingSpy.wait();
-            compare(listView.interactive, false, "The ListView is still interactive!");
+            compare(listView.interactive, true, "The ListView is still interactive!");
             // interactive should be changed at least once!
             verify(interactiveSpy.count > 0, "Listview interactive did not change.");
             // dismiss
@@ -632,15 +632,15 @@ Item {
             var listItem = findChild(nestedListView, "listItem0");
             verify(listItem, "Cannot find test item");
             interactiveSpy.target = testFlickable;
+            movingSpy.target = listItem;
             // tug leading
             flick(listItem, centerOf(listItem).x, centerOf(listItem).y, listItem.width / 2, 0);
-            waitForRendering(listItem, 800);
+            movingSpy.wait();
             // check if interactive got changed
             interactiveSpy.wait();
 
             // cleanup!!!
-            mouseClick(listItem, centerOf(listItem).x, centerOf(listItem).y);
-            tryCompareFunction(function() { return nestedListView.interactive; }, true, 1000);
+            rebound(listItem);
         }
 
         // keep these as last ones so we make sure the panel has been created by the previous swipes
