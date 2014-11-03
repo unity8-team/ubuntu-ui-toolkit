@@ -21,8 +21,8 @@ import Ubuntu.Components 1.2
 
 Item {
     id: main
-    width: units.gu(40)
-    height: units.gu(71)
+    width: units.gu(50)
+    height: units.gu(100)
 
     Action {
         id: stockAction
@@ -72,6 +72,9 @@ Item {
         ListItem {
             id: defaults
             width: parent.width
+        }
+        ListItem {
+            id: highlightTest
         }
         ListItem {
             id: testItem
@@ -158,11 +161,6 @@ Item {
         }
 
         SignalSpy {
-            id: interactiveSpy
-            signalName: "interactiveChanged"
-        }
-
-        SignalSpy {
             id: draggingSpy
             signalName: "draggingChanged"
         }
@@ -183,6 +181,7 @@ Item {
 
         function cleanup() {
             testItem.action = null;
+            testItem.highlightPolicy = ListItem.Automatic;
             testItem.selected = false;
             testItem.selectable = false;
             waitForRendering(testItem, 200);
@@ -693,6 +692,52 @@ Item {
             // change panel color for the leading and observe the trailing panelItem color change
             leading.foregroundColor = UbuntuColors.green;
             compare(findChild(panelItem(leading), "action_icon").color, UbuntuColors.green, "leading panelItem color differs");
+        }
+
+        // highlight policy
+        SignalSpy {
+            id: policySpy
+        }
+
+        function test_highlight_policy_data() {
+            return [
+                {tag: "Automatic, empty, click", item: highlightTest, policy: ListItem.Automatic, signal: "clicked", emitted: false},
+                {tag: "Automatic, empty, pressAndHold", item: highlightTest, policy: ListItem.Automatic, signal: "pressAndHold", emitted: false},
+                {tag: "Automatic, action, click", item: highlightTest, policy: ListItem.Automatic, signal: "clicked", property: "action", value: stockAction, emitted: true},
+                {tag: "Automatic, action, pressAndHold", item: highlightTest, policy: ListItem.Automatic, signal: "pressAndHold", property: "action", value: stockAction, emitted: true },
+
+                {tag: "PermanentEnabled, empty, click", item: highlightTest, policy: ListItem.Automatic, signal: "clicked", emitted: false},
+                {tag: "PermanentEnabled, empty, pressAndHold", item: highlightTest, policy: ListItem.Automatic, signal: "pressAndHold", emitted: false},
+                {tag: "PermanentDisabled, action, click", item: highlightTest, policy: ListItem.Automatic, signal: "clicked", property: "action", value: stockAction, emitted: false},
+                {tag: "PermanentDisabled, action, pressAndHold", item: highlightTest, policy: ListItem.Automatic, signal: "pressAndHold", property: "action", value: stockAction, emitted: false },
+                {tag: "PermanentDisabled, leadingActions, click", item: highlightTest, policy: ListItem.Automatic, signal: "clicked", property: "leadingActions", value: leading, emitted: false},
+                {tag: "PermanentDisabled, leadingActions, pressAndHold", item: highlightTest, policy: ListItem.Automatic, signal: "pressAndHold", property: "trailingActions", value: trailing, emitted: false },
+            ];
+        }
+        function test_highlight_policy(data) {
+//            var prevPolicy = data.item.highlightPolicy;
+//            data.item.highlightPolicy = data.policy;
+//            if (data.property) {
+//                data.item[data.property] = data.value;
+//            }
+//            policySpy.signalName = data.signal;
+//            policySpy.target = data.item;
+//            policySpy.clear();
+
+//            // perform action
+//            if (data.signal === "clicked") {
+//                mouseClick(data.item, centerOf(data.item).x, centerOf(data.item).y);
+//            } else if (data.signal === "pressAndHold") {
+//                mouseLongPress(data.item, centerOf(data.item).x, centerOf(data.item).y);
+//                mouseRelease(data.item, centerOf(data.item).x, centerOf(data.item).y);
+//            }
+//            if (data.emitted) {
+//                policySpy.wait();
+//            } else {
+//                compare(policySpy.count, 0, "Signal is emitted!");
+//            }
+//            // cleanup
+//            data.item.highlightPolicy = prevPolicy;
         }
     }
 }

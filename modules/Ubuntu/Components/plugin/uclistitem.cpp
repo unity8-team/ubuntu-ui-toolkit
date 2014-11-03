@@ -299,6 +299,7 @@ UCListItemPrivate::UCListItemPrivate()
     , selectable(false)
     , selected(false)
     , index(-1)
+    , highlight(UCListItem::Automatic)
     , xAxisMoveThresholdGU(1.5)
     , overshootGU(2)
     , color(Qt::transparent)
@@ -476,7 +477,18 @@ bool UCListItemPrivate::canHighlight(QMouseEvent *event)
     QQuickItem *child = contentItem->childAt(event->localPos().x(), event->localPos().y());
     bool activeComponent = child && (child->acceptedMouseButtons() & event->button()) && !qobject_cast<QQuickText*>(child);
     // do highlight if not pressed above the active component
-    return !activeComponent;
+    qDebug() << "AC" << !activeComponent << "HL?" << (highlight == UCListItem::PermanentEnabled);
+    return !activeComponent || (highlight == UCListItem::PermanentEnabled);
+}
+
+// the function returns whether the automatic highlighting is possible
+bool UCListItemPrivate::autoHighlightable()
+{
+    Q_Q(UCListItem);
+    QQuickMouseArea *ma = q->findChild<QQuickMouseArea*>();
+    bool activeMouseArea = ma && ma->isEnabled();
+    return (pressed && (action || leadingActions || trailingActions || activeMouseArea))
+           || (selectable && selected);
 }
 
 // set pressed flag and update contentItem
@@ -497,6 +509,7 @@ void UCListItemPrivate::setMoved(bool moved)
         return;
     }
     this->moved = moved;
+    qDebug() << "MOVED" << moved;
     Q_Q(UCListItem);
     QQuickWindow *window = q->window();
     if (moved) {
@@ -783,11 +796,13 @@ QSGNode *UCListItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *data
     Q_D(UCListItem);
     // do highlight only if at least one of action, leadingActions or trailingAction
     // properties is set
-    QQuickMouseArea *ma = findChild<QQuickMouseArea*>();
-    bool activeMouseArea = ma && ma->isEnabled();
-    bool highlighted = (d->pressed && (d->action || d->leadingActions || d->trailingActions || activeMouseArea))
-            || (d->selectable && d->selected);
-    QColor color = highlighted ? d->highlightColor : d->color;
+    bool highlighted = d->autoHighlightable();
+    QColor color = d->color;
+    if (d->highlight == Automatic && highlighted) {
+        color = d->highlightColor;
+    } else if (d->highlight == PermanentEnabled && d->pressed) {
+        color = d->highlightColor;
+    }
 
     if (width() <= 0 || height() <= 0) {
         delete oldNode;
@@ -842,17 +857,23 @@ void UCListItem::mousePressEvent(QMouseEvent *event)
         // while moving, we cannot select or tug any items
         return;
     }
-    if (!d->suppressClick && !d->pressed && event->button() == Qt::LeftButton && d->canHighlight(event)) {
+    if ((d->highlight != PermanentDisabled) && !d->suppressClick
+            && !d->pressed && event->button() == Qt::LeftButton
+            && d->canHighlight(event)) {
         d->setPressed(true);
         d->lastPos = d->pressedPos = event->localPos();
         // connect the Flickable to know when to rebound
         d->flickableControl->listenToRebind(true);
-        // start pressandhold timer
-        d->pressAndHoldTimer.start(QGuiApplication::styleHints()->mousePressAndHoldInterval(), this);
         // if it was moved, grab the panels
         if (d->moved) {
             d->grabPanel(d->leadingActions, true);
             d->grabPanel(d->trailingActions, true);
+        }
+        if (d->highlight == Automatic && !d->autoHighlightable()) {
+            d->suppressClick = true;
+        } else {
+            // start pressandhold timer if highlight policy allows it
+            d->pressAndHoldTimer.start(QGuiApplication::styleHints()->mousePressAndHoldInterval(), this);
         }
     }
     // accept the event so we get the rest of the events as well
@@ -1135,6 +1156,35 @@ bool UCListItem::pressed() const
 }
 
 /*!
+ * \qmlproperty enum ListItem::highlightPolicy
+ * The property defines the highlight policy of the ListItem. This can be \c Automatic,
+ * \c PermanentEnabled or \c PermanentDisabled.
+ * When \c Automatic is set, the list item will be highlighted when it either has
+ * a default action, has a trailing- or leading action list, is selectable and
+ * selected or it has an active component declared and the press did not happen
+ * above this active component. When \c PermanentEnabled is set, the list item
+ * is highlighted whenever it is pressed. The opposite happens when the \c
+ * PermanentDisabled is set.
+ *
+ * The \l clicked and \l pressAndHold signals are also driven by this property.
+ * This means that when the policy is set to \c PermanentDisabled, these signals
+ * will be suppressed.
+ */
+UCListItem::HighlightPolicy UCListItemPrivate::highlightPolicy() const
+{
+    return highlight;
+}
+void UCListItemPrivate::setHighlightPolicy(UCListItem::HighlightPolicy policy)
+{
+    if (policy == highlight) {
+        return;
+    }
+    highlight = policy;
+    Q_Q(UCListItem);
+    Q_EMIT q->highlightPolicyChanged();
+}
+
+/*!
  * \qmlproperty color ListItem::color
  * Configures the color of the normal background. The default value is transparent.
  */
@@ -1184,7 +1234,7 @@ void UCListItem::setColor(const QColor &color)
  * }
  * \endqml
  *
- * \sa action, leadingActions, trailingActions
+ * \sa action, leadingActions, trailingActions, highlightPolicy
  */
 QColor UCListItem::highlightColor() const
 {

@@ -56,6 +56,7 @@ public:
     void promptRebount();
     void reboundTo(qreal x);
     bool canHighlight(QMouseEvent *event);
+    bool autoHighlightable();
     void setPressed(bool pressed);
     void setMoved(bool moved);
     bool grabPanel(UCListItemActions *optionList, bool isMoved);
@@ -73,6 +74,7 @@ public:
     bool selectable:1;
     bool selected:1;
     int index;
+    UCListItem::HighlightPolicy highlight;
     qreal xAxisMoveThresholdGU;
     QBasicTimer pressAndHoldTimer;
     qreal overshootGU;
@@ -90,6 +92,10 @@ public:
     UCListItemActions *trailingActions;
     QQuickItem *selectionPanel;
     UCAction *action;
+
+    // getter/setter
+    UCListItem::HighlightPolicy highlightPolicy() const;
+    void setHighlightPolicy(UCListItem::HighlightPolicy policy);
 };
 
 // controls all ascendant Flickables

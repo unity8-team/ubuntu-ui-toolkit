@@ -212,6 +212,8 @@ MainView {
             Label {
                 text: "No action, no trailing/leading actions, no active component"
             }
+            onClicked: print("clicked")
+            onPressAndHold: print("longPressed")
         }
     }
 }
