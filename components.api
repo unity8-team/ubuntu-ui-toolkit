@@ -878,8 +878,11 @@ plugins.qmltypes
     Property { name: "action"; type: "UCAction"; isPointer: true }
     Property { name: "data"; type: "QObject"; isList: true; isReadonly: true }
     Property { name: "children"; type: "QQuickItem"; isList: true; isReadonly: true }
+    Property { name: "moving"; type: "bool"; isReadonly: true }
     Signal { name: "clicked" }
     Signal { name: "pressAndHold" }
+    Signal { name: "movingStarted" }
+    Signal { name: "movingEnded" }
     name: "UCListItemActions"
     prototype: "QObject"
     exports: ["ListItemActions 1.2"]
@@ -899,9 +902,13 @@ plugins.qmltypes
     Property { name: "offset"; type: "double"; isReadonly: true }
     Property { name: "status"; type: "UCListItemActions::Status"; isReadonly: true }
     Property { name: "dragging"; type: "bool"; isReadonly: true }
+    Property { name: "overshoot"; type: "double"; isReadonly: true }
     Method {
     name: "snapToPosition"
     Parameter { name: "position"; type: "double" }
+    name: "UCListItemAttached"
+    prototype: "QObject"
+    Property { name: "selectedIndexes"; type: "QList<int>" }
     name: "UCListItemDivider"
     prototype: "QObject"
     Property { name: "visible"; type: "bool" }

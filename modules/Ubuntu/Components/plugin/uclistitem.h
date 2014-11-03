@@ -25,6 +25,7 @@ class UCListItemDivider;
 class UCListItemActions;
 class UCAction;
 class UCListItemPrivate;
+class UCListItemAttached;
 class UCListItem : public UCStyledItemBase
 {
     Q_OBJECT
@@ -41,6 +42,7 @@ class UCListItem : public UCStyledItemBase
     Q_PROPERTY(UCAction *action READ action WRITE setAction NOTIFY actionChanged DESIGNABLE false)
     Q_PROPERTY(QQmlListProperty<QObject> data READ data DESIGNABLE false)
     Q_PROPERTY(QQmlListProperty<QQuickItem> children READ children NOTIFY childrenChanged DESIGNABLE false)
+    Q_PRIVATE_PROPERTY(d_func(), bool moving READ isMoving NOTIFY movingChanged)
     Q_CLASSINFO("DefaultProperty", "data")
     Q_ENUMS(HighlightPolicy)
 public:
@@ -52,6 +54,8 @@ public:
 
     explicit UCListItem(QQuickItem *parent = 0);
     ~UCListItem();
+
+    static UCListItemAttached *qmlAttachedProperties(QObject *owner);
 
     QQuickItem *contentItem() const;
     UCListItemDivider *divider() const;
@@ -94,9 +98,12 @@ Q_SIGNALS:
     void selectedChanged();
     void childrenChanged();
     void actionChanged();
+    void movingChanged();
 
     void clicked();
     void pressAndHold();
+    void movingStarted();
+    void movingEnded();
 
 public Q_SLOTS:
 
@@ -109,8 +116,31 @@ private:
     Q_PRIVATE_SLOT(d_func(), void _q_rebound())
     Q_PRIVATE_SLOT(d_func(), void _q_updateSize())
     Q_PRIVATE_SLOT(d_func(), void _q_completeRebinding())
-    Q_PRIVATE_SLOT(d_func(), void _q_updateIndex(QObject *ownerItem = 0))
+    Q_PRIVATE_SLOT(d_func(), void _q_updateIndex())
+    Q_PRIVATE_SLOT(d_func(), void _q_completeSnapping())
     Q_PRIVATE_SLOT(d_func(), void _q_updateSelected())
+};
+QML_DECLARE_TYPEINFO(UCListItem, QML_HAS_ATTACHED_PROPERTIES)
+
+class UCListItemAttached : public QObject
+{
+    Q_OBJECT
+    Q_PROPERTY(QList<int> selectedIndexes READ selectedIndexes WRITE setSelectedIndexes NOTIFY selectedIndexesChanged)
+public:
+    explicit UCListItemAttached(QObject *parent = 0);
+
+    QList<int> selectedIndexes() const;
+    void setSelectedIndexes(const QList<int> &list);
+
+    void addSelectedItem(UCListItem *item);
+    void removeSelectedItem(UCListItem *item);
+    bool isItemSelected(UCListItem *item);
+
+Q_SIGNALS:
+    void selectedIndexesChanged();
+
+private:
+    QList<int> m_indexes;
 };
 
 #endif // UCLISTITEM_H
