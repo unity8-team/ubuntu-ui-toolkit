@@ -503,8 +503,8 @@ Item {
 
         function test_verify_action_value_data() {
             return [
-                // testItem is the child item @index 1 in the topmost Column.
-                {tag: "Undefined", item: testItem, result: 1},
+                // testItem is the child item @index 2 in the topmost Column.
+                {tag: "Standalone", item: testItem, result: 2},
                 {tag: "Index 0", item: findChild(listView, "listItem0"), result: 0},
                 {tag: "Index 1", item: findChild(listView, "listItem1"), result: 1},
                 {tag: "Index 2", item: findChild(listView, "listItem2"), result: 2},
