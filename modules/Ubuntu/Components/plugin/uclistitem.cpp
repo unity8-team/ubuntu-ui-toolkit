@@ -530,7 +530,6 @@ bool UCListItemPrivate::canHighlight(QMouseEvent *event)
     QQuickItem *child = contentItem->childAt(event->localPos().x(), event->localPos().y());
     bool activeComponent = child && (child->acceptedMouseButtons() & event->button()) && !qobject_cast<QQuickText*>(child);
     // do highlight if not pressed above the active component
-    qDebug() << "AC" << !activeComponent << "HL?" << (highlight == UCListItem::PermanentEnabled);
     return !activeComponent || (highlight == UCListItem::PermanentEnabled);
 }
 
@@ -561,7 +560,6 @@ void UCListItemPrivate::setTugged(bool tugged)
     if (this->tugged == tugged) {
         return;
     }
-    qDebug() << "MOVED" << tugged;
     this->tugged = tugged;
     Q_Q(UCListItem);
     QQuickWindow *window = q->window();
