@@ -30,7 +30,10 @@ MainView {
         id: stock
         iconName: "starred"
         text: "Staaaar"
-        onTriggered: print(iconName, "triggered", value)
+        onTriggered: {
+            print(iconName, "triggered", value)
+            view.ListItem.selectedIndexes = [1, 2, 9];
+        }
     }
 
     ListItemActions {
@@ -98,6 +101,11 @@ MainView {
                 anchors.fill: parent
                 text: units.gridUnit + "PX/unit"
             }
+            Button {
+                text: "Press me"
+                anchors.centerIn: parent
+            }
+
             leadingActions: ListItemActions {
                 objectName: "InlineLeading"
                 actions: [stock]
@@ -137,11 +145,12 @@ MainView {
             height: units.gu(36)
             model: 10
             pressDelay: 0
+//            ListItem.selectedIndexes: [9,3,4]
+            ListItem.onSelectedIndexesChanged: print("LISTVIEW INDEXES=", ListItem.selectedIndexes)
             delegate: ListItem {
                 objectName: "ListItem" + index
                 id: listItem
                 selectable: main.selectable
-                selected: true
                 onClicked: print(" clicked")
                 leadingActions: leading
                 Label {
@@ -173,6 +182,8 @@ MainView {
                 id: column
                 width: view.width
                 property alias count: repeater.count
+                ListItem.onSelectedIndexesChanged: print("INDEXES=", ListItem.selectedIndexes)
+
                 Repeater {
                     id: repeater
                     model: 10
@@ -207,6 +218,8 @@ MainView {
             Label {
                 text: "No action, no trailing/leading actions, no active component"
             }
+            onClicked: print("clicked")
+            onPressAndHold: print("longPressed")
         }
     }
 }
