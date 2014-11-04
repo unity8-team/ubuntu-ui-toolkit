@@ -336,6 +336,7 @@ void UCListItemActionsPrivate::deletePanelItem()
 UCListItemActions::UCListItemActions(QObject *parent)
     : QObject(*(new UCListItemActionsPrivate), parent)
 {
+    Q_D(UCListItemActions);
 }
 UCListItemActions::~UCListItemActions()
 {

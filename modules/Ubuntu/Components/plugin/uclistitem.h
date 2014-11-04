@@ -26,6 +26,7 @@ class UCListItemActions;
 class UCAction;
 class UCListItemPrivate;
 class UCListItemAttached;
+class QQuickPropertyAnimation;
 class UCListItem : public UCStyledItemBase
 {
     Q_OBJECT
@@ -43,6 +44,7 @@ class UCListItem : public UCStyledItemBase
     Q_PROPERTY(QQmlListProperty<QObject> data READ data DESIGNABLE false)
     Q_PROPERTY(QQmlListProperty<QQuickItem> children READ children NOTIFY childrenChanged DESIGNABLE false)
     Q_PRIVATE_PROPERTY(d_func(), bool moving READ isMoving NOTIFY movingChanged)
+    Q_PRIVATE_PROPERTY(d_func(), QQuickPropertyAnimation *snapAnimation READ snapAnimation WRITE setSnapAnimation NOTIFY snapAnimationChanged)
     Q_CLASSINFO("DefaultProperty", "data")
     Q_ENUMS(HighlightPolicy)
 public:
@@ -99,6 +101,7 @@ Q_SIGNALS:
     void childrenChanged();
     void actionChanged();
     void movingChanged();
+    void snapAnimationChanged();
 
     void clicked();
     void pressAndHold();
@@ -115,9 +118,7 @@ private:
     Q_PRIVATE_SLOT(d_func(), void _q_dimmDisabled())
     Q_PRIVATE_SLOT(d_func(), void _q_rebound())
     Q_PRIVATE_SLOT(d_func(), void _q_updateSize())
-    Q_PRIVATE_SLOT(d_func(), void _q_completeRebinding())
     Q_PRIVATE_SLOT(d_func(), void _q_updateIndex())
-    Q_PRIVATE_SLOT(d_func(), void _q_completeSnapping())
     Q_PRIVATE_SLOT(d_func(), void _q_updateSelected())
 };
 QML_DECLARE_TYPEINFO(UCListItem, QML_HAS_ATTACHED_PROPERTIES)

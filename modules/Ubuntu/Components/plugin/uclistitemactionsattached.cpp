@@ -170,25 +170,29 @@ qreal UCListItemActionsAttached::overshoot()
  */
 void UCListItemActionsAttached::snapToPosition(qreal position)
 {
+    qDebug() << "SNAPTOPOS 1";
     //if it is disconnected, leave (this also includes the case when m_container is null)
     if (status() == UCListItemActions::Disconnected) {
         return;
     }
+    qDebug() << "SNAPTOPOS 2";
     QQuickItem *panelItem = UCListItemActionsPrivate::get(m_container)->panelItem;
     if (!panelItem) {
         // we don't have the panel created yet
         return;
     }
+    qDebug() << "SNAPTOPOS 3";
     UCListItem *item = static_cast<UCListItem*>(panelItem->parentItem());
     if (!item) {
         // no ListItem attached
         return;
     }
+    qDebug() << "SNAPTOPOS 4";
     UCListItemPrivate *listItem = UCListItemPrivate::get(item);
     position *= (status() == UCListItemActions::Leading) ? 1 : -1;
     if (position == 0.0) {
         listItem->_q_rebound();
     } else {
-        listItem->snapTo(position);
+        listItem->snapManager->snap(position);
     }
 }

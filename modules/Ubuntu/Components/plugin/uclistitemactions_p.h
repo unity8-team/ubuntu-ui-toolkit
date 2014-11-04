@@ -18,9 +18,10 @@
 #define UCLISTITEMACTIONS_P_H
 
 #include "uclistitemactions.h"
-#include "QtCore/private/qobject_p.h"
+#include <QtCore/private/qobject_p.h>
 
 class UCListItem;
+class UCListItemSnapTransition;
 class UCListItemActionsPrivate : public QObjectPrivate {
     Q_DECLARE_PUBLIC(UCListItemActions)
 public:

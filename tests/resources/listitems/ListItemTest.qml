@@ -106,6 +106,9 @@ MainView {
                 anchors.centerIn: parent
             }
 
+//            snapAnimation: UbuntuNumberAnimation {
+//            }
+
             leadingActions: ListItemActions {
                 objectName: "InlineLeading"
                 actions: [stock]
@@ -138,88 +141,88 @@ MainView {
             }
         }
 
-        ListView {
-            id: view
-            clip: true
-            width: parent.width
-            height: units.gu(36)
-            model: 10
-            pressDelay: 0
-//            ListItem.selectedIndexes: [9,3,4]
-            ListItem.onSelectedIndexesChanged: print("LISTVIEW INDEXES=", ListItem.selectedIndexes)
-            delegate: ListItem {
-                objectName: "ListItem" + index
-                id: listItem
-                selectable: main.selectable
-                onClicked: print(" clicked")
-                leadingActions: leading
-                Label {
-                    text: modelData + " item"
-                }
-                states: State {
-                    name: "override"
-                    when: main.override
-                    PropertyChanges {
-                        target: listItem
-                        highlightColor: "brown"
-                    }
-                }
-            }
-        }
-        Flickable {
-            id: flicker
-            width: parent.width
-            height: units.gu(36)
-            clip: true
-            contentHeight: column.childrenRect.height
-            ListItemActions {
-                id: trailing
-                actions: leading.actions
-                backgroundColor: leading.backgroundColor
-            }
+//        ListView {
+//            id: view
+//            clip: true
+//            width: parent.width
+//            height: units.gu(36)
+//            model: 10
+//            pressDelay: 0
+////            ListItem.selectedIndexes: [9,3,4]
+//            ListItem.onSelectedIndexesChanged: print("LISTVIEW INDEXES=", ListItem.selectedIndexes)
+//            delegate: ListItem {
+//                objectName: "ListItem" + index
+//                id: listItem
+//                selectable: main.selectable
+//                onClicked: print(" clicked")
+//                leadingActions: leading
+//                Label {
+//                    text: modelData + " item"
+//                }
+//                states: State {
+//                    name: "override"
+//                    when: main.override
+//                    PropertyChanges {
+//                        target: listItem
+//                        highlightColor: "brown"
+//                    }
+//                }
+//            }
+//        }
+//        Flickable {
+//            id: flicker
+//            width: parent.width
+//            height: units.gu(36)
+//            clip: true
+//            contentHeight: column.childrenRect.height
+//            ListItemActions {
+//                id: trailing
+//                actions: leading.actions
+//                backgroundColor: leading.backgroundColor
+//            }
 
-            Column {
-                id: column
-                width: view.width
-                property alias count: repeater.count
-                ListItem.onSelectedIndexesChanged: print("INDEXES=", ListItem.selectedIndexes)
+//            Column {
+//                id: column
+//                width: view.width
+//                property alias count: repeater.count
+//                ListItem.onSelectedIndexesChanged: print("INDEXES=", ListItem.selectedIndexes)
 
-                Repeater {
-                    id: repeater
-                    model: 10
-                    ListItem {
-                        objectName: "InFlickable"+index
-                        selectable: main.selectable
-                        color: UbuntuColors.red
-                        highlightColor: "lime"
-                        divider.colorFrom: UbuntuColors.green
-                        leadingActions: leading
-                        trailingActions: trailing
+//                Repeater {
+//                    id: repeater
+//                    model: 10
+//                    ListItem {
+//                        objectName: "InFlickable"+index
+//                        selectable: main.selectable
+//                        color: UbuntuColors.red
+//                        highlightColor: "lime"
+//                        divider.colorFrom: UbuntuColors.green
+//                        leadingActions: leading
+//                        trailingActions: trailing
 
-                        Label {
-                            text: modelData + " Flickable item"
-                        }
-                        onClicked: divider.visible = !divider.visible
-                    }
-                }
-            }
-        }
-        ListItem {
-            Label {
-                text: "Switch makes this item to highlight"
-            }
-            Switch {
-                id: toggle
-                anchors.right: parent.right
-            }
-            Component.onCompleted: clicked.connect(toggle.clicked)
-        }
-        ListItem {
-            Label {
-                text: "No action, no trailing/leading actions, no active component"
-            }
-            onClicked: print("clicked")
-            onPressAndHold: print("longPressed")
-        }
+//                        Label {
+//                            text: modelData + " Flickable item"
+//                        }
+//                        onClicked: divider.visible = !divider.visible
+//                    }
+//                }
+//            }
+//        }
+//        ListItem {
+//            Label {
+//                text: "Switch makes this item to highlight"
+//            }
+//            Switch {
+//                id: toggle
+//                anchors.right: parent.right
+//            }
+//            Component.onCompleted: clicked.connect(toggle.clicked)
+//        }
+//        ListItem {
+//            Label {
+//                text: "No action, no trailing/leading actions, no active component"
+//            }
+//            onClicked: print("clicked")
+//            onPressAndHold: print("longPressed")
+//        }
     }
 }

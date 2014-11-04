@@ -30,6 +30,7 @@ class UCListItemDivider;
 class UCListItemActions;
 class PropertyChange;
 class FlickableControl;
+class UCListItemSnapTransition;
 class UCListItemPrivate : public UCStyledItemBasePrivate
 {
     Q_DECLARE_PUBLIC(UCListItem)
@@ -50,15 +51,12 @@ public:
     void _q_dimmDisabled();
     void _q_rebound();
     void _q_updateSize();
-    void _q_completeRebinding();
-    void _q_completeSnapping();
     void _q_updateIndex();
     void _q_updateSelected();
     int index();
     bool isMoving() const;
     void setContentMoved(bool move);
     void promptRebound();
-    void snapTo(qreal x);
     bool canHighlight(QMouseEvent *event);
     bool autoHighlightable();
     void setPressed(bool pressed);
@@ -69,7 +67,9 @@ public:
     void update();
     void clampX(qreal &x, qreal dx);
     QQuickItem *createSelectionPanel();
-    void toggleSelectionMode();
+    void toggleSelectionMode();    
+    QQuickPropertyAnimation *snapAnimation() const;
+    void setSnapAnimation(QQuickPropertyAnimation *transition);
 
     bool pressed:1;
     bool highlightColorChanged:1;
@@ -91,7 +91,8 @@ public:
     QPointer<UCListItemAttached> attachedObject;
     QPointer<QQuickItem> countOwner;
     QPointer<QQuickFlickable> flickable;
-    QQuickPropertyAnimation *reboundAnimation;
+    QQuickPropertyAnimation *snap;
+    UCListItemSnapTransition *snapManager;
     QQuickItem *contentItem;
     PropertyChange *disabledOpacity;
     UCListItemDivider *divider;
@@ -183,5 +184,26 @@ private:
 QColor getPaletteColor(const char *profile, const char *color);
 
 QML_DECLARE_TYPE(UCListItemDivider)
+
+class UCListItemSnapTransition : public QObject
+{
+    Q_OBJECT
+public:
+    UCListItemSnapTransition(UCListItem *item);
+    ~UCListItemSnapTransition();
+
+    bool snap(qreal to);
+
+public Q_SLOTS:
+    void snapOut();
+    void snapIn();
+
+    QQuickPropertyAnimation *getDefaultAnimation();
+
+private:
+    bool active;
+    UCListItem *item;
+    QQuickPropertyAnimation *defaultAnimation;
+};
 
 #endif // UCVIEWITEM_P_H

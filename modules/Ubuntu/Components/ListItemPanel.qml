@@ -89,9 +89,11 @@ Item {
         if (ListItemActions.dragging) {
             // the dragging got started, set prevX
             prevX = panel.x;
+            print("RET");
             return;
         }
         if (!visible) {
+            print("RET2");
             return;
         }
         // snap in if the offset is bigger than the overshoot and the direction of the drag is to reveal the panel

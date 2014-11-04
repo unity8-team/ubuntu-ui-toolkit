@@ -890,6 +890,7 @@ plugins.qmltypes
     Property { name: "data"; type: "QObject"; isList: true; isReadonly: true }
     Property { name: "children"; type: "QQuickItem"; isList: true; isReadonly: true }
     Property { name: "moving"; type: "bool"; isReadonly: true }
+    Property { name: "snapAnimation"; type: "QQuickPropertyAnimation"; isPointer: true }
     Signal { name: "clicked" }
     Signal { name: "pressAndHold" }
     Signal { name: "movingStarted" }
