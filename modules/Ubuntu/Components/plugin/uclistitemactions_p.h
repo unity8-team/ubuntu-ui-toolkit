@@ -54,6 +54,7 @@ public:
     static bool isConnectedTo(UCListItemActions *options, UCListItem *listItem);
     static void setDragging(UCListItemActions *actions, UCListItem *listItem, bool dragging);
 
+    void createItem(QQmlComponent *component);
     QQuickItem *createPanelItem();
     void deletePanelItem();
 };

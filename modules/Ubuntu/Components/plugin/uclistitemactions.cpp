@@ -143,11 +143,8 @@ void UCListItemActionsPrivate::setDragging(UCListItemActions *actions, UCListIte
     Q_EMIT actions->__draggingChanged();
 }
 
-QQuickItem *UCListItemActionsPrivate::createPanelItem()
+void UCListItemActionsPrivate::createItem(QQmlComponent *component)
 {
-    if (panelItem) {
-        return panelItem;
-    }
     Q_Q(UCListItemActions);
     if (!component->isError()) {
         panelItem = qobject_cast<QQuickItem*>(component->beginCreate(qmlContext(q)));
@@ -171,6 +168,36 @@ QQuickItem *UCListItemActionsPrivate::createPanelItem()
     } else {
         qmlInfo(q) << component->errorString();
     }
+}
+
+QQuickItem *UCListItemActionsPrivate::createPanelItem()
+{
+    if (panelItem) {
+        return panelItem;
+    }
+    Q_Q(UCListItemActions);
+    if (customPanel) {
+        createItem(customPanel);
+    } else {
+        QUrl panelDocument = UbuntuComponentsPlugin::pluginUrl().
+                resolved(QUrl::fromLocalFile("ListItemPanel.qml"));
+        QQmlComponent component(qmlEngine(q), panelDocument);
+        createItem(&component);
+    }
+
+    if (panelItem) {
+        // calculate option's slot size
+        offsetDragged = 0.0;
+        optionsVisible = 0;
+        _q_handlePanelWidth();
+        // connect to panel to catch dragging
+        QObject::connect(panelItem, SIGNAL(widthChanged()), q, SLOT(_q_handlePanelWidth()));
+        QObject::connect(panelItem, SIGNAL(xChanged()), q, SLOT(_q_handlePanelDrag()));
+        if (attachedObject()) {
+            QObject::connect(panelItem, &QQuickItem::xChanged,
+                             attachedObject(), &UCListItemActionsAttached::offsetChanged);
+        }
+    }
     return panelItem;
 }
 
@@ -185,7 +212,7 @@ void UCListItemActionsPrivate::deletePanelItem()
     if (listItem) {
         UCListItemPrivate *pListItem = UCListItemPrivate::get(listItem);
         // prompt rebounding and disconnect
-        pListItem->cleanup();
+        pListItem->promptRebound();
     }
     delete panelItem;
     panelItem = 0;
@@ -480,7 +507,8 @@ void UCListItemActions::setDelegate(QQmlComponent *delegate)
  *
  *             property real slotSize: panel.width / ListItemActions.container.actions.length
  *             // give a small margin so we don't jump to the next item
- *             property int visibleAction: (slotSize > 0) ? (ListItemActions.offsetVisible - 1) / slotSize : 0
+ *             property int visibleAction: (slotSize > 0) ?
+ *                      MathUtils.clamp((ListItemActions.offsetVisible - 1) / slotSize, 0, 3) : 0
  *             property var colors: [UbuntuColors.blue, UbuntuColors.lightGrey, UbuntuColors.coolGrey]
  *
  *             Item {

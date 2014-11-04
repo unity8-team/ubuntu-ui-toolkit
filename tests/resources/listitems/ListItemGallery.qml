@@ -228,7 +228,9 @@ MainView {
 
                                 property real slotSize: panel.width / ListItemActions.container.actions.length
                                 // give a small margin so we don't jump to the next item
-                                property int visibleAction: (slotSize > 0) ? (ListItemActions.offset - 1) / slotSize : 0
+                                property int visibleAction: (slotSize > 0) ?
+                                                                MathUtils.clamp((ListItemActions.offset - 1) / slotSize, 0, ListItemActions.container.actions.length-1) :
+                                                                0
                                 property var colors: [UbuntuColors.blue, UbuntuColors.lightGrey, UbuntuColors.coolGrey]
 
                                 Item {
