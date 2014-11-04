@@ -23,6 +23,7 @@
 #include <QtQml/QQmlInfo>
 #include <QtQuick/private/qquickitem_p.h>
 #include "ucaction.h"
+#include "ucunits.h"
 
 UCListItemActionsPrivate::UCListItemActionsPrivate()
     : QObjectPrivate()
@@ -66,7 +67,7 @@ void UCListItemActionsPrivate::_q_handlePanelWidth()
     // FIXME: use Actions API when moved to C++
     int count = 0;
     for (int i = 0; i < actions.count(); i++) {
-        if (actions[i]->property("visible").toBool() && actions[i]->property("enabled").toBool()) {
+        if (actions[i]->property("visible").toBool()) {
             count++;
         }
     }
@@ -131,25 +132,6 @@ bool UCListItemActionsPrivate::isConnectedTo(UCListItemActions *actions, UCListI
             (_this->panelItem->parentItem() == listItem);
 }
 
-qreal UCListItemActionsPrivate::snap(UCListItemActions *options)
-{
-    UCListItemActionsPrivate *_this = get(options);
-    if (!_this || !_this->panelItem) {
-        return 0.0;
-    }
-    qreal result = 0.0;
-    if (_this->customPanel) {
-        // no snapping, return the offset as is.
-        result = _this->offsetDragged;
-    } else {
-        // default panel, do snapping based on the actions
-        if (_this->offsetDragged > _this->optionSlotWidth * 0.5) {
-            result = _this->panelItem->width() * (_this->status == UCListItemActions::Leading ? 1 : -1);
-        }
-    }
-    return result;
-}
-
 void UCListItemActionsPrivate::setDragging(UCListItemActions *actions, UCListItem *listItem, bool dragging)
 {
     UCListItemActionsPrivate *_this = get(actions);
@@ -161,13 +143,17 @@ void UCListItemActionsPrivate::setDragging(UCListItemActions *actions, UCListIte
     Q_EMIT actions->__draggingChanged();
 }
 
-void UCListItemActionsPrivate::createItem(QQmlComponent *component)
+QQuickItem *UCListItemActionsPrivate::createPanelItem()
 {
+    if (panelItem) {
+        return panelItem;
+    }
     Q_Q(UCListItemActions);
     if (!component->isError()) {
         panelItem = qobject_cast<QQuickItem*>(component->beginCreate(qmlContext(q)));
         if (panelItem) {
             QQml_setParent_noEvent(panelItem, q);
+            // add panelItem to data so we can access it in case is needed (i.e. tests)
             data.append(panelItem);
             // create attached property!
             UCListItemActionsAttached *attached = static_cast<UCListItemActionsAttached*>(
@@ -184,37 +170,6 @@ void UCListItemActionsPrivate::createItem(QQmlComponent *component)
         }
     } else {
         qmlInfo(q) << component->errorString();
-    }
-}
-
-QQuickItem *UCListItemActionsPrivate::createPanelItem()
-{
-    if (panelItem) {
-        return panelItem;
-    }
-    Q_Q(UCListItemActions);
-
-    if (customPanel) {
-        createItem(customPanel);
-    } else {
-        QUrl panelDocument = UbuntuComponentsPlugin::pluginUrl().
-                resolved(QUrl::fromLocalFile("ListItemPanel.qml"));
-        QQmlComponent component(qmlEngine(q), panelDocument);
-        createItem(&component);
-    }
-
-    if (panelItem) {
-        // calculate option's slot size
-        offsetDragged = 0.0;
-        optionsVisible = 0;
-        _q_handlePanelWidth();
-        // connect to panel to catch dragging
-        QObject::connect(panelItem, SIGNAL(widthChanged()), q, SLOT(_q_handlePanelWidth()));
-        QObject::connect(panelItem, SIGNAL(xChanged()), q, SLOT(_q_handlePanelDrag()));
-        if (attachedObject()) {
-            QObject::connect(panelItem, &QQuickItem::xChanged,
-                             attachedObject(), &UCListItemActionsAttached::offsetChanged);
-        }
     }
     return panelItem;
 }
@@ -235,7 +190,6 @@ void UCListItemActionsPrivate::deletePanelItem()
     delete panelItem;
     panelItem = 0;
 }
-
 
 /*!
  * \qmltype ListItemActions
@@ -309,7 +263,7 @@ void UCListItemActionsPrivate::deletePanelItem()
  * When used with views, or when the amount of items of same kind to be created
  * is huge, it is recommended to use cached ListItemActions instances to reduce
  * creation time and to be able to handle rebounding and flicking properly. If
- * each ListItem crteates its own ListItemActions instance the Flickable view may
+ * each ListItem creates its own ListItemActions instance the Flickable view may
  * be blocked and action visualization will also break.
  * \qml
  * import QtQuick 2.2
@@ -342,6 +296,14 @@ void UCListItemActionsPrivate::deletePanelItem()
  *     }
  * }
  * \endqml
+ * \section3 Action parameter types
+ * Actions handled by the ListItem are all triggered with the ListItem's index
+ * as parameter. This index can either be the model index when used with ListView,
+ * or the child index from the parentItem's childItems list. Actions can use this
+ * parameter to identify the instance of the ListItem on which it was executed.
+ * However this will only work if the \l {Action::parameterType}{parameterType}
+ * will be set to Action.Integer or not set at all, in which case the ListItem
+ * will set the type to Action.Integer.
  */
 
 UCListItemActions::UCListItemActions(QObject *parent)
@@ -421,7 +383,7 @@ UCListItemActionsAttached *UCListItemActions::qmlAttachedProperties(QObject *own
  *                     anchors.horizontalCenter: parent.horizontalCenter
  *                 }
  *                 Label {
- *                     text: option.text + "#" + index
+ *                     text: action.text + "#" + index
  *                     width: parent.width
  *                     horizontalAlignment: Text.AlignHCenter
  *                 }
