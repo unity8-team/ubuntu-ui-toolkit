@@ -875,11 +875,13 @@ plugins.qmltypes
     name: "UCListItem"
     prototype: "UCStyledItemBase"
     exports: ["ListItem 1.2"]
+    name: "HighlightPolicy"
     Property { name: "contentItem"; type: "QQuickItem"; isReadonly: true; isPointer: true }
     Property { name: "divider"; type: "UCListItemDivider"; isReadonly: true; isPointer: true }
     Property { name: "leadingActions"; type: "UCListItemActions"; isPointer: true }
     Property { name: "trailingActions"; type: "UCListItemActions"; isPointer: true }
     Property { name: "pressed"; type: "bool"; isReadonly: true }
+    Property { name: "highlightPolicy"; type: "HighlightPolicy" }
     Property { name: "color"; type: "QColor" }
     Property { name: "highlightColor"; type: "QColor" }
     Property { name: "selectable"; type: "bool" }
