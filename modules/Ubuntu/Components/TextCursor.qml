@@ -141,8 +141,8 @@ Ubuntu.StyledItem {
     Item {
         id: draggedItem
         objectName: cursorItem.positionProperty + "_draggeditem"
-        width: caret ? Math.max(caret.width, units.gu(2)) : 0
-        height: caret ? Math.max(caret.height, units.gu(2)) : 0
+        width: caret ? caret.width : 0
+        height: caret ? caret.height : 0
         parent: handler.main
         visible: cursorItem.visible && (cursorItem.opacity > 0.0) && QuickUtils.touchScreenAvailable
 
@@ -198,8 +198,8 @@ Ubuntu.StyledItem {
                 cy += draggedItem.y;
             }
 
-            draggedItem.x = cx;
-            draggedItem.y = cy;
+            draggedItem.x = cx - (draggedItem.width - caret.width) / 2;
+            draggedItem.y = cy - (draggedItem.height - caret.height) / 2;
             dragger.resetDrag();
         }
         // positions caret to the dragged position
