@@ -15,11 +15,76 @@
  */
 
 import QtQuick 2.0
-import Ubuntu.Components 1.1 as Toolkit
+import Ubuntu.Components 1.2 as Toolkit
 import Ubuntu.Components.ListItems 0.1 as ListItem
 
 Template {
     objectName: "listItemsTemplate"
+
+    Toolkit.ListItemActions {
+        id: leading
+        actions: Toolkit.Action {
+            iconName: "delete"
+        }
+    }
+    Toolkit.ListItemActions {
+        id: trailing
+        actions: [
+            Toolkit.Action {
+                iconName: "edit"
+            },
+            Toolkit.Action {
+                iconName: "contact"
+            },
+            Toolkit.Action {
+                iconName: "email"
+            }
+        ]
+    }
+
+    ListItemsSection {
+        title: i18n.tr("ListItem")
+        className: "ListItem"
+        newListItem: true
+        clip: true
+        delegate: Toolkit.ListItem {
+            leadingActions: leading
+            trailingActions: trailing
+            Toolkit.ListItemLayout {
+                Toolkit.Label {
+                    anchors {
+                        top: parent.top
+                        bottom: parent.bottom
+                    }
+                    verticalAlignment: Text.AlignVCenter
+                    text: "Plain ListItem #" + modelData
+                }
+            }
+        }
+    }
+
+    ListItemsSection {
+        title: i18n.tr("Captions")
+        className: "Captions"
+        newListItem: true
+        clip: true
+        delegate: Toolkit.ListItem {
+            leadingActions: leading
+            trailingActions: trailing
+
+            Toolkit.ListItemLayout {
+                Toolkit.Captions {
+                    title.text: "Caption text (title) #" + modelData
+                    subtitle.text: "Subtitle text"
+                }
+                Toolkit.Captions {
+                    preset: "summary"
+                    title.text: "Detail"
+                    subtitle.text: "summary"
+                }
+            }
+        }
+    }
 
     ListItemsSection {
         title: i18n.tr("Standard")
