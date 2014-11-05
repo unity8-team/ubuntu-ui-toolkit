@@ -1012,8 +1012,6 @@ void UCListItem::mouseMoveEvent(QMouseEvent *event)
             // connect both panels
             leadingAttached = d->grabPanel(d->leadingActions, true);
             trailingAttached = d->grabPanel(d->trailingActions, true);
-            // stop pressAndHold timer as we started to drag
-            d->pressAndHoldTimer.stop();
         }
     }
 
@@ -1023,6 +1021,8 @@ void UCListItem::mouseMoveEvent(QMouseEvent *event)
         d->lastPos = event->localPos();
 
         if (dx) {
+            // stop pressAndHold timer as we started to drag
+            d->pressAndHoldTimer.stop();
             d->setContentMoved(true);
             // clamp X into allowed dragging area
             d->clampX(x, dx);
