@@ -434,7 +434,11 @@ void UCListItemPrivate::_q_updateSize()
 // returns true if the click happened over an inactive component
 bool UCListItemPrivate::canHighlight(QMouseEvent *event)
 {
-    QQuickItem *child = contentItem->childAt(event->localPos().x(), event->localPos().y());
+    // localPos is a position relative to ListItem which will give us a child from
+    // from the original coordinates; therefore we must map the position to the contentItem
+    Q_Q(UCListItem);
+    QPointF myPos = q->mapToItem(contentItem, event->localPos());
+    QQuickItem *child = contentItem->childAt(myPos.x(), myPos.y());
     return !child || qobject_cast<QQuickText*>(child) ||
            ((child->acceptedMouseButtons() & event->button()) != event->button());
 }
