@@ -199,7 +199,7 @@ PopupBase {
     }
 
     __foreground: foreground
-    __eventGrabber.enabled: autoClose
+    __eventGrabber.enabled: true
     __closeOnDismissAreaPress: true
 
     StyledItem {
@@ -214,6 +214,8 @@ PopupBase {
         property real maxHeight: dismissArea ? (internal.portrait ? dismissArea.height * 3/4 : dismissArea.height) : 0.0
         width: Math.min(minimumWidth, maxWidth)
         height: containerItem.height
+
+        signal dismiss(var mouse)
 
         Item {
             id: containerItem

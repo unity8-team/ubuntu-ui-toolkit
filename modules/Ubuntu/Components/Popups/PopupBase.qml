@@ -147,7 +147,15 @@ OrientationHelper {
         anchors.fill: __foreground
         sensingArea: dismissArea
         propagateComposedEvents: !grabDismissAreaEvents
-        onPressed: if (__closeOnDismissAreaPress) popupBase.hide()
+        onPressed: {
+            if (__closeOnDismissAreaPress) {
+                if (autoClose)
+                    popupBase.hide()
+                else
+                    mouse.accepted = false
+                foreground.dismiss(mouse)
+            }
+        }
         onWheel: wheel.accepted = true
     }
 

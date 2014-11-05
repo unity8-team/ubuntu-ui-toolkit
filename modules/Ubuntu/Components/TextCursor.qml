@@ -63,6 +63,10 @@ Ubuntu.StyledItem {
       */
     Connections {
         target: inputHandler
+        onSelectionCursorChanged: {
+            if (inputHandler.selectionCursor && QuickUtils.touchScreenAvailable)
+                openPopover()
+        }
         onPressAndHold: openPopover()
         onTextModified: typing = true
         onTap: typing = false
@@ -81,10 +85,12 @@ Ubuntu.StyledItem {
             if (component === undefined)
                 component = Qt.resolvedUrl("TextInputPopover.qml");
             var popup = PopupUtils.open(component, cursorItem, {
+                "autoClose": false,
                 "target": handler.main
             });
             contextMenuVisible = true;
             popup.onVisibleChanged.connect(contextMenuHidden.bind(undefined, popup));
+            popup.__foreground.onDismiss.connect(contextMenuDismissed.bind(undefined, popup));
             // do not grab focus!
             popup.__foreground.activeFocusOnPress = false;
             inputHandler.popover = popup;
@@ -133,6 +139,14 @@ Ubuntu.StyledItem {
     function contextMenuHidden(p) {
         contextMenuVisible = false
     }
+
+    function contextMenuDismissed(p, mouse) {
+        if (positionProperty == "cursorPosition")
+            inputHandler.popover.hide();
+        if (dragger.contains(mouse))
+            mouse.accepted = true;
+    }
+
     onXChanged: if (draggedItem.state === "") draggedItem.moveToCaret()
     onYChanged: if (draggedItem.state === "") draggedItem.moveToCaret()
     Component.onCompleted: draggedItem.moveToCaret()
@@ -150,6 +164,7 @@ Ubuntu.StyledItem {
         onStateChanged: {
             if (state === "") {
                 draggedItem.moveToCaret();
+                openPopover();
             }
         }
 

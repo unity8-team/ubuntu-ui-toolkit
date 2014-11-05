@@ -407,6 +407,7 @@ MultiPointTouchArea {
     Mouse.onReleased: handleReleased(mouse, false)
     Mouse.onPositionChanged: handleMove(mouse, false)
     Mouse.onDoubleClicked: handleDblClick(mouse)
+    Mouse.clickAndHoldThreshold: units.gu(3)
 
     // right button handling
     MouseArea {
