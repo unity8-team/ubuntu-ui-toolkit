@@ -440,23 +440,26 @@ Item {
         }
         function test_selecting_action_rebounds(data) {
             listView.positionViewAtBeginning();
+            movingSpy.target = data.item;
+            movingSpy.clear();
             if (data.mouse) {
                 flick(data.item, data.pos.x, data.pos.y, data.dx, 0);
             } else {
                 TestExtras.touchDrag(0, data.item, data.pos, Qt.point(data.dx, 0));
             }
-            waitForRendering(data.item, 800);
+            movingSpy.wait();
             var selectedOption = findChild(panelItem(data.actions), data.select);
             verify(selectedOption, "Cannot select option " + data.select);
 
             // dismiss
-            movingSpy.target = data.item;
+            movingSpy.clear();
             if (data.mouse) {
                 mouseClick(selectedOption, centerOf(selectedOption).x, centerOf(selectedOption).y);
             } else {
                 TestExtras.touchClick(0, selectedOption, centerOf(selectedOption));
             }
             movingSpy.wait();
+            fuzzyCompare(data.item.contentItem.x, 0.0, 0.1, "Did not rebound!");
         }
 
         function test_custom_trailing_delegate() {
