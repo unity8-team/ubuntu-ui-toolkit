@@ -92,7 +92,6 @@ bool UCListItemSnapTransition::snap(qreal to)
     snap->setAlwaysRunToEnd(true);
     listItem->setContentMoved(true);
     snap->start();
-    qDebug() << "SNAP" << to;
     return true;
 }
 
