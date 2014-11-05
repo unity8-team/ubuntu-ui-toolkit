@@ -68,8 +68,6 @@ public:
     void clampX(qreal &x, qreal dx);
     QQuickItem *createSelectionPanel();
     void toggleSelectionMode();    
-    QQuickPropertyAnimation *snapAnimation() const;
-    void setSnapAnimation(QQuickPropertyAnimation *transition);
 
     bool pressed:1;
     bool highlightColorChanged:1;
@@ -91,7 +89,6 @@ public:
     QPointer<UCListItemAttached> attachedObject;
     QPointer<QQuickItem> countOwner;
     QPointer<QQuickFlickable> flickable;
-    QQuickPropertyAnimation *snap;
     UCListItemSnapTransition *snapManager;
     QQuickItem *contentItem;
     PropertyChange *disabledOpacity;
@@ -104,6 +101,8 @@ public:
     // getter/setter
     UCListItem::HighlightPolicy highlightPolicy() const;
     void setHighlightPolicy(UCListItem::HighlightPolicy policy);
+    QQuickPropertyAnimation *snapAnimation() const;
+    void setSnapAnimation(QQuickPropertyAnimation *transition);
 };
 
 // controls all ascendant Flickables
@@ -192,6 +191,8 @@ public:
     UCListItemSnapTransition(UCListItem *item);
     ~UCListItemSnapTransition();
 
+    void setCustomAnimation(QQuickPropertyAnimation *animation);
+    QQuickPropertyAnimation *getCustomAnimation() const;
     bool snap(qreal to);
 
 public Q_SLOTS:
@@ -204,6 +205,7 @@ private:
     bool active;
     UCListItem *item;
     QQuickPropertyAnimation *defaultAnimation;
+    QQuickPropertyAnimation *customAnimation;
 };
 
 #endif // UCVIEWITEM_P_H
