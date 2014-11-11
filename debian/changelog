@@ -1,6 +1,6 @@
-ubuntu-ui-toolkit-gles (1.1.1311+15.04.20141106-0ubuntu1) UNRELEASED; urgency=medium
+ubuntu-ui-toolkit-gles (1.1.1311+15.04.20141111-0ubuntu1) UNRELEASED; urgency=medium
 
-  * Sync with 1.1.1311+15.04.20141106-0ubuntu1 
+  * Sync with 1.1.1311+15.04.20141111-0ubuntu1 
 
  -- Timo Jyrinki <timo-jyrinki@ubuntu.com>  Fri, 07 Nov 2014 08:33:55 +0200
 
