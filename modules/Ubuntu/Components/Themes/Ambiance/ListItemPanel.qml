@@ -21,11 +21,33 @@ import Ubuntu.Components 1.2
   This component is the holder of the ListItem options.
   */
 Item {
+
+    // styling properties
+    /*
+      Color of the background.
+      */
+    // FIXME: use Palette colors instead when available
+    property color backgroundColor: (leadingPanel ? UbuntuColors.red : "white")
+
+    /*
+      Color used in coloring the icons.
+      */
+    // FIXME: use Palette colors instead when available
+    property color foregroundColor: leadingPanel ? "white" : UbuntuColors.darkGrey
+
+    /*
+      Specifies the width of the component visualizing the action.
+      */
+    property real visualizedActionWidth: units.gu(2.5)
+
+    // panel implementation
     id: panel
-    width: optionsRow.childrenRect.width
+    width: Math.max(
+               optionsRow.childrenRect.width,
+               ListItemActions.visibleActions.length * MathUtils.clamp(visualizedActionWidth, height, optionsRow.maxItemWidth))
 
     // for testing
-    objectName: "ListItemPanel"
+    objectName: (leadingPanel ? "LeadingListItemPanel" : "TrailingListItemPanel")
 
     /*
       Property holding the ListItem's contentItem instance
@@ -33,29 +55,9 @@ Item {
     readonly property Item contentItem: parent ? parent.contentItem : null
 
     /*
-      Index of the ListItem, if the ListItem is inside a ListView or has been
-      created using a Repeater.
-      */
-    property int listItemIndex
-
-    /*
       Specifies whether the panel is used to visualize leading or trailing options.
       */
     property bool leadingPanel: ListItemActions.status == ListItemActions.Leading
-
-    /*
-      Actions
-      */
-    property var actionList: ListItemActions.container ? ListItemActions.container.actions : undefined
-
-    // fire selected action when disconnected
-    onParentChanged: {
-        if (!parent && selectedAction) {
-            selectedAction.triggered(listItemIndex >= 0 ? listItemIndex : null);
-            selectedAction = null;
-        }
-    }
-    property Action selectedAction: null
 
     anchors {
         left: contentItem ? (leadingPanel ? undefined : contentItem.right) : undefined
@@ -65,14 +67,25 @@ Item {
     }
 
     Rectangle {
+        objectName: "panel_background"
         anchors {
             fill: parent
             // add 4 times the overshoot margins to cover the background when tugged
-            leftMargin: leadingPanel ? -units.gu(4 * ListItemActions.overshoot) : 0
-            rightMargin: leadingPanel ? 0 : -units.gu(4 * ListItemActions.overshoot)
+            leftMargin: leadingPanel ? -units.gu(4 * panel.ListItemActions.overshoot) : 0
+            rightMargin: leadingPanel ? 0 : -units.gu(4 * panel.ListItemActions.overshoot)
         }
-        // FIXME: use Palette colors instead when available
-        color: leadingPanel ? UbuntuColors.red : "white"
+        color: panel.backgroundColor
+    }
+
+    // handle action triggering
+    ListItemActions.onStatusChanged: {
+        if (ListItemActions.status === ListItemActions.Disconnected && optionsRow.selectedAction) {
+            if (optionsRow.selectedAction.parameterType === Action.None) {
+                optionsRow.selectedAction.parameterType = Action.Integer;
+            }
+            optionsRow.selectedAction.trigger(optionsRow.listItemIndex >= 0 ? optionsRow.listItemIndex : null);
+            optionsRow.selectedAction = null;
+        }
     }
 
     // track drag dirrection, so we know in which direction we should snap
@@ -83,8 +96,8 @@ Item {
         prevX = x;
     }
     // default snapping!
-    ListItemActions.onDraggingChanged: {
-        if (ListItemActions.dragging) {
+    ListItemActions.onSwipingChanged: {
+        if (ListItemActions.swiping) {
             // the dragging got started, set prevX
             prevX = panel.x;
             return;
@@ -94,7 +107,7 @@ Item {
         }
         // snap in if the offset is bigger than the overshoot and the direction of the drag is to reveal the panel
         var snapPos = (ListItemActions.offset > ListItemActions.overshoot &&
-                       (leftToRight && leadingPanel || !leftToRight && !leadingPanel)) ? panel.width : 0.0;
+                       ((leftToRight && leadingPanel) || (!leftToRight && !leadingPanel))) ? panel.width : 0.0;
         ListItemActions.snapToPosition(snapPos);
     }
 
@@ -107,41 +120,38 @@ Item {
             leftMargin: spacing
         }
 
-        property real maxItemWidth: panel.parent ? (panel.parent.width / panel.actionList.length) : 0
+        property real maxItemWidth: panel.parent ? (panel.parent.width / panel.ListItemActions.visibleActions.length) : 0
+
+        property Action selectedAction
+        property int listItemIndex
 
         Repeater {
-            model: panel.actionList
+            model: panel.ListItemActions.visibleActions
             AbstractButton {
                 action: modelData
-                visible: action.visible
                 enabled: action.enabled
-                opacity: enabled ? 1.0 : 0.5
-                width: (!visible) ?
-                           0 : MathUtils.clamp(delegateLoader.item ? delegateLoader.item.width : 0, height, optionsRow.maxItemWidth)
+                opacity: action.enabled ? 1.0 : 0.5
+                width: MathUtils.clamp(delegateLoader.item ? delegateLoader.item.width : 0, height, optionsRow.maxItemWidth)
                 anchors {
                     top: parent.top
                     bottom: parent.bottom
                 }
-
                 function trigger() {
-                    // save the action as we trigger when the rebound animation is over
-                    // to make sure we properly clean up the blockade of the Flickables
-                    panel.selectedAction = action;
-                    panel.listItemIndex = panel.ListItemActions.listItemIndex;
+                    optionsRow.selectedAction = modelData;
+                    optionsRow.listItemIndex = panel.ListItemActions.listItemIndex;
                     panel.ListItemActions.snapToPosition(0.0);
                 }
 
                 Loader {
                     id: delegateLoader
                     height: parent.height
-                    sourceComponent: (panel.ListItemActions.container && panel.ListItemActions.container.delegate) ?
-                                         panel.ListItemActions.container.delegate : defaultDelegate
+                    sourceComponent: panel.ListItemActions.container.delegate ? panel.ListItemActions.container.delegate : defaultDelegate
                     property Action action: modelData
                     property int index: index
                     onItemChanged: {
-                        // this is needed only for testing purposes
+                        // use action's objectName to identify the visualized action
                         if (item && item.objectName === "") {
-                            item.objectName = "list_option_" + index
+                            item.objectName = modelData.objectName;
                         }
                     }
                 }
@@ -154,11 +164,10 @@ Item {
         Item {
             width: height
             Icon {
-                width: units.gu(2.5)
+                width: panel.visualizedActionWidth
                 height: width
                 name: action.iconName
-                // FIXME: use Palette colors instead when available
-                color: panel.leadingPanel ? "white" : UbuntuColors.darkGrey
+                color: panel.foregroundColor
                 anchors.centerIn: parent
             }
         }
