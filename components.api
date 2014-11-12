@@ -890,8 +890,6 @@ plugins.qmltypes
     name: "Status"
     Property { name: "delegate"; type: "QQmlComponent"; isPointer: true }
     Property { name: "actions"; type: "UCAction"; isList: true; isReadonly: true }
-    Property { name: "backgroundColor"; type: "QColor" }
-    Property { name: "foregroundColor"; type: "QColor" }
     Property { name: "data"; type: "QObject"; isList: true; isReadonly: true }
     Signal {
     name: "statusChanged"
