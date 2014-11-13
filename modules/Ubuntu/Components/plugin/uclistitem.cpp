@@ -1073,7 +1073,7 @@ bool UCListItem::childMouseEventFilter(QQuickItem *child, QEvent *event)
         QMouseEvent *mouse = static_cast<QMouseEvent*>(event);
         if (child->isEnabled() && child->acceptedMouseButtons() & mouse->button() && !qobject_cast<QQuickText*>(child)) {
             Q_D(UCListItem);
-            // suppress click only if the highlight policy is not PermanentHighlight
+            // suppress click only if we're not having the PermanentHighlight set
             d->suppressClick = (d->highlight != PermanentHighlight);
         }
     } else if (type == QEvent::MouseButtonRelease) {
