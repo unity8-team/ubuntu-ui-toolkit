@@ -313,7 +313,7 @@ UCListItemPrivate::UCListItemPrivate()
     , selected(false)
     , customStyle(false)
     , customColor(false)
-    , highlight(UCListItem::Automatic)
+    , highlight(UCListItem::AutomaticHighlight)
     , xAxisMoveThresholdGU(1.5)
     , overshoot(UCUnits::instance().gu(2))
     , color(Qt::transparent)
@@ -549,7 +549,7 @@ bool UCListItemPrivate::canHighlight(QMouseEvent *event)
     QQuickItem *child = contentItem->childAt(myPos.x(), myPos.y());
     bool activeComponent = child && (child->acceptedMouseButtons() & event->button()) && !qobject_cast<QQuickText*>(child);
     // do highlight if not pressed above the active component
-    return !activeComponent || (highlight == UCListItem::PermanentEnabled);
+    return !activeComponent || (highlight == UCListItem::PermanentHighlight);
 }
 
 // the function returns whether the automatic highlighting is possible
@@ -895,9 +895,9 @@ QSGNode *UCListItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *data
     // properties is set
     bool highlighted = d->autoHighlightable();
     QColor color = d->color;
-    if (d->highlight == Automatic && highlighted) {
+    if (d->highlight == AutomaticHighlight && highlighted) {
         color = d->highlightColor;
-    } else if (d->highlight == PermanentEnabled && d->pressed) {
+    } else if (d->highlight == PermanentHighlight && d->pressed) {
         color = d->highlightColor;
     }
 
@@ -954,7 +954,7 @@ void UCListItem::mousePressEvent(QMouseEvent *event)
         // while moving, we cannot select any items
         return;
     }
-    if ((d->highlight != PermanentDisabled) && !d->suppressClick
+    if ((d->highlight != DisabledHighlight) && !d->suppressClick
             && !d->pressed && event->button() == Qt::LeftButton
             && d->canHighlight(event)) {
         d->setPressed(true);
@@ -962,13 +962,13 @@ void UCListItem::mousePressEvent(QMouseEvent *event)
         // connect the Flickable to know when to rebound
         d->listenToRebind(true);
         // start pressandhold timer
-        d->pressAndHoldTimer.start(QGuiApplication::styleHints()->mousePressAndHoldInterval(), this);
+        d->pressAndHoldTimer.start(QGuiApplication::styleHints()->mousePressAndHoldInterval(), this);   
         // if it was moved, grab the panels
         if (d->tugged) {
             d->grabPanel(d->leadingActions, true);
             d->grabPanel(d->trailingActions, true);
         }
-        if (d->highlight == Automatic && !d->autoHighlightable()) {
+        if (d->highlight == AutomaticHighlight && !d->autoHighlightable()) {
             d->suppressClick = true;
         } else {
             // start pressandhold timer if highlight policy allows it
@@ -1257,17 +1257,17 @@ bool UCListItem::pressed() const
 
 /*!
  * \qmlproperty enum ListItem::highlightPolicy
- * The property defines the highlight policy of the ListItem. This can be \c Automatic,
- * \c PermanentEnabled or \c PermanentDisabled.
- * When \c Automatic is set, the list item will be highlighted when it either has
+ * The property defines the highlight policy of the ListItem. This can be \c AutomaticHighlight,
+ * \c PermanentHighlight or \c DisabledHighlight.
+ * When \c AutomaticHighlight is set, the list item will be highlighted when it either has
  * a default action, has a trailing- or leading action list, is selectable and
  * selected or it has an active component declared and the press did not happen
- * above this active component. When \c PermanentEnabled is set, the list item
+ * above this active component. When \c PermanentHighlight is set, the list item
  * is highlighted whenever it is pressed. The opposite happens when the \c
- * PermanentDisabled is set.
+ * DisabledHighlight is set.
  *
  * The \l clicked and \l pressAndHold signals are also driven by this property.
- * This means that when the policy is set to \c PermanentDisabled, these signals
+ * This means that when the policy is set to \c DisabledHighlight, these signals
  * will be suppressed.
  */
 UCListItem::HighlightPolicy UCListItemPrivate::highlightPolicy() const
@@ -1352,7 +1352,7 @@ void UCListItem::setColor(const QColor &color)
  * is added as a child component.
  *
  * \note Note that clicking on an active component will highlight the ListItem
- * only if \l highlightPolicy is set to \c PermanentEnabled.
+ * only if \l highlightPolicy is set to \c PermanentHighlight.
  *
  * \note Adding an active component does not mean the component will be activated
  * when the ListItem will be tapped/clicked outside of the component area. If

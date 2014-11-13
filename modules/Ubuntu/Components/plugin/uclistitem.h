@@ -51,9 +51,9 @@ class UCListItem : public UCStyledItemBase
     Q_ENUMS(HighlightPolicy)
 public:
     enum HighlightPolicy {
-        PermanentDisabled,
-        PermanentEnabled,
-        Automatic
+        DisabledHighlight,
+        PermanentHighlight,
+        AutomaticHighlight
     };
 
     explicit UCListItem(QQuickItem *parent = 0);

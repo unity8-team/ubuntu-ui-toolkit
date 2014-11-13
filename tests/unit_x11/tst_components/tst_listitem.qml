@@ -48,8 +48,6 @@ Item {
     }
     ListItemActions {
         id: trailing
-        backgroundColor: leading.backgroundColor
-        foregroundColor: leading.foregroundColor
         actions: [
             stockAction,
         ]
@@ -184,7 +182,7 @@ Item {
 
         function cleanup() {
             testItem.action = null;
-            testItem.highlightPolicy = ListItem.Automatic;
+            testItem.highlightPolicy = ListItem.AutomaticHighlight;
             testItem.selected = false;
             testItem.selectable = false;
             waitForRendering(testItem, 200);
@@ -218,7 +216,7 @@ Item {
             compare(defaults.divider.colorTo, "#ffffff", "colorTo differs.");
             fuzzyCompare(defaults.divider.colorTo.a, 0.07, 0.01, "colorTo alpha differs");
             compare(defaults.contentMoving, false, "default is not moving");
-            compare(defaults.highlightPolicy, ListItem.Automatic, "AutomaticHighlight by default.");
+            compare(defaults.highlightPolicy, ListItem.AutomaticHighlight, "AutomaticHighlight by default.");
             compare(defaults.action, null, "No action by default.");
             compare(defaults.style, null, "Style is loaded upon first use.");
             compare(defaults.__styleInstance, null, "__styleInstance must be null.");
@@ -552,8 +550,8 @@ Item {
             var item2 = findChild(listView, "listItem2");
             var item3 = findChild(listView, "listItem3");
             return [
-                // testItem is the child item @index 1 in the topmost Column.
-                {tag: "Standalone item, child index 1", item: testItem, result: 1},
+                // testItem is the child item @index 2 in the topmost Column.
+                {tag: "Standalone item, child index 2", item: testItem, result: 1},
                 {tag: "ListView, item index 0", item: item0, result: 0},
                 {tag: "ListView, item index 1", item: item1, result: 1},
                 {tag: "ListView, item index 2", item: item2, result: 2},
@@ -672,22 +670,7 @@ Item {
             compare(clickSpy.count, 0, "ListItem clicked() must be suppressed");
         }
 
-        function test_ListItemActions_status_data() {
-            var drag = testItem.contentItem.width / 2;
-            return [
-                {tag:"Leading", item: testItem, dx: drag, list: testItem.leadingActions, expectedStatus: ListItemActions.Leading},
-                {tag:"Trailing", item: testItem, dx: -drag, list: testItem.trailingActions, expectedStatus: ListItemActions.Trailing},
-            ];
-        }
-        function test_ListItemActions_status(data) {
-            var testItem = data.item.contentItem;
-            flick(testItem, centerOf(testItem).x, centerOf(testItem).y, data.dx, 0);
-            waitForRendering(testItem, 800);
-            compare(data.list.ListItemActions.status, data.expectedStatus, "Status on the option list differs.");
-            compare(data.list.ListItemActions.listItem, data.item, "connectedItem is not the tugged item.");
-        }
-
-        function test_listitem_blockks_ascendant_flickables() {
+        function test_listitem_blocks_ascendant_flickables() {
             var listItem = findChild(nestedListView, "listItem0");
             verify(listItem, "Cannot find test item");
             interactiveSpy.target = testFlickable;
@@ -730,19 +713,6 @@ Item {
             compare(actionSpy.count, 0, "Action triggered must be suppressed");
         }
 
-        // keep these as last ones so we make sure the panel has been created by the previous swipes
-        function test_x_backgroundColor_change() {
-            // change panel color for the leading and observe the trailing panelItem color change
-            leading.backgroundColor = UbuntuColors.blue;
-            compare(findChild(panelItem(leading), "panel_background").color, UbuntuColors.blue, "leading panelItem color differs");
-            compare(findChild(panelItem(trailing), "panel_background").color, UbuntuColors.blue, "trailing panelItem color has not been set");
-        }
-        function test_x_foregroundColor_change() {
-            // change panel color for the leading and observe the trailing panelItem color change
-            leading.foregroundColor = UbuntuColors.green;
-            compare(findChild(panelItem(leading), "action_icon").color, UbuntuColors.green, "leading panelItem color differs");
-        }
-
         // highlight policy
         SignalSpy {
             id: policySpy
@@ -750,17 +720,17 @@ Item {
 
         function test_highlight_policy_data() {
             return [
-                {tag: "Automatic, empty, click", item: highlightTest, policy: ListItem.Automatic, signal: "clicked", emitted: false},
-                {tag: "Automatic, empty, pressAndHold", item: highlightTest, policy: ListItem.Automatic, signal: "pressAndHold", emitted: false},
-                {tag: "Automatic, action, click", item: highlightTest, policy: ListItem.Automatic, signal: "clicked", property: "action", value: stockAction, emitted: true},
-                {tag: "Automatic, action, pressAndHold", item: highlightTest, policy: ListItem.Automatic, signal: "pressAndHold", property: "action", value: stockAction, emitted: true},
+                {tag: "Automatic, empty, click", item: highlightTest, policy: ListItem.AutomaticHighlight, signal: "clicked", emitted: false},
+                {tag: "Automatic, empty, pressAndHold", item: highlightTest, policy: ListItem.AutomaticHighlight, signal: "pressAndHold", emitted: false},
+                {tag: "Automatic, action, click", item: highlightTest, policy: ListItem.AutomaticHighlight, signal: "clicked", property: "action", value: stockAction, emitted: true},
+                {tag: "Automatic, action, pressAndHold", item: highlightTest, policy: ListItem.AutomaticHighlight, signal: "pressAndHold", property: "action", value: stockAction, emitted: true},
 
-                {tag: "PermanentEnabled, empty, click", item: highlightTest, policy: ListItem.PermanentEnabled, signal: "clicked", emitted: true},
-                {tag: "PermanentEnabled, empty, pressAndHold", item: highlightTest, policy: ListItem.PermanentEnabled, signal: "pressAndHold", emitted: true},
-                {tag: "PermanentDisabled, action, click", item: highlightTest, policy: ListItem.PermanentDisabled, signal: "clicked", property: "action", value: stockAction, emitted: false},
-                {tag: "PermanentDisabled, action, pressAndHold", item: highlightTest, policy: ListItem.PermanentDisabled, signal: "pressAndHold", property: "action", value: stockAction, emitted: false},
-                {tag: "PermanentDisabled, leadingActions, click", item: highlightTest, policy: ListItem.PermanentDisabled, signal: "clicked", property: "leadingActions", value: leading, emitted: false},
-                {tag: "PermanentDisabled, leadingActions, pressAndHold", item: highlightTest, policy: ListItem.PermanentDisabled, signal: "pressAndHold", property: "trailingActions", value: trailing, emitted: false},
+                {tag: "PermanentEnabled, empty, click", item: highlightTest, policy: ListItem.PermanentHighlight, signal: "clicked", emitted: true},
+                {tag: "PermanentEnabled, empty, pressAndHold", item: highlightTest, policy: ListItem.PermanentHighlight, signal: "pressAndHold", emitted: true},
+                {tag: "PermanentDisabled, action, click", item: highlightTest, policy: ListItem.DisabledHighlight, signal: "clicked", property: "action", value: stockAction, emitted: false},
+                {tag: "PermanentDisabled, action, pressAndHold", item: highlightTest, policy: ListItem.DisabledHighlight, signal: "pressAndHold", property: "action", value: stockAction, emitted: false},
+                {tag: "PermanentDisabled, leadingActions, click", item: highlightTest, policy: ListItem.DisabledHighlight, signal: "clicked", property: "leadingActions", value: leading, emitted: false},
+                {tag: "PermanentDisabled, leadingActions, pressAndHold", item: highlightTest, policy: ListItem.DisabledHighlight, signal: "pressAndHold", property: "trailingActions", value: trailing, emitted: false},
             ];
         }
         function test_highlight_policy(data) {
