@@ -26,61 +26,7 @@ MainView {
     useDeprecatedToolbar: false
 
     Tabs {
-        Tab {
-            page: Page {
-                title: "ListItemLayout"
-                Column {
-                    width: parent.width
-                    spacing: units.gu(0.5)
-                    ListItem {
-                        ListItemLayout {
-                            ColumnLayout {
-                                spacing: units.gu(0.5)
-                                Layout.alignment: Qt.AlignVCenter
-                                Layout.maximumHeight: parent.height
-                                Layout.maximumWidth: parent.width
-                                Layout.preferredWidth: childrenRect.width
-                                Layout.fillWidth: true
-                                Label {
-                                    text: "Horizontal layout"
-                                    fontSize: "large"
-                                }
-                                Label {
-                                    text: "Subtitle"
-                                    fontSize: "small"
-                                }
-                            }
-                            Switch {
-                            }
-                        }
-                    }
-                    // vertical item
-                    Label {
-                        text: "Vertical layout"
-                        fontSize: "large"
-                    }
-                    Rectangle {
-                        width: units.gu(40)
-                        height: units.gu(30)
-
-                        ListItemLayout {
-                            direction: Qt.Vertical
-                            UbuntuShape {
-                                width: units.gu(5)
-                                height: width
-                                color: UbuntuColors.blue
-                            }
-                            Switch {
-                            }
-                            UbuntuShape {
-                                width: units.gu(5)
-                                height: width
-                                color: UbuntuColors.blue
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        ListItemTab{}
+        ListItemLayoutTab{}
     }
 }
