@@ -725,12 +725,19 @@ Item {
                 {tag: "Automatic, action, click", item: highlightTest, policy: ListItem.AutomaticHighlight, signal: "clicked", property: "action", value: stockAction, emitted: true},
                 {tag: "Automatic, action, pressAndHold", item: highlightTest, policy: ListItem.AutomaticHighlight, signal: "pressAndHold", property: "action", value: stockAction, emitted: true},
 
-                {tag: "PermanentEnabled, empty, click", item: highlightTest, policy: ListItem.PermanentHighlight, signal: "clicked", emitted: true},
-                {tag: "PermanentEnabled, empty, pressAndHold", item: highlightTest, policy: ListItem.PermanentHighlight, signal: "pressAndHold", emitted: true},
-                {tag: "PermanentDisabled, action, click", item: highlightTest, policy: ListItem.DisabledHighlight, signal: "clicked", property: "action", value: stockAction, emitted: false},
-                {tag: "PermanentDisabled, action, pressAndHold", item: highlightTest, policy: ListItem.DisabledHighlight, signal: "pressAndHold", property: "action", value: stockAction, emitted: false},
-                {tag: "PermanentDisabled, leadingActions, click", item: highlightTest, policy: ListItem.DisabledHighlight, signal: "clicked", property: "leadingActions", value: leading, emitted: false},
-                {tag: "PermanentDisabled, leadingActions, pressAndHold", item: highlightTest, policy: ListItem.DisabledHighlight, signal: "pressAndHold", property: "trailingActions", value: trailing, emitted: false},
+                {tag: "PermanentHighlight, empty, click", item: highlightTest, policy: ListItem.PermanentHighlight, signal: "clicked", emitted: true},
+                {tag: "PermanentHighlight, empty, pressAndHold", item: highlightTest, policy: ListItem.PermanentHighlight, signal: "pressAndHold", emitted: true},
+                {tag: "DisabledHighlight, action, click", item: highlightTest, policy: ListItem.DisabledHighlight, signal: "clicked", property: "action", value: stockAction, emitted: false},
+                {tag: "DisabledHighlight, action, pressAndHold", item: highlightTest, policy: ListItem.DisabledHighlight, signal: "pressAndHold", property: "action", value: stockAction, emitted: false},
+                {tag: "DisabledHighlight, leadingActions, click", item: highlightTest, policy: ListItem.DisabledHighlight, signal: "clicked", property: "leadingActions", value: leading, emitted: false},
+                {tag: "DisabledHighlight, leadingActions, pressAndHold", item: highlightTest, policy: ListItem.DisabledHighlight, signal: "pressAndHold", property: "trailingActions", value: trailing, emitted: false},
+
+                {tag: "Automatic, active control clicked", item: controlItem, policy: ListItem.AutomaticHighlight, signal: "clicked", emitted: false},
+                {tag: "Automatic, active control pressAndHold", item: controlItem, policy: ListItem.AutomaticHighlight, signal: "pressAndHold", emitted: false},
+                {tag: "PermanentHighlight, active control clicked", item: controlItem, policy: ListItem.PermanentHighlight, signal: "clicked", emitted: true},
+                {tag: "PermanentHighlight, active control pressAndHold", item: controlItem, policy: ListItem.PermanentHighlight, signal: "pressAndHold", emitted: true},
+                {tag: "DisabledHighlight, active control clicked", item: controlItem, policy: ListItem.DisabledHighlight, signal: "clicked", emitted: false},
+                {tag: "DisabledHighlight, active control pressAndHold", item: controlItem, policy: ListItem.DisabledHighlight, signal: "pressAndHold", emitted: false},
             ];
         }
         function test_highlight_policy(data) {
