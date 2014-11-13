@@ -1,3 +1,6 @@
+import QtQuick 2.3
+import Ubuntu.Components.Styles 1.2 as Styles
+import Ubuntu.Components 1.2
 /*
  * Copyright 2014 Canonical Ltd.
  *
@@ -14,21 +17,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import QtQuick 2.2
-import Ubuntu.Components 1.2
-import QtQuick.Layouts 1.1
+Styles.ListItemStyle {
 
-MainView {
-    width: units.gu(50)
-    height: units.gu(100)
+    actionsDelegate: ListItemPanel{}
 
-    applicationName: "TestSuite"
-    useDeprecatedToolbar: false
-
-    Tabs {
-        ListItemTab{}
-        ListItemActionsTab{}
-        ListItemLayoutTab{}
-        ListItemCaptionsTab{}
+    snapAnimation: PropertyAnimation {
+        property: "x"
+        easing {
+            type: Easing.OutElastic
+            period: 0.5
+        }
+        duration: UbuntuAnimation.BriskDuration
+        alwaysRunToEnd: true
     }
+
 }

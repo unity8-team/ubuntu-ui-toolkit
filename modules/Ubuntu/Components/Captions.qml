@@ -213,5 +213,4 @@ Item {
             elide: (preset === "caption") ? Text.ElideRight : Text.ElideNone
         }
     }
-//    Rectangle {anchors.fill: parent; color: "transparent"; border.width: 1}
 }
