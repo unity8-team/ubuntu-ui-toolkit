@@ -36,34 +36,27 @@ UCListItemAttachedPrivate::UCListItemAttachedPrivate(UCListItemAttached *qq)
 
 UCListItemAttachedPrivate::~UCListItemAttachedPrivate()
 {
-    // clear property change objects
-    Q_Q(UCListItemAttached);
-    Q_FOREACH(const Record &record, list) {
-        if (record.flickable.data()) {
-            QObject::disconnect(record.flickable.data(), &QQuickFlickable::movementStarted,
-                                q, &UCListItemAttached::unbindItem);
-        }
-        // deleting PropertyChange will restore the saved property
-        // to its original binding/value
-        delete record.interactive;
-    }
+    clearInteractiveList();
 }
 
-void UCListItemAttachedPrivate::init()
+void UCListItemAttachedPrivate::connectFlickables()
 {
-    // collect all ascendant flickables
     Q_Q(UCListItemAttached);
     QQuickItem *item = qobject_cast<QQuickItem*>(q->parent());
     if (!item) {
         return;
     }
+
+    Q_FOREACH(QQuickFlickable *flickable, flickableList) {
+        QObject::disconnect(flickable, &QQuickFlickable::movementStarted,
+                            q, &UCListItemAttached::unbindItem);
+    }
+    flickableList.clear();
+
     while (item) {
         QQuickFlickable *flickable = qobject_cast<QQuickFlickable*>(item);
         if (flickable) {
-            Record record;
-            record.flickable = flickable;
-            record.interactive = new PropertyChange(item, "interactive");
-            list.append(record);
+            flickableList << flickable;
             QObject::connect(flickable, &QQuickFlickable::movementStarted,
                              q, &UCListItemAttached::unbindItem);
         }
@@ -71,11 +64,41 @@ void UCListItemAttachedPrivate::init()
     }
 }
 
+void UCListItemAttachedPrivate::clearInteractiveList()
+{
+    // clear property change objects
+    Q_Q(UCListItemAttached);
+    Q_FOREACH(PropertyChange *change, interactiveList) {
+        // deleting PropertyChange will restore the saved property
+        // to its original binding/value
+        delete change;
+    }
+    interactiveList.clear();
+}
+
+void UCListItemAttachedPrivate::buildInteractiveList()
+{
+    Q_Q(UCListItemAttached);
+    QQuickItem *item = qobject_cast<QQuickItem*>(q->parent());
+    if (!item) {
+        return;
+    }
+    clearInteractiveList();
+    while (item) {
+        QQuickFlickable *flickable = qobject_cast<QQuickFlickable*>(item);
+        if (flickable) {
+            PropertyChange *change = new PropertyChange(item, "interactive");
+            interactiveList << change;
+        }
+        item = item->parentItem();
+    }
+
+}
+
 UCListItemAttached::UCListItemAttached(QObject *owner)
     : QObject(owner)
     , d_ptr(new UCListItemAttachedPrivate(this))
 {
-    d_ptr->init();
 }
 
 UCListItemAttached::~UCListItemAttached()
@@ -90,6 +113,9 @@ bool UCListItemAttached::listenToRebind(UCListItem *item, bool listen)
     Q_D(UCListItemAttached);
     if (listen) {
         if (d->bountItem.isNull() || (d->bountItem == item)) {
+            if (d->bountItem.isNull()) {
+                d->connectFlickables();
+            }
             d->bountItem = item;
             result = true;
         }
@@ -104,8 +130,8 @@ bool UCListItemAttached::listenToRebind(UCListItem *item, bool listen)
 bool UCListItemAttached::isMoving()
 {
     Q_D(UCListItemAttached);
-    Q_FOREACH(const UCListItemAttachedPrivate::Record &record, d->list) {
-        if (record.flickable && record.flickable->isMoving()) {
+    Q_FOREACH(QQuickFlickable *flickable, d->flickableList) {
+        if (flickable->isMoving()) {
             return true;
         }
     }
@@ -146,11 +172,13 @@ void UCListItemAttached::disableInteractive(UCListItem *item, bool disable)
         // none of the above, leave
         return;
     }
-    Q_FOREACH(const UCListItemAttachedPrivate::Record &record, d->list) {
+    // build interactive change list
+    d->buildInteractiveList();
+    Q_FOREACH(PropertyChange *change, d->interactiveList) {
         if (disable) {
-            PropertyChange::setValue(record.interactive, false);
+            PropertyChange::setValue(change, false);
         } else {
-            PropertyChange::restore(record.interactive);
+            PropertyChange::restore(change);
         }
     }
 }
