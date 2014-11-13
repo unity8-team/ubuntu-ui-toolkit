@@ -551,7 +551,7 @@ Item {
             var item3 = findChild(listView, "listItem3");
             return [
                 // testItem is the child item @index 2 in the topmost Column.
-                {tag: "Standalone item, child index 2", item: testItem, result: 1},
+                {tag: "Standalone item, child index 2", item: testItem, result: 2},
                 {tag: "ListView, item index 0", item: item0, result: 0},
                 {tag: "ListView, item index 1", item: item1, result: 1},
                 {tag: "ListView, item index 2", item: item2, result: 2},

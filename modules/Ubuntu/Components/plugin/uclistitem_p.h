@@ -57,7 +57,6 @@ public:
     void _q_updateSelected();
     int index();
     bool canHighlight(QMouseEvent *event);
-    bool autoHighlightable();
     void setPressed(bool pressed);
     void setTugged(bool tugged);
     bool grabPanel(UCListItemActions *optionList, bool isTugged);

@@ -539,27 +539,27 @@ int UCListItemPrivate::index()
                 (parentItem ? QQuickItemPrivate::get(parentItem)->childItems.indexOf(q) : -1);
 }
 
-// returns true if the click happened over an inactive component
+// returns true if the highlight is possible
 bool UCListItemPrivate::canHighlight(QMouseEvent *event)
 {
+    if (highlight == UCListItem::PermanentHighlight) {
+        return true;
+    }
+    if (highlight == UCListItem::DisabledHighlight) {
+        return false;
+    }
+    // if automatic, the highlight should not happen if we clicked on an active component;
     // localPos is a position relative to ListItem which will give us a child from
     // from the original coordinates; therefore we must map the position to the contentItem
     Q_Q(UCListItem);
     QPointF myPos = q->mapToItem(contentItem, event->localPos());
     QQuickItem *child = contentItem->childAt(myPos.x(), myPos.y());
     bool activeComponent = child && (child->acceptedMouseButtons() & event->button()) && !qobject_cast<QQuickText*>(child);
-    // do highlight if not pressed above the active component
-    return !activeComponent || (highlight == UCListItem::PermanentHighlight);
-}
-
-// the function returns whether the automatic highlighting is possible
-bool UCListItemPrivate::autoHighlightable()
-{
-    Q_Q(UCListItem);
+    // do highlight if not pressed above the active component, and the component has either
+    // action, leading or trailing actions list or at least an active child component declared
     QQuickMouseArea *ma = q->findChild<QQuickMouseArea*>();
     bool activeMouseArea = ma && ma->isEnabled();
-    return (pressed && (action || leadingActions || trailingActions || activeMouseArea))
-           || (selectable && selected);
+    return !activeComponent && (action || leadingActions || trailingActions || activeMouseArea);
 }
 
 // set pressed flag and update contentItem
@@ -893,13 +893,7 @@ QSGNode *UCListItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *data
     Q_D(UCListItem);
     // do highlight only if at least one of action, leadingActions or trailingAction
     // properties is set
-    bool highlighted = d->autoHighlightable();
-    QColor color = d->color;
-    if (d->highlight == AutomaticHighlight && highlighted) {
-        color = d->highlightColor;
-    } else if (d->highlight == PermanentHighlight && d->pressed) {
-        color = d->highlightColor;
-    }
+    QColor color = (d->pressed || (d->selectable && d->selected))? d->highlightColor : d->color;
 
     if (width() <= 0 || height() <= 0) {
         delete oldNode;
@@ -954,9 +948,8 @@ void UCListItem::mousePressEvent(QMouseEvent *event)
         // while moving, we cannot select any items
         return;
     }
-    if ((d->highlight != DisabledHighlight) && !d->suppressClick
-            && !d->pressed && event->button() == Qt::LeftButton
-            && d->canHighlight(event)) {
+    if (d->canHighlight(event) && !d->suppressClick
+            && !d->pressed && event->button() == Qt::LeftButton) {
         d->setPressed(true);
         d->lastPos = d->pressedPos = event->localPos();
         // connect the Flickable to know when to rebound
@@ -968,12 +961,8 @@ void UCListItem::mousePressEvent(QMouseEvent *event)
             d->grabPanel(d->leadingActions, true);
             d->grabPanel(d->trailingActions, true);
         }
-        if (d->highlight == AutomaticHighlight && !d->autoHighlightable()) {
-            d->suppressClick = true;
-        } else {
-            // start pressandhold timer if highlight policy allows it
-            d->pressAndHoldTimer.start(QGuiApplication::styleHints()->mousePressAndHoldInterval(), this);
-        }
+        // start pressandhold timer
+        d->pressAndHoldTimer.start(QGuiApplication::styleHints()->mousePressAndHoldInterval(), this);
     }
     // accept the event so we get the rest of the events as well
     event->setAccepted(true);
