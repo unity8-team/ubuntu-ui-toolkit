@@ -27,6 +27,7 @@ MainView {
 
     Tabs {
         ListItemTab{}
+        ListItemActionsTab{}
         ListItemLayoutTab{}
     }
 }

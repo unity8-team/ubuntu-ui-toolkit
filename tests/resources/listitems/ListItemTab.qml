@@ -20,7 +20,7 @@ import Ubuntu.Components.ListItems 1.0
 import QtQuick.Layouts 1.1
 
 Tab {
-    title: "ListItem with no layout"
+    title: "Highlight policy"
     ListItemActions {
         id: sharedLeading
         actions: Action {
@@ -60,7 +60,6 @@ Tab {
                 id: column
                 width: parent.width
 
-                Header { text: "Highlight policy demo" }
                 ListItem {
                     Label {
                         text: "No action, leading/trailing actions, or active component added." +
@@ -105,6 +104,21 @@ Tab {
                             wrapMode: Text.Wrap
                             width: parent.width - check2.width
                         }
+                    }
+                }
+                Header { text: "ListItem.AutomaticHighlight" }
+                ListItem {
+                    action: Action {
+                    }
+                    Label {
+                        text: "Default <b>action</b> provides highlight"
+                    }
+                }
+                ListItem {
+                    leadingActions: sharedLeading
+                    trailingActions: sharedTrailing
+                    Label {
+                        text: "<b>leadingActions, trailingActions</b> provides highlight."
                     }
                 }
             }
