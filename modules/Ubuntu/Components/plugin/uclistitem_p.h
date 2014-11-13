@@ -28,6 +28,8 @@ class QQuickPropertyAnimation;
 class UCListItemContent;
 class UCListItemDivider;
 class UCListItemActions;
+class UCListItemSnapAnimator;
+class UCListItemStyle;
 class PropertyChange;
 class FlickableControl;
 class UCListItemPrivate : public UCStyledItemBasePrivate
@@ -46,21 +48,15 @@ public:
 
     bool isPressAndHoldConnected();
 
-    void _q_updateColors();
-    void _q_dimmDisabled();
+    void _q_updateThemedData();
     void _q_rebound();
+    void promptRebound();
     void _q_updateSize();
-    void _q_completeRebinding();
-    void _q_completeSnapping();
     void _q_updateIndex();
+    void _q_dimmDisabled();
     void _q_updateSelected();
     int index();
-    bool isMoving() const;
-    void setContentMoved(bool move);
-    void promptRebound();
-    void snapTo(qreal x);
     bool canHighlight(QMouseEvent *event);
-    bool autoHighlightable();
     void setPressed(bool pressed);
     void setTugged(bool tugged);
     bool grabPanel(UCListItemActions *optionList, bool isTugged);
@@ -68,65 +64,87 @@ public:
     void resize();
     void update();
     void clampX(qreal &x, qreal dx);
+    void clampAndMoveX(qreal &x, qreal dx);
     QQuickItem *createSelectionPanel();
     void toggleSelectionMode();
 
     bool pressed:1;
+    bool contentMoved:1;
     bool highlightColorChanged:1;
     bool tugged:1;
     bool suppressClick:1;
     bool ready:1;
-    bool contentMoving:1;
     bool selectable:1;
     bool selected:1;
+    bool customStyle:1;
+    bool customColor:1;
     UCListItem::HighlightPolicy highlight;
     qreal xAxisMoveThresholdGU;
+    qreal overshoot;
     QBasicTimer pressAndHoldTimer;
-    qreal overshootGU;
     QPointF lastPos;
     QPointF pressedPos;
     QColor color;
     QColor highlightColor;
-    FlickableControl *flickableControl;
-    QPointer<UCListItemAttached> attachedObject;
     QPointer<QQuickItem> countOwner;
     QPointer<QQuickFlickable> flickable;
-    QQuickPropertyAnimation *reboundAnimation;
+    QPointer<UCListItemAttached> attachedProperties;
     QQuickItem *contentItem;
     PropertyChange *disabledOpacity;
     UCListItemDivider *divider;
     UCListItemActions *leadingActions;
     UCListItemActions *trailingActions;
     QQuickItem *selectionPanel;
+    UCListItemSnapAnimator *animator;
     UCAction *action;
 
-    // getter/setter
+    // FIXME move these to StyledItemBase togehther with subtheming.
+    QQmlComponent *styleComponent;
+    UCListItemStyle *styleItem;
+
+    // getters/setters
     UCListItem::HighlightPolicy highlightPolicy() const;
     void setHighlightPolicy(UCListItem::HighlightPolicy policy);
+    QQmlListProperty<QObject> data();
+    QQmlListProperty<QQuickItem> children();
+    bool contentMoving() const;
+    void setContentMoving(bool moved);
+    QQmlComponent *style() const;
+    void setStyle(QQmlComponent *delegate);
+    bool loadStyle();
+    void initStyleItem();
+    QQuickItem *styleInstance() const;
 };
 
-// controls all ascendant Flickables
-class FlickableControl : QObject {
-    Q_OBJECT
+class PropertyChange;
+class UCListItemAttachedPrivate
+{
+    Q_DECLARE_PUBLIC(UCListItemAttached)
 public:
-    FlickableControl(QObject *parent = 0);
-    ~FlickableControl();
+    UCListItemAttachedPrivate(UCListItemAttached *qq);
+    ~UCListItemAttachedPrivate();
 
-    void listenToRebind(bool listen);
-    void grab(bool grab);
-    bool isMoving();
+    static UCListItemAttachedPrivate *get(UCListItemAttached *item)
+    {
+        return item->d_func();
+    }
 
-private Q_SLOTS:
-    void rebind();
+    void init();
+    void addSelectedItem(UCListItem *item);
+    void removeSelectedItem(UCListItem *item);
+    bool isItemSelected(UCListItem *item);
 
-protected:
     struct Record {
         QPointer<QQuickFlickable> flickable;
         PropertyChange *interactive;
     };
 
-    UCListItem *item;
+    UCListItemAttached *q_ptr;
+    bool globalDisabled;
     QList<Record> list;
+    QList<int> indexList;
+    QPointer<UCListItem> bountItem;
+    QPointer<UCListItem> disablerItem;
 };
 
 class UCListItemDivider : public QObject
@@ -183,5 +201,27 @@ private:
 QColor getPaletteColor(const char *profile, const char *color);
 
 QML_DECLARE_TYPE(UCListItemDivider)
+
+class QQuickPropertyAnimation;
+class UCListItemSnapAnimator : public QObject
+{
+    Q_OBJECT
+public:
+    UCListItemSnapAnimator(UCListItem *item);
+    ~UCListItemSnapAnimator();
+
+    bool snap(qreal to);
+    void complete();
+
+public Q_SLOTS:
+    void snapOut();
+    void snapIn();
+
+    QQuickPropertyAnimation *getDefaultAnimation();
+
+private:
+    bool active;
+    UCListItem *item;
+};
 
 #endif // UCVIEWITEM_P_H
