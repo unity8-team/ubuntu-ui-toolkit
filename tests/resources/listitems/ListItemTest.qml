@@ -41,14 +41,7 @@ MainView {
         actions: [
             Action {
                 iconName: "delete"
-                onTriggered: { print(iconName, "triggered", value)
-                    leading.backgroundColor = Qt.binding(function() {
-                        return (leading.ListItemActions.status == ListItemActions.Leading) ? UbuntuColors.green : UbuntuColors.lightGrey;
-                    })
-                    leading.foregroundColor = Qt.binding(function() {
-                        return (leading.ListItemActions.status == ListItemActions.Leading) ? "white" : UbuntuColors.red;
-                    })
-                }
+                onTriggered: print(iconName, "triggered", value)
             },
             Action {
                 iconName: "alarm-clock"

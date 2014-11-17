@@ -48,8 +48,6 @@ Item {
     }
     ListItemActions {
         id: trailing
-        backgroundColor: leading.backgroundColor
-        foregroundColor: leading.foregroundColor
         actions: [
             stockAction,
         ]
