@@ -318,7 +318,6 @@ UCListItemPrivate::UCListItemPrivate()
     , overshoot(UCUnits::instance().gu(2))
     , color(Qt::transparent)
     , highlightColor(Qt::transparent)
-    , flickable(0)
     , attachedProperties(0)
     , contentItem(new QQuickItem)
     , disabledOpacity(0)
@@ -953,8 +952,6 @@ void UCListItem::mousePressEvent(QMouseEvent *event)
         d->lastPos = d->pressedPos = event->localPos();
         // connect the Flickable to know when to rebound
         d->listenToRebind(true);
-        // start pressandhold timer
-        d->pressAndHoldTimer.start(QGuiApplication::styleHints()->mousePressAndHoldInterval(), this);   
         // if it was moved, grab the panels
         if (d->tugged) {
             d->grabPanel(d->leadingActions, true);

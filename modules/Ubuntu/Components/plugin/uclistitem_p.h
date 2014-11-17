@@ -31,7 +31,6 @@ class UCListItemActions;
 class UCListItemSnapAnimator;
 class UCListItemStyle;
 class PropertyChange;
-class FlickableControl;
 class UCListItemPrivate : public UCStyledItemBasePrivate
 {
     Q_DECLARE_PUBLIC(UCListItem)
