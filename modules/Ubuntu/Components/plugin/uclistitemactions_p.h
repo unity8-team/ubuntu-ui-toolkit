@@ -37,8 +37,6 @@ public:
     QQmlComponent *delegate;
     QQmlComponent *panelDelegate;
     QQuickItem *panelItem;
-    QColor backgroundColor;
-    QColor foregroundColor;
     QList<UCAction*> actions;
     QList<QObject*> data;
     QPointer<UCListItem> queuedItem;
