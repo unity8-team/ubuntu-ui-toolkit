@@ -119,7 +119,7 @@ Tab {
                     }
 
                     Label {
-                        text: "Swipe to the right to reveal leading actions, to the left to reveal trailing actions"
+                        text: "Swipe to the right to reveal leading actions, to the left to reveal trailing actions with custom delegate"
                         width: parent.width
                         wrapMode: Text.Wrap
                     }
