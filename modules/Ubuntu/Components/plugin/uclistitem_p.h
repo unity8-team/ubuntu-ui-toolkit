@@ -54,7 +54,6 @@ public:
     void _q_updateSize();
     void _q_updateIndex();
     void _q_dimmDisabled();
-    void _q_updateSelected();
     int index();
     bool canHighlight(QMouseEvent *event);
     void setPressed(bool pressed);
@@ -129,18 +128,19 @@ public:
         return item->d_func();
     }
 
-    void connectFlickables();
-    void clearInteractiveList();
-    void buildInteractiveList();
+    void clearFlickableList();
+    void buildFlickablesList();
+    void clearChangesList();
+    void buildChangesList(const QVariant &newValue);
     void addSelectedItem(UCListItem *item);
     void removeSelectedItem(UCListItem *item);
     bool isItemSelected(UCListItem *item);
 
     UCListItemAttached *q_ptr;
     bool globalDisabled;
-    QList<QQuickFlickable*> flickableList;
-    QList<PropertyChange*> interactiveList;
     QList<int> indexList;
+    QList< QPointer<QQuickFlickable> > flickables;
+    QList< PropertyChange* > changes;
     QPointer<UCListItem> bountItem;
     QPointer<UCListItem> disablerItem;
 };
