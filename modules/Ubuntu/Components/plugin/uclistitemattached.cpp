@@ -54,6 +54,7 @@ void UCListItemAttachedPrivate::clearFlickableList()
 // connect all flickables
 void UCListItemAttachedPrivate::buildFlickablesList()
 {
+    // collect all ascendant flickables
     Q_Q(UCListItemAttached);
     QQuickItem *item = qobject_cast<QQuickItem*>(q->parent());
     if (!item) {
