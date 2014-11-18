@@ -127,7 +127,7 @@ public:
         return item->d_func();
     }
 
-    void clearFlickableList();
+    void clearFlickablesList();
     void buildFlickablesList();
     void clearChangesList();
     void buildChangesList(const QVariant &newValue);
@@ -140,7 +140,7 @@ public:
     QList<int> indexList;
     QList< QPointer<QQuickFlickable> > flickables;
     QList< PropertyChange* > changes;
-    QPointer<UCListItem> bountItem;
+    QPointer<UCListItem> boundItem;
     QPointer<UCListItem> disablerItem;
 };
 
