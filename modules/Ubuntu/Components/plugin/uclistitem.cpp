@@ -34,6 +34,7 @@
 #include <QtGui/QGuiApplication>
 #include <QtGui/QStyleHints>
 #include <QtQuick/private/qquickanimation_p.h>
+#include <QtQuick/private/qquickmousearea_p.h>
 #include "uclistitemstyle.h"
 
 #define MIN(x, y)           ((x < y) ? x : y)
@@ -336,7 +337,7 @@ UCListItemPrivate::UCListItemPrivate()
     , pressed(false)
     , contentMoved(false)
     , highlightColorChanged(false)
-    , tugged(false)
+    , swiped(false)
     , suppressClick(false)
     , ready(false)
     , selectable(false)
@@ -436,10 +437,11 @@ void UCListItemPrivate::_q_rebound()
     setPressed(false);
     // initiate rebinding only if there were actions tugged
     Q_Q(UCListItem);
-    if (!UCListItemActionsPrivate::isConnectedTo(leadingActions, q) && !UCListItemActionsPrivate::isConnectedTo(trailingActions, q)) {
+    if (!UCListItemActionsPrivate::isConnectedTo(leadingActions, q) &&
+        !UCListItemActionsPrivate::isConnectedTo(trailingActions, q)) {
         return;
     }
-    setTugged(false);
+    setSwiped(false);
     // rebound to zero
     animator->snap(0);
 }
@@ -455,8 +457,8 @@ void UCListItemPrivate::_q_updateIndex()
  * Holds the style of the component defining the components visualizing the leading/
  * trailing actions, selection and dragging mode handlers as well as different
  * animations. The component does not assume any visuals present in the style,
- * and will load its content only when requested, i.e. either of the mentioned
- * components are visualized.
+ * and will load its content only when requested.
+ * \sa ListItemStyle
  */
 QQmlComponent *UCListItemPrivate::style() const
 {
@@ -531,8 +533,10 @@ void UCListItemPrivate::promptRebound()
     // stop any animation and rebound
     animator->complete();
     setPressed(false);
-    setTugged(false);
-    animator->snapOut();
+    setSwiped(false);
+    if (animator) {
+        animator->snapOut();
+    }
 }
 
 // set pressed flag and update background
@@ -572,15 +576,15 @@ bool UCListItemPrivate::canHighlight(QMouseEvent *event)
     // if automatic, the highlight should not happen if we clicked on an active component;
     // localPos is a position relative to ListItem which will give us a child from
     // from the original coordinates; therefore we must map the position to the contentItem
-    Q_Q(UCListItem);
-    QPointF myPos = q->mapToItem(contentItem, event->localPos());
-    QQuickItem *child = contentItem->childAt(myPos.x(), myPos.y());
-    bool activeComponent = child && (child->acceptedMouseButtons() & event->button()) && !qobject_cast<QQuickText*>(child);
-    // do highlight if not pressed above the active component, and the component has either
-    // action, leading or trailing actions list or at least an active child component declared
-    QQuickMouseArea *ma = q->findChild<QQuickMouseArea*>();
-    bool activeMouseArea = ma && ma->isEnabled();
-    return !activeComponent && (action || leadingActions || trailingActions || activeMouseArea);
+   Q_Q(UCListItem);
+   QPointF myPos = q->mapToItem(contentItem, event->localPos());
+   QQuickItem *child = contentItem->childAt(myPos.x(), myPos.y());
+   bool activeComponent = child && (child->acceptedMouseButtons() & event->button()) && !qobject_cast<QQuickText*>(child);
+   // do highlight if not pressed above the active component, and the component has either
+   // action, leading or trailing actions list or at least an active child component declared
+   QQuickMouseArea *ma = q->findChild<QQuickMouseArea*>();
+   bool activeMouseArea = ma && ma->isEnabled();
+   return !activeComponent && (action || leadingActions || trailingActions || activeMouseArea);
 }
 
 // set pressed flag and update contentItem
@@ -594,16 +598,16 @@ void UCListItemPrivate::setPressed(bool pressed)
     }
 }
 // toggles the tugged flag and installs/removes event filter
-void UCListItemPrivate::setTugged(bool tugged)
+void UCListItemPrivate::setSwiped(bool swiped)
 {
-    suppressClick = tugged;
-    if (this->tugged == tugged) {
+    suppressClick = swiped;
+    if (this->swiped == swiped) {
         return;
     }
-    this->tugged = tugged;
+    this->swiped = swiped;
     Q_Q(UCListItem);
     QQuickWindow *window = q->window();
-    if (tugged) {
+    if (swiped) {
         window->installEventFilter(q);
     } else {
         window->removeEventFilter(q);
@@ -801,6 +805,8 @@ void UCListItemPrivate::toggleSelectionMode()
  * }
  * \endqml
  * \sa ListItemActions
+ *
+ * The component is styled using the \l ListItemStyle style interface.
  */
 
 /*!
@@ -983,7 +989,7 @@ void UCListItem::mousePressEvent(QMouseEvent *event)
         // connect the Flickable to know when to rebound
         d->listenToRebind(true);
         // if it was moved, grab the panels
-        if (d->tugged) {
+        if (d->swiped) {
             d->grabPanel(d->leadingActions, true);
             d->grabPanel(d->trailingActions, true);
         }
@@ -1067,7 +1073,7 @@ void UCListItem::mouseMoveEvent(QMouseEvent *event)
             // clamp X into allowed dragging area
             d->clampAndMoveX(x, dx);
             // block flickable
-            d->setTugged(true);
+            d->setSwiped(true);
             d->contentItem->setX(x);
             // decide which panel is visible by checking the contentItem's X coordinates
             if (d->contentItem->x() > 0) {
@@ -1097,7 +1103,7 @@ bool UCListItem::childMouseEventFilter(QQuickItem *child, QEvent *event)
         // suppress click event if pressed over an active area, except Text, which can also handle
         // mouse clicks when content is an URL
         QMouseEvent *mouse = static_cast<QMouseEvent*>(event);
-        if (child->isEnabled() && child->acceptedMouseButtons() & mouse->button() && !qobject_cast<QQuickText*>(child)) {
+        if (child->isEnabled() && (child->acceptedMouseButtons() & mouse->button()) && !qobject_cast<QQuickText*>(child)) {
             Q_D(UCListItem);
             // suppress click only if we're not having the PermanentHighlight set
             d->suppressClick = (d->highlight != PermanentHighlight);

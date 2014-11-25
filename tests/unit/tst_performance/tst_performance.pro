@@ -22,8 +22,8 @@ OTHER_FILES += \
     TextWithImportPopups.qml \
     ItemList.qml \
     ListItemList.qml \
-    ListItemWithOptionsList.qml \
-    ListItemWithInlineOptionsList.qml \
     ListItemsEmptyList.qml \
     ListItemsBaseList.qml \
+    ListItemWithInlineActionsList.qml \
+    ListItemWithActionsList.qml \
     ListOfCaptions.qml
