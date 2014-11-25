@@ -138,7 +138,7 @@ Item {
         }
 
         function panelItem(item, leading) {
-            return findInvisibleChild(item, (leading ? "LeadingListItemPanel" : "TrailingListItemPanel"));
+            return findInvisibleChild(item, (leading ? "ListItemPanelLeading" : "ListItemPanelTrailing"));
         }
 
         function rebound(item, watchTarget) {
@@ -636,6 +636,26 @@ Item {
             mouseRelease(testItem, center.x, center.y);
             pressAndHoldSpy.wait();
             compare(clickSpy.count, 0, "Click must be suppressed when long pressed");
+        }
+
+        function test_pressandhold_not_emitted_when_swiped() {
+            var center = centerOf(testItem);
+            pressAndHoldSpy.target = testItem;
+            // move mouse slowly from left to right, the swipe threshold is 1.5 GU!!!,
+            // so any value less than that will emit pressAndHold
+            mouseMoveSlowly(testItem, center.x, center.y, units.gu(2), 0, 10, 100);
+            mouseRelease(testItem, center.x + units.gu(1), center.y);
+            compare(pressAndHoldSpy.count, 0, "pressAndHold should not be emitted!");
+            // make sure we have collapsed item
+            rebound(testItem);
+        }
+
+        function test_pressandhold_not_emitted_when_pressed_over_active_component() {
+            var press = centerOf(button);
+            pressAndHoldSpy.target = controlItem;
+            mouseLongPress(button, press.x, press.y);
+            compare(pressAndHoldSpy.count, 0, "")
+            mouseRelease(button, press.x, press.y);
         }
 
         function test_click_on_button_suppresses_listitem_click() {
