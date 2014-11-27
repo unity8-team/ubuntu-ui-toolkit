@@ -101,6 +101,8 @@ QStringList themeSearchPath() {
     }
     // append standard QML2_IMPORT_PATH value
     result << QLibraryInfo::location(QLibraryInfo::Qml2ImportsPath);
+    // prepend current folder
+    result.prepend(QDir::currentPath());
     return result;
 }
 
@@ -134,7 +136,7 @@ void UCTheme::updateEnginePaths()
 
     QStringList paths = themeSearchPath();
     Q_FOREACH(const QString &path, paths) {
-        if (QDir(path).exists()) {
+        if (QDir(path).exists() && !m_engine->importPathList().contains(path)) {
             m_engine->addImportPath(path);
         }
     }
@@ -230,7 +232,7 @@ QString UCTheme::parentThemeName(const QString& themeName)
     QString parentTheme;
     QUrl themePath = pathFromThemeName(themeName);
     if (!themePath.isValid()) {
-        qWarning() << UbuntuI18n::instance().tr("Theme not found: ") << themeName;
+        qWarning() << UbuntuI18n::instance().tr("Theme not found: %1").arg(themeName);
     } else {
         QFile file(themePath.resolved(PARENT_THEME_FILE).toLocalFile());
         if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
