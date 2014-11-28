@@ -579,7 +579,8 @@ bool UCListItemPrivate::canHighlight(QMouseEvent *event)
    Q_Q(UCListItem);
    QPointF myPos = q->mapToItem(contentItem, event->localPos());
    QQuickItem *child = contentItem->childAt(myPos.x(), myPos.y());
-   bool activeComponent = child && (child->acceptedMouseButtons() & event->button()) && !qobject_cast<QQuickText*>(child);
+   bool activeComponent = child && (child->acceptedMouseButtons() & event->button()) &&
+           child->isEnabled() && !qobject_cast<QQuickText*>(child);
    // do highlight if not pressed above the active component, and the component has either
    // action, leading or trailing actions list or at least an active child component declared
    QQuickMouseArea *ma = q->findChild<QQuickMouseArea*>();
@@ -690,7 +691,6 @@ QQuickItem *UCListItemPrivate::createSelectionPanel()
                 if (selectionPanel) {
                     QQml_setParent_noEvent(selectionPanel, q);
                     selectionPanel->setParentItem(q);
-                    selectionPanel->setVisible(false);
                     // complete component creation
                     styleItem->m_selectionDelegate->completeCreate();
                 }
@@ -701,25 +701,17 @@ QQuickItem *UCListItemPrivate::createSelectionPanel()
     }
     return selectionPanel;
 }
-void UCListItemPrivate::toggleSelectionMode()
+void UCListItemPrivate::setupSelectionMode()
 {
     if (!createSelectionPanel()) {
         return;
     }
     Q_Q(UCListItem);
     if (selectable) {
-        // move and dimm content item
-        selectionPanel->setVisible(true);
-        promptRebound();
-        animator->snap(selectionPanel->width());
         // sync selected flag with the attached selection array
         if (attachedProperties) {
             q->setSelected(UCListItemAttachedPrivate::get(attachedProperties)->isItemSelected(q));
         }
-    } else {
-        // remove content item dimming and destroy selection panel as well
-        animator->snap(0.0);
-        selectionPanel->setVisible(false);
     }
 }
 
@@ -865,7 +857,7 @@ void UCListItem::componentComplete()
 
     // toggle selection mode if has been set by a binding
     if (d->selectable) {
-        d->toggleSelectionMode();
+        d->setupSelectionMode();
     }
     // get the selected state from the attached object
     if (d->attachedProperties) {
@@ -883,7 +875,6 @@ void UCListItem::itemChange(ItemChange change, const ItemChangeData &data)
         // check if we are in a positioner, and if that positioner is in a Flickable
         QQuickBasePositioner *positioner = qobject_cast<QQuickBasePositioner*>(data.item);
         if (positioner && positioner->parentItem()) {
-            // count owner is a positioner
             d->flickable = qobject_cast<QQuickFlickable*>(positioner->parentItem()->parentItem());
         } else if (data.item && data.item->parentItem()){
             // check if we are in a Flickable then
@@ -978,7 +969,7 @@ void UCListItem::mousePressEvent(QMouseEvent *event)
 {
     UCStyledItemBase::mousePressEvent(event);
     Q_D(UCListItem);
-    if (d->selectable || (d->attachedProperties && d->attachedProperties->isMoving())) {
+    if (d->attachedProperties && d->attachedProperties->isMoving()) {
         // while moving, we cannot select any items
         return;
     }
@@ -988,13 +979,15 @@ void UCListItem::mousePressEvent(QMouseEvent *event)
         d->lastPos = d->pressedPos = event->localPos();
         // connect the Flickable to know when to rebound
         d->listenToRebind(true);
-        // if it was moved, grab the panels
-        if (d->swiped) {
-            d->grabPanel(d->leadingActions, true);
-            d->grabPanel(d->trailingActions, true);
+        if (!d->selectable) {
+            // if it was moved, grab the panels
+            if (d->swiped) {
+                d->grabPanel(d->leadingActions, true);
+                d->grabPanel(d->trailingActions, true);
+            }
+            // start pressandhold timer
+            d->pressAndHoldTimer.start(QGuiApplication::styleHints()->mousePressAndHoldInterval(), this);
         }
-        // start pressandhold timer
-        d->pressAndHoldTimer.start(QGuiApplication::styleHints()->mousePressAndHoldInterval(), this);
     }
     // accept the event so we get the rest of the events as well
     event->setAccepted(true);
@@ -1004,10 +997,6 @@ void UCListItem::mouseReleaseEvent(QMouseEvent *event)
 {
     UCStyledItemBase::mouseReleaseEvent(event);
     Q_D(UCListItem);
-    if (d->selectable) {
-        // no move is allowed while selectable mode is on
-        return;
-    }
     d->pressAndHoldTimer.stop();
     // set released
     if (d->pressed) {
@@ -1016,7 +1005,10 @@ void UCListItem::mouseReleaseEvent(QMouseEvent *event)
             d->attachedProperties->disableInteractive(this, false);
         }
 
-        if (!d->suppressClick) {
+        if (d->selectable) {
+            // toggle selection
+            setSelected(!d->selected);
+        } else if (!d->suppressClick) {
             Q_EMIT clicked();
             if (d->action) {
                 Q_EMIT d->action->trigger(d->index());
@@ -1320,7 +1312,7 @@ void UCListItemPrivate::setHighlightPolicy(UCListItem::HighlightPolicy policy)
  */
 
 /*!
- * \qmlsignal UCListItemPrivate::contentMovementEnded
+ * \qmlsignal ListItem::contentMovementEnded()
  * The signal is emitted when the content movement has ended.
  */
 bool UCListItemPrivate::contentMoving() const
@@ -1434,8 +1426,14 @@ void UCListItem::setSelectable(bool selectable)
     if (d->selectable == selectable) {
         return;
     }
+    // make sure the selection mode panel is prepared; selection panel must take care of the visuals
+    if (selectable) {
+        d->promptRebound();
+    }
+    d->setupSelectionMode();
     d->selectable = selectable;
-    d->toggleSelectionMode();
+    // disable contentIten from handling events
+    d->contentItem->setEnabled(!d->selectable);
     Q_EMIT selectableChanged();
 }
 
