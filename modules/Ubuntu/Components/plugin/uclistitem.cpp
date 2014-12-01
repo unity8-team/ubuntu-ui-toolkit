@@ -595,6 +595,12 @@ void UCListItemPrivate::setPressed(bool pressed)
         this->pressed = pressed;
         Q_Q(UCListItem);
         q->update();
+        if (pressed && !selectable) {
+            // start pressandhold timer
+            pressAndHoldTimer.start(QGuiApplication::styleHints()->mousePressAndHoldInterval(), q);
+        } else {
+            pressAndHoldTimer.stop();
+        }
         Q_EMIT q->pressedChanged();
     }
 }
@@ -985,8 +991,6 @@ void UCListItem::mousePressEvent(QMouseEvent *event)
                 d->grabPanel(d->leadingActions, true);
                 d->grabPanel(d->trailingActions, true);
             }
-            // start pressandhold timer
-            d->pressAndHoldTimer.start(QGuiApplication::styleHints()->mousePressAndHoldInterval(), this);
         }
     }
     // accept the event so we get the rest of the events as well
@@ -997,7 +1001,6 @@ void UCListItem::mouseReleaseEvent(QMouseEvent *event)
 {
     UCStyledItemBase::mouseReleaseEvent(event);
     Q_D(UCListItem);
-    d->pressAndHoldTimer.stop();
     // set released
     if (d->pressed) {
         d->listenToRebind(false);
