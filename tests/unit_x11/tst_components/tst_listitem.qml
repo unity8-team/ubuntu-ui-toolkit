@@ -89,11 +89,11 @@ Item {
             id: controlItem
             Button {
                 id: button
+                objectName: "button_in_list"
                 anchors.centerIn: parent
                 text: "Button"
             }
         }
-
         ListView {
             id: listView
             width: parent.width
@@ -185,7 +185,10 @@ Item {
             testItem.highlightPolicy = ListItem.AutomaticHighlight;
             testItem.selected = false;
             testItem.selectable = false;
-            waitForRendering(testItem, 200);
+            waitForRendering(testItem.contentItem, 400);
+            controlItem.selected = false;
+            controlItem.selectable = false;
+            waitForRendering(controlItem.contentItem, 400);
             movingSpy.clear();
             pressedSpy.clear();
             clickSpy.clear();
@@ -201,6 +204,7 @@ Item {
             interactiveSpy.target = null;
             interactiveSpy.clear();
             trailing.delegate = null;
+            listView.positionViewAtBeginning();
         }
 
         function test_0_defaults() {
@@ -208,6 +212,7 @@ Item {
             compare(defaults.color, "#000000", "Transparent by default");
             compare(defaults.highlightColor, Theme.palette.selected.background, "Theme.palette.selected.background color by default")
             compare(defaults.pressed, false, "Not pressed buy default");
+            compare(defaults.swipeOvershoot, 0.0, "No overshoot till the style is loaded!");
             compare(defaults.divider.visible, true, "divider is visible by default");
             compare(defaults.divider.leftMargin, units.dp(2), "divider's left margin is 2GU");
             compare(defaults.divider.rightMargin, units.dp(2), "divider's right margin is 2GU");
@@ -450,15 +455,15 @@ Item {
             verify(data.item.contentItem.x > 0, "Not snapped in!");
             var panel = panelItem(data.item, data.leading);
             verify(panel, "panelItem not found");
-            var selectedOption = findChild(panel, data.select);
-            verify(selectedOption, "Cannot select option " + data.select);
+            var selectedAction = findChild(panel, data.select);
+            verify(selectedAction, "Cannot select action " + data.select);
 
             // dismiss
             movingSpy.clear();
             if (data.mouse) {
-                mouseClick(selectedOption, centerOf(selectedOption).x, centerOf(selectedOption).y);
+                mouseClick(selectedAction, centerOf(selectedAction).x, centerOf(selectedAction).y);
             } else {
-                TestExtras.touchClick(0, selectedOption, centerOf(selectedOption));
+                TestExtras.touchClick(0, selectedAction, centerOf(selectedAction));
             }
             movingSpy.wait();
             fuzzyCompare(data.item.contentItem.x, 0.0, 0.1, "Content not snapped out");
@@ -519,7 +524,7 @@ Item {
                 // have less first dx as the trailing panel is shorter
                 {tag: "Snap out, trailing", item: listItem, grabPos: rear, dx: [-units.gu(5), units.gu(2)], snapIn: false},
                 {tag: "Snap in, trailing", item: listItem, grabPos: rear, dx: [-units.gu(5), units.gu(1), -units.gu(1)], snapIn: true},
-            ]
+            ];
         }
         function test_snap_gesture(data) {
             // performe the moves
@@ -544,6 +549,50 @@ Item {
             }
         }
 
+        function test_overshoot_from_style() {
+            // scroll to the last ListView element and test on that, to make sure we don't have the style loaded for that component
+            listView.positionViewAtEnd();
+            var listItem = findChild(listView, "listItem" + (listView.count - 1));
+            verify(listItem, "Cannot get list item for testing");
+
+            compare(listItem.swipeOvershoot, 0.0, "No overshoot should be set yet!");
+            // now swipe
+            movingSpy.target = listItem;
+            flick(listItem.contentItem, centerOf(listItem).x, centerOf(listItem).y, units.gu(5), 0);
+            movingSpy.wait();
+            compare(listItem.swipeOvershoot, listItem.__styleInstance.swipeOvershoot, "Overshoot not taken from style");
+
+            // cleanup
+            rebound(listItem);
+        }
+
+        function test_custom_overshoot_data() {
+            // use different items to make sure the style doesn't update the overshoot values during the test
+            return [
+                {tag: "Positive value", index: listView.count - 1, value: units.gu(10), expected: units.gu(10)},
+                {tag: "Zero value", index: listView.count - 2, value: 0, expected: 0},
+                // synchronize the expected value with the one from Ambiance theme!
+                {tag: "Negative value", index: listView.count - 3, value: -1, expected: units.gu(2)},
+            ];
+        }
+        function test_custom_overshoot(data) {
+            // scroll to the last ListView element and test on that, to make sure we don't have the style loaded for that component
+            listView.positionViewAtEnd();
+            var listItem = findChild(listView, "listItem" + data.index);
+            verify(listItem, "Cannot get list item for testing");
+
+            compare(listItem.swipeOvershoot, 0.0, "No overshoot should be set yet!");
+            listItem.swipeOvershoot = data.value;
+            // now swipe
+            movingSpy.target = listItem;
+            flick(listItem.contentItem, centerOf(listItem).x, centerOf(listItem).y, units.gu(5), 0);
+            movingSpy.wait();
+            compare(listItem.swipeOvershoot, data.expected, "Overshoot differs from one set!");
+
+            // cleanup
+            rebound(listItem);
+        }
+
         function test_verify_action_value_data() {
             var item0 = findChild(listView, "listItem0");
             var item1 = findChild(listView, "listItem1");
@@ -566,15 +615,14 @@ Item {
             verify(data.item.contentItem.x != 0.0, "Not snapped in");
 
             var panel = panelItem(data.item, "Leading");
-            var option = findChild(panel, "leading_2");
-            verify(option, "actions panel cannot be reached");
+            var action = findChild(panel, "leading_2");
+            verify(action, "actions panel cannot be reached");
             // we test the action closest to the list item's contentItem
-            var action = data.item.leadingActions.actions[1];
-            actionSpy.target = action;
+            actionSpy.target = data.item.leadingActions.actions[1];
 
-            // select the option
+            // select the action
             movingSpy.clear();
-            mouseClick(option, centerOf(option).x, centerOf(option).y);
+            mouseClick(action, centerOf(action).x, centerOf(action).y);
             movingSpy.wait();
 
             // check the action param
@@ -621,20 +669,44 @@ Item {
         }
         function test_toggle_selectable(data) {
             testItem.selected = data.selected;
-            movingSpy.target = testItem;
             testItem.selectable = true;
-            movingSpy.wait();
-            // cleanup
-            movingSpy.clear();
-            testItem.selectable = false;
-            movingSpy.wait();
+            waitForRendering(testItem.contentItem);
+            verify(findChildWithProperty(testItem, "inSelectionMode", true));
+            compare(testItem.contentItem.enabled, false, "contentItem is not disabled.");
+        }
+
+        SignalSpy {
+            id: selectedSpy
+            signalName: "selectedChanged"
+        }
+
+        function test_toggle_selected_data() {
+            return [
+                        // item = <test-item>, clickOk: <item-to-click-on>, offsetX|Y: <clickOn offset clicked>
+                        {tag: "Click over selection", item: controlItem, clickOn: "listitem_select", offsetX: units.gu(0.5), offsetY: units.gu(0.5)},
+                        {tag: "Click over contentItem", item: controlItem, clickOn: "ListItemHolder", offsetX: units.gu(0.5), offsetY: units.gu(0.5)},
+                        {tag: "Click over control", item: controlItem, clickOn: "button_in_list", offsetX: units.gu(0.5), offsetY: units.gu(0.5)},
+                    ];
+        }
+        function test_toggle_selected(data) {
+            // make test item selectable first, so the panel is created
+            data.item.selectable = true;
+            waitForRendering(data.item.contentItem);
+            // get the control to click on
+            var clickOn = findChild(data.item, data.clickOn);
+            verify(clickOn, "control to be clicked on not found");
+            // click on the selection and check selected changed
+            selectedSpy.target = data.item;
+            selectedSpy.clear();
+            mouseClick(clickOn, data.offsetX, data.offsetY);
+            selectedSpy.wait();
         }
 
         function test_no_tug_when_selectable() {
             movingSpy.target = testItem;
             testItem.selectable = true;
             // wait till animation to selection mode ends
-            movingSpy.wait();
+            waitForRendering(testItem.contentItem);
 
             // try to tug leading
             movingSpy.clear();

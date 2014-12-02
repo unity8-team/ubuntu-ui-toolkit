@@ -91,9 +91,7 @@ bool UCListItemActionsPrivate::connectToListItem(UCListItemActions *actions, UCL
     }
     // no parent set or panelItem yet, proceed with panel creation
     UCListItemPrivate *pItem = UCListItemPrivate::get(listItem);
-    if (!pItem->styleItem && pItem->loadStyle()) {
-        pItem->initStyleItem();
-    }
+    pItem->initStyleItem();
     if (!pItem->styleItem || (pItem->styleItem && !_this->createPanelItem(pItem->styleItem->m_actionsDelegate))) {
         return false;
     }
@@ -260,8 +258,8 @@ QQuickItem *UCListItemActionsPrivate::createPanelItem(QQmlComponent *panel)
  * ListItemActions instances can be shared between ListItem instances within the
  * same view. When shared, the memory footprint of the view will be lot smaller,
  * as there will be no individual panel created for each list's actions visualization.
- * Depending on how long the initialization of the component used in \c ListItem::actionsDelegate
- * takes, creation time will be also reduced to one time per view.
+ * Depending on how long the initialization of the component used in \l {ListItemStyle::actionsDelegate}
+ * {actionsDelegate} takes, creation time will be also reduced to one time per view.
  * However, this implies that swiping a new ListItem content while another one is
  * swiped will result in showing the newly swiped item's panel delayed, as the
  * panel can be shown only after the previous item's snapping is completed. Depending
@@ -359,10 +357,9 @@ QQuickItem *UCListItemActionsPrivate::createPanelItem(QQmlComponent *panel)
  * Actions handled by the ListItem are all triggered with the ListItem's index
  * as parameter. This index can either be the model index when used with ListView,
  * or the child index from the parentItem's childItems list. Actions can use this
- * parameter to identify the instance of the ListItem on which it was executed.
- * However this will only work if the \l {Action::parameterType}{parameterType}
- * will be set to Action.Integer or not set at all, in which case the ListItem
- * will set the type to Action.Integer.
+ * parameter to identify the instance of the ListItem on which it was executed,
+ * in which case ListItem will change the type from \c Actions.None to \c Actions.Integer
+ * when it is triggered.
  *
  * \section3 Attached properties
  * ListItemActions provides a set of attached properties to the panels visualizing
@@ -404,7 +401,7 @@ UCListItemActionsAttached *UCListItemActions::qmlAttachedProperties(QObject *own
  * \qmlproperty Component ListItemActions::delegate
  * The property holds the custom delegate to visualize the actions listed in the
  * ListItemActions. When set to null, the default delegate specified by the \l
- * ListItem::actionsDelegate will be used.
+ * {ListItemStyle::actionsDelegate}{actionsDelegate} will be used.
  *
  * ListItemActions provides the \c action context property which contains the
  * Action instance currently visualized. Using this property delegates can access
@@ -413,9 +410,15 @@ UCListItemActionsAttached *UCListItemActions::qmlAttachedProperties(QObject *own
  * custom delegate. The other context property exposed to delegates is the \c
  * index, which specifies the index of the action visualized.
  *
- * The delegate height is set automatically by the panel item, and the width value
- * is clamped between height and the maximum width of the list item divided by the
- * number of actions in the list.
+ * Specifying a custom delegate will not override the triggering logic of the
+ * action, that will be still handled by the panel itself. However custom delegates
+ * may still need to distinguish the pressed/released state visually. This can
+ * be achieved using the \c pressed context property, which informs the delegate
+ * about the pressed state of the action.
+ *
+ * The delegate height is set automatically by the panel item, only the width must
+ * be specified which will be clamped between height and the maximum width of the
+ * list item divided by the number of actions in the list.
  * \qml
  * import QtQuick 2.2
  * import Ubuntu.Components 1.2
@@ -438,7 +441,7 @@ UCListItemActionsAttached *UCListItemActions::qmlAttachedProperties(QObject *own
  *                     name: action.iconName
  *                     width: units.gu(3)
  *                     height: width
- *                     color: "blue"
+ *                     color: pressed ? "blue" : "lightblue"
  *                     anchors.horizontalCenter: parent.horizontalCenter
  *                 }
  *                 Label {
@@ -488,10 +491,37 @@ void UCListItemActions::setDelegate(QQmlComponent *delegate)
  * }
  * \endqml
  */
+int UCListItemActionsPrivate::actions_count(QQmlListProperty<UCAction> *p)
+{
+    return reinterpret_cast<QList<UCAction *> *>(p->data)->count();
+}
+void UCListItemActionsPrivate::actions_append(QQmlListProperty<UCAction> *p, UCAction *v)
+{
+    // check action type before adding it
+    if (v->m_parameterType == UCAction::None) {
+        v->setProperty("parameterType", UCAction::Integer);
+    }
+    reinterpret_cast<QList<UCAction *> *>(p->data)->append(v);
+}
+UCAction *UCListItemActionsPrivate::actions_at(QQmlListProperty<UCAction> *p, int i)
+{
+    return reinterpret_cast<QList<UCAction *> *>(p->data)->at(i);
+}
+
+void UCListItemActionsPrivate::actions_clear(QQmlListProperty<UCAction> *p)
+{
+    reinterpret_cast<QList<UCAction *> *>(p->data)->clear();
+}
+
 QQmlListProperty<UCAction> UCListItemActions::actions()
 {
     Q_D(UCListItemActions);
-    return QQmlListProperty<UCAction>(this, d->actions);
+    return QQmlListProperty<UCAction>(this, &d->actions,
+                                      UCListItemActionsPrivate::actions_append,
+                                      UCListItemActionsPrivate::actions_count,
+                                      UCListItemActionsPrivate::actions_at,
+                                      UCListItemActionsPrivate::actions_clear
+                                      );
 }
 
 /*!
