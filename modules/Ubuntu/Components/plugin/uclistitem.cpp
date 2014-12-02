@@ -573,11 +573,11 @@ int UCListItemPrivate::index()
 // returns true if the highlight is possible
 bool UCListItemPrivate::canHighlight(QMouseEvent *event)
 {
-    if (highlight == UCListItem::PermanentHighlight) {
-        return true;
-    }
     if (highlight == UCListItem::DisabledHighlight) {
         return false;
+    }
+    if (highlight == UCListItem::PermanentHighlight) {
+        return true;
     }
     // if automatic, the highlight should not happen if we clicked on an active component;
     // localPos is a position relative to ListItem which will give us a child from
@@ -1106,9 +1106,20 @@ bool UCListItem::childMouseEventFilter(QQuickItem *child, QEvent *event)
             d->suppressClick = (d->highlight != PermanentHighlight);
             // listen for flickable to be able to rebind if movement started there!
             d->listenToRebind(true);
+            // if permanent highlight is set, handle only press/longpress/click events
+            if (d->highlight == PermanentHighlight) {
+                d->setPressed(true);
+            }
         }
     } else if (type == QEvent::MouseButtonRelease) {
         Q_D(UCListItem);
+        if (d->highlight == PermanentHighlight) {
+            // release and click if possible
+            d->setPressed(false);
+            if (!d->suppressClick) {
+                Q_EMIT clicked();
+            }
+        }
         d->suppressClick = false;
     }
     return UCStyledItemBase::childMouseEventFilter(child, event);
@@ -1279,17 +1290,20 @@ bool UCListItem::pressed() const
 /*!
  * \qmlproperty enum ListItem::highlightPolicy
  * The property defines the highlight policy of the ListItem. This can be \c AutomaticHighlight,
- * \c PermanentHighlight or \c DisabledHighlight.
- * When \c AutomaticHighlight is set, the list item will be highlighted when it either has
- * a default action, has a trailing- or leading action list, is selectable and
- * selected or it has an active component declared and the press did not happen
+ * \c PermanentHighlight or \c DisabledHighlight. Beside the highlight behavior,
+ * the policy also drives when the \l pressed, \l clicked and \l pressAndHold is
+ * triggered. These properties then also drive when to allow swiping to show leading
+ * or trailing actions list.
+ * When \c AutomaticHighlight is set, the list item will be highlighted when it
+ * either has a default action, has a trailing- or leading action list, is selectable
+ * and selected or it has an active component declared and the press did not happen
  * above this active component. When \c PermanentHighlight is set, the list item
- * is highlighted whenever it is pressed. The opposite happens when the \c
- * DisabledHighlight is set.
- *
- * The \l clicked and \l pressAndHold signals are also driven by this property.
- * This means that when the policy is set to \c DisabledHighlight, these signals
- * will be suppressed.
+ * is highlighted whenever it is pressed, indifferently whether the press occurred
+ * on an active component or not. However swiping will be allowed only if the press
+ * happened oven a non-active area of the content. The opposite happens when the \c
+ * DisabledHighlight is set, in which case no highlight, thus no swiping is allowed
+ * no matter of the press coordinates. Having this policy set also means \l pressed,
+ * change, as well  as \l clicked and \l pressAndHold signals are suppressed.
  */
 UCListItem::HighlightPolicy UCListItemPrivate::highlightPolicy() const
 {

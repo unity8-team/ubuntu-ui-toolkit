@@ -170,6 +170,7 @@ MainView {
                     text: "Pressme..."
                     anchors.centerIn: parent
                 }
+                highlightPolicy: ListItem.PermanentHighlight
 
                 states: State {
                     name: "override"
