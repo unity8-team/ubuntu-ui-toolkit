@@ -20,6 +20,7 @@ import Ubuntu.Components 1.2
 
 Styles.ListItemStyle {
 
+    swipeOvershoot: units.gu(2)
     actionsDelegate: ListItemPanel{}
 
     snapAnimation: PropertyAnimation {
@@ -80,12 +81,10 @@ Styles.ListItemStyle {
             objectName: "listitem_select"
             anchors.centerIn: parent
             checked: selectionPanel.parent ? selectionPanel.parent.selected : false
-
-            Binding {
-                target: selectionPanel.parent
-                property: "selected"
-                value: checkbox.checked
-                when: selectionPanel.parent
+            onCheckedChanged: {
+                if (selectionPanel.parent) {
+                    selectionPanel.parent.selected = checked;
+                }
             }
         }
     }

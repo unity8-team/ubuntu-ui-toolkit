@@ -76,6 +76,7 @@ public:
     bool selected:1;
     bool customStyle:1;
     bool customColor:1;
+    bool customOvershoot:1;
     qreal xAxisMoveThresholdGU;
     qreal overshoot;
     QBasicTimer pressAndHoldTimer;
@@ -99,13 +100,15 @@ public:
     UCListItemStyle *styleItem;
 
     // getters/setters
+    qreal swipeOvershoot() const;
+    void setSwipeOvershoot(qreal overshoot);
     QQmlListProperty<QObject> data();
     QQmlListProperty<QQuickItem> children();
     bool contentMoving() const;
     void setContentMoving(bool moved);
     QQmlComponent *style() const;
     void setStyle(QQmlComponent *delegate);
-    bool loadStyle();
+    bool loadStyle(bool reload);
     void initStyleItem();
     QQuickItem *styleInstance() const;
 };
