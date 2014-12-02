@@ -155,7 +155,7 @@ MainView {
             height: units.gu(36)
             model: 10
             pressDelay: 0
-//            ListItem.selectedIndexes: [9,3,4]
+            ListItem.selectedIndexes: [9,3,4]
             ListItem.onSelectedIndexesChanged: print("LISTVIEW INDEXES=", ListItem.selectedIndexes)
             delegate: ListItem {
                 objectName: "ListItem" + index
@@ -166,6 +166,12 @@ MainView {
                 Label {
                     text: modelData + " item"
                 }
+                Button {
+                    text: "Pressme..."
+                    anchors.centerIn: parent
+                }
+                highlightPolicy: ListItem.PermanentHighlight
+
                 states: State {
                     name: "override"
                     when: main.override
@@ -202,6 +208,7 @@ MainView {
                         color: UbuntuColors.red
                         highlightColor: "lime"
                         divider.colorFrom: UbuntuColors.green
+                        swipeOvershoot: units.gu(10)
 
                         leadingActions: ListItemActions {
                             actions: leadingArray

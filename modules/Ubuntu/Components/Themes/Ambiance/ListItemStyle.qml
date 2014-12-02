@@ -20,6 +20,7 @@ import Ubuntu.Components 1.2
 
 Styles.ListItemStyle {
 
+    swipeOvershoot: units.gu(2)
     actionsDelegate: ListItemPanel{}
 
     snapAnimation: PropertyAnimation {
@@ -37,6 +38,11 @@ Styles.ListItemStyle {
         id: selectionPanel
         width: checkbox.width + 2 * units.gu(2)
         /*
+          Set if the ListItem is in selection mode
+          */
+        readonly property bool inSelectionMode: parent ? parent.selectable : false
+
+        /*
           Internally used to link to the list item's content. The parent item is the ListItem itself.
           */
         readonly property Item contentItem: parent ? parent.contentItem : null
@@ -47,16 +53,38 @@ Styles.ListItemStyle {
             bottom: contentItem ? contentItem.bottom : undefined
         }
 
+        states: State {
+            name: "enabled"
+            PropertyChanges {
+                target: selectionPanel.parent.contentItem
+                x: selectionPanel.width
+            }
+        }
+
+        transitions: Transition {
+            from: ""
+            to: "enabled"
+            reversible: true
+            PropertyAnimation {
+                target: selectionPanel.parent.contentItem
+                property: "x"
+                easing: UbuntuAnimation.StandardEasing
+                duration: UbuntuAnimation.FastDuration
+            }
+        }
+
+        state: inSelectionMode ? "enabled" : ""
+
         CheckBox {
             id: checkbox
+            // for unit and autopilot tests
+            objectName: "listitem_select"
             anchors.centerIn: parent
             checked: selectionPanel.parent ? selectionPanel.parent.selected : false
-
-            Binding {
-                target: selectionPanel.parent
-                property: "selected"
-                value: checkbox.checked
-                when: selectionPanel.parent
+            onCheckedChanged: {
+                if (selectionPanel.parent) {
+                    selectionPanel.parent.selected = checked;
+                }
             }
         }
     }

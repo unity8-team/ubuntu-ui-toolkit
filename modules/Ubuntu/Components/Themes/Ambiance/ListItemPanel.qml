@@ -18,7 +18,7 @@ import QtQuick 2.2
 import Ubuntu.Components 1.2
 
 /*
-  This component is the holder of the ListItem options.
+  This component is the holder of the ListItem actions.
   */
 Item {
 
@@ -43,8 +43,8 @@ Item {
     // panel implementation
     id: panel
     width: Math.max(
-               optionsRow.childrenRect.width,
-               ListItemActions.visibleActions.length * MathUtils.clamp(visualizedActionWidth, height, optionsRow.maxItemWidth))
+               actionsRow.childrenRect.width,
+               ListItemActions.visibleActions.length * MathUtils.clamp(visualizedActionWidth, height, actionsRow.maxItemWidth))
 
     // used for module/autopilot testing
     objectName: "ListItemPanel" + (leading ? "Leading" : "Trailing")
@@ -55,7 +55,7 @@ Item {
     readonly property Item contentItem: parent ? parent.contentItem : null
 
     /*
-      Specifies whether the panel is used to visualize leading or trailing options.
+      Specifies whether the panel is used to visualize leading or trailing actions.
       */
     readonly property bool leading: panel.ListItemActions.status == panel.ListItemActions.Leading
 
@@ -71,24 +71,21 @@ Item {
         anchors {
             fill: parent
             // add 4 times the overshoot margins to cover the background when tugged
-            leftMargin: leading ? -units.gu(4 * panel.ListItemActions.overshoot) : 0
-            rightMargin: leading ? 0 : -units.gu(4 * panel.ListItemActions.overshoot)
+            leftMargin: (leading && panel.ListItemActions.listItem) ? -units.gu(4 * panel.ListItemActions.listItem.swipeOvershoot) : 0
+            rightMargin: (!leading && panel.ListItemActions.listItem) ? -units.gu(4 * panel.ListItemActions.listItem.swipeOvershoot) : 0
         }
         color: panel.backgroundColor
     }
 
     // handle action triggering
     ListItemActions.onStatusChanged: {
-        if (ListItemActions.status === ListItemActions.Disconnected && optionsRow.selectedAction) {
-            if (optionsRow.selectedAction.parameterType === Action.None) {
-                optionsRow.selectedAction.parameterType = Action.Integer;
-            }
-            optionsRow.selectedAction.trigger(optionsRow.listItemIndex >= 0 ? optionsRow.listItemIndex : null);
-            optionsRow.selectedAction = null;
+        if (ListItemActions.status === ListItemActions.Disconnected && actionsRow.selectedAction) {
+            actionsRow.selectedAction.trigger(actionsRow.listItemIndex >= 0 ? actionsRow.listItemIndex : null);
+            actionsRow.selectedAction = null;
         }
     }
 
-    // track drag dirrection, so we know in which direction we should snap
+    // track drag direction, so we know in which direction we should snap
     property real prevX: 0.0
     property bool leftToRight: false
     onXChanged: {
@@ -106,13 +103,13 @@ Item {
             return;
         }
         // snap in if the offset is bigger than the overshoot and the direction of the drag is to reveal the panel
-        var snapPos = (ListItemActions.offset > ListItemActions.overshoot &&
-                       ((leftToRight && leading) || (!leftToRight && !leading))) ? panel.width : 0.0;
+        var snapPos = (ListItemActions.offset > ListItemActions.listItem.swipeOvershoot &&
+                       (leftToRight && leading || !leftToRight && !leading)) ? panel.width : 0.0;
         ListItemActions.snapToPosition(snapPos);
     }
 
     Row {
-        id: optionsRow
+        id: actionsRow
         anchors {
             left: parent.left
             top: parent.top
@@ -128,17 +125,18 @@ Item {
         Repeater {
             model: panel.ListItemActions.visibleActions
             AbstractButton {
+                id: actionButton
                 action: modelData
                 enabled: action.enabled
                 opacity: action.enabled ? 1.0 : 0.5
-                width: MathUtils.clamp(delegateLoader.item ? delegateLoader.item.width : 0, height, optionsRow.maxItemWidth)
+                width: MathUtils.clamp(delegateLoader.item ? delegateLoader.item.width : 0, height, actionsRow.maxItemWidth)
                 anchors {
                     top: parent.top
                     bottom: parent.bottom
                 }
                 function trigger() {
-                    optionsRow.selectedAction = modelData;
-                    optionsRow.listItemIndex = panel.ListItemActions.listItemIndex;
+                    actionsRow.selectedAction = modelData;
+                    actionsRow.listItemIndex = panel.ListItemActions.listItemIndex;
                     panel.ListItemActions.snapToPosition(0.0);
                 }
 
@@ -155,6 +153,7 @@ Item {
                     sourceComponent: panel.ListItemActions.container.delegate ? panel.ListItemActions.container.delegate : defaultDelegate
                     property Action action: modelData
                     property int index: index
+                    property bool pressed: actionButton.pressed
                     onItemChanged: {
                         // use action's objectName to identify the visualized action
                         if (item && item.objectName === "") {
