@@ -104,3 +104,6 @@ PageHeadState 1.1 PageHeadState.qml
 Icon 1.1 Icon11.qml
 StyledItem 1.1 StyledItem.qml
 singleton UbuntuColors 1.1 11/UbuntuColors.qml
+
+#version 1.2
+MainView 1.2 12/MainView.qml
