@@ -15,7 +15,7 @@
  */
 
 import QtQuick 2.2
-import Ubuntu.Components 1.1 as Toolkit
+import Ubuntu.Components 1.2 as Toolkit
 import Ubuntu.PerformanceMetrics 1.0
 import QtQuick.Window 2.0
 
@@ -197,7 +197,7 @@ PageTreeNode {
     // FIXME: Make sure that the theming is only in the background, and the style
     //  should not occlude contents of the MainView. When making changes here, make
     //  sure that bug https://bugs.launchpad.net/manhattan/+bug/1124076 does not come back.
-    StyledItem {
+    Toolkit.StyledItem {
         id: background
         anchors.fill: parent
         style: Theme.createStyleComponent("MainViewStyle.qml", background)
@@ -253,7 +253,7 @@ PageTreeNode {
       Use default property to ensure children added do not draw over the toolbar.
      */
     default property alias contentsItem: contents.data
-    OrientationHelper {
+    Toolkit.OrientationHelper {
         id: canvas
 
         automaticOrientation: false
