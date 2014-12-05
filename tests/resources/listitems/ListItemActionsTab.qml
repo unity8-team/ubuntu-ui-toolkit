@@ -44,6 +44,7 @@ Tab {
     Action {
         id: homeAction
         iconName: "go-home"
+        text: "Home"
     }
 
     page: Page {

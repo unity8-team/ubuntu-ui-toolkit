@@ -62,17 +62,8 @@ Tab {
 
                 ListItem {
                     Label {
-                        text: "No action, leading/trailing actions, or active component added." +
-                              " Tapping on it will not produce highligh when <b>ListItem.AutomaticHighlight</b> is set."
-                        wrapMode: Text.Wrap
-                        width: parent.width
-                    }
-                }
-                ListItem {
-                    highlightPolicy: ListItem.PermanentHighlight
-                    Label {
-                        text: "No action, leading/trailing actions, or active component added." +
-                              " Tapping on it will do highligh when <b>ListItem.PermanentHighlight</b> is set."
+                        text: "No action, leading/trailing actions, active component added," +
+                              " clicked or pressAndHold signal connected."
                         wrapMode: Text.Wrap
                         width: parent.width
                     }
@@ -84,29 +75,12 @@ Tab {
                             id: check
                         }
                         Label {
-                            text: "An active component will allow highligh when not pressed over the active component, "+
-                                   "if <b>ListItem.AutomaticHighlight</b> is set."
+                            text: "An active component will allow highligh when not pressed over the active component."
                             wrapMode: Text.Wrap
                             width: parent.width - check.width
                         }
                     }
                 }
-                ListItem {
-                    highlightPolicy: ListItem.PermanentHighlight
-                    Row {
-                        width: parent.width
-                        CheckBox {
-                            id: check2
-                        }
-                        Label {
-                            text: "When clicked over an active component, the entire ListItem will be highlight, "+
-                                   "if <b>ListItem.PermanentHighlight</b> is set."
-                            wrapMode: Text.Wrap
-                            width: parent.width - check2.width
-                        }
-                    }
-                }
-                Header { text: "ListItem.AutomaticHighlight" }
                 ListItem {
                     action: Action {
                     }
