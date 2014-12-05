@@ -138,6 +138,14 @@ MainView {
         }
         ListItem {
             Label {
+                id: label
+                text: "No action"
+            }
+            onClicked: print(label.text, "clicked")
+        }
+
+        ListItem {
+            Label {
                 anchors.fill: parent
                 text: "Another standalone ListItem"
             }

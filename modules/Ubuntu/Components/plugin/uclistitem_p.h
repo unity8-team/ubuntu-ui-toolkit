@@ -44,8 +44,8 @@ public:
         return that->d_func();
     }
 
+    bool isClickedConnected();
     bool isPressAndHoldConnected();
-
     void _q_updateThemedData();
     void _q_rebound();
     void promptRebound();
