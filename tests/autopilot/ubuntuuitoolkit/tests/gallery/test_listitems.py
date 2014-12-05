@@ -30,4 +30,4 @@ class ListItemsTestCase(GalleryTestCase):
 
     def test_delete_listitem(self):
         listItem = self.main_view.select_single(objectName='list_item1')
-        listItem.trigger_leading_action('delete_action')
+        listItem.trigger_leading_action('delete_action', listItem.wait_until_destroyed)
