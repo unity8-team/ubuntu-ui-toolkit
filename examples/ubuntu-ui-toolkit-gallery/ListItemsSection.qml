@@ -21,6 +21,7 @@ TemplateSection {
     id: section
     property alias delegate: repeater.delegate
     property alias count: repeater.count
+    property alias model: repeater.model
     property bool newListItem: false
     documentation: newListItem ?
                        "qml-ubuntu-components-%1.html".arg(className.toLowerCase()) :
@@ -29,6 +30,12 @@ TemplateSection {
     function itemAt(index)
     {
        return repeater.itemAt(index)
+    }
+    function deleteAt(index)
+    {
+        if (repeater.count >= 1 && repeater.model.hasOwnProperty("remove")) {
+            repeater.model.remove(index);
+        }
     }
 
     Column {

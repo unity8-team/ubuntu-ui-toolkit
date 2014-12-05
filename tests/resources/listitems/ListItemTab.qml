@@ -69,7 +69,6 @@ Tab {
                     }
                 }
                 ListItem {
-                    highlightPolicy: ListItem.PermanentHighlight
                     Label {
                         text: "No action, leading/trailing actions, or active component added." +
                               " Tapping on it will do highligh when <b>ListItem.PermanentHighlight</b> is set."
@@ -92,7 +91,6 @@ Tab {
                     }
                 }
                 ListItem {
-                    highlightPolicy: ListItem.PermanentHighlight
                     Row {
                         width: parent.width
                         CheckBox {
