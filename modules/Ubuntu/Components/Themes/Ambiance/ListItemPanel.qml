@@ -147,7 +147,6 @@ Item {
                 }
 
                 Loader {
-                    objectName: "icon_loader"
                     id: delegateLoader
                     height: parent.height
                     sourceComponent: panel.ListItemActions.container.delegate ? panel.ListItemActions.container.delegate : defaultDelegate
