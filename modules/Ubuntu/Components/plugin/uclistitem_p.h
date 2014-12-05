@@ -44,8 +44,8 @@ public:
         return that->d_func();
     }
 
+    bool isClickedConnected();
     bool isPressAndHoldConnected();
-
     void _q_updateThemedData();
     void _q_rebound();
     void promptRebound();
@@ -75,7 +75,6 @@ public:
     bool customStyle:1;
     bool customColor:1;
     bool customOvershoot:1;
-    UCListItem::HighlightPolicy highlight;
     qreal xAxisMoveThresholdGU;
     qreal overshoot;
     QBasicTimer pressAndHoldTimer;
@@ -99,8 +98,6 @@ public:
     UCListItemStyle *styleItem;
 
     // getters/setters
-    UCListItem::HighlightPolicy highlightPolicy() const;
-    void setHighlightPolicy(UCListItem::HighlightPolicy policy);
     qreal swipeOvershoot() const;
     void setSwipeOvershoot(qreal overshoot);
     QQmlListProperty<QObject> data();
