@@ -39,7 +39,6 @@ class UCListItem : public UCStyledItemBase
     Q_PRIVATE_PROPERTY(UCListItem::d_func(), bool contentMoving READ contentMoving NOTIFY contentMovingChanged)
     Q_PROPERTY(QColor color READ color WRITE setColor NOTIFY colorChanged)
     Q_PROPERTY(QColor highlightColor READ highlightColor WRITE setHighlightColor NOTIFY highlightColorChanged)
-    Q_PRIVATE_PROPERTY(d_func(), HighlightPolicy highlightPolicy READ highlightPolicy WRITE setHighlightPolicy NOTIFY highlightPolicyChanged)
     Q_PROPERTY(bool selectable READ selectable WRITE setSelectable NOTIFY selectableChanged)
     Q_PROPERTY(bool selected READ selected WRITE setSelected NOTIFY selectedChanged)
     Q_PROPERTY(UCAction *action READ action WRITE setAction NOTIFY actionChanged DESIGNABLE false)
@@ -49,14 +48,7 @@ class UCListItem : public UCStyledItemBase
     Q_PRIVATE_PROPERTY(UCListItem::d_func(), QQmlComponent *style READ style WRITE setStyle NOTIFY styleChanged)
     Q_PRIVATE_PROPERTY(UCListItem::d_func(), QQuickItem *__styleInstance READ styleInstance NOTIFY __styleInstanceChanged)
     Q_CLASSINFO("DefaultProperty", "listItemData")
-    Q_ENUMS(HighlightPolicy)
 public:
-    enum HighlightPolicy {
-        DisabledHighlight,
-        PermanentHighlight,
-        AutomaticHighlight
-    };
-
     explicit UCListItem(QQuickItem *parent = 0);
     ~UCListItem();
 
@@ -96,7 +88,6 @@ Q_SIGNALS:
     void leadingActionsChanged();
     void trailingActionsChanged();
     void pressedChanged();
-    void highlightPolicyChanged();
     void swipeOvershootChanged();
     void contentMovingChanged();
     void colorChanged();

@@ -342,7 +342,6 @@ UCListItemPrivate::UCListItemPrivate()
     , customStyle(false)
     , customColor(false)
     , customOvershoot(false)
-    , highlight(UCListItem::AutomaticHighlight)
     , xAxisMoveThresholdGU(1.5)
     , overshoot(0)
     , color(Qt::transparent)
@@ -561,12 +560,6 @@ int UCListItemPrivate::index()
 // returns true if the highlight is possible
 bool UCListItemPrivate::canHighlight(QMouseEvent *event)
 {
-    if (highlight == UCListItem::DisabledHighlight) {
-        return false;
-    }
-    if (highlight == UCListItem::PermanentHighlight) {
-        return true;
-    }
     // if automatic, the highlight should not happen if we clicked on an active component;
     // localPos is a position relative to ListItem which will give us a child from
     // from the original coordinates; therefore we must map the position to the contentItem
@@ -580,7 +573,7 @@ bool UCListItemPrivate::canHighlight(QMouseEvent *event)
    QQuickMouseArea *ma = q->findChild<QQuickMouseArea*>();
    bool activeMouseArea = ma && ma->isEnabled();
    return !activeComponent && (isClickedConnected() || isPressAndHoldConnected() ||
-                               action && leadingActions || trailingActions || activeMouseArea);
+                               action || leadingActions || trailingActions || activeMouseArea);
 }
 
 // set pressed flag and update contentItem
@@ -1152,24 +1145,13 @@ bool UCListItem::childMouseEventFilter(QQuickItem *child, QEvent *event)
         QMouseEvent *mouse = static_cast<QMouseEvent*>(event);
         if (child->isEnabled() && (child->acceptedMouseButtons() & mouse->button()) && !qobject_cast<QQuickText*>(child)) {
             Q_D(UCListItem);
-            // suppress click only if we're not having the PermanentHighlight set
-            d->suppressClick = (d->highlight != PermanentHighlight);
+            // suppress click
+            d->suppressClick = true;
             // listen for flickable to be able to rebind if movement started there!
             d->listenToRebind(true);
-            // if permanent highlight is set, handle only press/longpress/click events
-            if (d->highlight == PermanentHighlight) {
-                d->setPressed(true);
-            }
         }
     } else if (type == QEvent::MouseButtonRelease) {
         Q_D(UCListItem);
-        if (d->highlight == PermanentHighlight) {
-            // release and click if possible
-            d->setPressed(false);
-            if (!d->suppressClick) {
-                Q_EMIT clicked();
-            }
-        }
         d->suppressClick = false;
     }
     return UCStyledItemBase::childMouseEventFilter(child, event);
@@ -1338,38 +1320,6 @@ bool UCListItem::pressed() const
 }
 
 /*!
- * \qmlproperty enum ListItem::highlightPolicy
- * The property defines the highlight policy of the ListItem. This can be \c AutomaticHighlight,
- * \c PermanentHighlight or \c DisabledHighlight. Beside the highlight behavior,
- * the policy also drives when the \l pressed, \l clicked and \l pressAndHold is
- * triggered. These properties then also drive when to allow swiping to show leading
- * or trailing actions list.
- * When \c AutomaticHighlight is set, the list item will be highlighted when it
- * either has a default action, has a trailing- or leading action list, is selectable
- * and selected or it has an active component declared and the press did not happen
- * above this active component. When \c PermanentHighlight is set, the list item
- * is highlighted whenever it is pressed, indifferently whether the press occurred
- * on an active component or not. However swiping will be allowed only if the press
- * happened oven a non-active area of the content. The opposite happens when the \c
- * DisabledHighlight is set, in which case no highlight, thus no swiping is allowed
- * no matter of the press coordinates. Having this policy set also means \l pressed,
- * change, as well  as \l clicked and \l pressAndHold signals are suppressed.
- */
-UCListItem::HighlightPolicy UCListItemPrivate::highlightPolicy() const
-{
-    return highlight;
-}
-void UCListItemPrivate::setHighlightPolicy(UCListItem::HighlightPolicy policy)
-{
-    if (policy == highlight) {
-        return;
-    }
-    highlight = policy;
-    Q_Q(UCListItem);
-    Q_EMIT q->highlightPolicyChanged();
-}
-
-/*!
  * \qmlproperty bool ListItem::contentMoving
  * \readonly
  * The property describes whether the content is moving or not. The content is
@@ -1434,10 +1384,8 @@ void UCListItem::setColor(const QColor &color)
  * or \l trailingActions set, when there is a valid default \l action attached
  * to it or if the ListItem has an active component child, such as a \l Button,
  * a \l Switch, or in general, if an active (enabled and visible) \c MouseArea
- * is added as a child component.
- *
- * \note Note that clicking on an active component will highlight the ListItem
- * only if \l highlightPolicy is set to \c PermanentHighlight.
+ * is added as a child component. Connecting a slot to \l clicked or \l pressAndHold
+ * also makes highlight active.
  *
  * \note Adding an active component does not mean the component will be activated
  * when the ListItem will be tapped/clicked outside of the component area. If

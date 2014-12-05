@@ -187,7 +187,6 @@ Item {
 
         function cleanup() {
             testItem.action = null;
-            testItem.highlightPolicy = ListItem.AutomaticHighlight;
             testItem.selected = false;
             testItem.selectable = false;
             waitForRendering(testItem.contentItem, 400);
@@ -226,7 +225,6 @@ Item {
             compare(defaults.divider.colorTo, "#ffffff", "colorTo differs.");
             fuzzyCompare(defaults.divider.colorTo.a, 0.07, 0.01, "colorTo alpha differs");
             compare(defaults.contentMoving, false, "default is not moving");
-            compare(defaults.highlightPolicy, ListItem.AutomaticHighlight, "AutomaticHighlight by default.");
             compare(defaults.action, null, "No action by default.");
             compare(defaults.style, null, "Style is loaded upon first use.");
             compare(defaults.__styleInstance, null, "__styleInstance must be null.");
@@ -829,59 +827,6 @@ Item {
             pressAndHoldSpy.wait();
             compare(clickSpy.count, 0, "Click must be suppressed.");
             compare(actionSpy.count, 0, "Action triggered must be suppressed");
-        }
-
-        // highlight policy
-        SignalSpy {
-            id: policySpy
-        }
-
-        function test_highlight_policy_data() {
-            return [
-                {tag: "Automatic, empty, click", item: highlightTest, policy: ListItem.AutomaticHighlight, signal: "clicked", emitted: false},
-                {tag: "Automatic, empty, pressAndHold", item: highlightTest, policy: ListItem.AutomaticHighlight, signal: "pressAndHold", emitted: false},
-                {tag: "Automatic, action, click", item: highlightTest, policy: ListItem.AutomaticHighlight, signal: "clicked", property: "action", value: stockAction, emitted: true},
-                {tag: "Automatic, action, pressAndHold", item: highlightTest, policy: ListItem.AutomaticHighlight, signal: "pressAndHold", property: "action", value: stockAction, emitted: true},
-
-                {tag: "PermanentHighlight, empty, click", item: highlightTest, policy: ListItem.PermanentHighlight, signal: "clicked", emitted: true},
-                {tag: "PermanentHighlight, empty, pressAndHold", item: highlightTest, policy: ListItem.PermanentHighlight, signal: "pressAndHold", emitted: true},
-                {tag: "DisabledHighlight, action, click", item: highlightTest, policy: ListItem.DisabledHighlight, signal: "clicked", property: "action", value: stockAction, emitted: false},
-                {tag: "DisabledHighlight, action, pressAndHold", item: highlightTest, policy: ListItem.DisabledHighlight, signal: "pressAndHold", property: "action", value: stockAction, emitted: false},
-                {tag: "DisabledHighlight, leadingActions, click", item: highlightTest, policy: ListItem.DisabledHighlight, signal: "clicked", property: "leadingActions", value: leading, emitted: false},
-                {tag: "DisabledHighlight, leadingActions, pressAndHold", item: highlightTest, policy: ListItem.DisabledHighlight, signal: "pressAndHold", property: "trailingActions", value: trailing, emitted: false},
-
-                {tag: "Automatic, active control clicked", item: controlItem, policy: ListItem.AutomaticHighlight, signal: "clicked", emitted: false},
-                {tag: "Automatic, active control pressAndHold", item: controlItem, policy: ListItem.AutomaticHighlight, signal: "pressAndHold", emitted: false},
-                {tag: "PermanentHighlight, active control clicked", item: controlItem, policy: ListItem.PermanentHighlight, signal: "clicked", emitted: true},
-                {tag: "PermanentHighlight, active control pressAndHold", item: controlItem, policy: ListItem.PermanentHighlight, signal: "pressAndHold", emitted: true},
-                {tag: "DisabledHighlight, active control clicked", item: controlItem, policy: ListItem.DisabledHighlight, signal: "clicked", emitted: false},
-                {tag: "DisabledHighlight, active control pressAndHold", item: controlItem, policy: ListItem.DisabledHighlight, signal: "pressAndHold", emitted: false},
-            ];
-        }
-        function test_highlight_policy(data) {
-            var prevPolicy = data.item.highlightPolicy;
-            data.item.highlightPolicy = data.policy;
-            if (data.property) {
-                data.item[data.property] = data.value;
-            }
-            policySpy.signalName = data.signal;
-            policySpy.target = data.item;
-            policySpy.clear();
-
-            // perform action
-            if (data.signal === "clicked") {
-                mouseClick(data.item, centerOf(data.item).x, centerOf(data.item).y);
-            } else if (data.signal === "pressAndHold") {
-                mouseLongPress(data.item, centerOf(data.item).x, centerOf(data.item).y);
-                mouseRelease(data.item, centerOf(data.item).x, centerOf(data.item).y);
-            }
-            if (data.emitted) {
-                policySpy.wait();
-            } else {
-                compare(policySpy.count, 0, "Signal is emitted!");
-            }
-            // cleanup
-            data.item.highlightPolicy = prevPolicy;
         }
     }
 }
