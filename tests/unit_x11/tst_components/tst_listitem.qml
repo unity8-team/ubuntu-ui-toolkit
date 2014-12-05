@@ -75,6 +75,11 @@ Item {
             id: highlightTest
         }
         ListItem {
+            id: clickedConnected
+            onClicked: {}
+            onPressAndHold: {}
+        }
+        ListItem {
             id: testItem
             width: parent.width
             color: "blue"
@@ -235,11 +240,13 @@ Item {
         }
 
         function test_pressedChanged_on_click() {
+            pressedSpy.target = testItem;
             mousePress(testItem, testItem.width / 2, testItem.height / 2);
             pressedSpy.wait();
             mouseRelease(testItem, testItem.width / 2, testItem.height / 2);
         }
         function test_pressedChanged_on_tap() {
+            pressedSpy.target = testItem;
             TestExtras.touchPress(0, testItem, centerOf(testItem));
             pressedSpy.wait();
             TestExtras.touchRelease(0, testItem, centerOf(testItem));
@@ -599,8 +606,8 @@ Item {
             var item2 = findChild(listView, "listItem2");
             var item3 = findChild(listView, "listItem3");
             return [
-                // testItem is the child item @index 2 in the topmost Column.
-                {tag: "Standalone item, child index 2", item: testItem, result: 2},
+                // testItem is the child item @index 3 in the topmost Column.
+                {tag: "Standalone item, child index 3", item: testItem, result: 3},
                 {tag: "ListView, item index 0", item: item0, result: 0},
                 {tag: "ListView, item index 1", item: item1, result: 1},
                 {tag: "ListView, item index 2", item: item2, result: 2},
@@ -632,57 +639,23 @@ Item {
             compare(param[0], data.result, "Action parameter differs");
         }
 
-        function test_toggle_selectable_data() {
+        function test_highlight_data() {
             return [
-                {tag: "When not selected", selected: false},
-                {tag: "When selected", selected: true},
-            ]
-        }
-        function test_toggle_selectable(data) {
-            testItem.selected = data.selected;
-            testItem.selectable = true;
-            waitForRendering(testItem.contentItem);
-            verify(findChildWithProperty(testItem, "inSelectionMode", true));
-            compare(testItem.contentItem.enabled, false, "contentItem is not disabled.");
-        }
-
-        SignalSpy {
-            id: selectedSpy
-            signalName: "selectedChanged"
-        }
-
-        function test_toggle_selected_data() {
-            return [
-                // item = <test-item>, clickOk: <item-to-click-on>, offsetX|Y: <clickOn offset clicked>
-                {tag: "Click over selection", item: controlItem, clickOn: "listitem_select", offsetX: units.gu(0.5), offsetY: units.gu(0.5)},
-                {tag: "Click over contentItem", item: controlItem, clickOn: "ListItemHolder", offsetX: units.gu(0.5), offsetY: units.gu(0.5)},
-                {tag: "Click over control", item: controlItem, clickOn: "button_in_list", offsetX: units.gu(0.5), offsetY: units.gu(0.5)},
+                {tag: "No actions", item: highlightTest, x: centerOf(highlightTest).x, y: centerOf(highlightTest).y, pressed: false},
+                {tag: "Leading/trailing actions", item: testItem, x: centerOf(testItem).x, y: centerOf(testItem).y, pressed: true},
+                {tag: "Active component content", item: controlItem, x: units.gu(1), y: units.gu(1), pressed: true},
+                {tag: "Center of active component content", item: controlItem, x: centerOf(controlItem).x, y: centerOf(controlItem).y, pressed: false},
+                {tag: "clicked() connected", item: clickedConnected, x: centerOf(clickedConnected).x, y: centerOf(clickedConnected).y, pressed: true},
             ];
         }
-        function test_toggle_selected(data) {
-            // make test item selectable first, so the panel is created
-            data.item.selectable = true;
-            waitForRendering(data.item.contentItem);
-            // get the control to click on
-            var clickOn = findChild(data.item, data.clickOn);
-            verify(clickOn, "control to be clicked on not found");
-            // click on the selection and check selected changed
-            selectedSpy.target = data.item;
-            selectedSpy.clear();
-            mouseClick(clickOn, data.offsetX, data.offsetY);
-            selectedSpy.wait();
-        }
-
-        function test_no_tug_when_selectable() {
-            movingSpy.target = testItem;
-            testItem.selectable = true;
-            // wait till animation to selection mode ends
-            waitForRendering(testItem.contentItem);
-
-            // try to tug leading
-            movingSpy.clear();
-            flick(testItem, centerOf(testItem).x, centerOf(testItem).y, units.gu(10), 0);
-            compare(movingSpy.count, 0, "No tug allowed when in selection mode");
+        function test_highlight(data) {
+            pressedSpy.target = data.item;
+            mouseClick(data.item, data.x, data.y);
+            if (data.pressed) {
+                pressedSpy.wait();
+            } else {
+                compare(pressedSpy.count, 0, "Should not be pressed!");
+            }
         }
 
         SignalSpy {
@@ -731,6 +704,88 @@ Item {
             mouseClick(button, centerOf(button).x, centerOf(button).y);
             buttonSpy.wait();
             compare(clickSpy.count, 0, "ListItem clicked() must be suppressed");
+        }
+
+        function test_pressandhold_connected_causes_highlight() {
+            pressedSpy.target = clickedConnected;
+            mouseLongPress(clickedConnected, centerOf(clickedConnected).x, centerOf(clickedConnected).y);
+            pressedSpy.wait();
+            mouseRelease(clickedConnected, centerOf(clickedConnected).x, centerOf(clickedConnected).y);
+        }
+
+        function test_toggle_selectable_data() {
+            return [
+                {tag: "When not selected", selected: false},
+                {tag: "When selected", selected: true},
+            ]
+        }
+        function test_toggle_selectable(data) {
+            testItem.selected = data.selected;
+            testItem.selectable = true;
+            waitForRendering(testItem.contentItem);
+            verify(findChildWithProperty(testItem, "inSelectionMode", true));
+            compare(testItem.contentItem.enabled, false, "contentItem is not disabled.");
+        }
+
+        SignalSpy {
+            id: selectedSpy
+            signalName: "selectedChanged"
+        }
+
+        function test_toggle_selected_data() {
+            return [
+                // item = <test-item>, clickOk: <item-to-click-on>, offsetX|Y: <clickOn offset clicked>
+                {tag: "Click over selection", item: controlItem, clickOn: "listitem_select", offsetX: units.gu(0.5), offsetY: units.gu(0.5)},
+                {tag: "Click over contentItem", item: controlItem, clickOn: "ListItemHolder", offsetX: units.gu(0.5), offsetY: units.gu(0.5)},
+                {tag: "Click over control", item: controlItem, clickOn: "button_in_list", offsetX: units.gu(0.5), offsetY: units.gu(0.5)},
+            ];
+         }
+        function test_toggle_selected(data) {
+            // make test item selectable first, so the panel is created
+            data.item.selectable = true;
+            waitForRendering(data.item.contentItem);
+            // get the control to click on
+            var clickOn = findChild(data.item, data.clickOn);
+            verify(clickOn, "control to be clicked on not found");
+            // click on the selection and check selected changed
+            selectedSpy.target = data.item;
+            selectedSpy.clear();
+            mouseClick(clickOn, data.offsetX, data.offsetY);
+            selectedSpy.wait();
+        }
+
+        function test_no_tug_when_selectable() {
+            movingSpy.target = testItem;
+            testItem.selectable = true;
+            // wait till animation to selection mode ends
+            waitForRendering(testItem.contentItem);
+
+            // try to tug leading
+            movingSpy.clear();
+            flick(testItem, centerOf(testItem).x, centerOf(testItem).y, units.gu(10), 0);
+            compare(movingSpy.count, 0, "No tug allowed when in selection mode");
+        }
+
+        function test_no_click_when_selectable() {
+            testItem.selectable = true;
+            // wait till animation to selection mode ends
+            waitForRendering(testItem.contentItem);
+
+            clickSpy.target = testItem;
+            mouseClick(testItem, centerOf(testItem).x, centerOf(testItem).y);
+            compare(clickSpy.count, 0);
+        }
+
+        function test_no_pressandhold_when_selectable() {
+            testItem.selectable = true;
+            // wait till animation to selection mode ends
+            waitForRendering(testItem.contentItem);
+
+            pressAndHoldSpy.target = testItem;
+            mouseLongPress(testItem, centerOf(testItem).x, centerOf(testItem).y);
+            compare(pressAndHoldSpy.count, 0);
+
+            mouseRelease(testItem, centerOf(testItem).x, centerOf(testItem).y);
         }
 
         function test_listitem_blocks_ascendant_flickables() {

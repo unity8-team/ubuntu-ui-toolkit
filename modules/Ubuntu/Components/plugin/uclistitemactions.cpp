@@ -21,7 +21,6 @@
 #include "i18n.h"
 #include "plugin.h"
 #include <QtQml/QQmlInfo>
-#include <QtQuick/private/qquickitem_p.h>
 #include "ucaction.h"
 #include "ucunits.h"
 #include "uclistitemstyle.h"

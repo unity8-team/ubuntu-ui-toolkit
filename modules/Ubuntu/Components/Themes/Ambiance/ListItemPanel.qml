@@ -147,7 +147,6 @@ Item {
                 }
 
                 Loader {
-                    objectName: "icon_loader"
                     id: delegateLoader
                     height: parent.height
                     sourceComponent: panel.ListItemActions.container.delegate ? panel.ListItemActions.container.delegate : defaultDelegate
@@ -158,6 +157,7 @@ Item {
                         // use action's objectName to identify the visualized action
                         if (item && item.objectName === "") {
                             item.objectName = modelData.objectName;
+                            actionButton.objectName = "actionbutton_" + modelData.objectName
                         }
                     }
                 }
