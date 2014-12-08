@@ -16,9 +16,9 @@
 
 """Tests for the Ubuntu UI Toolkit Gallery - OptionSelector component."""
 
-import ubuntuuitoolkit
 from ubuntuuitoolkit import ubuntu_scenarios
 from ubuntuuitoolkit.tests.gallery import GalleryTestCase
+
 
 class ListItemsTestCase(GalleryTestCase):
 
@@ -30,4 +30,5 @@ class ListItemsTestCase(GalleryTestCase):
 
     def test_delete_listitem(self):
         listItem = self.main_view.select_single(objectName='list_item1')
-        listItem.trigger_leading_action('delete_action', listItem.wait_until_destroyed)
+        listItem.trigger_leading_action('delete_action',
+                                        listItem.wait_until_destroyed)
