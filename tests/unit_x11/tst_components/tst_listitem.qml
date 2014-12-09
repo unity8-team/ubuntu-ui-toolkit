@@ -66,6 +66,7 @@ Item {
     }
 
     Column {
+        id: testColumn
         width: parent.width
         ListItem {
             id: defaults
@@ -105,6 +106,7 @@ Item {
             height: units.gu(28)
             clip: true
             model: 10
+            ListItem.selectable: false
             delegate: ListItem {
                 objectName: "listItem" + index
                 color: "lightgray"
@@ -188,10 +190,9 @@ Item {
         function cleanup() {
             testItem.action = null;
             testItem.selected = false;
-            testItem.selectable = false;
+            testColumn.ListItem.selectable = false;
             waitForRendering(testItem.contentItem, 400);
             controlItem.selected = false;
-            controlItem.selectable = false;
             waitForRendering(controlItem.contentItem, 400);
             movingSpy.clear();
             pressedSpy.clear();
@@ -201,6 +202,7 @@ Item {
             buttonSpy.clear();
             interactiveSpy.clear();
             listView.interactive = true;
+            listView.ListItem.selectable = false;
             // make sure we collapse
             mouseClick(defaults, 0, 0)
             movingSpy.target = null;
@@ -228,6 +230,9 @@ Item {
             compare(defaults.action, null, "No action by default.");
             compare(defaults.style, null, "Style is loaded upon first use.");
             compare(defaults.__styleInstance, null, "__styleInstance must be null.");
+            compare(defaults.selected, false, "Not selected by default");
+            compare(testColumn.ListItem.selectable, false, "The parent attached property is not selectable by default");
+            compare(testColumn.ListItem.selectedIndexes.length, 0, "No item is selected by default");
 
             compare(actionsDefault.delegate, null, "ListItemActions has no delegate set by default.");
             compare(actionsDefault.actions.length, 0, "ListItemActions has no actions set.");
@@ -719,9 +724,9 @@ Item {
         }
         function test_toggle_selectable(data) {
             testItem.selected = data.selected;
-            testItem.selectable = true;
+            testColumn.ListItem.selectable = true;
             waitForRendering(testItem.contentItem);
-            verify(findChildWithProperty(testItem, "inSelectionMode", true));
+            verify(findChild(testItem, "selection_panel"), "Cannot find selection panel");
             compare(testItem.contentItem.enabled, false, "contentItem is not disabled.");
         }
 
@@ -733,14 +738,14 @@ Item {
         function test_toggle_selected_data() {
             return [
                 // item = <test-item>, clickOk: <item-to-click-on>, offsetX|Y: <clickOn offset clicked>
-                {tag: "Click over selection", item: controlItem, clickOn: "listitem_select", offsetX: units.gu(0.5), offsetY: units.gu(0.5)},
-                {tag: "Click over contentItem", item: controlItem, clickOn: "ListItemHolder", offsetX: units.gu(0.5), offsetY: units.gu(0.5)},
-                {tag: "Click over control", item: controlItem, clickOn: "button_in_list", offsetX: units.gu(0.5), offsetY: units.gu(0.5)},
+                {tag: "Click over selection", selectableHolder: testColumn, item: controlItem, clickOn: "listitem_select", offsetX: units.gu(0.5), offsetY: units.gu(0.5)},
+                {tag: "Click over contentItem", selectableHolder: testColumn, item: controlItem, clickOn: "ListItemHolder", offsetX: units.gu(0.5), offsetY: units.gu(0.5)},
+                {tag: "Click over control", selectableHolder: testColumn, item: controlItem, clickOn: "button_in_list", offsetX: units.gu(0.5), offsetY: units.gu(0.5)},
             ];
          }
         function test_toggle_selected(data) {
             // make test item selectable first, so the panel is created
-            data.item.selectable = true;
+            data.selectableHolder.ListItem.selectable = true;
             waitForRendering(data.item.contentItem);
             // get the control to click on
             var clickOn = findChild(data.item, data.clickOn);
@@ -754,7 +759,7 @@ Item {
 
         function test_no_tug_when_selectable() {
             movingSpy.target = testItem;
-            testItem.selectable = true;
+            testColumn.ListItem.selectable = true;
             // wait till animation to selection mode ends
             waitForRendering(testItem.contentItem);
 
@@ -765,7 +770,7 @@ Item {
         }
 
         function test_no_click_when_selectable() {
-            testItem.selectable = true;
+            testColumn.ListItem.selectable = true;
             // wait till animation to selection mode ends
             waitForRendering(testItem.contentItem);
 
@@ -775,7 +780,7 @@ Item {
         }
 
         function test_no_pressandhold_when_selectable() {
-            testItem.selectable = true;
+            testColumn.ListItem.selectable = true;
             // wait till animation to selection mode ends
             waitForRendering(testItem.contentItem);
 

@@ -35,6 +35,7 @@
 #include <QtQuick/private/qquickanimation_p.h>
 #include <QtQuick/private/qquickmousearea_p.h>
 #include "uclistitemstyle.h"
+#include "listener.h"
 
 #define MIN(x, y)           ((x < y) ? x : y)
 #define MAX(x, y)           ((x > y) ? x : y)
@@ -337,7 +338,6 @@ UCListItemPrivate::UCListItemPrivate()
     , swiped(false)
     , suppressClick(false)
     , ready(false)
-    , selectable(false)
     , selected(false)
     , customStyle(false)
     , customColor(false)
@@ -416,6 +416,28 @@ void UCListItemPrivate::_q_updateThemedData()
         q->update();
     }
     loadStyle(true);
+}
+
+// returns true if the ListItem is in selectable mode, false otherwise (also if the
+// attached property is NULL)
+bool UCListItemPrivate::isSelectable()
+{
+    UCListItemAttachedPrivate *attached = UCListItemAttachedPrivate::get(attachedProperties);
+    return attached ? attached->isSelectable() : false;
+}
+
+void UCListItemPrivate::_q_selectableUpdated()
+{
+    // make sure the selection mode panel is prepared; selection panel must take care of the visuals
+    bool selectable = isSelectable();
+    if (selectable) {
+        promptRebound();
+    }
+    setupSelectionMode();
+    // disable contentIten from handling events
+    contentItem->setEnabled(!selectable);
+    // and finaly update visuals
+    update();
 }
 
 void UCListItemPrivate::_q_rebound()
@@ -583,7 +605,7 @@ void UCListItemPrivate::setPressed(bool pressed)
         this->pressed = pressed;
         Q_Q(UCListItem);
         q->update();
-        if (pressed && !selectable) {
+        if (pressed && !isSelectable()) {
             // start pressandhold timer
             pressAndHoldTimer.start(QGuiApplication::styleHints()->mousePressAndHoldInterval(), q);
         } else {
@@ -675,13 +697,22 @@ QQuickItem *UCListItemPrivate::createSelectionPanel()
         initStyleItem();
         if (styleItem && styleItem->m_selectionDelegate) {
             if (!styleItem->m_selectionDelegate->isError()) {
+                // create a new context so we can expose context properties
+                QQmlContext *context = new QQmlContext(qmlContext(q), q);
+                context->setContextProperty("inSelectionMode", QVariant(false));
+                ContextPropertyChangeListener *listener = new ContextPropertyChangeListener(
+                            context, "inSelectionMode");
+                listener->setUpdaterProperty(attachedProperties, "selectable");
+
                 selectionPanel = qobject_cast<QQuickItem*>(
-                            styleItem->m_selectionDelegate->beginCreate(qmlContext(q)));
+                            styleItem->m_selectionDelegate->beginCreate(context));
                 if (selectionPanel) {
                     QQml_setParent_noEvent(selectionPanel, q);
                     selectionPanel->setParentItem(q);
                     // complete component creation
                     styleItem->m_selectionDelegate->completeCreate();
+                    // turn on selectable
+                    context->setContextProperty("inSelectionMode", isSelectable());
                 }
             } else {
                 qmlInfo(q) << styleItem->m_selectionDelegate->errorString();
@@ -696,11 +727,9 @@ void UCListItemPrivate::setupSelectionMode()
         return;
     }
     Q_Q(UCListItem);
-    if (selectable) {
+    if (isSelectable()) {
         // sync selected flag with the attached selection array
-        if (attachedProperties) {
-            q->setSelected(UCListItemAttachedPrivate::get(attachedProperties)->isItemSelected(q));
-        }
+        q->setSelected(UCListItemAttachedPrivate::get(attachedProperties)->isItemSelected(q));
     }
 }
 
@@ -910,7 +939,7 @@ void UCListItem::componentComplete()
         setSelected(UCListItemAttachedPrivate::get(d->attachedProperties)->isItemSelected(this));
     }
     // toggle selection mode if has been set by a binding
-    if (d->selectable) {
+    if (d->isSelectable()) {
         d->setupSelectionMode();
         update();
     }
@@ -945,6 +974,12 @@ void UCListItem::itemChange(ItemChange change, const ItemChangeData &data)
             d->attachedProperties = 0;
         }
 
+        // get notified about selectable change
+        if (d->attachedProperties) {
+            QObject::connect(d->attachedProperties, SIGNAL(selectableChanged()),
+                             this, SLOT(_q_selectableUpdated()));
+        }
+
         if (data.item) {
             QObject::connect(d->flickable ? d->flickable : data.item, SIGNAL(widthChanged()), this, SLOT(_q_updateSize()));
         }
@@ -969,7 +1004,7 @@ QSGNode *UCListItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *data
     Q_D(UCListItem);
     // do highlight only if at least one of action, leadingActions or trailingAction
     // properties is set
-    QColor color = (d->pressed || (d->selectable && d->selected))? d->highlightColor : d->color;
+    QColor color = (d->pressed || (d->isSelectable() && d->selected))? d->highlightColor : d->color;
 
     if (width() <= 0 || height() <= 0) {
         delete oldNode;
@@ -1030,7 +1065,7 @@ void UCListItem::mousePressEvent(QMouseEvent *event)
         d->lastPos = d->pressedPos = event->localPos();
         // connect the Flickable to know when to rebound
         d->listenToRebind(true);
-        if (!d->selectable) {
+        if (!d->isSelectable()) {
             // if it was moved, grab the panels
             if (d->swiped) {
                 d->grabPanel(d->leadingActions, true);
@@ -1053,7 +1088,7 @@ void UCListItem::mouseReleaseEvent(QMouseEvent *event)
             d->attachedProperties->disableInteractive(this, false);
         }
 
-        if (d->selectable) {
+        if (d->isSelectable()) {
             // toggle selection
             setSelected(!d->selected);
         } else if (!d->suppressClick) {
@@ -1074,7 +1109,7 @@ void UCListItem::mouseMoveEvent(QMouseEvent *event)
     Q_D(UCListItem);
     UCStyledItemBase::mouseMoveEvent(event);
 
-    if (d->selectable) {
+    if (d->isSelectable()) {
         // no move is allowed while selectable mode is on
         return;
     }
@@ -1427,41 +1462,11 @@ void UCListItem::setHighlightColor(const QColor &color)
 }
 
 /*!
- * \qmlproperty bool ListItem::selectable
- * The property drives whether a list item is selectable or not. When set, the item
- * will show a check box on the leading side hanving the content item pushed towards
- * trailing side and dimmed. The checkbox which will reflect and drive the \l selected
- * state.
- * Defaults to false.
- */
-bool UCListItem::selectable() const
-{
-    Q_D(const UCListItem);
-    return d->selectable;
-}
-void UCListItem::setSelectable(bool selectable)
-{
-    Q_D(UCListItem);
-    if (d->selectable == selectable) {
-        return;
-    }
-    // make sure the selection mode panel is prepared; selection panel must take care of the visuals
-    if (selectable) {
-        d->promptRebound();
-    }
-    d->setupSelectionMode();
-    d->selectable = selectable;
-    // disable contentIten from handling events
-    d->contentItem->setEnabled(!d->selectable);
-    // and finaly update visuals
-    update();
-    Q_EMIT selectableChanged();
-}
-
-/*!
  * \qmlproperty bool ListItem::selected
  * The property drives whether a list item is selected or not. While selected, the
  * ListItem is dimmed and cannot be tugged. The default value is false.
+ *
+ * \sa ListItem::selectable
  */
 bool UCListItem::selected() const
 {
@@ -1483,7 +1488,7 @@ void UCListItem::setSelected(bool selected)
             UCListItemAttachedPrivate::get(d->attachedProperties)->removeSelectedItem(this);
         }
     }
-    if (d->selectable) {
+    if (d->isSelectable()) {
         update();
     }
     Q_EMIT selectedChanged();
