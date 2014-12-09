@@ -3,6 +3,7 @@
 #include "uclistitem_p.h"
 #include "uclistitemstyle.h"
 #include "listener.h"
+#include "propertychange_p.h"
 #include <QtQml/QQmlInfo>
 #include <QtQml/QQmlContext>
 
@@ -19,6 +20,7 @@ UCDragHandler::UCDragHandler(UCListItem *listItem)
 
 UCDragHandler::~UCDragHandler()
 {
+    delete zOrder;
 }
 
 void UCDragHandler::setupDragPanel(bool animate)
@@ -60,7 +62,6 @@ void UCDragHandler::setupDragPanel(bool animate)
 
 bool UCDragHandler::eventFilter(QObject *watched, QEvent *event)
 {
-    qDebug() << "EVENT" << event->type() << this;
     QEvent::Type type = event->type();
     bool mouseEvent = (type == QEvent::MouseButtonPress) ||
             (type == QEvent::MouseButtonRelease) ||
@@ -72,10 +73,21 @@ bool UCDragHandler::eventFilter(QObject *watched, QEvent *event)
             // lock flickables!
             listItem->attachedProperties->disableInteractive(listItem->item(), true);
             event->accept();
+            // save z-order and set it to 2
+            zOrder = new PropertyChange(listItem->item(), "z");
+            PropertyChange::setValue(zOrder, 2);
+            lastPos = mouse->localPos();
             return true;
         } else if (type == QEvent::MouseButtonRelease) {
             // unlock flickables!
             listItem->attachedProperties->disableInteractive(listItem->item(), false);
+            delete zOrder;
+            zOrder = 0;
+        } else if (type == QEvent::MouseMove && zOrder) {
+            qreal dy = -(lastPos.y() - mouse->localPos().y());
+            qDebug() << dy << mouse->localPos().y();
+            listItem->item()->setY(listItem->y + dy);
+            lastPos = mouse->localPos();
         }
     }
     return QObject::eventFilter(watched, event);

@@ -282,6 +282,8 @@ public Q_SLOTS:
 protected:
     UCListItemPrivate *listItem;
     QQuickItem *panel;
+    PropertyChange *zOrder;
+    QPointF lastPos;
     bool dragging:1;
     bool isConnected:1;
 
