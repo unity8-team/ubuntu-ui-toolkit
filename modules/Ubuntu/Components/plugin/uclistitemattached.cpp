@@ -31,6 +31,8 @@
 UCListItemAttachedPrivate::UCListItemAttachedPrivate(UCListItemAttached *qq)
     : q_ptr(qq)
     , globalDisabled(false)
+    , selectable(false)
+    , draggable(false)
 {
 }
 
@@ -204,4 +206,123 @@ void UCListItemAttached::unbindItem()
     }
     // clear binding list
     d->clearFlickablesList();
+}
+
+/*!
+ * \qmlattachedproperty bool ListItem::selectable
+ * The property drives whether list items are selectable or not. The property is
+ * attached to the ListItem's parent or to the ListView/Flickable owning the
+ * ListItems.
+ *
+ *
+ * When set, the items
+ * will show a check box on the leading side hanving the content item pushed towards
+ * trailing side and dimmed. The checkbox which will reflect and drive the \l selected
+ * state.
+ * Defaults to false.
+ */
+bool UCListItemAttachedPrivate::isSelectable() const
+{
+    return selectable;
+}
+void UCListItemAttachedPrivate::setSelectable(bool value)
+{
+    if (selectable == value) {
+        return;
+    }
+    selectable = value;
+    Q_Q(UCListItemAttached);
+    Q_EMIT q->selectableChanged();
+}
+
+/*!
+ * \qmlattachedproperty list<int> ListItem::selectedIndexes
+ * The property is automatically attached to the ListItem's parent item, or to
+ * the ListView when used with ListView. Contains the indexes of the ListItems
+ * marked as selected. The indexes are model indexes when used in ListView, and
+ * child indexes in other contexts.
+ * \note Setting the ListItem's \l selected property to \c true will add the
+ * item index to the selection list automatically, and may destroy the initial
+ * state of the selection. Therefore it is recommended to drive the selection
+ * through the attached property rather through the \l ListItem::selected property.
+ * \sa ListItem::selectable, ListItem::selected
+ *
+ * By default all items are selectable. To drive single selection mode, set the
+ * \l singleSelect attached property.
+ *
+ * \sa singleSelect
+ */
+QList<int> UCListItemAttachedPrivate::selectedIndexes() const
+{
+    return selectedList;
+}
+void UCListItemAttachedPrivate::setSelectedIndexes(const QList<int> &list)
+{
+    if (selectedList == list) {
+        return;
+    }
+    selectedList = list;
+    Q_Q(UCListItemAttached);
+    Q_EMIT q->selectedIndexesChanged();
+}
+
+void UCListItemAttachedPrivate::addSelectedItem(UCListItem *item)
+{
+    int index = UCListItemPrivate::get(item)->index();
+    if (!selectedList.contains(index)) {
+        selectedList.append(index);
+        Q_EMIT q_ptr->selectedIndexesChanged();
+    }
+}
+void UCListItemAttachedPrivate::removeSelectedItem(UCListItem *item)
+{
+    if (selectedList.removeAll(UCListItemPrivate::get(item)->index()) > 0) {
+        Q_EMIT q_ptr->selectedIndexesChanged();
+    }
+}
+
+bool UCListItemAttachedPrivate::isItemSelected(UCListItem *item)
+{
+    return selectedList.contains(UCListItemPrivate::get(item)->index());
+}
+
+/*!
+ * \amlattachedproperty bool ListItem::draggable
+ * The property drives the dragging mode of the ListItems within a ListView. It
+ * has no effect on any other parent of the ListItem.
+ *
+ * When set, ListItem content will be disabled and a panel will be shown enabling
+ * the dragging mode. The items can be dragged by dragging this handler only.
+ * The feature can be activated same time with \l selectable.
+ *
+ * The panel is configured by the \l {ListItemStyle::dragHandlerDelegate}{dragHandlerDelegate}
+ * component.
+ *
+ * \sa ListItemStyle::dragHandlerDelegate, draggingStarted, draggingEnded
+ */
+
+/*!
+ * \qmlattachedsignal ListItem::draggingStarted(int index)
+ * The signal is emitted when a ListItem dtragging is started. The \c index specifies
+ * the index of the ListItem being dragged.
+ */
+
+/*!
+ * \qmlattachedsignal ListItem::draggingEnded(int dragIndex, int dropIndex)
+ * The signal is emitted when the dragged ListItem is dropped in the ListView. The
+ * \c dragIndex specifies the original index of the ListItem dragged, and the \c
+ * dropIndex the index where the ListItem is dropped.
+ */
+bool UCListItemAttachedPrivate::isDraggable() const
+{
+    return draggable;
+}
+void UCListItemAttachedPrivate::setDraggable(bool value)
+{
+    if (draggable == value) {
+        return;
+    }
+    draggable = value;
+    Q_Q(UCListItemAttached);
+    Q_EMIT q->draggableChanged();
 }
