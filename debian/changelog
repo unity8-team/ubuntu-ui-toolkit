@@ -1,3 +1,9 @@
+ubuntu-ui-toolkit-gles (1.1.1364+15.04.20141209-0ubuntu6) UNRELEASED; urgency=medium
+
+  * Sync with 1.1.1364+15.04.20141209-0ubuntu1
+
+ -- Zoltán Balogh <zoltan@bakter.hu>  Mon, 08 Dec 2014 12:12:12 +0200
+
 ubuntu-ui-toolkit-gles (1.1.1347+15.04.20141126-0ubuntu1) vivid; urgency=medium
 
   [ Zoltán Balogh ]
