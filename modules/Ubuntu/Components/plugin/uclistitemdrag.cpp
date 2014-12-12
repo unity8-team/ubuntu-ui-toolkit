@@ -62,33 +62,13 @@ void UCDragHandler::setupDragPanel(bool animate)
 
 bool UCDragHandler::eventFilter(QObject *watched, QEvent *event)
 {
-    QEvent::Type type = event->type();
-    bool mouseEvent = (type == QEvent::MouseButtonPress) ||
-            (type == QEvent::MouseButtonRelease) ||
-            (type == QEvent::MouseMove);
-
-    QMouseEvent *mouse = mouseEvent ? static_cast<QMouseEvent*>(event) : 0;
-    if (mouse) {
-        if (type == QEvent::MouseButtonPress) {
-            // lock flickables!
-            listItem->attachedProperties->disableInteractive(listItem->item(), true);
-            event->accept();
-            // save z-order and set it to 2
-            zOrder = new PropertyChange(listItem->item(), "z");
-            PropertyChange::setValue(zOrder, 2);
-            lastPos = mouse->localPos();
-            return true;
-        } else if (type == QEvent::MouseButtonRelease) {
-            // unlock flickables!
-            listItem->attachedProperties->disableInteractive(listItem->item(), false);
-            delete zOrder;
-            zOrder = 0;
-        } else if (type == QEvent::MouseMove && zOrder) {
-            qreal dy = -(lastPos.y() - mouse->localPos().y());
-            qDebug() << dy << mouse->localPos().y();
-            listItem->item()->setY(listItem->y + dy);
-            lastPos = mouse->localPos();
-        }
+    if (event->type() == QEvent::MouseButtonPress) {
+        // forward to the ListView
+        QQuickFlickable *listView = UCListItemAttachedPrivate::get(listItem->attachedProperties)->listView;
+        QMouseEvent *mouse = static_cast<QMouseEvent*>(event);
+        QPointF pos = listView->mapFromItem(static_cast<QQuickItem*>(watched), mouse->localPos());
+        QMouseEvent mappedEvent(event->type(), pos, mouse->button(), mouse->buttons(), mouse->modifiers());
+        QGuiApplication::sendEvent(listView, &mappedEvent);
     }
     return QObject::eventFilter(watched, event);
 }
