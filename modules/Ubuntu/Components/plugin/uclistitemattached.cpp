@@ -37,6 +37,11 @@ UCListItemAttachedPrivate::UCListItemAttachedPrivate(UCListItemAttached *qq)
     , globalDisabled(false)
     , selectable(false)
     , draggable(false)
+    , draggedZOrder(0)
+    , dragIndex(-1)
+    , dragNewIndex(-1)
+    , dragCurrentId(-1)
+    , dragAllowedDirections(UCDragEvent::Negative)
 {
 }
 
@@ -44,6 +49,7 @@ UCListItemAttachedPrivate::~UCListItemAttachedPrivate()
 {
     clearChangesList();
     clearFlickablesList();
+    delete draggedZOrder;
 }
 
 // disconnect all flickables

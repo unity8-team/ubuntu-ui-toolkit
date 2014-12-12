@@ -158,6 +158,13 @@ public:
     QPointer<UCListItem> boundItem;
     QPointer<UCListItem> disablerItem;
 
+    // drag handling
+    PropertyChange *draggedZOrder;
+    int dragIndex;
+    int dragNewIndex;
+    int dragCurrentId;
+    UCDragEvent::Directions dragAllowedDirections;
+
     // getter/setter
     bool selectMode() const;
     void setSelectMode(bool value);
@@ -285,7 +292,6 @@ class UCDragHandler : public UCHandlerBase
     Q_OBJECT
 public:
     explicit UCDragHandler(UCListItem *listItem);
-    ~UCDragHandler();
 
     void initialize();
     bool isDragging()
@@ -304,9 +310,10 @@ public Q_SLOTS:
     void setupDragMode();
 
 protected:
-    PropertyChange *zOrder;
     QPointF lastPos;
     bool dragging:1;
+
+    bool eventFilter(QObject *watched, QEvent *event);
 };
 
 #endif // UCVIEWITEM_P_H

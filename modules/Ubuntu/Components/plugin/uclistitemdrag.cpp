@@ -11,14 +11,9 @@
 
 UCDragHandler::UCDragHandler(UCListItem *listItem)
     : UCHandlerBase(listItem)
-    , dragging(false)
     , zOrder(0)
+    , dragging(false)
 {
-}
-
-UCDragHandler::~UCDragHandler()
-{
-    delete zOrder;
 }
 
 bool UCDragHandler::eventFilter(QObject *watched, QEvent *event)
