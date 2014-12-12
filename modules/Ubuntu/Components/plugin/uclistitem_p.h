@@ -149,10 +149,12 @@ public:
     bool isItemSelected(UCListItem *item);
 
     // dragging mode functions
+    void startDragOnItem(UCListItemPrivate *item, const QPointF &viewPos);
+    void updateDragPosition(const QPointF &pos);
+    void dropItem(const QPointF &pos);
+
     QQuickItem *lastChildAt(QQuickItem *parent, QPointF pos);
-    void mousePressed(QQuickItem *sender, QMouseEvent *event);
-    void mouseReleased(QQuickItem *sender, QMouseEvent *event);
-    void mouseMoved(QQuickItem *sender, QMouseEvent *event);
+    int getIndexAt(const QPointF &pos);
 
     UCListItemAttached *q_ptr;
     QQuickFlickable *listView;
@@ -166,11 +168,13 @@ public:
     QPointer<UCListItem> disablerItem;
 
     // drag handling
-    PropertyChange *draggedZOrder;
+    PropertyChange *dragZOrder;
+    UCListItem *dragItem;
     int dragIndex;
     int dragNewIndex;
     int dragCurrentId;
     UCDragEvent::Directions dragAllowedDirections;
+    QPointF dragLastPos;
 
     // getter/setter
     bool selectMode() const;
@@ -320,6 +324,8 @@ protected:
     QPointF lastPos;
     bool dragging:1;
 
+    QPointF panelCenterToListView();
+    QPointF mapMousePosToListView(QEvent *event);
     bool eventFilter(QObject *watched, QEvent *event);
 };
 

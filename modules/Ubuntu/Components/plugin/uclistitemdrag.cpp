@@ -11,20 +11,41 @@
 
 UCDragHandler::UCDragHandler(UCListItem *listItem)
     : UCHandlerBase(listItem)
-    , zOrder(0)
     , dragging(false)
 {
+}
+
+QPointF UCDragHandler::panelCenterToListView()
+{
+    QQuickFlickable *listView = UCListItemAttachedPrivate::get(listItem->attachedProperties)->listView;
+    QPointF pos(panel->width() / 2, panel->height() / 2);
+    pos = listView->mapFromItem(static_cast<QQuickItem*>(listItem->item()), pos);
+    return pos;
+}
+
+QPointF UCDragHandler::mapMousePosToListView(QEvent *event)
+{
+    QMouseEvent *mouse = static_cast<QMouseEvent*>(event);
+    QQuickFlickable *listView = UCListItemAttachedPrivate::get(listItem->attachedProperties)->listView;
+    QPointF pos = listView->mapFromItem(static_cast<QQuickItem*>(listItem->item()), mouse->localPos());
+    return pos;
 }
 
 bool UCDragHandler::eventFilter(QObject *watched, QEvent *event)
 {
     if (event->type() == QEvent::MouseButtonPress) {
-        // forward to the ListView
-        QQuickFlickable *listView = UCListItemAttachedPrivate::get(listItem->attachedProperties)->listView;
-        QMouseEvent *mouse = static_cast<QMouseEvent*>(event);
-        QPointF pos = listView->mapFromItem(static_cast<QQuickItem*>(watched), mouse->localPos());
-        QMouseEvent mappedEvent(event->type(), pos, mouse->button(), mouse->buttons(), mouse->modifiers());
-        QGuiApplication::sendEvent(listView, &mappedEvent);
+        // notify attached about drag start
+        UCListItemAttachedPrivate *attached = UCListItemAttachedPrivate::get(listItem->attachedProperties);
+        attached->startDragOnItem(listItem, panelCenterToListView());
+        return true;
+    } else if (event->type() == QEvent::MouseButtonRelease) {
+        QPointF pos = mapMousePosToListView(event);
+        UCListItemAttachedPrivate *attached = UCListItemAttachedPrivate::get(listItem->attachedProperties);
+        attached->dropItem(pos);
+    } else if (event->type() == QEvent::MouseMove) {
+        QPointF pos = mapMousePosToListView(event);
+        UCListItemAttachedPrivate *attached = UCListItemAttachedPrivate::get(listItem->attachedProperties);
+        attached->updateDragPosition(pos);
     }
     return QObject::eventFilter(watched, event);
 }

@@ -30,6 +30,12 @@ MainView {
             ListItem.selectMode: ListItem.dragMode
             contentItem.objectName: "ListViewContent"
 
+            ListItem.onDraggingStarted: print("DRAG started")
+            ListItem.onDraggingUpdated: {
+                print("DRAG updated")
+                model.move(drag.from, drag.to, 1);
+            }
+
             model: ListModel {
                 Component.onCompleted: {
                     for (var i = 0; i < 25; i++) {
@@ -44,6 +50,12 @@ MainView {
                 Rectangle {
                     anchors.fill: parent
                     color: "tan"
+                }
+
+                leadingActions: ListItemActions {
+                    actions: Action {
+                        iconName: "delete"
+                    }
                 }
 
                 Label {

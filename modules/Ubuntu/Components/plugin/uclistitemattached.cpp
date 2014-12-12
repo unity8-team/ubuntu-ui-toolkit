@@ -37,11 +37,12 @@ UCListItemAttachedPrivate::UCListItemAttachedPrivate(UCListItemAttached *qq)
     , globalDisabled(false)
     , selectable(false)
     , draggable(false)
-    , draggedZOrder(0)
+    , dragZOrder(0)
+    , dragItem(0)
     , dragIndex(-1)
     , dragNewIndex(-1)
     , dragCurrentId(-1)
-    , dragAllowedDirections(UCDragEvent::Negative)
+    , dragAllowedDirections(UCDragEvent::Upwards | UCDragEvent::Downwards)
 {
 }
 
@@ -49,7 +50,7 @@ UCListItemAttachedPrivate::~UCListItemAttachedPrivate()
 {
     clearChangesList();
     clearFlickablesList();
-    delete draggedZOrder;
+    delete dragZOrder;
 }
 
 // disconnect all flickables
@@ -430,37 +431,78 @@ void UCListItemAttachedPrivate::setDragMode(bool value)
         }
     }
     draggable = value;
-    if (draggable) {
-        listView->installEventFilter(q);
-    } else {
-        listView->removeEventFilter(q);
-    }
     Q_EMIT q->dragModeChanged();
 }
 
-bool UCListItemAttached::eventFilter(QObject *watched, QEvent *event)
+void UCListItemAttachedPrivate::startDragOnItem(UCListItemPrivate *listItem, const QPointF &viewPos)
 {
-    Q_D(UCListItemAttached);
-    switch (event->type()) {
-    case QEvent::MouseButtonPress:
-    {
-        d->mousePressed(d->listView, static_cast<QMouseEvent*>(event));
-        break;
+    // emit signal first to know whether we can drag at all or not
+    Q_Q(UCListItemAttached);
+    int index = getIndexAt(viewPos);
+    UCDragEvent event(UCDragEvent::None, dragAllowedDirections, index, -1);
+    Q_EMIT q->draggingStarted(&event);
+    if (event.m_accept) {
+        // set allowed directions
+        dragAllowedDirections = event.m_directions;
+        dragZOrder = new PropertyChange(listItem->item(), "z");
+        dragIndex = dragNewIndex = dragCurrentId = index;
+        dragLastPos = viewPos;
+        dragItem = listItem->item();
+        // lock ListView
+        q_ptr->disableInteractive(dragItem, true);
+        qDebug() << "START DRAG";
+    } else {
+        qDebug() << "DENIED";
     }
-    case QEvent::MouseButtonRelease:
-    {
-        d->mouseReleased(d->listView, static_cast<QMouseEvent*>(event));
-        break;
+}
+
+void UCListItemAttachedPrivate::updateDragPosition(const QPointF &pos)
+{
+    if (dragItem) {
+        qreal dy = -(dragLastPos.y() - pos.y());
+        // check direction, and continue only if the direction is allowed
+        bool ok = false;
+        if (dy > 0 && dragAllowedDirections & UCDragEvent::Downwards) {
+            ok = true;
+        } else if (dy < 0 && dragAllowedDirections & UCDragEvent::Upwards) {
+            ok = true;
+        }
+        if (!ok) {
+            qDebug() << "BLOCKED DIRECTION";
+            return;
+        }
+
+        // update dragged item's y-pos
+        dragItem->setY(dragItem->y() + dy);
+        dragLastPos = pos;
+
+        // get index over which we are, and continue if the index differs
+        dragIndex = getIndexAt(pos);
+        if ((dragNewIndex != dragIndex) && (dragIndex != -1)) {
+            Q_Q(UCListItemAttached);
+            UCDragEvent event(UCDragEvent::None, dragAllowedDirections, dragNewIndex, dragIndex);
+            Q_EMIT q->draggingUpdated(&event);
+            if (event.m_accept) {
+                dragNewIndex = dragIndex;
+            }
+        }
     }
-    case QEvent::MouseMove:
-    {
-        d->mouseMoved(d->listView, static_cast<QMouseEvent*>(event));
-        break;
+}
+
+void UCListItemAttachedPrivate::dropItem(const QPointF &pos)
+{
+    Q_UNUSED(pos)
+    if (dragItem) {
+        Q_Q(UCListItemAttached);
+        UCDragEvent event(UCDragEvent::None, dragAllowedDirections, dragNewIndex, dragIndex);
+        Q_EMIT q->draggingUpdated(&event);
+        delete dragZOrder;
+        q_ptr->disableInteractive(dragItem, false);
+        dragItem = 0;
+        dragZOrder = 0;
+        dragIndex = dragNewIndex = dragCurrentId = -1;
+        dragAllowedDirections = UCDragEvent::Upwards | UCDragEvent::Downwards;
     }
-    default:
-        break;
-    }
-    return QObject::eventFilter(watched, event);
 }
 
 QQuickItem *UCListItemAttachedPrivate::lastChildAt(QQuickItem *parent, QPointF pos)
@@ -487,22 +529,16 @@ QQuickItem *UCListItemAttachedPrivate::lastChildAt(QQuickItem *parent, QPointF p
     return child;
 }
 
-void UCListItemAttachedPrivate::mousePressed(QQuickItem *sender, QMouseEvent *event)
+int UCListItemAttachedPrivate::getIndexAt(const QPointF &pos)
 {
-    QQuickItem *child = lastChildAt(sender, event->localPos());
-    qDebug() << "PRESSED OVER" << child;
-}
-
-void UCListItemAttachedPrivate::mouseReleased(QQuickItem *sender, QMouseEvent *event)
-{
-    Q_UNUSED(event);
-    QQuickItem *child = lastChildAt(sender, event->localPos());
-    qDebug() << "RELEASED OVER" << child;
-}
-
-void UCListItemAttachedPrivate::mouseMoved(QQuickItem *sender, QMouseEvent *event)
-{
-    Q_UNUSED(event);
-    QQuickItem *child = lastChildAt(sender, event->localPos());
-    qDebug() << "MOVED OVER" << child;
+    if (!listView) {
+        return -1;
+    }
+    int result = -1;
+    listView->metaObject()->invokeMethod(listView, "indexAt", Qt::DirectConnection,
+                                         Q_RETURN_ARG(int, result),
+                                         Q_ARG(qreal, pos.x()),
+                                         Q_ARG(qreal, pos.y())
+                                         );
+    return result;
 }

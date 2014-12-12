@@ -115,6 +115,7 @@ private:
 };
 QML_DECLARE_TYPEINFO(UCListItem, QML_HAS_ATTACHED_PROPERTIES)
 
+class UCListItemAttachedPrivate;
 class UCDragEvent : public QObject
 {
     Q_OBJECT
@@ -154,10 +155,11 @@ private:
     int m_from;
     int m_to;
     bool m_accept;
+
+    friend class UCListItemAttachedPrivate;
 };
 Q_DECLARE_OPERATORS_FOR_FLAGS(UCDragEvent::Directions)
 
-class UCListItemAttachedPrivate;
 class UCListItemAttached : public QObject
 {
     Q_OBJECT
@@ -172,9 +174,6 @@ public:
     void disableInteractive(UCListItem *item, bool disable);
     bool isMoving();
     bool isBoundTo(UCListItem *item);
-
-protected:
-    bool eventFilter(QObject *, QEvent *);
 
 private Q_SLOTS:
     void unbindItem();
