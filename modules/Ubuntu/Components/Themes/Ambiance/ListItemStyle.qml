@@ -37,17 +37,19 @@ Styles.ListItemStyle {
     selectionDelegate: Item {
         id: selectionPanel
         objectName: "selection_panel"
-        width: checkbox.width + 2 * units.gu(2)
+        width: units.gu(5)
+
+        readonly property ListItem listItem: parent
 
         /*
           Set if the ListItem is selected
           */
-        readonly property bool selected: parent ? parent.selected : false
+        readonly property bool selected: listItem ? listItem.selected : false
 
         /*
           Internally used to link to the list item's content. The parent item is the ListItem itself.
           */
-        readonly property Item contentItem: parent ? parent.contentItem : null
+        readonly property Item contentItem: listItem ? listItem.contentItem : null
 
         anchors {
             right: contentItem ? contentItem.left : undefined
@@ -58,8 +60,13 @@ Styles.ListItemStyle {
         states: State {
             name: "enabled"
             PropertyChanges {
-                target: selectionPanel.parent.contentItem
+                target: contentItem
                 x: selectionPanel.width
+                width: listItem.width - selectionPanel.width - (listItem.draggable ? units.gu(5) : 0)
+            }
+            PropertyChanges {
+                target: checkbox
+                opacity: 1.0
             }
         }
 
@@ -67,21 +74,35 @@ Styles.ListItemStyle {
             from: ""
             to: "enabled"
             reversible: true
-            PropertyAnimation {
-                target: selectionPanel.parent.contentItem
-                property: "x"
-                easing: UbuntuAnimation.StandardEasing
-                duration: UbuntuAnimation.FastDuration
+            ParallelAnimation {
+                PropertyAnimation {
+                    target: selectionPanel.parent.contentItem
+                    properties: "x,width"
+                    easing: UbuntuAnimation.StandardEasing
+                    duration: UbuntuAnimation.FastDuration
+                }
+                PropertyAnimation {
+                    target: checkbox
+                    property: "opacity"
+                    easing: UbuntuAnimation.StandardEasing
+                    duration: UbuntuAnimation.FastDuration
+                }
             }
         }
 
-        state: inSelectionMode ? "enabled" : ""
+        // make sure the state is changed only after component completion
+        Component.onCompleted: {
+            state = Qt.binding(function () {
+                return listItem && listItem.selectable ? "enabled" : "";
+            });
+        }
 
         CheckBox {
             id: checkbox
             // for unit and autopilot tests
             objectName: "listitem_select"
             anchors.centerIn: parent
+            opacity: 0.0
             // for the initial value
             checked: selectionPanel.selected
             onCheckedChanged: {
@@ -93,36 +114,44 @@ Styles.ListItemStyle {
         onSelectedChanged: checkbox.checked = selected
     }
 
-    dragHandlerDelegate: Rectangle {
+    dragHandlerDelegate: Item {
         id: dragHandler
-        objectName: "draghandler_panel"
-        width: height
+        objectName: "draghandler_panel" + index
+        width: units.gu(5)
+
+        readonly property ListItem listItem: parent
         /*
           Internally used to link to the list item's content. The parent item is the ListItem itself.
           */
-        readonly property Item contentItem: parent ? parent.contentItem : null
+        readonly property Item contentItem: listItem ? listItem.contentItem : null
 
         anchors {
-            // by default the panel stays outside of the ListItem's right side
-            left: parent ? parent.right : undefined
+            right: listItem ? listItem.right : undefined
             top: contentItem ? contentItem.top : undefined
             bottom: contentItem ? contentItem.bottom : undefined
         }
 
         Icon {
+            objectName: "icon"
             id: dragIcon
             anchors.centerIn: parent
-            width: units.gu(2.5)
-            height: units.gu(2.5)
+            width: units.gu(3)
+            height: width
             name: "view-grid-symbolic"
+            opacity: 0.0
+            scale: 0.5
         }
 
         states: State {
             name: "enabled"
-            AnchorChanges {
-                target: dragHandler
-                anchors.right: dragHandler.parent.right
-                anchors.left: undefined
+            PropertyChanges {
+                target: dragIcon
+                opacity: 1.0
+                scale: 1.0
+            }
+            PropertyChanges {
+                target: contentItem
+                width: listItem.width - dragHandler.width - (listItem.selectable ? units.gu(5) : 0)
             }
         }
 
@@ -130,12 +159,19 @@ Styles.ListItemStyle {
             from: ""
             to: "enabled"
             reversible: true
-            AnchorAnimation {
+            PropertyAnimation {
+                target: dragIcon
+                properties: "opacity,scale"
                 easing: UbuntuAnimation.StandardEasing
                 duration: UbuntuAnimation.FastDuration
             }
         }
 
-        state: inDraggingMode ? "enabled" : ""
+        // make sure the state is changed only after component completion
+        Component.onCompleted: {
+            state = Qt.binding(function () {
+                return listItem && listItem.draggable ? "enabled" : "";
+            });
+        }
     }
 }

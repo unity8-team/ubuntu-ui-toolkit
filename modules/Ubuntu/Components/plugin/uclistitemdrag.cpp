@@ -6,58 +6,19 @@
 #include "propertychange_p.h"
 #include <QtQml/QQmlInfo>
 #include <QtQml/QQmlContext>
+#include <QtGui/QGuiApplication>
+#include <QtQuick/private/qquickflickable_p.h>
 
 UCDragHandler::UCDragHandler(UCListItem *listItem)
-    : QObject(listItem)
-    , listItem(UCListItemPrivate::get(listItem))
-    , panel(0)
+    : UCHandlerBase(listItem)
     , dragging(false)
-    , isConnected(false)
+    , zOrder(0)
 {
-    connect(this, &UCDragHandler::draggingChanged,
-            listItem, &UCListItem::draggingChanged);
 }
 
 UCDragHandler::~UCDragHandler()
 {
     delete zOrder;
-}
-
-void UCDragHandler::setupDragPanel(bool animate)
-{
-    if (!panel) {
-        // get the style loaded
-        listItem->initStyleItem();
-        if (listItem->styleItem && listItem->styleItem->m_dragHandlerDelegate) {
-            if (listItem->styleItem->m_dragHandlerDelegate->isError()) {
-                qmlInfo(listItem->q_ptr) << listItem->styleItem->m_dragHandlerDelegate->errorString();
-            } else {
-                UCListItem *item = listItem->item();
-                // create a new context so we can expose context properties
-                QQmlContext *context = new QQmlContext(qmlContext(item), item);
-                context->setContextProperty("inDraggingMode",
-                                            animate ? QVariant(false) : isDraggable());
-                ContextPropertyChangeListener *listener = new ContextPropertyChangeListener(
-                            context, "inDraggingMode");
-                listener->setUpdaterProperty(listItem->attachedProperties, "draggable");
-
-                panel = qobject_cast<QQuickItem*>(
-                            listItem->styleItem->m_dragHandlerDelegate->beginCreate(context));
-                if (panel) {
-                    // accept left mouse button to enable drag handling
-                    panel->setAcceptedMouseButtons(Qt::LeftButton);
-                    QQml_setParent_noEvent(panel, item);
-                    panel->setParentItem(item);
-                    // complete component creation
-                    listItem->styleItem->m_dragHandlerDelegate->completeCreate();
-                    if (animate) {
-                        // turn on draggable context property
-                        context->setContextProperty("inDraggingMode", isDraggable());
-                    }
-                }
-            }
-        }
-    }
 }
 
 bool UCDragHandler::eventFilter(QObject *watched, QEvent *event)
@@ -74,46 +35,43 @@ bool UCDragHandler::eventFilter(QObject *watched, QEvent *event)
 }
 
 // listen for attached property's draggable change signal to activate dragging mode on the list item
-void UCDragHandler::getNotified()
+void UCDragHandler::initialize()
 {
-    if (!listItem->attachedProperties || isConnected) {
+    if (!listItem->attachedProperties) {
         return;
     }
-    connect(listItem->attachedProperties, &UCListItemAttached::draggableChanged,
+    connect(listItem->attachedProperties, &UCListItemAttached::dragModeChanged,
             this, &UCDragHandler::setupDragMode);
-    // also connect ListItem's _q_enabler() slot to control content enabled based on selectable and draggable
-    connect(listItem->attachedProperties, SIGNAL(draggableChanged()),
-            listItem->item(), SLOT(_q_enabler()));
-}
-
-bool UCDragHandler::isDraggable()
-{
-    UCListItemAttachedPrivate *attached = UCListItemAttachedPrivate::get(listItem->attachedProperties);
-    return attached ? attached->isDraggable() : false;
+    if (listItem->isDraggable()) {
+        setupDragMode();
+    }
 }
 
 void UCDragHandler::setupDragMode()
 {
     // make sure the ListItem is snapped out
-    bool draggable = isDraggable();
+    bool draggable = listItem->isDraggable();
     if (draggable) {
         listItem->promptRebound();
         // animate panel only in case is called due to a signal emit
-        bool animate = (senderSignalIndex() >= 0);
-        setupDragPanel(animate);
+        listItem->initStyleItem();
+        if (!panel && listItem->styleItem && listItem->styleItem->m_dragHandlerDelegate) {
+            bool animate = (senderSignalIndex() >= 0);
+            setupPanel(listItem->styleItem->m_dragHandlerDelegate, animate);
+        }
+        // install an event filter to catch mouse press events, as those are not
+        // intercepted by the ListView filter
         if (panel) {
-            // install filter to catch mouse events
+            // make panel to accept mouse buttons so we get mouse events over it
+            panel->setAcceptedMouseButtons(Qt::LeftButton);
             panel->installEventFilter(this);
-            // stop children filtering while move mode is on
-            listItem->item()->setFiltersChildMouseEvents(false);
         }
     } else if (panel) {
-        // remove filter and re-enable filtering on children events
+        // disable mouse buttons from panel while not in drag mode
+        panel->setAcceptedMouseButtons(Qt::NoButton);
         panel->removeEventFilter(this);
-        listItem->item()->setFiltersChildMouseEvents(true);
     }
 
-    listItem->contentItem->setEnabled(!draggable);
     // update visuals
     listItem->update();
 }

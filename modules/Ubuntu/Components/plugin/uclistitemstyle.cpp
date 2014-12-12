@@ -54,18 +54,84 @@ UCListItemStyle::UCListItemStyle(QQuickItem *parent)
  * Holds the component handling the selection mode. The component is responsible
  * to handle the visualization for the selection mode, updating the visuals of
  * the ListItem (e.g. pushing the \l {ListItem::contentItem}{contentItem},
- * animating the changes, etc.), as well as reporting the changes to the ListItem
- * whenever the selection is changed.
+ * animating the changes, resizing the contentItem, etc.), as well as reporting
+ * the changes to the ListItem whenever the selection is changed.
  *
  * ListItem will create the component when the selection mode is emntered, and will
- * keep it fo rteh entire lifetime of the ListItem, even if the selection mode is
- * exited. The selection mode is exposed to the component through the \c inSelectionMode
- * context property.
+ * keep it for the entire lifetime of the ListItem, even if the selection mode is
+ * exited. Therefore implementations must take care of removing the visuals when
+ * leaving selection mode.
  */
 
 /*!
  * \qmlproperty Component ListItemStyle::dragHandlerDelegate
- * Holds the component shown when dragging mode is enabled.
+ * Holds the component shown when dragging mode is enabled. The component does
+ * not need to handle the mouse/touch events to detect when the handler is dragged/
+ * dropped. The handler being parented to ListItem, all its properties can be reached,
+ * as well as all its context properties (such as \c index) and model roles in case
+ * used in a modelled view. An additional context proeprty is also declared to notify
+ * when the handler can be enabled, the \c draggingEnabled context property.
+ *
+ * \note The drag handler is only instantiated if the dragging mode is possible,
+ * meaning the ListItem is used in a ListView. Therefore entering in dragging mode
+ * can also be checked by accessing the \l ListItem::draggable property through \c
+ * ListView.view property. Example:
+ * \qml
+ * import QtQuick 2.3
+ * import Ubuntu.Components 1.2
+ * import Ubuntu.Components.Styles 1.2 as Styles
+ *
+ * Styles.ListItemStyle {
+ *    dragHandlerDelegate: Rectangle {
+ *       id: dragHandler
+ *       objectName: "draghandler_panel" + index
+ *       width: height
+ *       // Internally used to link to the list item's content. The parent item is the ListItem itself.
+ *       readonly property Item contentItem: parent ? parent.contentItem : null
+ *
+ *       // track drag mode status
+ *       readonly property bool draggingEnabled: parent && parent.ListView.view ?
+ *                                                  parent.ListView.view.ListItem.draggable : false
+ *
+ *       anchors {
+ *           // by default the panel stays outside of the ListItem's right side
+ *           left: parent ? parent.right : undefined
+ *           top: contentItem ? contentItem.top : undefined
+ *           bottom: contentItem ? contentItem.bottom : undefined
+ *       }
+ *
+ *       Icon {
+ *           objectName: "icon"
+ *           id: dragIcon
+ *           anchors.centerIn: parent
+ *           width: units.gu(2.5)
+ *           height: width
+ *           name: "view-grid-symbolic"
+ *       }
+ *
+ *       states: State {
+ *           name: "enabled"
+ *           AnchorChanges {
+ *               target: dragHandler
+ *               anchors.right: dragHandler.parent.right
+ *               anchors.left: undefined
+ *           }
+ *       }
+ *
+ *       transitions: Transition {
+ *           from: ""
+ *           to: "enabled"
+ *           reversible: true
+ *           AnchorAnimation {
+ *               easing: UbuntuAnimation.StandardEasing
+ *               duration: UbuntuAnimation.FastDuration
+ *           }
+ *       }
+ *
+ *       state: draggingEnabled ? "enabled" : ""
+ *    }
+ * }
+ * \endqml
  */
 
 /*!

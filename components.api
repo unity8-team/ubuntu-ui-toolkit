@@ -861,6 +861,14 @@ plugins.qmltypes
     name: "quitWithError"
     Parameter { name: "errorMessage"; type: "string" }
     Method { name: "quitWithError" }
+    name: "UCDragEvent"
+    prototype: "QObject"
+    exports: ["DragEvent 1.2"]
+    name: "Direction"
+    Property { name: "from"; revision: 2; type: "int"; isReadonly: true }
+    Property { name: "to"; revision: 2; type: "int"; isReadonly: true }
+    Property { name: "accept"; revision: 2; type: "bool" }
+    Property { name: "direction"; revision: 2; type: "Direction"; isReadonly: true }
     name: "UCInverseMouse"
     prototype: "UCMouse"
     exports: ["InverseMouse 0.1", "InverseMouse 1.0"]
@@ -877,7 +885,9 @@ plugins.qmltypes
     Property { name: "color"; type: "QColor" }
     Property { name: "highlightColor"; type: "QColor" }
     Property { name: "dragging"; type: "bool"; isReadonly: true }
+    Property { name: "draggable"; type: "bool"; isReadonly: true }
     Property { name: "selected"; type: "bool" }
+    Property { name: "selectable"; type: "bool"; isReadonly: true }
     Property { name: "action"; type: "UCAction"; isPointer: true }
     Property { name: "listItemData"; type: "QObject"; isList: true; isReadonly: true }
     Property { name: "listItemChildren"; type: "QQuickItem"; isList: true; isReadonly: true }
@@ -911,15 +921,15 @@ plugins.qmltypes
     Parameter { name: "position"; type: "double" }
     name: "UCListItemAttached"
     prototype: "QObject"
-    Property { name: "selectable"; type: "bool" }
+    Property { name: "selectMode"; type: "bool" }
     Property { name: "selectedIndexes"; type: "QList<int>" }
-    Property { name: "draggable"; type: "bool" }
+    Property { name: "dragMode"; type: "bool" }
     Signal {
     name: "draggingStarted"
-    Parameter { name: "index"; type: "int" }
+    Parameter { name: "drag"; type: "UCDragEvent"; isPointer: true }
     Signal {
-    name: "draggingEnded"
-    Parameter { name: "index"; type: "int" }
+    name: "draggingUpdated"
+    Parameter { name: "drag"; type: "UCDragEvent"; isPointer: true }
     name: "UCListItemDivider"
     prototype: "QObject"
     Property { name: "visible"; type: "bool" }

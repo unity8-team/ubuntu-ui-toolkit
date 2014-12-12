@@ -19,7 +19,10 @@
 #include "uclistitem.h"
 #include "uclistitem_p.h"
 #include "propertychange_p.h"
+#include "quickutils.h"
+#include "i18n.h"
 #include <QtQuick/private/qquickflickable_p.h>
+#include <QtQml/QQmlInfo>
 
 /*
  * The properties are attached to the ListItem's parent item or to its closest
@@ -30,6 +33,7 @@
  */
 UCListItemAttachedPrivate::UCListItemAttachedPrivate(UCListItemAttached *qq)
     : q_ptr(qq)
+    , listView(0)
     , globalDisabled(false)
     , selectable(false)
     , draggable(false)
@@ -110,6 +114,9 @@ UCListItemAttached::UCListItemAttached(QObject *owner)
     : QObject(owner)
     , d_ptr(new UCListItemAttachedPrivate(this))
 {
+    if (QuickUtils::inherits(owner, "QQuickListView")) {
+        d_ptr->listView = static_cast<QQuickFlickable*>(owner);
+    }
 }
 
 UCListItemAttached::~UCListItemAttached()
@@ -209,7 +216,7 @@ void UCListItemAttached::unbindItem()
 }
 
 /*!
- * \qmlattachedproperty bool ListItem::selectable
+ * \qmlattachedproperty bool ListItem::selectMode
  * The property drives whether list items are selectable or not. The property is
  * attached to the ListItem's parent or to the ListView/Flickable owning the
  * ListItems.
@@ -221,18 +228,18 @@ void UCListItemAttached::unbindItem()
  * state.
  * Defaults to false.
  */
-bool UCListItemAttachedPrivate::isSelectable() const
+bool UCListItemAttachedPrivate::selectMode() const
 {
     return selectable;
 }
-void UCListItemAttachedPrivate::setSelectable(bool value)
+void UCListItemAttachedPrivate::setSelectMode(bool value)
 {
     if (selectable == value) {
         return;
     }
     selectable = value;
     Q_Q(UCListItemAttached);
-    Q_EMIT q->selectableChanged();
+    Q_EMIT q->selectModeChanged();
 }
 
 /*!
@@ -246,11 +253,6 @@ void UCListItemAttachedPrivate::setSelectable(bool value)
  * state of the selection. Therefore it is recommended to drive the selection
  * through the attached property rather through the \l ListItem::selected property.
  * \sa ListItem::selectable, ListItem::selected
- *
- * By default all items are selectable. To drive single selection mode, set the
- * \l singleSelect attached property.
- *
- * \sa singleSelect
  */
 QList<int> UCListItemAttachedPrivate::selectedIndexes() const
 {
@@ -287,7 +289,7 @@ bool UCListItemAttachedPrivate::isItemSelected(UCListItem *item)
 }
 
 /*!
- * \amlattachedproperty bool ListItem::draggable
+ * \qmlattachedproperty bool ListItem::dragMode
  * The property drives the dragging mode of the ListItems within a ListView. It
  * has no effect on any other parent of the ListItem.
  *
@@ -302,25 +304,53 @@ bool UCListItemAttachedPrivate::isItemSelected(UCListItem *item)
  */
 
 /*!
- * \qmlattachedsignal ListItem::draggingStarted(int index)
- * The signal is emitted when a ListItem dtragging is started. The \c index specifies
- * the index of the ListItem being dragged.
+ * \qmlattachedsignal ListItem::draggingStarted(DragEvent drag)
+ * The signal is emitted when a ListItem dtragging is started. \c drag.from
+ * specifies the index of the ListItem being dragged. \c drag.direction specifies
+ * the direction the drag is started, which can be denied by setting \c false
+ * to \c drag.accept property. If denied, the signal will be emitted again if
+ * dragged into opposite direction.
  */
 
 /*!
- * \qmlattachedsignal ListItem::draggingEnded(int dragIndex, int dropIndex)
- * The signal is emitted when the dragged ListItem is dropped in the ListView. The
- * \c dragIndex specifies the original index of the ListItem dragged, and the \c
- * dropIndex the index where the ListItem is dropped.
+ * \qmlattachedsignal ListItem::draggingUpdated(DragEvent drag)
+ * The signal is emitted when the list item from \c drag.from index has been
+ * dragged over to \c drag.to, and a move operation is possible. Implementations
+ * must move the model data between these indexes. If the move is not acceptable,
+ * it can be dropped by setting \c drag.accept to \c false, in which case the
+ * dragged item will stay on its last moved position or will snap back to its
+ * previous place. If the direction is not suitable, it can be denied by setting
+ * \c false to \c drag.accept property.
  */
-bool UCListItemAttachedPrivate::isDraggable() const
+
+bool UCListItemAttachedPrivate::dragMode() const
 {
     return draggable;
 }
-void UCListItemAttachedPrivate::setDraggable(bool value)
+void UCListItemAttachedPrivate::setDragMode(bool value)
 {
     if (draggable == value) {
         return;
+    }
+    Q_Q(UCListItemAttached);
+    if (value) {
+        /*
+         * The dragging works only if the ListItem is used inside a ListView, and the
+         * model used is a list, a ListModel or a derivate of QAbstractItemModel. Do
+         * not enable dragging if these conditions are not fulfilled.
+         */
+        if (!listView) {
+            qmlInfo(q->parent()) << UbuntuI18n::instance().tr("dragging mode requires ListView");
+            return;
+        }
+        QVariant modelValue = listView->property("model");
+        if (!modelValue.isValid()) {
+            return;
+        }
+        if (modelValue.type() == QVariant::Int || modelValue.type() == QVariant::Double) {
+            qmlInfo(listView) << UbuntuI18n::instance().tr("model must be a list, ListModel or a derivate of QAbstractItemModel");
+            return;
+        }
     }
     draggable = value;
     if (draggable) {
@@ -328,8 +358,7 @@ void UCListItemAttachedPrivate::setDraggable(bool value)
     } else {
         listView->removeEventFilter(q);
     }
-    Q_Q(UCListItemAttached);
-    Q_EMIT q->draggableChanged();
+    Q_EMIT q->dragModeChanged();
 }
 
 bool UCListItemAttached::eventFilter(QObject *watched, QEvent *event)

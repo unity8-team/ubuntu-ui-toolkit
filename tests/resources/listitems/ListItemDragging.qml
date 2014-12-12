@@ -27,7 +27,8 @@ MainView {
         title: "Dragging test"
         ListView {
             anchors.fill: parent
-            ListItem.selectable: ListItem.draggable
+            ListItem.selectMode: ListItem.dragMode
+            contentItem.objectName: "ListViewContent"
 
             model: ListModel {
                 Component.onCompleted: {
@@ -39,17 +40,23 @@ MainView {
 //            model: ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","x","y","z"]
 
             delegate: ListItem {
+                objectName: "ListItem-" + index
+                Rectangle {
+                    anchors.fill: parent
+                    color: "tan"
+                }
+
                 Label {
                     text: modelData
                 }
                 Button {
-                    text: "Press"
+                    text: "Press button which is long enough"
                     anchors.centerIn: parent
                 }
 
                 onPressAndHold: {
                     print("entering draggable mode")
-                    ListView.view.ListItem.draggable = true;
+                    ListView.view.ListItem.dragMode = true;
                 }
                 onDraggingChanged: print("dragging", dragging)
             }
