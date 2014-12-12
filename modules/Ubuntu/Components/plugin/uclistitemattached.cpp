@@ -323,6 +323,11 @@ void UCListItemAttachedPrivate::setDraggable(bool value)
         return;
     }
     draggable = value;
+    if (draggable) {
+        listView->installEventFilter(q);
+    } else {
+        listView->removeEventFilter(q);
+    }
     Q_Q(UCListItemAttached);
     Q_EMIT q->draggableChanged();
 }
