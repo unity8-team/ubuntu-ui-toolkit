@@ -149,18 +149,22 @@ public:
     bool isItemSelected(UCListItem *item);
 
     // dragging mode functions
+    bool isDraggingStartedConnected();
+    bool isDraggingUpdatedConnected();
     void startDragOnItem(UCListItemPrivate *item, const QPointF &viewPos);
     void updateDragPosition(const QPointF &pos);
     void dropItem(const QPointF &pos);
 
-    QQuickItem *lastChildAt(QQuickItem *parent, QPointF pos);
     int getIndexAt(const QPointF &pos);
+    UCListItem *createDraggedItem(QQuickItem *listItem);
 
     UCListItemAttached *q_ptr;
     QQuickFlickable *listView;
+    QQuickTransition *movingDisplaced;
     bool globalDisabled:1;
     bool selectable:1;
     bool draggable:1;
+    bool dragSuspended:1;
     QList<int> selectedList;
     QList< QPointer<QQuickFlickable> > flickables;
     QList< PropertyChange* > changes;
@@ -169,6 +173,8 @@ public:
 
     // drag handling
     PropertyChange *dragZOrder;
+    PropertyChange *dragVisible;
+    UCListItem *dragTempItem;
     UCListItem *dragItem;
     int dragIndex;
     int dragNewIndex;
@@ -326,6 +332,7 @@ protected:
 
     QPointF panelCenterToListView();
     QPointF mapMousePosToListView(QEvent *event);
+    QPointF deltaPos(const QPointF &pos);
     bool eventFilter(QObject *watched, QEvent *event);
 };
 

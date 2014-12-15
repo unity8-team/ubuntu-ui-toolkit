@@ -169,6 +169,7 @@ class UCListItemAttached : public QObject
 public:
     explicit UCListItemAttached(QObject *parent = 0);
     ~UCListItemAttached();
+    void completeAttached();
 
     bool listenToRebind(UCListItem *item, bool listen);
     void disableInteractive(UCListItem *item, bool disable);
@@ -177,6 +178,7 @@ public:
 
 private Q_SLOTS:
     void unbindItem();
+    void suspendOrResumeDragging();
 
 Q_SIGNALS:
     void selectModeChanged();

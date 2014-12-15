@@ -29,12 +29,34 @@ MainView {
             anchors.fill: parent
             ListItem.selectMode: ListItem.dragMode
             contentItem.objectName: "ListViewContent"
+            moveDisplaced: Transition {
+                id: displacedTransition
+                NumberAnimation {
+                    id: moveTransition;
+                    properties: "y";
+                    duration: UbuntuAnimation.BriskDuration;
+                    easing: UbuntuAnimation.StandardEasing
+                }
+            }
 
             ListItem.onDraggingStarted: print("DRAG started")
             ListItem.onDraggingUpdated: {
                 print("DRAG updated")
                 model.move(drag.from, drag.to, 1);
             }
+
+//            MouseArea {
+//                anchors {
+//                    top: parent.top
+//                    bottom: parent.bottom
+//                    right: parent.right
+//                }
+//                width: units.gu(5)
+//                enabled: parent.ListItem.dragMode
+//                onPressed: parent.interactive = false
+//                onReleased: parent.interactive = true
+//                onMouseYChanged: print("INDEX=", parent.indexAt(mouseX, mouseY + parent.contentY - parent.originY))
+//            }
 
             model: ListModel {
                 Component.onCompleted: {

@@ -24,6 +24,8 @@
 #include <QtQuick/private/qquickflickable_p.h>
 #include <QtQml/QQmlInfo>
 
+#include <QtQuick/private/qquicktransition_p.h>
+
 /*
  * The properties are attached to the ListItem's parent item or to its closest
  * Flickable parent, when embedded in ListView or Flickable. There will be only
@@ -34,11 +36,14 @@
 UCListItemAttachedPrivate::UCListItemAttachedPrivate(UCListItemAttached *qq)
     : q_ptr(qq)
     , listView(0)
+    , movingDisplaced(0)
     , globalDisabled(false)
     , selectable(false)
     , draggable(false)
+    , dragSuspended(false)
     , dragZOrder(0)
-    , dragItem(0)
+    , dragVisible(0)
+    , dragTempItem(0)
     , dragIndex(-1)
     , dragNewIndex(-1)
     , dragCurrentId(-1)
@@ -122,12 +127,27 @@ UCListItemAttached::UCListItemAttached(QObject *owner)
     , d_ptr(new UCListItemAttachedPrivate(this))
 {
     if (QuickUtils::inherits(owner, "QQuickListView")) {
-        d_ptr->listView = static_cast<QQuickFlickable*>(owner);
+        Q_D(UCListItemAttached);
+        d->listView = static_cast<QQuickFlickable*>(owner);
     }
 }
 
 UCListItemAttached::~UCListItemAttached()
 {
+}
+
+void UCListItemAttached::completeAttached()
+{
+    Q_D(UCListItemAttached);
+    if (d->movingDisplaced) {
+        return;
+    }
+    d->movingDisplaced = d->listView->property("moveDisplaced").value<QQuickTransition*>();
+    if (d->movingDisplaced) {
+        // connect transition change to suspend/resume dragging
+        QObject::connect(d->movingDisplaced, &QQuickTransition::runningChanged,
+                         this, &UCListItemAttached::suspendOrResumeDragging);
+    }
 }
 
 // register item to be rebound
@@ -354,12 +374,13 @@ bool UCListItemAttachedPrivate::isItemSelected(UCListItem *item)
  * \qmlattachedsignal ListItem::draggingUpdated(DragEvent drag)
  * The signal is emitted when the list item from \c drag.from index has been
  * dragged over to \c drag.to, and a move operation is possible. Implementations
- * must move the model data between these indexes. If the move is not acceptable,
+ * \b {must move the model data} between these indexes. If the move is not acceptable,
  * it can be cancelled by setting \c drag.accept to \c false, in which case the
  * dragged item will stay on its last moved position or will snap back to its
- * previous place. The direction of the drag is given in the \c drag.direction
- * proeprty, and the allowed directions can be configured through \c drag.directions
- * property.
+ * previous place, depending on whether the update was sent during the drag or
+ * as result of a drop gesture. The direction of the drag is given in the \c
+ * drag.direction property, and the allowed directions can be configured through
+ * \c drag.directions property.
  * \qml
  * import QtQuick 2.3
  * import Ubuntu.Components 1.2
@@ -394,11 +415,15 @@ bool UCListItemAttachedPrivate::isItemSelected(UCListItem *item)
  *    ListItem.onDraggingUpdated: {
  *        drag = validateDrag(drag);
  *        if (drag.accept) {
- *          model.move(drag.from, drag.to, 1);
+ *            model.move(drag.from, drag.to, 1);
  *        }
  *    }
  * }
  * \endqml
+ *
+ * \note Remember to handle the model move and \c dtrag.accept properties!
+ * Otherwise the dragging may leave your dragged ListItem at its last dragged
+ * position.
  */
 
 bool UCListItemAttachedPrivate::dragMode() const
@@ -434,22 +459,45 @@ void UCListItemAttachedPrivate::setDragMode(bool value)
     Q_EMIT q->dragModeChanged();
 }
 
+bool UCListItemAttachedPrivate::isDraggingStartedConnected()
+{
+    Q_Q(UCListItemAttached);
+    static QMetaMethod method = QMetaMethod::fromSignal(&UCListItemAttached::draggingStarted);
+    static int signalIdx = QMetaObjectPrivate::signalIndex(method);
+    return QObjectPrivate::get(q)->isSignalConnected(signalIdx);
+}
+
+bool UCListItemAttachedPrivate::isDraggingUpdatedConnected()
+{
+    Q_Q(UCListItemAttached);
+    static QMetaMethod method = QMetaMethod::fromSignal(&UCListItemAttached::draggingUpdated);
+    static int signalIdx = QMetaObjectPrivate::signalIndex(method);
+    return QObjectPrivate::get(q)->isSignalConnected(signalIdx);
+}
+
 void UCListItemAttachedPrivate::startDragOnItem(UCListItemPrivate *listItem, const QPointF &viewPos)
 {
     // emit signal first to know whether we can drag at all or not
     Q_Q(UCListItemAttached);
     int index = getIndexAt(viewPos);
-    UCDragEvent event(UCDragEvent::None, dragAllowedDirections, index, -1);
-    Q_EMIT q->draggingStarted(&event);
-    if (event.m_accept) {
+    bool start = true;
+    dragAllowedDirections = UCDragEvent::Upwards | UCDragEvent::Downwards;
+    if (isDraggingStartedConnected()) {
+        UCDragEvent event(UCDragEvent::None, dragAllowedDirections, index, -1);
+        Q_EMIT q->draggingStarted(&event);
+        start = event.m_accept;
         // set allowed directions
         dragAllowedDirections = event.m_directions;
-        dragZOrder = new PropertyChange(listItem->item(), "z");
+    }
+    if (start) {
+        dragItem = listItem->item();
+        dragZOrder = new PropertyChange(dragItem, "z");
         dragIndex = dragNewIndex = dragCurrentId = index;
         dragLastPos = viewPos;
-        dragItem = listItem->item();
-        // lock ListView
+
+        // lock ListView and rise z-order
         q_ptr->disableInteractive(dragItem, true);
+        PropertyChange::setValue(dragZOrder, 2);
         qDebug() << "START DRAG";
     } else {
         qDebug() << "DENIED";
@@ -458,31 +506,40 @@ void UCListItemAttachedPrivate::startDragOnItem(UCListItemPrivate *listItem, con
 
 void UCListItemAttachedPrivate::updateDragPosition(const QPointF &pos)
 {
-    if (dragItem) {
-        qreal dy = -(dragLastPos.y() - pos.y());
+    if (dragItem && !dragSuspended) {
+        qreal dy = pos.y();
         // check direction, and continue only if the direction is allowed
         bool ok = false;
+        UCDragEvent::Direction direction = UCDragEvent::None;
         if (dy > 0 && dragAllowedDirections & UCDragEvent::Downwards) {
             ok = true;
+            direction = UCDragEvent::Downwards;
         } else if (dy < 0 && dragAllowedDirections & UCDragEvent::Upwards) {
             ok = true;
+            direction = UCDragEvent::Upwards;
         }
         if (!ok) {
-            qDebug() << "BLOCKED DIRECTION";
+            qDebug() << "BLOCKED DIRECTION" << pos;
             return;
         }
 
         // update dragged item's y-pos
         dragItem->setY(dragItem->y() + dy);
-        dragLastPos = pos;
 
         // get index over which we are, and continue if the index differs
-        dragIndex = getIndexAt(pos);
+        dragLastPos += pos;
+        // TODO: stop hammering indexAt(); use the height of the ListItem to know when to ask for the index
+        dragIndex = getIndexAt(dragLastPos);
+        qDebug() << dragLastPos << dragIndex;
         if ((dragNewIndex != dragIndex) && (dragIndex != -1)) {
-            Q_Q(UCListItemAttached);
-            UCDragEvent event(UCDragEvent::None, dragAllowedDirections, dragNewIndex, dragIndex);
-            Q_EMIT q->draggingUpdated(&event);
-            if (event.m_accept) {
+            bool update = true;
+            if (isDraggingUpdatedConnected()) {
+                Q_Q(UCListItemAttached);
+                UCDragEvent event(direction, dragAllowedDirections, dragNewIndex, dragIndex);
+                Q_EMIT q->draggingUpdated(&event);
+                update = event.m_accept;
+            }
+            if (update) {
                 dragNewIndex = dragIndex;
             }
         }
@@ -494,39 +551,26 @@ void UCListItemAttachedPrivate::dropItem(const QPointF &pos)
     Q_UNUSED(pos)
     if (dragItem) {
         Q_Q(UCListItemAttached);
-        UCDragEvent event(UCDragEvent::None, dragAllowedDirections, dragNewIndex, dragIndex);
-        Q_EMIT q->draggingUpdated(&event);
-        delete dragZOrder;
-        q_ptr->disableInteractive(dragItem, false);
-        dragItem = 0;
-        dragZOrder = 0;
-        dragIndex = dragNewIndex = dragCurrentId = -1;
-        dragAllowedDirections = UCDragEvent::Upwards | UCDragEvent::Downwards;
-    }
-}
-
-QQuickItem *UCListItemAttachedPrivate::lastChildAt(QQuickItem *parent, QPointF pos)
-{
-    QQuickItem *child = parent->childAt(pos.x(), pos.y());
-    while (child) {
-        pos = child->mapFromItem(parent, pos);
-        // find the next one
-        QQuickItem *next = child->childAt(pos.x(), pos.y());
-
-        // are we in a ListItem already?
-        UCListItem *listItem = qobject_cast<UCListItem*>(child);
-        if (listItem && UCListItemPrivate::get(listItem)->dragHandler->isPanel(next)) {
-            // we stop here and check if the press occurred over drag handler's panel
-            child = next;
-            break;
-        } else if (next) {
-            parent = child;
-            child = next;
+        bool update = false;
+        if (isDraggingUpdatedConnected()) {
+            UCDragEvent event(UCDragEvent::None, dragAllowedDirections, dragNewIndex, dragIndex);
+            Q_EMIT q->draggingUpdated(&event);
+            update = event.m_accept;
+        }
+        if (!update) {
+            // TODO: snap back to the original position
+            qDebug() << "SNAP BACK!";
         } else {
-            break;
+            q_ptr->disableInteractive(dragItem, false);
+            delete dragZOrder;
+            dragZOrder = 0;
+            delete dragVisible;
+            dragVisible = 0;
+            delete dragTempItem;
+            dragTempItem = 0;
+            dragIndex = dragNewIndex = dragCurrentId = -1;
         }
     }
-    return child;
 }
 
 int UCListItemAttachedPrivate::getIndexAt(const QPointF &pos)
@@ -535,10 +579,41 @@ int UCListItemAttachedPrivate::getIndexAt(const QPointF &pos)
         return -1;
     }
     int result = -1;
+    qreal x = pos.x();
+    qreal y = pos.y() + (listView->contentY() - listView->originY());
+    qDebug() << "Y:" << y;
     listView->metaObject()->invokeMethod(listView, "indexAt", Qt::DirectConnection,
                                          Q_RETURN_ARG(int, result),
-                                         Q_ARG(qreal, pos.x()),
-                                         Q_ARG(qreal, pos.y())
+                                         Q_ARG(qreal, x),
+                                         Q_ARG(qreal, y)
                                          );
     return result;
+}
+
+UCListItem *UCListItemAttachedPrivate::createDraggedItem(QQuickItem *listItem)
+{
+    QQmlComponent *delegate = listView->property("delegate").value<QQmlComponent*>();
+    if (!delegate) {
+        return 0;
+    }
+    UCListItem *item = static_cast<UCListItem*>(delegate->create(qmlContext(listItem)));
+    if (item && listItem) {
+        item->setX(listItem->x());
+        item->setY(listItem->y());
+        item->setWidth(listItem->width());
+        item->setHeight(listItem->height());
+        item->setColor(QColor("teal"));
+        item->setVisible(true);
+        qDebug() << UCListItemPrivate::get(item)->isDraggable();
+    }
+    return item;
+}
+
+
+void UCListItemAttached::suspendOrResumeDragging()
+{
+    Q_D(UCListItemAttached);
+    if (d->movingDisplaced) {
+        d->dragSuspended = d->movingDisplaced->running();
+    }
 }

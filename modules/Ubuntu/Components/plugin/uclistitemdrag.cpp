@@ -26,9 +26,16 @@ QPointF UCDragHandler::panelCenterToListView()
 QPointF UCDragHandler::mapMousePosToListView(QEvent *event)
 {
     QMouseEvent *mouse = static_cast<QMouseEvent*>(event);
-    QQuickFlickable *listView = UCListItemAttachedPrivate::get(listItem->attachedProperties)->listView;
-    QPointF pos = listView->mapFromItem(static_cast<QQuickItem*>(listItem->item()), mouse->localPos());
-    return pos;
+    return mouse->windowPos();
+}
+
+QPointF UCDragHandler::deltaPos(const QPointF &pos)
+{
+    qreal dx = -(lastPos.x() - pos.x());
+    qreal dy = -(lastPos.y() - pos.y());
+    QPointF result(dx, dy);
+    lastPos = pos;
+    return result;
 }
 
 bool UCDragHandler::eventFilter(QObject *watched, QEvent *event)
@@ -37,15 +44,16 @@ bool UCDragHandler::eventFilter(QObject *watched, QEvent *event)
         // notify attached about drag start
         UCListItemAttachedPrivate *attached = UCListItemAttachedPrivate::get(listItem->attachedProperties);
         attached->startDragOnItem(listItem, panelCenterToListView());
+        lastPos = mapMousePosToListView(event);
         return true;
     } else if (event->type() == QEvent::MouseButtonRelease) {
         QPointF pos = mapMousePosToListView(event);
         UCListItemAttachedPrivate *attached = UCListItemAttachedPrivate::get(listItem->attachedProperties);
-        attached->dropItem(pos);
+        attached->dropItem(deltaPos(pos));
     } else if (event->type() == QEvent::MouseMove) {
         QPointF pos = mapMousePosToListView(event);
         UCListItemAttachedPrivate *attached = UCListItemAttachedPrivate::get(listItem->attachedProperties);
-        attached->updateDragPosition(pos);
+        attached->updateDragPosition(deltaPos(pos));
     }
     return QObject::eventFilter(watched, event);
 }
