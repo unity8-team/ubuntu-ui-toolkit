@@ -156,10 +156,12 @@ private:
     int m_to;
     bool m_accept;
 
+    friend class UCListItemAttached;
     friend class UCListItemAttachedPrivate;
 };
 Q_DECLARE_OPERATORS_FOR_FLAGS(UCDragEvent::Directions)
 
+class QQuickMouseEvent;
 class UCListItemAttached : public QObject
 {
     Q_OBJECT
@@ -169,7 +171,6 @@ class UCListItemAttached : public QObject
 public:
     explicit UCListItemAttached(QObject *parent = 0);
     ~UCListItemAttached();
-    void completeAttached();
 
     bool listenToRebind(UCListItem *item, bool listen);
     void disableInteractive(UCListItem *item, bool disable);
@@ -178,7 +179,10 @@ public:
 
 private Q_SLOTS:
     void unbindItem();
-    void suspendOrResumeDragging();
+    // drag handling
+    void startDragging(QQuickMouseEvent *event);
+    void stopDragging(QQuickMouseEvent *event);
+    void updateDragging(QQuickMouseEvent *event);
 
 Q_SIGNALS:
     void selectModeChanged();

@@ -38,26 +38,6 @@ QPointF UCDragHandler::deltaPos(const QPointF &pos)
     return result;
 }
 
-bool UCDragHandler::eventFilter(QObject *watched, QEvent *event)
-{
-    if (event->type() == QEvent::MouseButtonPress) {
-        // notify attached about drag start
-        UCListItemAttachedPrivate *attached = UCListItemAttachedPrivate::get(listItem->attachedProperties);
-        attached->startDragOnItem(listItem, panelCenterToListView());
-        lastPos = mapMousePosToListView(event);
-        return true;
-    } else if (event->type() == QEvent::MouseButtonRelease) {
-        QPointF pos = mapMousePosToListView(event);
-        UCListItemAttachedPrivate *attached = UCListItemAttachedPrivate::get(listItem->attachedProperties);
-        attached->dropItem(deltaPos(pos));
-    } else if (event->type() == QEvent::MouseMove) {
-        QPointF pos = mapMousePosToListView(event);
-        UCListItemAttachedPrivate *attached = UCListItemAttachedPrivate::get(listItem->attachedProperties);
-        attached->updateDragPosition(deltaPos(pos));
-    }
-    return QObject::eventFilter(watched, event);
-}
-
 // listen for attached property's draggable change signal to activate dragging mode on the list item
 void UCDragHandler::initialize()
 {
@@ -83,17 +63,6 @@ void UCDragHandler::setupDragMode()
             bool animate = (senderSignalIndex() >= 0);
             setupPanel(listItem->styleItem->m_dragHandlerDelegate, animate);
         }
-        // install an event filter to catch mouse press events, as those are not
-        // intercepted by the ListView filter
-        if (panel) {
-            // make panel to accept mouse buttons so we get mouse events over it
-            panel->setAcceptedMouseButtons(Qt::LeftButton);
-            panel->installEventFilter(this);
-        }
-    } else if (panel) {
-        // disable mouse buttons from panel while not in drag mode
-        panel->setAcceptedMouseButtons(Qt::NoButton);
-        panel->removeEventFilter(this);
     }
 
     // update visuals

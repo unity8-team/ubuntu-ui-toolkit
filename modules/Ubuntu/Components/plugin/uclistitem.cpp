@@ -964,8 +964,6 @@ void UCListItem::componentComplete()
     d->dragHandler->initialize();
 
     if (d->attachedProperties) {
-        // complete attached property setup
-        d->attachedProperties->completeAttached();
         // keep selectable in sync
         connect(d->attachedProperties, &UCListItemAttached::selectModeChanged,
                 this, &UCListItem::selectableChanged);
