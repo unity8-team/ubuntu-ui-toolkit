@@ -74,6 +74,7 @@ Styles.ListItemStyle {
             from: ""
             to: "enabled"
             reversible: true
+            enabled: animatePanel
             ParallelAnimation {
                 PropertyAnimation {
                     target: selectionPanel.parent.contentItem
@@ -158,6 +159,7 @@ Styles.ListItemStyle {
         transitions: Transition {
             from: ""
             to: "enabled"
+            enabled: animatePanel
             reversible: true
             PropertyAnimation {
                 target: dragIcon
