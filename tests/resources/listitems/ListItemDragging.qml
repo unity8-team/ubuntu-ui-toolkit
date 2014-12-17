@@ -77,7 +77,7 @@ MainView {
 
             delegate: ListItem {
                 objectName: "ListItem-" + index
-                color: dragging ? "blue" : "transparent"
+                color: dragging ? "#BBBBBB" : "transparent"
 
                 leadingActions: ListItemActions {
                     actions: Action {
