@@ -120,7 +120,7 @@ class UCDragEvent : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(Direction direction READ direction REVISION 2)
-    Q_PROPERTY(Directions directions MEMBER m_directions REVISION 2)
+    Q_PROPERTY(int directions MEMBER m_directions REVISION 2)
     Q_PROPERTY(int from READ from REVISION 2)
     Q_PROPERTY(int to READ to REVISION 2)
     Q_PROPERTY(bool accept MEMBER m_accept REVISION 2)
@@ -151,7 +151,7 @@ public:
 
 private:
     Direction m_direction;
-    Directions m_directions;
+    int m_directions;
     int m_from;
     int m_to;
     bool m_accept;

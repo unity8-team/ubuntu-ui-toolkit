@@ -526,15 +526,16 @@ void UCListItemAttached::startDragging(QQuickMouseEvent *event)
         UCDragEvent event(UCDragEvent::None, d->dragAllowedDirections, index, -1);
         Q_EMIT draggingStarted(&event);
         start = event.m_accept;
+        qDebug() << "ACCEPTED?" << start;
         // set allowed directions
-        d->dragAllowedDirections = event.m_directions;
+        d->dragAllowedDirections = static_cast<UCDragEvent::Directions>(event.m_directions);
     }
     if (start) {
         d->dragItem = listItem;
         d->dragVisible = new PropertyChange(d->dragItem, "visible");
         d->dragIndex = d->dragNewIndex = d->dragCurrentId = index;
         d->dragLastY = y;
-        d->dragTempItem = d->createDraggedItem();
+        d->createDraggedItem();
 
         // lock ListView and rise z-order
         disableInteractive(d->dragItem, true);
@@ -651,37 +652,36 @@ UCListItem *UCListItemAttachedPrivate::itemAt(qreal x, qreal y)
 }
 
 
-UCListItem *UCListItemAttachedPrivate::createDraggedItem()
+void UCListItemAttachedPrivate::createDraggedItem()
 {
+    if (dragTempItem || !dragItem) {
+        return;
+    }
     QQmlComponent *delegate = listView->property("delegate").value<QQmlComponent*>();
     if (!delegate) {
-        return 0;
     }
     // use dragItem's context to get access to the ListView's model roles
-    UCListItem *item = static_cast<UCListItem*>(delegate->create(qmlContext(dragItem)));
-    if (item && dragItem) {
-        item->setVisible(false);
-        item->setParentItem(listView->contentItem());
-        // initialize style and turn panels on
-        UCListItemPrivate *pItem = UCListItemPrivate::get(item);
-        pItem->initStyleItem();
-        if (pItem->isSelectable()) {
-            pItem->selectionHandler->setupSelection();
-        }
-        if (pItem->isDraggable()) {
-            pItem->dragHandler->setupDragMode();
-        }
-        item->setX(dragItem->x());
-        item->setY(dragItem->y());
-        item->setZ(2);
-        item->setWidth(dragItem->width());
-        item->setHeight(dragItem->height());
-        QColor color = item->color();
-        if (color.alphaF() == 0.0) {
-            color = QuickUtils::instance().rootItem(listView)->property("backgroundColor").value<QColor>();
-        }
-        item->setColor(color);
-        item->setVisible(true);
+    dragTempItem = static_cast<UCListItem*>(delegate->create(qmlContext(dragItem)));
+    dragTempItem->setVisible(false);
+    dragTempItem->setParentItem(listView->contentItem());
+    // initialize style and turn panels on
+    UCListItemPrivate *pItem = UCListItemPrivate::get(dragTempItem);
+    pItem->initStyleItem();
+    if (pItem->isSelectable()) {
+        pItem->selectionHandler->setupSelection();
     }
-    return item;
+    if (pItem->isDraggable()) {
+        pItem->dragHandler->setupDragMode();
+    }
+    dragTempItem->setX(dragItem->x());
+    dragTempItem->setY(dragItem->y());
+    dragTempItem->setZ(2);
+    dragTempItem->setWidth(dragItem->width());
+    dragTempItem->setHeight(dragItem->height());
+    QColor color = dragItem->color();
+    if (color.alphaF() == 0.0) {
+        color = QuickUtils::instance().rootItem(listView)->property("backgroundColor").value<QColor>();
+    }
+    dragTempItem->setColor(color);
+    dragTempItem->setVisible(true);
 }

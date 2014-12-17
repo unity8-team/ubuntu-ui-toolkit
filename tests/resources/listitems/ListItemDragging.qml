@@ -23,7 +23,7 @@ MainView {
     height: units.gu(71)
     useDeprecatedToolbar: false
 
-    property bool liveDrag: true
+    property bool liveDrag: false
 
     Page {
         title: "Dragging test"
@@ -43,14 +43,16 @@ MainView {
             }
 
             ListItem.onDraggingStarted: {
-                if (drag.from == 0) {
-                    drag.directions = DragEvent.Downwards;
-                } else if (drag.from == count - 1) {
-                    drag.direction = DragEvent.Upwards;
-                } else {
-                    drag.direction = DragEvent.None;
-                    drag.accept = false;
-                }
+//                if (drag.from == 0) {
+//                    drag.directions = DragEvent.Downwards;
+//                } else if (drag.from == count - 1) {
+//                    drag.directions = DragEvent.Upwards;
+//                } else if ((drag.from + 1) % 4 == 0) {
+//                    print("invalid from:", drag.from)
+//                    drag.directions = DragEvent.Downwards;
+//                    // TODO: when restriction comes, drag handling must remember the index the drag was blocked
+//                }
+                main.liveDrag = true;
             }
 
             ListItem.onDraggingUpdated: {
