@@ -45,10 +45,10 @@ UCListItemAttachedPrivate::UCListItemAttachedPrivate(UCListItemAttached *qq)
     , dragSuspended(false)
     , dragVisible(0)
     , dragTempItem(0)
-    , dragIndex(-1)
-    , dragNewIndex(-1)
-    , dragCurrentId(-1)
-    , dragAllowedDirections(UCDragEvent::Upwards | UCDragEvent::Downwards)
+    , dragFromIndex(-1)
+    , dragToIndex(-1)
+    , dragMinimum(-1)
+    , dragMaximum(-1)
 {
 }
 
@@ -432,7 +432,7 @@ bool UCListItemAttachedPrivate::isItemSelected(UCListItem *item)
  *             // specify the interval
  *             event.minimumIndex = 5;
  *             event.maximumIndex = 10;
- *         } else if (event.from > 10) {
+ *         } else {
  *             // prevent dragging to the first 11 items area
  *             event.minimumIndex = 11;
  *         }
@@ -443,10 +443,10 @@ bool UCListItemAttachedPrivate::isItemSelected(UCListItem *item)
  * }
  * \endqml
  *
- * \c drag.direction set to \e DragEvent.None means the signal is sent as a result
- * of a drop operation, and this was the last update signal emitted. The following
- * sample shows how to implement list reordering when dropping the item (non-live
- * update).
+ * \c event.direction set to \e ListItemDrag.None means the signal is sent as a
+ * result of a drop operation, and this was the last update signal emitted. The
+ * following sample shows how to implement list reordering when dropping the item
+ * (non-live update).
  * \qml
  * import QtQuick 2.3
  * import Ubuntu.Components 1.2
@@ -474,10 +474,6 @@ bool UCListItemAttachedPrivate::isItemSelected(UCListItem *item)
  *    }
  * }
  * \endqml
- *
- * \note Remember to handle the model move and \c dtrag.accept properties!
- * Otherwise the dragging may leave your dragged ListItem at its last dragged
- * position.
  */
 
 bool UCListItemAttachedPrivate::dragMode() const
@@ -538,6 +534,12 @@ void UCListItemAttachedPrivate::enterDragMode()
                      q, &UCListItemAttached::stopDragging);
     QObject::connect(dragHandlerArea, &QQuickMouseArea::positionChanged,
                      q, &UCListItemAttached::updateDragging);
+
+    if (!isDraggingUpdatedConnected()) {
+        qmlInfo(listView) << UbuntuI18n::instance().
+                             tr("Listview has no ListItem.draggingUpdated signal handler " \
+                                "implemented. No dragging will be possible.");
+    }
 }
 
 void UCListItemAttachedPrivate::leaveDragMode()
@@ -550,28 +552,28 @@ void UCListItemAttached::startDragging(QQuickMouseEvent *event)
 {
     Q_UNUSED(event);
     Q_D(UCListItemAttached);
-    qreal x = d->dragHandlerArea->x();
-    qreal y = d->dragY();
-    UCListItem *listItem = d->itemAt(x, y);
+    QPointF pos = d->mapDragAreaPos();
+    UCListItem *listItem = d->itemAt(pos.x(), pos.y());
     if (!listItem) {
         return;
     }
-    int index = d->indexAt(x, y);
+    int index = d->indexAt(pos.x(), pos.y());
     bool start = true;
-    d->dragAllowedDirections = UCDragEvent::Upwards | UCDragEvent::Downwards;
+    d->dragMinimum = -1;
+    d->dragMaximum = -1;
     if (d->isDraggingStartedConnected()) {
-        UCDragEvent event(UCDragEvent::None, d->dragAllowedDirections, index, -1);
+        UCDragEvent event(UCDragEvent::None, index, -1, -1, -1);
         Q_EMIT draggingStarted(&event);
         start = event.m_accept;
-        qDebug() << "ACCEPTED?" << start;
-        // set allowed directions
-        d->dragAllowedDirections = static_cast<UCDragEvent::Directions>(event.m_directions);
+        // set limits
+        d->dragMinimum = event.m_minimum;
+        d->dragMaximum = event.m_maximum;
     }
     if (start) {
         d->dragItem = listItem;
         d->dragVisible = new PropertyChange(d->dragItem, "visible");
-        d->dragIndex = d->dragNewIndex = d->dragCurrentId = index;
-        d->dragLastY = y;
+        d->dragToIndex = d->dragFromIndex = index;
+        d->dragLastY = pos.y();
         d->createDraggedItem();
 
         // lock ListView and rise z-order
@@ -587,7 +589,7 @@ void UCListItemAttached::stopDragging(QQuickMouseEvent *event)
     Q_D(UCListItemAttached);
     if (d->dragItem) {
         if (d->isDraggingUpdatedConnected()) {
-            UCDragEvent dragEvent(UCDragEvent::None, d->dragAllowedDirections, d->dragNewIndex, d->dragIndex);
+            UCDragEvent dragEvent(UCDragEvent::None, d->dragFromIndex, d->dragToIndex, d->dragMinimum, d->dragMaximum);
             Q_EMIT draggingUpdated(&dragEvent);
         }
         UCListItemPrivate::get(d->dragTempItem)->dragHandler->setDragging(false);
@@ -596,7 +598,7 @@ void UCListItemAttached::stopDragging(QQuickMouseEvent *event)
         d->dragVisible = 0;
         delete d->dragTempItem;
         d->dragTempItem = 0;
-        d->dragIndex = d->dragNewIndex = d->dragCurrentId = -1;
+        d->dragToIndex = d->dragFromIndex = -1;
     }
 }
 
@@ -605,35 +607,42 @@ void UCListItemAttached::updateDragging(QQuickMouseEvent *event)
     Q_UNUSED(event);
     Q_D(UCListItemAttached);
     if (d->dragItem) {
-        qreal dy = -(d->dragLastY - d->dragY());
-        // check direction, and continue only if the direction is allowed
-        UCDragEvent::Direction direction = UCDragEvent::None;
-        if (dy > 0 && d->dragAllowedDirections & UCDragEvent::Downwards) {
-            direction = UCDragEvent::Downwards;
-        } else if (dy < 0 && d->dragAllowedDirections & UCDragEvent::Upwards) {
-            direction = UCDragEvent::Upwards;
+        QPointF pos = d->mapDragAreaPos();
+        qreal dy = -(d->dragLastY - pos.y());
+        // check what will be the index after the drag
+        int index = d->indexAt(pos.x(), d->dragLastY + dy);
+        if (index < 0) {
+            return;
         }
-        if (direction == UCDragEvent::None) {
-            qDebug() << "NO DRAG! RETURN";
+        if ((d->dragMinimum >= 0) && (d->dragMinimum > index)) {
+            // about to drag beyond the minimum, leave
+            return;
+        }
+        if ((d->dragMaximum >= 0) && (d->dragMaximum < index)) {
+            // about to drag beyond maximum, leave
             return;
         }
 
-        // update dragged item's y-pos
+        // update dragged item
         d->dragTempItem->setY(d->dragTempItem->y() + dy);
         d->dragLastY += dy;
+        // do we have index change?
+        if (d->dragToIndex == index) {
+            // no change, leave
+            return;
+        }
+        UCDragEvent::Direction direction = (d->dragToIndex > index) ? UCDragEvent::Upwards : UCDragEvent::Downwards;
 
-        // get index over which we are, and continue if the index differs
-        // TODO: stop hammering indexAt(); use the height of the ListItem to know when to ask for the index
-        d->dragIndex = d->indexAt(d->dragHandlerArea->mouseX(), d->dragLastY);
-        if ((d->dragNewIndex != d->dragIndex) && (d->dragIndex != -1)) {
+        d->dragToIndex = index;
+        if ((d->dragFromIndex != d->dragToIndex) && (d->dragToIndex != -1)) {
             bool update = true;
             if (d->isDraggingUpdatedConnected()) {
-                UCDragEvent event(direction, d->dragAllowedDirections, d->dragNewIndex, d->dragIndex);
+                UCDragEvent event(direction, d->dragFromIndex, d->dragToIndex, d->dragMinimum, d->dragMaximum);
                 Q_EMIT draggingUpdated(&event);
                 update = event.m_accept;
             }
             if (update) {
-                d->dragNewIndex = d->dragIndex;
+                d->dragFromIndex = d->dragToIndex;
             }
         }
     }
@@ -655,10 +664,13 @@ bool UCListItemAttachedPrivate::isDraggingUpdatedConnected()
     return QObjectPrivate::get(q)->isSignalConnected(signalIdx);
 }
 
-qreal UCListItemAttachedPrivate::dragY()
+QPointF UCListItemAttachedPrivate::mapDragAreaPos()
 {
-    return dragHandlerArea->mouseY() + listView->contentY() - listView->originY();
+    QPointF pos(dragHandlerArea->mouseX(), dragHandlerArea->mouseY() + listView->contentY() - listView->originY());
+    pos = listView->mapFromItem(dragHandlerArea, pos);
+    return pos;
 }
+
 
 int UCListItemAttachedPrivate::indexAt(qreal x, qreal y)
 {

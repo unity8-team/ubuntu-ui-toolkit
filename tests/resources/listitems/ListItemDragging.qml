@@ -43,24 +43,24 @@ MainView {
             }
 
             ListItem.onDraggingStarted: {
-//                if (drag.from == 0) {
-//                    drag.directions = DragEvent.Downwards;
-//                } else if (drag.from == count - 1) {
-//                    drag.directions = DragEvent.Upwards;
-//                } else if ((drag.from + 1) % 4 == 0) {
-//                    print("invalid from:", drag.from)
-//                    drag.directions = DragEvent.Downwards;
-//                    // TODO: when restriction comes, drag handling must remember the index the drag was blocked
-//                }
-                main.liveDrag = true;
+                if (event.from < 3) {
+                    event.accept = false;
+                } else if (event.from >= 3 && event.from <= 10) {
+                    event.minimumIndex = 3;
+                    event.maximumIndex = 10;
+                    main.liveDrag = true
+                } else {
+                    event.minimumIndex = 11;
+                    main.liveDrag = false;
+                }
             }
 
             ListItem.onDraggingUpdated: {
-                if (main.liveDrag || drag.direction == DragEvent.None) {
+                if (main.liveDrag || event.direction == ListItemDrag.None) {
                     // last drag, or live drag, drop it
-                    model.move(drag.from, drag.to, 1);
+                    model.move(event.from, event.to, 1);
                 } else {
-                    drag.accept = false;
+                    event.accept = false;
                 }
             }
 
@@ -71,7 +71,6 @@ MainView {
                     }
                 }
             }
-//            model: ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","x","y","z"]
 
             delegate: ListItem {
                 objectName: "ListItem-" + index

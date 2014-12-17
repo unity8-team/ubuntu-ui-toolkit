@@ -154,7 +154,7 @@ public:
     bool isDraggingStartedConnected();
     bool isDraggingUpdatedConnected();
 
-    qreal dragY();
+    QPointF mapDragAreaPos();
     int indexAt(qreal x, qreal y);
     UCListItem *itemAt(qreal x, qreal y);
     void createDraggedItem();
@@ -177,9 +177,8 @@ public:
     UCListItem *dragTempItem;
     UCListItem *dragItem;
     qreal dragLastY;
-    int dragIndex;
-    int dragNewIndex;
-    int dragCurrentId;
+    int dragFromIndex;
+    int dragToIndex;
     int dragMinimum;
     int dragMaximum;
 
