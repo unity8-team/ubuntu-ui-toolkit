@@ -27,6 +27,7 @@
 #include <QtQuick/private/qquickanchors_p.h>
 #include <QtQuick/private/qquickmousearea_p.h>
 #include <QtQuick/private/qquickevents_p_p.h>
+#include <QtQml/private/qqmlcomponentattached_p.h>
 
 /*
  * The properties are attached to the ListItem's parent item or to its closest
@@ -39,6 +40,7 @@ UCListItemAttachedPrivate::UCListItemAttachedPrivate(UCListItemAttached *qq)
     : q_ptr(qq)
     , listView(0)
     , dragHandlerArea(0)
+    , ready(false)
     , globalDisabled(false)
     , selectable(false)
     , draggable(false)
@@ -130,6 +132,9 @@ UCListItemAttached::UCListItemAttached(QObject *owner)
         Q_D(UCListItemAttached);
         d->listView = static_cast<QQuickFlickable*>(owner);
     }
+    // check attachee's readyness
+    QQmlComponentAttached *attached = QQmlComponent::qmlAttachedProperties(owner);
+    connect(attached, SIGNAL(completed()), this, SLOT(completed()));
 }
 
 UCListItemAttached::~UCListItemAttached()
@@ -226,6 +231,17 @@ void UCListItemAttached::unbindItem()
     }
     // clear binding list
     d->clearFlickablesList();
+}
+
+void UCListItemAttached::completed()
+{
+    Q_D(UCListItemAttached);
+    d->ready = true;
+    if (d->draggable) {
+        d->enterDragMode();
+    } else {
+        d->leaveDragMode();
+    }
 }
 
 /*!
@@ -518,6 +534,9 @@ void UCListItemAttachedPrivate::setDragMode(bool value)
 
 void UCListItemAttachedPrivate::enterDragMode()
 {
+    if (dragHandlerArea || !ready) {
+        return;
+    }
     dragHandlerArea = new QQuickMouseArea(listView);
     dragHandlerArea->setParentItem(listView);
     QQuickAnchors *areaAnchors = QQuickItemPrivate::get(dragHandlerArea)->anchors();

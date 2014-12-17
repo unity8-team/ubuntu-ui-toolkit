@@ -162,6 +162,7 @@ public:
     UCListItemAttached *q_ptr;
     QQuickFlickable *listView;
     QQuickMouseArea *dragHandlerArea;
+    bool ready:1;
     bool globalDisabled:1;
     bool selectable:1;
     bool draggable:1;
@@ -336,12 +337,7 @@ public Q_SLOTS:
     void setupDragMode();
 
 protected:
-    QPointF lastPos;
     bool dragging:1;
-
-    QPointF panelCenterToListView();
-    QPointF mapMousePosToListView(QEvent *event);
-    QPointF deltaPos(const QPointF &pos);
 };
 
 #endif // UCVIEWITEM_P_H

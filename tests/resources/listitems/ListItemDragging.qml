@@ -37,19 +37,22 @@ MainView {
                 NumberAnimation {
                     id: moveTransition;
                     properties: "y";
-                    duration: UbuntuAnimation.BriskDuration;
+                    duration: UbuntuAnimation.FastDuration;
                     easing: UbuntuAnimation.StandardEasing
                 }
             }
 
             ListItem.onDraggingStarted: {
                 if (event.from < 3) {
+                    // do not drag first 3 items
                     event.accept = false;
                 } else if (event.from >= 3 && event.from <= 10) {
+                    // live drag between index 3 and 10
                     event.minimumIndex = 3;
                     event.maximumIndex = 10;
                     main.liveDrag = true
                 } else {
+                    // drop reorder after index 11, and forbid dragging those beyond 11
                     event.minimumIndex = 11;
                     main.liveDrag = false;
                 }
@@ -87,8 +90,8 @@ MainView {
                 }
 
                 onPressAndHold: {
-                    print("entering draggable mode")
-                    ListView.view.ListItem.dragMode = true;
+                    print("entering/leaving draggable mode")
+                    ListView.view.ListItem.dragMode = !ListView.view.ListItem.dragMode;
                 }
             }
         }

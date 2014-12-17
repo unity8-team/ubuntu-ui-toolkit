@@ -15,29 +15,6 @@ UCDragHandler::UCDragHandler(UCListItem *listItem)
 {
 }
 
-QPointF UCDragHandler::panelCenterToListView()
-{
-    QQuickFlickable *listView = UCListItemAttachedPrivate::get(listItem->attachedProperties)->listView;
-    QPointF pos(panel->width() / 2, panel->height() / 2);
-    pos = listView->mapFromItem(static_cast<QQuickItem*>(listItem->item()), pos);
-    return pos;
-}
-
-QPointF UCDragHandler::mapMousePosToListView(QEvent *event)
-{
-    QMouseEvent *mouse = static_cast<QMouseEvent*>(event);
-    return mouse->windowPos();
-}
-
-QPointF UCDragHandler::deltaPos(const QPointF &pos)
-{
-    qreal dx = -(lastPos.x() - pos.x());
-    qreal dy = -(lastPos.y() - pos.y());
-    QPointF result(dx, dy);
-    lastPos = pos;
-    return result;
-}
-
 // listen for attached property's draggable change signal to activate dragging mode on the list item
 void UCDragHandler::initialize()
 {

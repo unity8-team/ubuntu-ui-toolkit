@@ -135,6 +135,7 @@ public:
 
 private Q_SLOTS:
     void unbindItem();
+    void completed();
     // drag handling
     void startDragging(QQuickMouseEvent *event);
     void stopDragging(QQuickMouseEvent *event);
