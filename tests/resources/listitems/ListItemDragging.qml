@@ -23,7 +23,7 @@ MainView {
     height: units.gu(71)
     useDeprecatedToolbar: false
 
-    property bool liveDrag: false
+    property bool liveDrag: true
 
     Page {
         title: "Dragging test"
@@ -42,21 +42,21 @@ MainView {
                 }
             }
 
-            ListItem.onDraggingStarted: {
-                if (event.from < 3) {
-                    // do not drag first 3 items
-                    event.accept = false;
-                } else if (event.from >= 3 && event.from <= 10) {
-                    // live drag between index 3 and 10
-                    event.minimumIndex = 3;
-                    event.maximumIndex = 10;
-                    main.liveDrag = true
-                } else {
-                    // drop reorder after index 11, and forbid dragging those beyond 11
-                    event.minimumIndex = 11;
-                    main.liveDrag = false;
-                }
-            }
+//            ListItem.onDraggingStarted: {
+//                if (event.from < 3) {
+//                    // do not drag first 3 items
+//                    event.accept = false;
+//                } else if (event.from >= 3 && event.from <= 10) {
+//                    // live drag between index 3 and 10
+//                    event.minimumIndex = 3;
+//                    event.maximumIndex = 10;
+//                    main.liveDrag = true
+//                } else {
+//                    // drop reorder after index 11, and forbid dragging those beyond 11
+//                    event.minimumIndex = 11;
+//                    main.liveDrag = false;
+//                }
+//            }
 
             ListItem.onDraggingUpdated: {
                 if (main.liveDrag || event.direction == ListItemDrag.None) {
