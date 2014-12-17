@@ -180,7 +180,8 @@ public:
     int dragIndex;
     int dragNewIndex;
     int dragCurrentId;
-    UCDragEvent::Directions dragAllowedDirections;
+    int dragMinimum;
+    int dragMaximum;
 
     // getter/setter
     bool selectMode() const;
