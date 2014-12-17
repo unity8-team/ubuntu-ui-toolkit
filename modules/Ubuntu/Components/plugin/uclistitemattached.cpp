@@ -400,7 +400,7 @@ bool UCListItemAttachedPrivate::isItemSelected(UCListItem *item)
  *             // specify the interval
  *             event.minimumIndex = 5;
  *             event.maximumIndex = 10;
- *         } else if (event.from > 10) {
+ *         } else {
  *             // prevent dragging to the first 11 items area
  *             event.minimumIndex = 11;
  *         }
