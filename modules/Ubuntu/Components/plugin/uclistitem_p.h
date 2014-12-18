@@ -29,6 +29,11 @@
 #define DIVIDER_RIGHT_MARGIN_DP         2
 #define DIVIDER_THICKNESS_DP            2
 #define DEFAULT_SWIPE_THRESHOLD_GU      1.5
+#define DRAG_SCROLL_TIMEOUT             15
+
+#define MIN(x, y)           ((x) < (y) ? (x) : (y))
+#define MAX(x, y)           ((x) > (y) ? (x) : (y))
+#define CLAMP(v, min, max)  ((min) <= (max)) ? MAX(min, MIN(v, max)) : MAX(max, MIN(v, min))
 
 class QQuickFlickable;
 class QQuickPropertyAnimation;
@@ -173,11 +178,13 @@ public:
     QPointer<UCListItem> disablerItem;
 
     // drag handling
+    QBasicTimer dragScrollTimer;
     QQuickMouseArea *dragHandlerArea;
     PropertyChange *dragVisible;
     UCListItem *dragTempItem;
     UCListItem *dragItem;
     qreal dragLastY;
+    UCDragEvent::Direction dragDirection;
     int dragFromIndex;
     int dragToIndex;
     int dragMinimum;

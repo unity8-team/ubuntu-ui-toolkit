@@ -133,6 +133,9 @@ public:
     bool isMoving();
     bool isBoundTo(UCListItem *item);
 
+protected:
+    void timerEvent(QTimerEvent *event);
+
 private Q_SLOTS:
     void unbindItem();
     void completed();

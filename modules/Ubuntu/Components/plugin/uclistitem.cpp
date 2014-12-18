@@ -37,10 +37,6 @@
 #include "uclistitemstyle.h"
 #include "listener.h"
 
-#define MIN(x, y)           ((x < y) ? x : y)
-#define MAX(x, y)           ((x > y) ? x : y)
-#define CLAMP(v, min, max)  (min <= max) ? MAX(min, MIN(v, max)) : MAX(max, MIN(v, min))
-
 QColor getPaletteColor(const char *profile, const char *color)
 {
     QColor result;

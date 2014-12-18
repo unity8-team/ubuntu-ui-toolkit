@@ -23,7 +23,7 @@ MainView {
     height: units.gu(71)
     useDeprecatedToolbar: false
 
-    property bool liveDrag: true
+    property bool liveDrag: false
     property bool restrictOnStart: false
 
     Page {

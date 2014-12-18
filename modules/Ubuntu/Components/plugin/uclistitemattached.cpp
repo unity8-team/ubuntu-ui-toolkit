@@ -609,6 +609,8 @@ void UCListItemAttached::stopDragging(QQuickMouseEvent *event)
     Q_UNUSED(event);
     Q_D(UCListItemAttached);
     if (d->dragItem) {
+        // stop scroll timer
+        d->dragScrollTimer.stop();
         if (d->isDraggingUpdatedConnected()) {
             UCDragEvent dragEvent(UCDragEvent::None, d->dragFromIndex, d->dragToIndex, d->dragMinimum, d->dragMaximum);
             Q_EMIT draggingUpdated(&dragEvent);
@@ -657,10 +659,15 @@ void UCListItemAttached::updateDragging(QQuickMouseEvent *event)
         qreal bottomHotspot = d->dragTempItem->y() + d->dragTempItem->height() - scrollMargin;
         if (topHotspot < viewY + d->listView->topMargin()) {
             // scroll upwards
-            d->listView->setContentY(d->listView->contentY() + dy);
+            d->dragDirection = UCDragEvent::Upwards;
+            d->dragScrollTimer.start(DRAG_SCROLL_TIMEOUT, this);
         } else if (bottomHotspot > (viewY + d->listView->height() - d->listView->bottomMargin())) {
             // scroll downwards
-            d->listView->setContentY(d->listView->contentY() + dy);
+            d->dragDirection = UCDragEvent::Downwards;
+            d->dragScrollTimer.start(DRAG_SCROLL_TIMEOUT, this);
+        } else {
+            // stop drag timer
+            d->dragScrollTimer.stop();
         }
 
         // do we have index change?
@@ -668,19 +675,36 @@ void UCListItemAttached::updateDragging(QQuickMouseEvent *event)
             // no change, leave
             return;
         }
-        UCDragEvent::Direction direction = (d->dragToIndex > index) ? UCDragEvent::Upwards : UCDragEvent::Downwards;
+        // update drag direction to make sure we're reflecting the proper one
+        d->dragDirection = (d->dragToIndex > index) ? UCDragEvent::Upwards : UCDragEvent::Downwards;
 
         d->dragToIndex = index;
-        if ((d->dragFromIndex != d->dragToIndex) && (d->dragToIndex != -1)) {
+        if (d->dragFromIndex != d->dragToIndex) {
             bool update = true;
             if (d->isDraggingUpdatedConnected()) {
-                UCDragEvent event(direction, d->dragFromIndex, d->dragToIndex, d->dragMinimum, d->dragMaximum);
+                UCDragEvent event(d->dragDirection, d->dragFromIndex, d->dragToIndex, d->dragMinimum, d->dragMaximum);
                 Q_EMIT draggingUpdated(&event);
                 update = event.m_accept;
             }
             if (update) {
                 d->dragFromIndex = d->dragToIndex;
             }
+        }
+    }
+}
+
+void UCListItemAttached::timerEvent(QTimerEvent *event)
+{
+    Q_D(UCListItemAttached);
+    if (event->timerId() == d->dragScrollTimer.timerId()) {
+        qreal scrollAmount = UCUnits::instance().gu(0.5) * (d->dragDirection == UCDragEvent::Upwards ? -1 : 1);
+        qreal contentHeight = d->listView->contentHeight();
+        qreal height = d->listView->height();
+        if ((contentHeight - height) > 0) {
+            qreal contentY = CLAMP(d->listView->contentY() + scrollAmount, 0, contentHeight - height);
+            d->listView->setContentY(contentY);
+            // update
+            updateDragging(0);
         }
     }
 }
