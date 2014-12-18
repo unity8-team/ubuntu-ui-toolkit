@@ -20,6 +20,7 @@
 #include "uclistitem.h"
 #include "ucstyleditembase_p.h"
 #include <QtCore/QPointer>
+#include <QtCore/QBasicTimer>
 #include <QtQuick/private/qquickrectangle_p.h>
 
 class QQuickFlickable;
@@ -43,6 +44,8 @@ public:
         return that->d_func();
     }
 
+    bool isClickedConnected();
+    bool isPressAndHoldConnected();
     void _q_updateThemedData();
     void _q_rebound();
     void promptRebound();
@@ -58,7 +61,7 @@ public:
     void update();
     void clampAndMoveX(qreal &x, qreal dx);
 
-    bool pressed:1;
+    bool highlighted:1;
     bool contentMoved:1;
     bool highlightColorChanged:1;
     bool swiped:1;
@@ -70,6 +73,7 @@ public:
     bool flicked:1;
     qreal xAxisMoveThresholdGU;
     qreal overshoot;
+    QBasicTimer pressAndHoldTimer;
     QPointF lastPos;
     QPointF pressedPos;
     QColor color;
@@ -82,6 +86,7 @@ public:
     UCListItemActions *leadingActions;
     UCListItemActions *trailingActions;
     UCListItemSnapAnimator *animator;
+    UCAction *defaultAction;
 
     // FIXME move these to StyledItemBase togehther with subtheming.
     QQmlComponent *styleComponent;
@@ -99,6 +104,8 @@ public:
     bool loadStyle(bool reload);
     void initStyleItem();
     QQuickItem *styleInstance() const;
+    UCAction *action() const;
+    void setAction(UCAction *action);
 };
 
 class PropertyChange;
