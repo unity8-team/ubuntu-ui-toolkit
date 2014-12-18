@@ -24,6 +24,7 @@ MainView {
     useDeprecatedToolbar: false
 
     property bool liveDrag: true
+    property bool restrictOnStart: false
 
     Page {
         title: "Dragging test"
@@ -43,6 +44,10 @@ MainView {
             }
 
             ListItem.onDraggingStarted: {
+                if (!restrictOnStart) {
+                    return;
+                }
+
                 if (event.from < 3) {
                     // do not drag first 3 items
                     event.accept = false;

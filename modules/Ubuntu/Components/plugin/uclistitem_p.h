@@ -161,7 +161,6 @@ public:
 
     UCListItemAttached *q_ptr;
     QQuickFlickable *listView;
-    QQuickMouseArea *dragHandlerArea;
     bool ready:1;
     bool globalDisabled:1;
     bool selectable:1;
@@ -174,6 +173,7 @@ public:
     QPointer<UCListItem> disablerItem;
 
     // drag handling
+    QQuickMouseArea *dragHandlerArea;
     PropertyChange *dragVisible;
     UCListItem *dragTempItem;
     UCListItem *dragItem;
