@@ -24,7 +24,7 @@ MainView {
     useDeprecatedToolbar: false
 
     property bool liveDrag: true
-    property bool restrictOnStart: false
+    property bool restrictOnStart: true
 
     Page {
         title: "Dragging test"
@@ -82,7 +82,7 @@ MainView {
 
             delegate: ListItem {
                 objectName: "ListItem-" + index
-                color: dragging ? "#BBBBBB" : "transparent"
+                color: dragging ? "#30BBBBBB" : "transparent"
 
                 leadingActions: ListItemActions {
                     actions: Action {

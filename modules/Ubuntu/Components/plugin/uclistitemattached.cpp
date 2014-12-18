@@ -619,6 +619,7 @@ void UCListItemAttached::stopDragging(QQuickMouseEvent *event)
         d->dragVisible = 0;
         delete d->dragTempItem;
         d->dragTempItem = 0;
+        d->dragItem = 0;
         d->dragToIndex = d->dragFromIndex = -1;
     }
 }
@@ -630,8 +631,13 @@ void UCListItemAttached::updateDragging(QQuickMouseEvent *event)
     if (d->dragItem) {
         QPointF pos = d->mapDragAreaPos();
         qreal dy = -(d->dragLastY - pos.y());
+        qreal indexHotSpot = d->dragTempItem->y() + d->dragTempItem->height() / 2;
+        // update dragged item even if the dragging may be forbidden
+        d->dragTempItem->setY(d->dragTempItem->y() + dy);
+        d->dragLastY += dy;
+
         // check what will be the index after the drag
-        int index = d->indexAt(pos.x(), d->dragLastY + dy);
+        int index = d->indexAt(pos.x(), indexHotSpot);
         if (index < 0) {
             return;
         }
@@ -644,18 +650,15 @@ void UCListItemAttached::updateDragging(QQuickMouseEvent *event)
             return;
         }
 
-        // update dragged item
-        d->dragTempItem->setY(d->dragTempItem->y() + dy);
-        d->dragLastY += dy;
-        // should we scroll the view?
-        qreal viewY = d->listView->contentY() - d->listView->originY();
-        if (pos.y() < viewY + d->listView->topMargin()) {
-            // scroll upwards
-            d->listView->setContentY(viewY + dy);
-        } else if (pos.y() > (viewY + d->listView->height() - d->listView->bottomMargin())) {
-            // scroll downwards
-            d->listView->setContentY(viewY + dy);
-        }
+//        // should we scroll the view?
+//        qreal viewY = d->listView->contentY() - d->listView->originY();
+//        if (pos.y() < viewY + d->listView->topMargin()) {
+//            // scroll upwards
+//            d->listView->setContentY(viewY + dy);
+//        } else if (pos.y() > (viewY + d->listView->height() - d->listView->bottomMargin())) {
+//            // scroll downwards
+//            d->listView->setContentY(viewY + dy);
+//        }
 
         // do we have index change?
         if (d->dragToIndex == index) {
