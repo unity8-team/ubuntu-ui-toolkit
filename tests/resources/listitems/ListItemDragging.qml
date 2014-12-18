@@ -24,7 +24,7 @@ MainView {
     useDeprecatedToolbar: false
 
     property bool liveDrag: true
-    property bool restrictOnStart: true
+    property bool restrictOnStart: false
 
     Page {
         title: "Dragging test"

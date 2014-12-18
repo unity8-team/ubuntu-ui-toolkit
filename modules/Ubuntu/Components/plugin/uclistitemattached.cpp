@@ -650,15 +650,18 @@ void UCListItemAttached::updateDragging(QQuickMouseEvent *event)
             return;
         }
 
-//        // should we scroll the view?
-//        qreal viewY = d->listView->contentY() - d->listView->originY();
-//        if (pos.y() < viewY + d->listView->topMargin()) {
-//            // scroll upwards
-//            d->listView->setContentY(viewY + dy);
-//        } else if (pos.y() > (viewY + d->listView->height() - d->listView->bottomMargin())) {
-//            // scroll downwards
-//            d->listView->setContentY(viewY + dy);
-//        }
+        // should we scroll the view? use a margin of 20% of teh dragger item's height from top and bottom of the item
+        qreal viewY = d->listView->contentY() - d->listView->originY();
+        qreal scrollMargin = d->dragTempItem->height() * 0.2;
+        qreal topHotspot = d->dragTempItem->y() + scrollMargin;
+        qreal bottomHotspot = d->dragTempItem->y() + d->dragTempItem->height() - scrollMargin;
+        if (topHotspot < viewY + d->listView->topMargin()) {
+            // scroll upwards
+            d->listView->setContentY(d->listView->contentY() + dy);
+        } else if (bottomHotspot > (viewY + d->listView->height() - d->listView->bottomMargin())) {
+            // scroll downwards
+            d->listView->setContentY(d->listView->contentY() + dy);
+        }
 
         // do we have index change?
         if (d->dragToIndex == index) {
