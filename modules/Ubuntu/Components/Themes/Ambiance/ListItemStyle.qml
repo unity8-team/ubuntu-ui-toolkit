@@ -115,9 +115,13 @@ Styles.ListItemStyle {
         onSelectedChanged: checkbox.checked = selected
     }
 
+    dragRepositionAnimation: UbuntuNumberAnimation {
+        property: "y"
+    }
+
     dragHandlerDelegate: Item {
         id: dragHandler
-        objectName: "draghandler_panel" + index
+        objectName: "draghandler_panel"
         width: units.gu(5)
 
         readonly property ListItem listItem: parent

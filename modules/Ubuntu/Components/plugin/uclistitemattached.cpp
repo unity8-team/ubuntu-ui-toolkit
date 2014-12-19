@@ -18,6 +18,7 @@
 #include "uctheme.h"
 #include "uclistitem.h"
 #include "uclistitem_p.h"
+#include "uclistitemstyle.h"
 #include "propertychange_p.h"
 #include "quickutils.h"
 #include "i18n.h"
@@ -27,6 +28,7 @@
 #include <QtQuick/private/qquickanchors_p.h>
 #include <QtQuick/private/qquickmousearea_p.h>
 #include <QtQuick/private/qquickevents_p_p.h>
+#include <QtQuick/private/qquickanimation_p.h>
 #include <QtQml/private/qqmlcomponentattached_p.h>
 
 /*
@@ -48,6 +50,7 @@ UCListItemAttachedPrivate::UCListItemAttachedPrivate(UCListItemAttached *qq)
     , dragVisible(0)
     , dragTempItem(0)
     , dragItem(0)
+    , dragRepositionAnimation(0)
     , dragLastY(0)
     , dragFromIndex(-1)
     , dragToIndex(-1)
@@ -573,6 +576,10 @@ void UCListItemAttached::startDragging(QQuickMouseEvent *event)
 {
     Q_UNUSED(event);
     Q_D(UCListItemAttached);
+    if (d->dragRepositionAnimation && d->dragRepositionAnimation->isRunning()) {
+        d->dragRepositionAnimation->complete();
+        d->dragRepositionAnimation = 0;
+    }
     QPointF pos = d->mapDragAreaPos();
     UCListItem *listItem = d->itemAt(pos.x(), pos.y());
     if (!listItem) {
@@ -615,15 +622,51 @@ void UCListItemAttached::stopDragging(QQuickMouseEvent *event)
             UCDragEvent dragEvent(UCDragEvent::None, d->dragFromIndex, d->dragToIndex, d->dragMinimum, d->dragMaximum);
             Q_EMIT draggingUpdated(&dragEvent);
         }
-        UCListItemPrivate::get(d->dragTempItem)->dragHandler->setDragging(false);
-        disableInteractive(d->dragItem, false);
-        delete d->dragVisible;
-        d->dragVisible = 0;
-        delete d->dragTempItem;
-        d->dragTempItem = 0;
-        d->dragItem = 0;
-        d->dragToIndex = d->dragFromIndex = -1;
+        // do we have animation defined in style?
+        d->dragRepositionAnimation = UCListItemPrivate::get(d->dragItem)->styleItem->m_dragRepositionAnimation;
+        if (d->dragRepositionAnimation) {
+            connect(d->dragRepositionAnimation, &QQuickPropertyAnimation::stopped,
+                    this, &UCListItemAttached::draggedRepositioned,
+                    Qt::DirectConnection);
+            // make sure we have the 'y' proeprty animated
+            if (d->dragRepositionAnimation->property() != ("y")) {
+                QString properties = d->dragRepositionAnimation->properties();
+                if (properties.contains("y")) {
+                    properties = properties.isEmpty() ? "y" : "y," + properties;
+                }
+                d->dragRepositionAnimation->setProperties(properties);
+            }
+            d->dragRepositionAnimation->setFrom(d->dragTempItem->y());
+            d->dragRepositionAnimation->setTo(d->dragItem->y());
+            d->dragRepositionAnimation->setTargetObject(d->dragTempItem);
+            d->dragRepositionAnimation->start();
+        } else {
+            draggedRepositioned();
+        }
     }
+}
+
+void UCListItemAttached::draggedRepositioned()
+{
+    QQuickPropertyAnimation *animation = qobject_cast<QQuickPropertyAnimation*>(sender());
+    if (animation) {
+        disconnect(animation, &QQuickPropertyAnimation::stopped,
+                this, &UCListItemAttached::draggedRepositioned);
+    }
+
+    Q_D(UCListItemAttached);
+    if (!d->dragItem) {
+        return;
+    }
+    UCListItemPrivate::get(d->dragTempItem)->dragHandler->setDragging(false);
+    disableInteractive(d->dragItem, false);
+    delete d->dragVisible;
+    d->dragVisible = 0;
+    delete d->dragTempItem;
+    d->dragTempItem = 0;
+    d->dragItem = 0;
+    d->dragToIndex = d->dragFromIndex = -1;
+    d->dragRepositionAnimation = 0;
 }
 
 void UCListItemAttached::updateDragging(QQuickMouseEvent *event)
@@ -660,12 +703,16 @@ void UCListItemAttached::updateDragging(QQuickMouseEvent *event)
         if (topHotspot < viewY + d->listView->topMargin()) {
             // scroll upwards
             d->dragDirection = UCDragEvent::Upwards;
-            d->dragScrollTimer.start(DRAG_SCROLL_TIMEOUT, this);
+            if (!d->dragScrollTimer.isActive()) {
+                d->dragScrollTimer.start(DRAG_SCROLL_TIMEOUT, this);
+            }
         } else if (bottomHotspot > (viewY + d->listView->height() - d->listView->bottomMargin())) {
             // scroll downwards
             d->dragDirection = UCDragEvent::Downwards;
-            d->dragScrollTimer.start(DRAG_SCROLL_TIMEOUT, this);
-        } else {
+            if (!d->dragScrollTimer.isActive()) {
+                d->dragScrollTimer.start(DRAG_SCROLL_TIMEOUT, this);
+            }
+        } else if (d->dragScrollTimer.isActive()){
             // stop drag timer
             d->dragScrollTimer.stop();
         }
@@ -704,6 +751,7 @@ void UCListItemAttached::timerEvent(QTimerEvent *event)
             qreal contentY = CLAMP(d->listView->contentY() + scrollAmount, 0, contentHeight - height);
             d->listView->setContentY(contentY);
             // update
+            d->dragScrollTimer.stop();
             updateDragging(0);
         }
     }

@@ -139,6 +139,7 @@ protected:
 private Q_SLOTS:
     void unbindItem();
     void completed();
+    void draggedRepositioned();
     // drag handling
     void startDragging(QQuickMouseEvent *event);
     void stopDragging(QQuickMouseEvent *event);

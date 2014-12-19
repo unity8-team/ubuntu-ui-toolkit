@@ -23,8 +23,8 @@ MainView {
     height: units.gu(71)
     useDeprecatedToolbar: false
 
-    property bool liveDrag: false
-    property bool restrictOnStart: false
+    property bool liveDrag: true
+    property bool restrictOnStart: true
 
     Page {
         title: "Dragging test"
@@ -34,9 +34,7 @@ MainView {
             ListItem.selectMode: ListItem.dragMode
             contentItem.objectName: "ListViewContent"
             moveDisplaced: Transition {
-                id: displacedTransition
                 NumberAnimation {
-                    id: moveTransition;
                     properties: "y";
                     duration: UbuntuAnimation.FastDuration;
                     easing: UbuntuAnimation.StandardEasing
@@ -88,6 +86,22 @@ MainView {
                     actions: Action {
                         iconName: "delete"
                     }
+                }
+                trailingActions: ListItemActions {
+                    actions: [
+                        Action {
+                            iconName: "camcorder"
+                            onTriggered: print(iconName, "triggered", value)
+                        },
+                        Action {
+                            iconName: "camcorder"
+                            onTriggered: print(iconName, "triggered", value)
+                        },
+                        Action {
+                            iconName: "stock_website"
+                            onTriggered: print(iconName, "triggered", value)
+                        }
+                    ]
                 }
 
                 Label {

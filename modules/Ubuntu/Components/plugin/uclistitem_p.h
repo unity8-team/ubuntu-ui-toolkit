@@ -183,6 +183,7 @@ public:
     PropertyChange *dragVisible;
     UCListItem *dragTempItem;
     UCListItem *dragItem;
+    QQuickPropertyAnimation *dragRepositionAnimation;
     qreal dragLastY;
     UCDragEvent::Direction dragDirection;
     int dragFromIndex;

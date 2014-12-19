@@ -40,6 +40,7 @@ UCListItemStyle::UCListItemStyle(QQuickItem *parent)
     , m_selectionDelegate(0)
     , m_dragHandlerDelegate(0)
     , m_snapAnimation(0)
+    , m_dragRepositionAnimation(0)
     , m_swipeOvershoot(0)
 {
 }
@@ -188,6 +189,12 @@ UCListItemStyle::UCListItemStyle(QQuickItem *parent)
  *    }
  * }
  * \endqml
+ */
+
+/*!
+ * \qmlproperty PropertyAnimation ListItemStyle::dragRepositionAnimation
+ * The animation used when the dragged item repositions to the dropped or to the
+ * original position, depending on the acceptance of the droping.
  */
 
 /*!

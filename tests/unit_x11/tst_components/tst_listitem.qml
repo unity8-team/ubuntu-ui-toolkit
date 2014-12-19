@@ -220,6 +220,7 @@ Item {
             interactiveSpy.clear();
             listView.interactive = true;
             listView.ListItem.selectMode = false;
+            listView.ListItem.dragMode = false;
             // make sure we collapse
             mouseClick(defaults, 0, 0)
             movingSpy.target = null;
@@ -871,6 +872,22 @@ Item {
             waitForRendering(listItem.contentItem);
             // turn off selection mode so we have a proper cleanup
             verify(panel, "Selection panel not found, wrong attached property target?");
+        }
+
+        function test_1_dragmode_availability_data() {
+            return [
+                {tag: "Attached to Column", item: testColumn, lookupOn: testItem, xfail: true},
+                {tag: "Attached to ListView", item: listView, lookupOn: findChild(listView, "listItem0"), xfail: false},
+            ];
+        }
+        function test_1_dragmode_availability(data) {
+            data.item.ListItem.dragMode = true;
+            waitForRendering(data.lookupOn);
+            var panel = findChild(data.lookupOn, "draghandler_panel");
+            if (data.xfail) {
+                expectFailContinue(data.tag, "There should be no drag handler shown!")
+            }
+            verify(panel, "No drag handler found!");
         }
     }
 }
