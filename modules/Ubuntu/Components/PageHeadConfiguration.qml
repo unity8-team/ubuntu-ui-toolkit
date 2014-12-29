@@ -94,7 +94,18 @@ Object {
       See \l PageHeadState for an example that shows how search mode can
       be implemented.
      */
+    property Item __oldContents: null
     property Item contents: null
+
+    onContentsChanged: {
+        if (__oldContents) {
+            // FIX: bug #1341814 and #1400297
+            // We have to force the removal of the previous head.contents
+            // in order to show the new contents
+            __oldContents.parent = null
+        }
+        __oldContents = contents;
+    }
 
     // FIXME: The example below can be much simplified using PageHeadState
     //  when bug #1345775 has been fixed.
