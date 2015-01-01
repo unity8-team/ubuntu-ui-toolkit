@@ -1136,7 +1136,7 @@ void UCListItem::mousePressEvent(QMouseEvent *event)
         // while moving, we cannot select any items
         return;
     }
-    if (d->canHighlight(event) && !d->suppressClick
+    if (!d->attachedProperties->isMoving() && d->canHighlight(event) && !d->suppressClick
             && !d->highlighted && event->button() == Qt::LeftButton) {
         d->setPressed(true);
         d->lastPos = d->pressedPos = event->localPos();

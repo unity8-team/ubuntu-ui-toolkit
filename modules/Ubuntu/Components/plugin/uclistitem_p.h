@@ -162,7 +162,8 @@ public:
     QPointF mapDragAreaPos();
     int indexAt(qreal x, qreal y);
     UCListItem *itemAt(qreal x, qreal y);
-    void createDraggedItem();
+    void createDraggedItem(UCListItem *dragItem);
+    void updateDraggedItem();
 
     UCListItemAttached *q_ptr;
     QQuickFlickable *listView;
@@ -180,10 +181,7 @@ public:
     // drag handling
     QBasicTimer dragScrollTimer;
     QQuickMouseArea *dragHandlerArea;
-    PropertyChange *dragVisible;
-    UCListItem *dragTempItem;
-    UCListItem *dragItem;
-    QQuickPropertyAnimation *dragRepositionAnimation;
+    QPointer<UCListItem> dragTempItem;
     qreal dragLastY;
     UCDragEvent::Direction dragDirection;
     int dragFromIndex;
@@ -318,34 +316,37 @@ class UCDragHandler : public UCHandlerBase
     Q_OBJECT
 public:
     explicit UCDragHandler(UCListItem *listItem);
+    ~UCDragHandler();
 
     void initialize();
     bool isDragging()
     {
         return dragging;
     }
-    void setDragging(bool value)
-    {
-        if (dragging == value) {
-            return;
-        }
-        dragging = value;
-        Q_EMIT listItem->item()->draggingChanged();
-    }
+    void setDragging(bool value);
 
     bool isPanel(QQuickItem *item)
     {
         return item == panel;
     }
 
+    void startDragging(UCListItem *item);
+    void stopDragging();
+    void update(UCListItem *newItem);
+
 Q_SIGNALS:
     void draggingChanged();
 
 public Q_SLOTS:
     void setupDragMode();
+    void repositionDraggedItem();
 
 protected:
     bool dragging:1;
+    bool isFakeItem:1;
+    QPointer<UCListItem> originalItem;
+    PropertyChange *visibleProperty;
+    QQuickPropertyAnimation *repositionAnimation;
 };
 
 #endif // UCVIEWITEM_P_H

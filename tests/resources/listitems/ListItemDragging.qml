@@ -16,6 +16,7 @@
 
 import QtQuick 2.2
 import Ubuntu.Components 1.2
+import Ubuntu.Components.ListItems 1.0 as ListItems
 
 MainView {
     id: main
@@ -26,18 +27,32 @@ MainView {
     property bool liveDrag: true
     property bool restrictOnStart: true
 
+    Action {
+        id: deleteAction
+        iconName: "delete"
+    }
+
+    property list<Action> trailingActionList: [
+        Action {
+            iconName: "edit"
+        },
+        Action {
+            iconName: "camcorder"
+        },
+        Action {
+            iconName: "stock_website"
+        }
+    ]
+
     Page {
         title: "Dragging test"
         ListView {
             anchors.fill: parent
-            ListItem.dragMode: true
             ListItem.selectMode: ListItem.dragMode
             contentItem.objectName: "ListViewContent"
             moveDisplaced: Transition {
-                NumberAnimation {
+                UbuntuNumberAnimation {
                     properties: "y";
-                    duration: UbuntuAnimation.FastDuration;
-                    easing: UbuntuAnimation.StandardEasing
                 }
             }
 
@@ -72,9 +87,23 @@ MainView {
 
             model: ListModel {
                 Component.onCompleted: {
-                    for (var i = 0; i < 25; i++) {
-                        append({label: "List item #"+i})
+                    for (var i = 0; i < 3; i++) {
+                        append({label: "List item #"+i, sectionData: "Locked"});
                     }
+                    for (i = 3; i < 11; i++) {
+                        append({label: "List item #"+i, sectionData: "Limited"});
+                    }
+                    for (i = 11; i < 25; i++) {
+                        append({label: "List item #"+i, sectionData: "Unlimited"});
+                    }
+                }
+            }
+
+            section {
+                property: "sectionData"
+                criteria: ViewSection.FullString
+                delegate: ListItems.Header {
+                    text: section
                 }
             }
 
@@ -83,29 +112,14 @@ MainView {
                 color: dragging ? "#30BBBBBB" : "transparent"
 
                 leadingActions: ListItemActions {
-                    actions: Action {
-                        iconName: "delete"
-                    }
+                    actions: deleteAction
                 }
                 trailingActions: ListItemActions {
-                    actions: [
-                        Action {
-                            iconName: "camcorder"
-                            onTriggered: print(iconName, "triggered", value)
-                        },
-                        Action {
-                            iconName: "camcorder"
-                            onTriggered: print(iconName, "triggered", value)
-                        },
-                        Action {
-                            iconName: "stock_website"
-                            onTriggered: print(iconName, "triggered", value)
-                        }
-                    ]
+                    actions: trailingActionList
                 }
 
                 Label {
-                    text: modelData
+                    text: label + ", now @ index " + index
                 }
 
                 onPressAndHold: {

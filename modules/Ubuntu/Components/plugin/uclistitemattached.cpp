@@ -28,7 +28,6 @@
 #include <QtQuick/private/qquickanchors_p.h>
 #include <QtQuick/private/qquickmousearea_p.h>
 #include <QtQuick/private/qquickevents_p_p.h>
-#include <QtQuick/private/qquickanimation_p.h>
 #include <QtQml/private/qqmlcomponentattached_p.h>
 
 /*
@@ -47,10 +46,7 @@ UCListItemAttachedPrivate::UCListItemAttachedPrivate(UCListItemAttached *qq)
     , draggable(false)
     , dragSuspended(false)
     , dragHandlerArea(0)
-    , dragVisible(0)
     , dragTempItem(0)
-    , dragItem(0)
-    , dragRepositionAnimation(0)
     , dragLastY(0)
     , dragFromIndex(-1)
     , dragToIndex(-1)
@@ -73,6 +69,8 @@ void UCListItemAttachedPrivate::clearFlickablesList()
         if (flickable.data())
         QObject::disconnect(flickable.data(), &QQuickFlickable::movementStarted,
                             q, &UCListItemAttached::unbindItem);
+        QObject::disconnect(flickable, &QQuickFlickable::flickStarted,
+                            q, &UCListItemAttached::unbindItem);
     }
     flickables.clear();
 }
@@ -90,6 +88,8 @@ void UCListItemAttachedPrivate::buildFlickablesList()
         QQuickFlickable *flickable = qobject_cast<QQuickFlickable*>(item);
         if (flickable) {
             QObject::connect(flickable, &QQuickFlickable::movementStarted,
+                             q, &UCListItemAttached::unbindItem);
+            QObject::connect(flickable, &QQuickFlickable::flickStarted,
                              q, &UCListItemAttached::unbindItem);
             flickables << flickable;
         }
@@ -537,6 +537,7 @@ void UCListItemAttachedPrivate::setDragMode(bool value)
     Q_EMIT q->dragModeChanged();
 }
 
+// enters dragging mode, creates a MouseArea over the right side of the item
 void UCListItemAttachedPrivate::enterDragMode()
 {
     if (dragHandlerArea || !ready) {
@@ -566,20 +567,20 @@ void UCListItemAttachedPrivate::enterDragMode()
     }
 }
 
+// leaves the drag mode.
 void UCListItemAttachedPrivate::leaveDragMode()
 {
     delete dragHandlerArea;
     dragHandlerArea = 0;
 }
 
+// starts dragging operation; emits draggingStarted() and if the signal handler is implemented,
+// depending on the acceptance, will create a fake item and will start dragging. If the start is
+// cancelled, no dragging will happen
 void UCListItemAttached::startDragging(QQuickMouseEvent *event)
 {
     Q_UNUSED(event);
     Q_D(UCListItemAttached);
-    if (d->dragRepositionAnimation && d->dragRepositionAnimation->isRunning()) {
-        d->dragRepositionAnimation->complete();
-        d->dragRepositionAnimation = 0;
-    }
     QPointF pos = d->mapDragAreaPos();
     UCListItem *listItem = d->itemAt(pos.x(), pos.y());
     if (!listItem) {
@@ -598,16 +599,11 @@ void UCListItemAttached::startDragging(QQuickMouseEvent *event)
         d->dragMaximum = event.m_maximum;
     }
     if (start) {
-        d->dragItem = listItem;
-        d->dragVisible = new PropertyChange(d->dragItem, "visible");
+        // lock ListView and turn on dragging flags
+        d->buildChangesList(false);
         d->dragToIndex = d->dragFromIndex = index;
         d->dragLastY = pos.y();
-        d->createDraggedItem();
-
-        // lock ListView and rise z-order
-        disableInteractive(d->dragItem, true);
-        PropertyChange::setValue(d->dragVisible, false);
-        UCListItemPrivate::get(d->dragTempItem)->dragHandler->setDragging(true);
+        d->createDraggedItem(listItem);
     }
 }
 
@@ -615,74 +611,35 @@ void UCListItemAttached::stopDragging(QQuickMouseEvent *event)
 {
     Q_UNUSED(event);
     Q_D(UCListItemAttached);
-    if (d->dragItem) {
+    if (d->dragTempItem) {
         // stop scroll timer
         d->dragScrollTimer.stop();
         if (d->isDraggingUpdatedConnected()) {
             UCDragEvent dragEvent(UCDragEvent::None, d->dragFromIndex, d->dragToIndex, d->dragMinimum, d->dragMaximum);
             Q_EMIT draggingUpdated(&dragEvent);
+            d->updateDraggedItem();
         }
-        // do we have animation defined in style?
-        d->dragRepositionAnimation = UCListItemPrivate::get(d->dragItem)->styleItem->m_dragRepositionAnimation;
-        if (d->dragRepositionAnimation) {
-            connect(d->dragRepositionAnimation, &QQuickPropertyAnimation::stopped,
-                    this, &UCListItemAttached::draggedRepositioned,
-                    Qt::DirectConnection);
-            // make sure we have the 'y' proeprty animated
-            if (d->dragRepositionAnimation->property() != ("y")) {
-                QString properties = d->dragRepositionAnimation->properties();
-                if (properties.contains("y")) {
-                    properties = properties.isEmpty() ? "y" : "y," + properties;
-                }
-                d->dragRepositionAnimation->setProperties(properties);
-            }
-            d->dragRepositionAnimation->setFrom(d->dragTempItem->y());
-            d->dragRepositionAnimation->setTo(d->dragItem->y());
-            d->dragRepositionAnimation->setTargetObject(d->dragTempItem);
-            d->dragRepositionAnimation->start();
-        } else {
-            draggedRepositioned();
-        }
+        // unlock flickables
+        d->clearChangesList();
+        UCListItemPrivate::get(d->dragTempItem)->dragHandler->stopDragging();
+        d->dragFromIndex = d->dragToIndex = -1;
     }
-}
-
-void UCListItemAttached::draggedRepositioned()
-{
-    QQuickPropertyAnimation *animation = qobject_cast<QQuickPropertyAnimation*>(sender());
-    if (animation) {
-        disconnect(animation, &QQuickPropertyAnimation::stopped,
-                this, &UCListItemAttached::draggedRepositioned);
-    }
-
-    Q_D(UCListItemAttached);
-    if (!d->dragItem) {
-        return;
-    }
-    UCListItemPrivate::get(d->dragTempItem)->dragHandler->setDragging(false);
-    disableInteractive(d->dragItem, false);
-    delete d->dragVisible;
-    d->dragVisible = 0;
-    delete d->dragTempItem;
-    d->dragTempItem = 0;
-    d->dragItem = 0;
-    d->dragToIndex = d->dragFromIndex = -1;
-    d->dragRepositionAnimation = 0;
 }
 
 void UCListItemAttached::updateDragging(QQuickMouseEvent *event)
 {
     Q_UNUSED(event);
     Q_D(UCListItemAttached);
-    if (d->dragItem) {
+    if (d->dragTempItem) {
         QPointF pos = d->mapDragAreaPos();
         qreal dy = -(d->dragLastY - pos.y());
-        qreal indexHotSpot = d->dragTempItem->y() + d->dragTempItem->height() / 2;
+        qreal indexHotspot = d->dragTempItem->y() + d->dragTempItem->height() / 2;
         // update dragged item even if the dragging may be forbidden
         d->dragTempItem->setY(d->dragTempItem->y() + dy);
         d->dragLastY += dy;
 
         // check what will be the index after the drag
-        int index = d->indexAt(pos.x(), indexHotSpot);
+        int index = d->indexAt(pos.x(), indexHotspot);
         if (index < 0) {
             return;
         }
@@ -696,17 +653,19 @@ void UCListItemAttached::updateDragging(QQuickMouseEvent *event)
         }
 
         // should we scroll the view? use a margin of 20% of teh dragger item's height from top and bottom of the item
-        qreal viewY = d->listView->contentY() - d->listView->originY();
         qreal scrollMargin = d->dragTempItem->height() * 0.2;
-        qreal topHotspot = d->dragTempItem->y() + scrollMargin;
-        qreal bottomHotspot = d->dragTempItem->y() + d->dragTempItem->height() - scrollMargin;
-        if (topHotspot < viewY + d->listView->topMargin()) {
+        qreal topHotspot = d->dragTempItem->y() + scrollMargin - d->listView->contentY();
+        qreal bottomHotspot = d->dragTempItem->y() + d->dragTempItem->height() - scrollMargin - d->listView->contentY();
+        // use MouseArea's top/bottom as limits
+        qreal topViewMargin = d->dragHandlerArea->y() + d->listView->topMargin();
+        qreal bottomViewMargin = d->dragHandlerArea->y() + d->dragHandlerArea->height() - d->listView->bottomMargin();
+        if (topHotspot < topViewMargin) {
             // scroll upwards
             d->dragDirection = UCDragEvent::Upwards;
             if (!d->dragScrollTimer.isActive()) {
                 d->dragScrollTimer.start(DRAG_SCROLL_TIMEOUT, this);
             }
-        } else if (bottomHotspot > (viewY + d->listView->height() - d->listView->bottomMargin())) {
+        } else if (bottomHotspot > bottomViewMargin) {
             // scroll downwards
             d->dragDirection = UCDragEvent::Downwards;
             if (!d->dragScrollTimer.isActive()) {
@@ -734,6 +693,8 @@ void UCListItemAttached::updateDragging(QQuickMouseEvent *event)
                 update = event.m_accept;
             }
             if (update) {
+                // update item coordinates in the dragged item
+                d->updateDraggedItem();
                 d->dragFromIndex = d->dragToIndex;
             }
         }
@@ -748,7 +709,7 @@ void UCListItemAttached::timerEvent(QTimerEvent *event)
         qreal contentHeight = d->listView->contentHeight();
         qreal height = d->listView->height();
         if ((contentHeight - height) > 0) {
-            qreal contentY = CLAMP(d->listView->contentY() + scrollAmount, 0, contentHeight - height);
+            qreal contentY = CLAMP(d->listView->contentY() + scrollAmount, 0, contentHeight - height + d->listView->originY());
             d->listView->setContentY(contentY);
             // update
             d->dragScrollTimer.stop();
@@ -775,7 +736,7 @@ bool UCListItemAttachedPrivate::isDraggingUpdatedConnected()
 
 QPointF UCListItemAttachedPrivate::mapDragAreaPos()
 {
-    QPointF pos(dragHandlerArea->mouseX(), dragHandlerArea->mouseY() + listView->contentY() - listView->originY());
+    QPointF pos(dragHandlerArea->mouseX(), dragHandlerArea->mouseY() + listView->contentY());
     pos = listView->mapFromItem(dragHandlerArea, pos);
     return pos;
 }
@@ -810,36 +771,25 @@ UCListItem *UCListItemAttachedPrivate::itemAt(qreal x, qreal y)
 }
 
 
-void UCListItemAttachedPrivate::createDraggedItem()
+void UCListItemAttachedPrivate::createDraggedItem(UCListItem *dragItem)
 {
     if (dragTempItem || !dragItem) {
         return;
     }
     QQmlComponent *delegate = listView->property("delegate").value<QQmlComponent*>();
     if (!delegate) {
+        return;
     }
     // use dragItem's context to get access to the ListView's model roles
     dragTempItem = static_cast<UCListItem*>(delegate->create(qmlContext(dragItem)));
-    dragTempItem->setVisible(false);
     dragTempItem->setParentItem(listView->contentItem());
-    // initialize style and turn panels on
-    UCListItemPrivate *pItem = UCListItemPrivate::get(dragTempItem);
-    pItem->initStyleItem();
-    if (pItem->isSelectable()) {
-        pItem->selectionHandler->setupSelection();
+    UCListItemPrivate::get(dragTempItem)->dragHandler->startDragging(dragItem);
+}
+
+void UCListItemAttachedPrivate::updateDraggedItem()
+{
+    if (abs(dragFromIndex - dragToIndex) > 0) {
+        UCListItem *targetItem = itemAt(dragTempItem->x(), dragTempItem->y() + dragTempItem->height() / 2);
+        UCListItemPrivate::get(dragTempItem)->dragHandler->update(targetItem);
     }
-    if (pItem->isDraggable()) {
-        pItem->dragHandler->setupDragMode();
-    }
-    dragTempItem->setX(dragItem->x());
-    dragTempItem->setY(dragItem->y());
-    dragTempItem->setZ(2);
-    dragTempItem->setWidth(dragItem->width());
-    dragTempItem->setHeight(dragItem->height());
-    QColor color = dragItem->color();
-    if (color.alphaF() == 0.0) {
-        color = QuickUtils::instance().rootItem(listView)->property("backgroundColor").value<QColor>();
-    }
-    dragTempItem->setColor(color);
-    dragTempItem->setVisible(true);
 }

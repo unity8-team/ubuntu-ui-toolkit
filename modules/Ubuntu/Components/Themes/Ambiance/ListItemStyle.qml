@@ -147,18 +147,29 @@ Styles.ListItemStyle {
             scale: 0.5
         }
 
-        states: State {
-            name: "enabled"
-            PropertyChanges {
-                target: dragIcon
-                opacity: 1.0
-                scale: 1.0
+        states: [
+            State {
+                name: "enabled"
+                PropertyChanges {
+                    target: dragIcon
+                    opacity: 1.0
+                    scale: 1.0
+                }
+                PropertyChanges {
+                    target: contentItem
+                    width: listItem.width - dragHandler.width - (listItem.selectable ? units.gu(5) : 0)
+                }
+            },
+            State {
+                name: "dragging"
+                extend: "enabled"
+                PropertyChanges {
+                    target: dragIcon
+                    scale: 1.5
+                }
             }
-            PropertyChanges {
-                target: contentItem
-                width: listItem.width - dragHandler.width - (listItem.selectable ? units.gu(5) : 0)
-            }
-        }
+
+        ]
 
         transitions: Transition {
             from: ""
@@ -176,7 +187,9 @@ Styles.ListItemStyle {
         // make sure the state is changed only after component completion
         Component.onCompleted: {
             state = Qt.binding(function () {
-                return listItem && listItem.draggable ? "enabled" : "";
+                return listItem && listItem.draggable ?
+                            (listItem.dragged ? "dragged" : "enabled") :
+                            "";
             });
         }
     }
