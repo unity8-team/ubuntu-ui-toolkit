@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import QtQuick 2.0
-import Ubuntu.Components 0.1
+import Ubuntu.Components 1.1
 
 Item {
     // styling properties
@@ -47,21 +47,13 @@ Item {
         anchors.fill: parent
         source: mainViewStyle.backgroundSource
         fillMode: Image.Tile
+        asynchronous: true
+        cache: false
     }
 
     QtObject {
         id: internals
-        property bool isLight: ColorUtils.luminance(styledItem.backgroundColor) >= 0.85
         property bool isGradient: styledItem.backgroundColor != styledItem.headerColor ||
                                   styledItem.backgroundColor != styledItem.footerColor
-        property string theme: isLight ? "Ambiance" :
-                              (isGradient ? "SuruGradient" : "SuruDark")
-    }
-
-    // automatically select the appropriate theme depending on the background colors
-    Binding {
-        target: Theme
-        property: "name"
-        value: "Ubuntu.Components.Themes.%1".arg(internals.theme)
     }
 }

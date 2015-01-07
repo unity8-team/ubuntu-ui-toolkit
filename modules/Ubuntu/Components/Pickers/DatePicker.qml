@@ -15,11 +15,11 @@
  */
 
 import QtQuick 2.0
-import Ubuntu.Components 0.1
+import Ubuntu.Components 1.1
 
 /*!
     \qmltype DatePicker
-    \inqmlmodule Ubuntu.Components.Pickers 0.1
+    \inqmlmodule Ubuntu.Components.Pickers 1.0
     \ingroup ubuntu-pickers
     \brief DatePicker component provides date and time value picking functionality.
 
@@ -36,13 +36,13 @@ import Ubuntu.Components 0.1
 
     \qml
     import QtQuick 2.0
-    import Ubuntu.Components 0.1
-    import Ubuntu.Components.Pickers 0.1
+    import Ubuntu.Components 1.1
+    import Ubuntu.Components.Pickers 1.0
 
     Column {
         Label {
             text: "Selected date: W" + datePicker.week + " - " +
-                    Qt.formatDate(datePicker.date, "dddd, dd-mmmm-yyyy")
+                    Qt.formatDate(datePicker.date, "dddd, dd-MMMM-yyyy")
         }
         DatePicker {
             id: datePicker
@@ -56,12 +56,12 @@ import Ubuntu.Components 0.1
     which shows only year and month date units would look as follows:
     \qml
     import QtQuick 2.0
-    import Ubuntu.Components 0.1
-    import Ubuntu.Components.Pickers 0.1
+    import Ubuntu.Components 1.1
+    import Ubuntu.Components.Pickers 1.0
 
     Column {
         Label {
-            text: "Selected month: " + Qt.formatDate(datePicker.date, "mmmm-yyyy")
+            text: "Selected month: " + Qt.formatDate(datePicker.date, "MMMM-yyyy")
         }
         DatePicker {
             id: datePicker
@@ -75,8 +75,8 @@ import Ubuntu.Components 0.1
     The following example demonstrates how to use DatePicker for time picking.
     \qml
     import QtQuick 2.0
-    import Ubuntu.Components 0.1
-    import Ubuntu.Components.Pickers 0.1
+    import Ubuntu.Components 1.1
+    import Ubuntu.Components.Pickers 1.0
 
     Column {
         Label {
@@ -112,12 +112,12 @@ import Ubuntu.Components 0.1
     \endlist
     \qml
     import QtQuick 2.0
-    import Ubuntu.Components 0.1
-    import Ubuntu.Components.Pickers 0.1
+    import Ubuntu.Components 1.1
+    import Ubuntu.Components.Pickers 1.0
 
     Column {
         Label {
-            text: "Selected date: " + Qt.formatDate(datePicker.date, "dddd, dd-mmmm-yyyy")
+            text: "Selected date: " + Qt.formatDate(datePicker.date, "dddd, dd-MMMM-yyyy")
         }
         DatePicker {
             id: datePicker
@@ -292,8 +292,17 @@ StyledItem {
       */
     property var locale: Qt.locale()
 
+    /*!
+      \qmlproperty bool moving
+      \readonly
+      The property holds whether the component's pickers are moving.
+      \sa Picker::moving
+      */
+    readonly property alias moving: positioner.moving
+
     implicitWidth: units.gu(36)
     implicitHeight: units.gu(20)
+    activeFocusOnPress: true
 
     /*! \internal */
     onMinimumChanged: {
@@ -453,6 +462,13 @@ StyledItem {
               */
         id: tumblerModel
 
+        /*
+          Signal triggered when the model is about to remove a picker. We cannot rely on
+          rowAboutToBeRemoved, as by the time the signal is called the list element is
+          already removed from the model.
+          */
+        signal pickerRemoved(int index)
+
         // the function checks whether a pickerModel was added or not
         // returns the index of the model object the pickerModel was found
         // or -1 on error.
@@ -480,6 +496,7 @@ StyledItem {
         function removePicker(name) {
             var idx = pickerModelIndex(name);
             if (idx >= 0) {
+                pickerRemoved(idx);
                 remove(idx);
             }
         }
@@ -507,7 +524,8 @@ StyledItem {
         function updatePickers() {
             if (completed) {
                 // check mode flags first
-                var modes = datePicker.mode.split(/\W/g);
+                // FIXME: The js split(/\W/g) terminates the process on armhf with Qt 5.3 (v4 js) (https://bugreports.qt-project.org/browse/QTBUG-39255)
+                var modes = datePicker.mode.match(/\w+/g);
 
                 showYearPicker = showMonthPicker = showDayPicker =
                 showHoursPicker = showMinutesPicker = showSecondsPicker = false;
@@ -540,20 +558,20 @@ StyledItem {
 
                 // filter unaccepted date picking mode
                 if (!showMonthPicker && showYearPicker && showDayPicker) {
-                    console.error("Invalid DatePicker mode: " + datePicker.mode);
+                    console.warn("Invalid DatePicker mode: " + datePicker.mode);
                     return;
                 }
 
                 // filter unaccepted time picking mode
                 if (showHoursPicker && showSecondsPicker && !showMinutesPicker) {
-                    console.error("Invalid DatePicker mode: " + datePicker.mode);
+                    console.warn("Invalid DatePicker mode: " + datePicker.mode);
                     return;
                 }
 
                 // date and time picking not allowed at the same time
                 if ((showYearPicker || showMonthPicker || showDayPicker) &&
                         (showHoursPicker || showMinutesPicker || showSecondsPicker)) {
-                    console.error("Date and Time picking not allowed at the same time.");
+                    console.warn("Date and Time picking not allowed at the same time.");
                     return;
                 }
 
@@ -591,7 +609,8 @@ StyledItem {
             completed = false;
 
             // use short format to exclude any extra characters
-            var format = datePicker.locale.dateFormat(Locale.ShortFormat).split(/\W/g);
+            // FIXME: The js split(/\W/g) terminates the process on armhf with Qt 5.3 (v4 js) (https://bugreports.qt-project.org/browse/QTBUG-39255)
+            var format = datePicker.locale.dateFormat(Locale.ShortFormat).match(/\w+/g);
             // loop through the format to decide the position of the tumbler
             var formatIndex = 0;
             for (var i in format) {
@@ -651,5 +670,3 @@ StyledItem {
         }
     }
 }
-
-

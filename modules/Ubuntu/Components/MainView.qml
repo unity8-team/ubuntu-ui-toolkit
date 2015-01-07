@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2013 Canonical Ltd.
+ * Copyright 2012-2014 Canonical Ltd.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,21 +14,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import QtQuick 2.0
-import Ubuntu.Unity.Action 1.0 as UnityActions
+import QtQuick 2.2
+import Ubuntu.Components 1.1 as Toolkit
+import Ubuntu.PerformanceMetrics 1.0
+import QtQuick.Window 2.0
 
 /*!
     \qmltype MainView
-    \inqmlmodule Ubuntu.Components 0.1
+    \inqmlmodule Ubuntu.Components 1.1
     \ingroup ubuntu
     \brief MainView is the root Item that should be used for all applications.
         It automatically adds a header and toolbar for its contents and can
         rotate its content based on the device orientation.
 
-    The simplest way to use a MainView is to include a \l Page object inside the MainView:
+    The simplest way to use a MainView is to include a single \l Page object
+    inside the MainView:
     \qml
         import QtQuick 2.0
-        import Ubuntu.Components 0.1
+        import Ubuntu.Components 1.1
 
         MainView {
             width: units.gu(48)
@@ -48,6 +51,9 @@ import Ubuntu.Unity.Action 1.0 as UnityActions
     It is not required to set the anchors of the \l Page as it will automatically fill its parent.
     The MainView has a header that automatically shows the title of the \l Page.
 
+    Do not include multiple Pages directly inside the MainView, but use \l Tabs
+    or \l PageStack inside MainView to navigate between several Pages.
+
     For the MainView to automatically rotate its content following the orientation
     of the device, set the \l automaticOrientation property to true.
 
@@ -55,7 +61,7 @@ import Ubuntu.Unity.Action 1.0 as UnityActions
     will automatically hide and show when the user scrolls up or down:
     \qml
         import QtQuick 2.0
-        import Ubuntu.Components 0.1
+        import Ubuntu.Components 1.1
 
         MainView {
             width: units.gu(48)
@@ -87,7 +93,7 @@ import Ubuntu.Unity.Action 1.0 as UnityActions
     A toolbar can be added to the application by setting the tools property of the \l Page:
     \qml
         import QtQuick 2.0
-        import Ubuntu.Components 0.1
+        import Ubuntu.Components 1.1
 
         MainView {
             width: units.gu(48)
@@ -130,7 +136,6 @@ PageTreeNode {
     id: mainView
 
     /*!
-      \preliminary
       The property holds the application's name, which must be the same as the
       desktop file's name.
       The name also sets the name of the QCoreApplication and defaults for data
@@ -141,7 +146,6 @@ PageTreeNode {
     property string applicationName: ""
 
     /*!
-      \preliminary
       The property holds if the application should automatically resize the
       contents when the input method appears
 
@@ -167,7 +171,7 @@ PageTreeNode {
       the content:
       \qml
           import QtQuick 2.0
-          import Ubuntu.Components 0.1
+          import Ubuntu.Components 1.1
 
           MainView {
               width: units.gu(40)
@@ -201,6 +205,22 @@ PageTreeNode {
         property color headerColor: backgroundColor
         property color backgroundColor: Theme.palette.normal.background
         property color footerColor: backgroundColor
+
+        /*
+          As we don't know the order the property bindings and onXXXChanged signals are evaluated
+          we should rely only on one property when changing the theme to avoid intermediate
+          theme changes due to properties being evaluated separately.
+
+          Qt bug: https://bugreports.qt-project.org/browse/QTBUG-11712
+          */
+        property string theme: (ColorUtils.luminance(backgroundColor) >= 0.85) ?
+                                   "Ambiance" : "SuruDark"
+        onThemeChanged: {
+            // only change the theme if the current one is a system one.
+            if (theme !== "" && (Theme.name.search("Ubuntu.Components.Themes") >= 0)) {
+                Theme.name = "Ubuntu.Components.Themes.%1".arg(theme);
+            }
+        }
     }
 
     /*!
@@ -209,7 +229,6 @@ PageTreeNode {
     active: true
 
     /*!
-      \preliminary
       Sets whether the application will be automatically rotating when the
       device is.
 
@@ -220,6 +239,16 @@ PageTreeNode {
     property alias automaticOrientation: canvas.automaticOrientation
 
     /*!
+      Setting this option will enable the old toolbar, and disable the new features
+      that are being added to the new header. Unsetting it removes the toolbar and
+      enables developers to have a sneak peek at the new features that are coming to
+      the header, even before all the required functionality is implemented.
+      This property will be deprecated after the new header implementation is done and
+      all apps transitioned to using it. Default value: true.
+     */
+    property bool useDeprecatedToolbar: true
+
+    /*!
       \internal
       Use default property to ensure children added do not draw over the toolbar.
      */
@@ -228,15 +257,7 @@ PageTreeNode {
         id: canvas
 
         automaticOrientation: false
-        // this will make sure that the keyboard does not obscure the contents
-        anchors {
-            bottomMargin: Qt.inputMethod.visible && anchorToKeyboard ? Qt.inputMethod.keyboardRectangle.height : 0
-            //this is an attempt to keep the keyboard animation in sync with the content resize
-            //but this does not work very well because the keyboard animation has different steps
-            Behavior on bottomMargin {
-                NumberAnimation { easing.type: Easing.InOutQuad }
-            }
-        }
+        anchorToKeyboard: mainView.anchorToKeyboard
 
         // clip the contents so that it does not overlap the header
         Item {
@@ -250,14 +271,7 @@ PageTreeNode {
             // only clip when necessary
             // ListView headers may be positioned at the top, independent from
             // flickable.contentY, so do not clip depending on activePage.flickable.contentY.
-            clip: headerItem.bottomY > 0 && activePage && activePage.flickable
-
-            property Page activePage: isPage(mainView.activeLeafNode) ? mainView.activeLeafNode : null
-
-            function isPage(item) {
-                return item && item.hasOwnProperty("__isPageTreeNode") && item.__isPageTreeNode &&
-                        item.hasOwnProperty("title") && item.hasOwnProperty("tools");
-            }
+            clip: headerItem.bottomY > 0 && internal.activePage && internal.activePage.flickable
 
             Item {
                 id: contents
@@ -265,7 +279,9 @@ PageTreeNode {
                     fill: parent
                     
                     // move the whole contents up if the toolbar is locked and opened otherwise the toolbar will obscure part of the contents
-                    bottomMargin: toolbarItem.locked && toolbarItem.opened ? toolbarItem.height + toolbarItem.triggerSize : 0
+                    bottomMargin: mainView.useDeprecatedToolbar &&
+                                  toolbarLoader.item.locked && toolbarLoader.item.opened ?
+                                      toolbarLoader.item.height + toolbarLoader.item.triggerSize : 0
                     // compensate so that the actual y is always 0
                     topMargin: -parent.y
                 }
@@ -281,14 +297,17 @@ PageTreeNode {
 
                 onPressed: {
                     mouse.accepted = false;
-                    if (!toolbarItem.locked) {
-                        toolbarItem.close();
+                    if (mainView.useDeprecatedToolbar) {
+                        if (!toolbarLoader.item.locked) {
+                            toolbarLoader.item.close();
                         }
+                    }
                     if (headerItem.tabBar && !headerItem.tabBar.alwaysSelectionMode) {
                         headerItem.tabBar.selectionMode = false;
                     }
                 }
                 propagateComposedEvents: true
+                enabled: mainView.useDeprecatedToolbar
             }
         }
 
@@ -297,22 +316,31 @@ PageTreeNode {
          */
         property bool animate: true
 
-        Toolbar {
-            id: toolbarItem
-            onPressedChanged: {
-                if (!pressed) return;
-                if (headerItem.tabBar !== null) {
-                    headerItem.tabBar.selectionMode = false;
+        Component {
+            id: toolbarComponent
+            Toolbar {
+                parent: canvas
+                onPressedChanged: {
+                    if (!pressed) return;
+                    if (headerItem.tabBar !== null) {
+                        headerItem.tabBar.selectionMode = false;
+                    }
                 }
+                animate: canvas.animate
+                tools: internal.activePage ? internal.activePage.tools : null
             }
-            animate: canvas.animate
+        }
+
+        Loader {
+            id: toolbarLoader
+            sourceComponent: mainView.useDeprecatedToolbar ? toolbarComponent : null
         }
 
         /*!
           The header of the MainView. Can be used to obtain the height of the header
           in \l Page to determine the area for the \l Page to fill.
          */
-        Header {
+        AppHeader {
             // FIXME We need to set an object name to this header in order to differentiate it from the ListItem.Header on Autopilot tests.
             // This is a temporary workaround while we find a better solution for https://bugs.launchpad.net/autopilot/+bug/1210265
             // --elopio - 2013-08-08
@@ -320,28 +348,95 @@ PageTreeNode {
             id: headerItem
             property real bottomY: headerItem.y + headerItem.height
             animate: canvas.animate
+            dividerColor: Qt.darker(background.headerColor, 1.1)
+            panelColor: Qt.lighter(background.headerColor, 1.1)
+
+            title: internal.activePage ? internal.activePage.title : ""
+            flickable: internal.activePage ? internal.activePage.flickable : null
+            pageStack: internal.activePage ? internal.activePage.pageStack : null
+
+            PageHeadConfiguration {
+                id: headerConfig
+                // for backwards compatibility with deprecated tools property
+                actions: internal.activePage ?
+                             getActionsFromTools(internal.activePage.tools) : null
+
+                backAction: internal.activePage && internal.activePage.tools &&
+                          internal.activePage.tools.hasOwnProperty("back") &&
+                          internal.activePage.tools.back &&
+                          internal.activePage.tools.back.hasOwnProperty("action") ?
+                              internal.activePage.tools.back.action : null
+
+                function getActionsFromTools(tools) {
+                    if (!tools || !tools.hasOwnProperty("contents")) {
+                        // tools is not of type ToolbarActions. Not supported.
+                        return null;
+                    }
+
+                    var actionList = [];
+                    for (var i in tools.contents) {
+                        var item = tools.contents[i];
+                        if (item && item.hasOwnProperty("action") && item.action !== null) {
+                            var action = item.action;
+                            if (action.hasOwnProperty("iconName") && action.hasOwnProperty("text")) {
+                                // it is likely that the action is of type Action.
+                                actionList.push(action);
+                            }
+                        }
+                    }
+                    return actionList;
+                }
+            }
+
+            contents: internal.activePage ?
+                          internal.activePage.__customHeaderContents : null
+
+            // FIXME: This can be simplified a lot when we drop support for using
+            //  the deprecated tools property.
+            config: internal.activePage && internal.activePage.hasOwnProperty("head") &&
+                    (internal.activePage.head.actions.length > 0 ||
+                     internal.activePage.head.backAction !== null ||
+                     internal.activePage.head.contents !== null ||
+                     internal.activePage.head.sections.model !== undefined) ?
+                        internal.activePage.head : headerConfig
 
             property Item tabBar: null
             Binding {
                 target: headerItem
                 property: "tabBar"
-                value: headerItem.contents
-                when: headerItem.contents &&
-                      headerItem.contents.hasOwnProperty("selectionMode") &&
-                      headerItem.contents.hasOwnProperty("alwaysSelectionMode") &&
-                      headerItem.contents.hasOwnProperty("selectedIndex") &&
-                      headerItem.contents.hasOwnProperty("pressed")
+                value: headerItem.__styleInstance.__tabBar
+                when: headerItem.__styleInstance &&
+                      headerItem.__styleInstance.hasOwnProperty("__tabBar")
             }
 
             Connections {
                 // no connections are made when target is null
                 target: headerItem.tabBar
                 onPressedChanged: {
-                    if (headerItem.tabBar.pressed) {
-                        if (!toolbarItem.locked) toolbarItem.close();
+                    if (mainView.useDeprecatedToolbar) {
+                        if (headerItem.tabBar.pressed) {
+                            if (!toolbarLoader.item.locked) toolbarLoader.item.close();
+                        }
                     }
                 }
             }
+
+            // 'window' is defined by QML between startup and showing on the screen.
+            // There is no signal for when it becomes available and re-declaring it is not safe.
+            property bool windowActive: typeof window != 'undefined'
+            onWindowActiveChanged: {
+                window.title = headerItem.title
+            }
+
+            Connections {
+                target: headerItem
+                onTitleChanged: {
+                    if (headerItem.windowActive)
+                        window.title = headerItem.title
+                }
+            }
+
+            useDeprecatedToolbar: mainView.useDeprecatedToolbar
         }
 
         Connections {
@@ -353,7 +448,9 @@ PageTreeNode {
                     if (headerItem.tabBar) {
                         headerItem.tabBar.selectionMode = true;
                     }
-                    if (!toolbarItem.locked) toolbarItem.open();
+                    if (mainView.useDeprecatedToolbar) {
+                        if (!toolbarLoader.item.locked) toolbarLoader.item.open();
+                    }
                     canvas.animate = true;
                 }
             }
@@ -376,14 +473,29 @@ PageTreeNode {
       over the actions, e.g. if one wants to add/remove actions dynamically, create
       specific action contexts, etc.
 
-      \qmlproperty UnityActions.ActionManager actionManager
+      \qmlproperty ActionManager actionManager
+      \readonly
      */
     property alias actionManager: unityActionManager
 
     Object {
         id: internal
-        UnityActions.ActionManager {
+
+        // Even when using MainView 1.1, we still support Page 1.0.
+        // PageBase (=Page 1.0) is the superclass of Page 1.1.
+        property PageBase activePage: isPage(mainView.activeLeafNode) ? mainView.activeLeafNode : null
+
+        function isPage(item) {
+            return item && item.hasOwnProperty("__isPageTreeNode") && item.__isPageTreeNode &&
+                    item.hasOwnProperty("title") && item.hasOwnProperty("tools");
+        }
+
+        Toolkit.ActionManager {
             id: unityActionManager
+            onQuit: {
+                // FIXME Wire this up to the application lifecycle management API instead of quit().
+                Qt.quit()
+            }
         }
     }
 
@@ -391,16 +503,22 @@ PageTreeNode {
         /*!
           \internal
           The header that will be propagated to the children in the page tree node.
-          It will be used by the active \l Page to set the title.
+          It is used by Tabs to bind header's tabsModel.
          */
-        property Header header: headerItem
+        property AppHeader header: headerItem
 
         /*!
           \internal
+          \deprecated
           The toolbar that will be propagated to the children in the page tree node.
-          It will be used by the active \l Page to set the toolbar actions.
          */
-        property Toolbar toolbar: toolbarItem
+        property Toolbar toolbar: toolbarLoader.item
+
+        /*!
+          \internal
+          Tabs needs to know whether to use a TabBar or the new header.
+         */
+        property alias useDeprecatedToolbar: mainView.useDeprecatedToolbar
 
         /*!
           \internal
@@ -416,5 +534,10 @@ PageTreeNode {
             i18n.domain = applicationName;
             UbuntuApplication.applicationName = applicationName
         }
+    }
+
+    PerformanceOverlay {
+        id: performanceOverlay
+        active: false
     }
 }

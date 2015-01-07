@@ -15,17 +15,16 @@
  */
 
 import QtQuick 2.0
-import Ubuntu.Components 0.1
+import Ubuntu.Components 1.1
 
 /*!
     \qmltype Base
-    \inqmlmodule Ubuntu.Components.ListItems 0.1
+    \inqmlmodule Ubuntu.Components.ListItems 1.0
     \ingroup ubuntu-listitems
     \brief Parent class of various list item classes that can have
         an icon and a progression symbol.
 
     Examples: See subclasses
-    \b{This component is under heavy development.}
 */
 Empty {
     id: baseListItem
@@ -44,33 +43,6 @@ Empty {
     property variant icon: iconSource != "" ? iconSource : undefined
 
     /*!
-      The image shown in the list item.
-      \qmlproperty url iconSource
-
-      This is a URL to any image file.
-      In order to use an icon from the Ubuntu theme, use the iconName property instead.
-     */
-    property url iconSource: iconName ? "image://theme/" + iconName : ""
-
-    /*!
-      The icon shown in the list item.
-
-      \qmlproperty string iconName
-
-      If both iconSource and iconName are defined, iconName will be ignored.
-
-      \note The complete list of icons available in Ubuntu is not published yet.
-            For now please refer to the folders where the icon themes are installed:
-            \list
-              \li Ubuntu Touch: \l file:/usr/share/icons/ubuntu-mobile
-              \li Ubuntu Desktop: \l file:/usr/share/icons/ubuntu-mono-dark
-            \endlist
-            These 2 separate icon themes will be merged soon.
-    */
-    property string iconName
-
-    /*!
-      \preliminary
       The location of the icon to show in the list item if iconSource failed to load (optional).
       \qmlproperty url fallbackIconSource
      */
@@ -86,7 +58,7 @@ Empty {
       \note The complete list of icons available in Ubuntu is not published yet.
             For now please refer to the folders where the icon themes are installed:
             \list
-              \li Ubuntu Touch: \l file:/usr/share/icons/ubuntu-mobile
+              \li Ubuntu Touch: \l file:/usr/share/icons/suru
               \li Ubuntu Desktop: \l file:/usr/share/icons/ubuntu-mono-dark
             \endlist
             These 2 separate icon themes will be merged soon.
@@ -94,13 +66,11 @@ Empty {
     property alias fallbackIconName: iconHelper.fallbackIconName
 
     /*!
-      \preliminary
       Show or hide the progression symbol.
      */
     property bool progression: false
 
     /*!
-      \preliminary
       Show or hide the frame around the icon
       \qmlproperty bool iconFrame
      */
@@ -185,7 +155,7 @@ Empty {
     /*!
       \internal
      */
-    property alias children: middle.children
+    default property alias children: middle.data
     Item {
         id: middle
         property bool anchorToIconHelper: !__iconIsItem && iconHelper.source != ""

@@ -15,11 +15,11 @@
  */
 
 import QtQuick 2.0
-import Ubuntu.Components 0.1
+import Ubuntu.Components 1.1
 
 /*!
     \qmltype Standard
-    \inqmlmodule Ubuntu.Components.ListItems 0.1
+    \inqmlmodule Ubuntu.Components.ListItems 1.0
     \ingroup ubuntu-listitems
     \brief The standard list item class. It shows a basic list item
         with a label (text), and optionally an icon, a progression arrow,
@@ -30,8 +30,8 @@ import Ubuntu.Components 0.1
 
     Examples:
     \qml
-        import Ubuntu.Components 0.1
-        import Ubuntu.Components.ListItems 0.1 as ListItem
+        import Ubuntu.Components 1.1
+        import Ubuntu.Components.ListItems 1.0 as ListItem
         Column {
             ListItem.Standard {
                 text: "Selectable standard list item"
@@ -57,7 +57,6 @@ import Ubuntu.Components 0.1
             }
         }
     \endqml
-    \b{This component is under heavy development.}
 */
 Empty {
     id: listItem
@@ -76,33 +75,6 @@ Empty {
     property variant icon: iconSource != "" ? iconSource : undefined
 
     /*!
-      The image shown in the list item.
-      \qmlproperty url iconSource
-
-      This is a URL to any image file.
-      In order to use an icon from the Ubuntu theme, use the iconName property instead.
-     */
-    property url iconSource: iconName ? "image://theme/" + iconName : ""
-
-    /*!
-      The icon shown in the list item.
-
-      \qmlproperty string iconName
-
-      If both iconSource and iconName are defined, iconName will be ignored.
-
-      \note The complete list of icons available in Ubuntu is not published yet.
-            For now please refer to the folders where the icon themes are installed:
-            \list
-              \li Ubuntu Touch: \l file:/usr/share/icons/ubuntu-mobile
-              \li Ubuntu Desktop: \l file:/usr/share/icons/ubuntu-mono-dark
-            \endlist
-            These 2 separate icon themes will be merged soon.
-    */
-    property string iconName
-
-    /*!
-      \preliminary
       The location of the icon to show in the list item if iconSource failed to load (optional).
       \qmlproperty url fallbackIconSource
      */
@@ -118,7 +90,7 @@ Empty {
       \note The complete list of icons available in Ubuntu is not published yet.
             For now please refer to the folders where the icon themes are installed:
             \list
-              \li Ubuntu Touch: \l file:/usr/share/icons/ubuntu-mobile
+              \li Ubuntu Touch: \l file:/usr/share/icons/suru
               \li Ubuntu Desktop: \l file:/usr/share/icons/ubuntu-mono-dark
             \endlist
             These 2 separate icon themes will be merged soon.
@@ -126,13 +98,11 @@ Empty {
     property alias fallbackIconName: iconHelper.fallbackIconName
 
     /*!
-      \preliminary
       The text that is shown in the list item as a label.
       \qmlproperty string text
      */
 
     /*!
-      \preliminary
       Show or hide the progression symbol.
      */
     property bool progression: false
@@ -166,7 +136,6 @@ Empty {
     property real __rightIconMargin
 
     /*!
-      \preliminary
       An optional control that is displayed inside the list item.
       The width of the control must be specified in order to determine
       the layout of the list item.
@@ -176,7 +145,6 @@ Empty {
     property alias control: controlContainer.control
 
     /*!
-      \preliminary
       Show or hide the frame around the icon
       \qmlproperty bool iconFrame
      */
@@ -223,7 +191,7 @@ Empty {
         id: iconHelper
 
         width: height
-        height: Math.min(units.gu(5), parent.height - units.gu(1))
+        height: Math.min(units.gu(5), listItem.height - units.gu(1))
         anchors {
             left: parent.left
             leftMargin: listItem.__contentsMargins
@@ -304,22 +272,8 @@ Empty {
 
         Connections {
             target: listItem.__mouseArea
-
-            onClicked: {
-                if (control && __mouseArea.mouseX < progressionHelper.x) {
-                    if (control.enabled && control.hasOwnProperty("clicked")) control.clicked();
-                } else {
-                    listItem.clicked();
-                }
-            }
-
-            onPressAndHold: {
-                if (control && control.enabled && __mouseArea.mouseX < progressionHelper.x && control.hasOwnProperty("pressAndHold")) {
-                    control.pressAndHold();
-                } else {
-                    listItem.pressAndHold();
-                }
-            }
+            onClicked: listItem.clicked()
+            onPressAndHold: listItem.pressAndHold()
         }
     }
 

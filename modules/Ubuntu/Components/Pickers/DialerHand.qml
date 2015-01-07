@@ -15,11 +15,11 @@
  */
 
 import QtQuick 2.0
-import "../" 0.1
+import Ubuntu.Components 1.1
 
 /*!
     \qmltype DialerHand
-    \inqmlmodule Ubuntu.Components.Pickers 0.1
+    \inqmlmodule Ubuntu.Components.Pickers 1.0
     \ingroup ubuntu-pickers
     \brief DialerHand represents a value selector on a Dialer.
 
@@ -141,6 +141,7 @@ StyledItem {
     anchors.centerIn: parent
     width: parent.width
     height: parent.height
+    activeFocusOnPress: true
     style: Theme.createStyleComponent("DialerHandStyle.qml", dialerHand)
 
     /*! \internal */
@@ -193,6 +194,7 @@ StyledItem {
             onPositionChanged:  {
                 if (internalChange) return;
                 internalChange = true;
+                dialerHand.requestFocus(Qt.MouseFocusReason);
                 var point =  mapToItem (dialerHand, mouse.x, mouse.y);
                 var diffX = (point.x - centerX);
                 var diffY = -1 * (point.y - centerY);

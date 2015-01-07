@@ -14,8 +14,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import QtQuick 2.0
-import Ubuntu.Components 0.1
+import QtQuick 2.2
+import Ubuntu.Components 1.1
 
 Image {
     id: container
@@ -28,7 +28,12 @@ Image {
     verticalAlignment: Image.AlignVCenter
     source: "artwork/spinner.png"
 
-    NumberAnimation on rotation {
+    /*
+      Changed from RotationAnimator to RotationAnimation to 
+      work around bug: https://bugs.launchpad.net/ubuntu-ui-toolkit/+bug/1338602
+      "Activity Indicator crashes in QML/Widget mixed applications"
+    */
+    RotationAnimation on rotation {
         running: styledItem.running
         from: 0
         to: 360

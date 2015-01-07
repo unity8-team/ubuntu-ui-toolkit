@@ -16,56 +16,58 @@
 
 import QtQuick 2.0
 import QtTest 1.0
-import Ubuntu.Components 0.1
-import Ubuntu.Components.ListItems 0.1 as ListItem
+import Ubuntu.Test 1.0
+import Ubuntu.Components 1.1
+import Ubuntu.Components.ListItems 1.0 as ListItem
 
 Item {
-    width: 200; height: 200
+    id: main
+    width: units.gu(50); height: units.gu(100)
 
-    property bool hasOSK: QuickUtils.inputMethodProvider !== ""
+    property bool hasOSK: false
 
-    TextArea {
-        id: textArea
-        SignalSpy {
-            id: signalSpy
-            target: parent
-        }
+    Column {
+        TextArea {
+            id: textArea
+            SignalSpy {
+                id: signalSpy
+                target: parent
+            }
 
-        property int keyPressData
-        property int keyReleaseData
-        Keys.onPressed: keyPressData = event.key
-        Keys.onReleased: keyReleaseData = event.key
-    }
-
-    TextArea {
-        id: colorTest
-        color: colorTest.text.length < 4 ? "#0000ff" : "#00ff00"
-    }
-
-    TextEdit {
-        id: textEdit
-    }
-
-    ListItem.Empty {
-        id: listItem
-        height: 200
-        anchors.left: parent.left
-
-        anchors.right: parent.right
-        SignalSpy {
-            id: listItemSpy
-            signalName: "clicked"
-            target: listItem
+            property int keyPressData
+            property int keyReleaseData
+            Keys.onPressed: keyPressData = event.key
+            Keys.onReleased: keyReleaseData = event.key
         }
 
         TextArea {
-            id: input
-            anchors.fill: parent
-            Component.onCompleted: forceActiveFocus()
+            id: colorTest
+            color: colorTest.text.length < 4 ? "#0000ff" : "#00ff00"
         }
-    }
 
-    Item {
+        TextEdit {
+            id: textEdit
+        }
+
+        ListItem.Empty {
+            id: listItem
+            height: 200
+            anchors.left: parent.left
+
+            anchors.right: parent.right
+            SignalSpy {
+                id: listItemSpy
+                signalName: "clicked"
+                target: listItem
+            }
+
+            TextArea {
+                id: input
+                anchors.fill: parent
+                Component.onCompleted: forceActiveFocus()
+            }
+        }
+
         TextArea {
             id: t1
             objectName: "t1"
@@ -74,13 +76,46 @@ Item {
             id: t2
             objectName: "t2"
         }
+
+        TextArea {
+            id: longText
+            text: "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book."
+        }
     }
 
-    TestCase {
+    UbuntuTestCase {
         name: "TextAreaAPI"
         when: windowShown
 
-        function test_1_activate() {
+        function init() {
+            main.hasOSK = QuickUtils.inputMethodProvider !== ""
+        }
+
+        function cleanup() {
+            textArea.focus =
+            colorTest.focus =
+            textEdit.focus =
+            input.focus =
+            t1.focus =
+            t2.focus =
+            longText.focus = false;
+            longText.cursorPosition = 0;
+            var scroller = findChild(longText, "input_scroller");
+            scroller.contentY = 0;
+            scroller.contentX = 0;
+
+            textArea.text = "";
+            textArea.textFormat = TextEdit.PlainText;
+            input.textFormat = TextEdit.PlainText;
+            input.text = "";
+            input.cursorPosition = 0;
+
+            // empty event buffer
+            wait(200);
+        }
+
+
+        function test_activate() {
             textArea.forceActiveFocus();
             compare(textArea.activeFocus, true, "TextArea is active");
         }
@@ -107,7 +142,7 @@ Item {
         }
 
         function test_0_cursorDelegate() {
-            compare((textArea.cursorDelegate!=null),true,"TextArea.cursorDelegate is not null")
+            verify(textArea.cursorDelegate === null, "TextArea.cursorDelegate is not null")
         }
 
         function test_0_cursorPosition() {
@@ -150,7 +185,7 @@ Item {
             compare(textArea.lineCount,textEdit.lineCount,"TextArea.lineCount is same as TextEdit.lineCount")
         }
 
-        function test_1_mouseSelectionMode() {
+        function test_0_mouseSelectionMode() {
             compare(textArea.mouseSelectionMode, TextEdit.SelectWords,"TextArea.mouseSelectionMode is SelectWords")
         }
 
@@ -160,6 +195,16 @@ Item {
 
         function test_0_readOnly() {
             compare(textArea.readOnly,textEdit.readOnly,"TextArea.readOnly is same as TextEdit.readOnly")
+
+            textArea.text = "ab";
+            textArea.cursorPosition = 1;
+            textArea.textFormat = TextEdit.PlainText;
+            keyClick(Qt.Key_Return);
+            compare("ab", textArea.text, "No split occurred in plain area");
+
+            textArea.textFormat = TextEdit.RichText;
+            keyClick(Qt.Key_Return);
+            compare(textArea.text.indexOf("<br />"), -1, "No split occurred in rich area");
         }
 
         function test_0_renderType() {
@@ -206,45 +251,46 @@ Item {
             compare(textArea.wrapMode,TextEdit.Wrap,"TextArea.wrapMode is TextEdit.Wrap")
         }
 
-    // TextArea specific properties
-        function test_1_highlighted() {
+        // TextArea specific properties
+        function test_0_highlighted() {
             compare(textArea.highlighted, textArea.focus, "highlighted is the same as focused");
         }
 
-        function test_1_contentHeight() {
-            compare(textArea.contentHeight>0,true,"contentHeight over 0 units on default")
+        function test_0_contentHeight() {
+            verify(textArea.contentHeight > 0, "contentHeight over 0 units on default")
             var newValue = 200;
             textArea.contentHeight = newValue;
             compare(textArea.contentHeight,newValue,"set/get");
         }
 
-        function test_1_contentWidth() {
-            compare(textArea.contentWidth,units.gu(30),"contentWidth is 30 units on default")
+        function test_0_contentWidth() {
+            var style = findChild(textArea, "textarea_style");
+            compare(textArea.contentWidth, units.gu(30) - 2 * style.frameSpacing, "contentWidth is the implicitWidth - 2 times the frame size on default")
             var newValue = 200;
             textArea.contentWidth = newValue;
             compare(textArea.contentWidth,newValue,"set/get");
         }
 
-        function test_1_placeholderText() {
+        function test_placeholderText() {
             compare(textArea.placeholderText,"","placeholderText is '' on default")
             var newValue = "Hello Placeholder";
             textArea.placeholderText = newValue;
             compare(textArea.placeholderText,newValue,"set/get");
         }
 
-        function test_1_autoSize() {
+        function test_autoSize() {
             compare(textArea.autoSize,false,"TextArea.autoSize is set to false");
             var newValue = true;
             textArea.autoSize = newValue;
             compare(textArea.autoSize, newValue,"set/get");
         }
 
-        function test_1_baseUrl() {
+        function test_0_baseUrl() {
             expectFail("","TODO")
             compare(textArea.baseUrl,"tst_textarea.qml","baseUrl is QML file instantiating the TextArea item on default")
         }
 
-        function test_1_displayText() {
+        function test_displayText() {
             compare(textArea.displayText,"","displayText is '' on default")
             var newValue = "Hello Display Text";
             try {
@@ -256,11 +302,11 @@ Item {
 
         }
 
-        function test_1_popover() {
+        function test_0_popover() {
             compare(textArea.popover, undefined, "Uses default popover");
         }
 
-        function test_1_maximumLineCount() {
+        function test_maximumLineCount() {
             compare(textArea.maximumLineCount,5,"maximumLineCount is 0 on default")
             var newValue = 10;
             textArea.maximumLineCount = newValue;
@@ -272,7 +318,7 @@ Item {
             compare(textArea.activeFocus, false, "TextArea is inactive");
         }
 
-    // functions
+        // functions
         function test_copy() {
             textArea.copy();
         }
@@ -360,13 +406,13 @@ Item {
         }
 
 
-    // signals
+        // signals
         function test_linkActivated() {
             signalSpy.signalName = "linkActivated";
             compare(signalSpy.valid,true,"linkActivated signal exists")
         }
 
-    // filters
+        // filters
         function test_keyPressAndReleaseFilter() {
             textArea.visible = true;
             textArea.forceActiveFocus();
@@ -450,8 +496,7 @@ Item {
             compare(Qt.inputMethod.visible, true, "OSK shown");
         }
 
-        // make it to b ethe last test case executed
-        function test_zz_TextareaInListItem_RichTextEnterCaptured() {
+        function test_TextareaInListItem_RichTextEnterCaptured() {
             textArea.text = "a<br />b";
             textArea.textFormat = TextEdit.RichText;
             input.forceActiveFocus();

@@ -15,22 +15,20 @@
  */
 
 import QtQuick 2.0
-import Ubuntu.Components 0.1
+import Ubuntu.Components 1.1
 
 /*!
     ****DEPRECATED! PLEASE USE ITEM SELECTOR OR FOR THE UBUNTU SHAPE VERSION THE OPTION SELECTOR.****
 
     \qmltype ValueSelector
-    \inqmlmodule Ubuntu.Components.ListItems 0.1
+    \inqmlmodule Ubuntu.Components.ListItems 1.0
     \ingroup ubuntu-listitems
     \brief List item displaying single selected value when not expanded,
     where expanding it opens a listing of all the possible values for selection.
 
-    \b{This component is under heavy development.}
-
     Examples:
     \qml
-        import Ubuntu.Components.ListItems 0.1 as ListItem
+        import Ubuntu.Components.ListItems 1.0 as ListItem
         Column {
             width: 250
             ListItem.ValueSelector {
@@ -61,7 +59,6 @@ Empty {
     __height: column.height
 
     /*!
-      \preliminary
       The text that is shown in the list item as a label.
       \qmlproperty string text
      */
@@ -80,33 +77,6 @@ Empty {
     property alias icon: selectorMain.icon
 
     /*!
-      The image shown in the list item.
-      \qmlproperty url iconSource
-
-      This is a URL to any image file.
-      In order to use an icon from the Ubuntu theme, use the iconName property instead.
-     */
-    property url iconSource: iconName ? "image://theme/" + iconName : ""
-
-    /*!
-      The icon shown in the list item.
-
-      \qmlproperty string iconName
-
-      If both iconSource and iconName are defined, iconName will be ignored.
-
-      \note The complete list of icons available in Ubuntu is not published yet.
-            For now please refer to the folders where the icon themes are installed:
-            \list
-              \li Ubuntu Touch: \l file:/usr/share/icons/ubuntu-mobile
-              \li Ubuntu Desktop: \l file:/usr/share/icons/ubuntu-mono-dark
-            \endlist
-            These 2 separate icon themes will be merged soon.
-    */
-    property string iconName
-
-    /*!
-      \preliminary
       The location of the icon to show in the list item if iconSource failed to load (optional).
       \qmlproperty url fallbackIconSource
      */
@@ -122,7 +92,7 @@ Empty {
       \note The complete list of icons available in Ubuntu is not published yet.
             For now please refer to the folders where the icon themes are installed:
             \list
-              \li Ubuntu Touch: \l file:/usr/share/icons/ubuntu-mobile
+              \li Ubuntu Touch: \l file:/usr/share/icons/suru
               \li Ubuntu Desktop: \l file:/usr/share/icons/ubuntu-mono-dark
             \endlist
             These 2 separate icon themes will be merged soon.
@@ -158,26 +128,22 @@ Empty {
     property real __rightIconMargin
 
     /*!
-      \preliminary
       Show or hide the frame around the icon
       \qmlproperty bool iconFrame
      */
     property alias iconFrame: selectorMain.iconFrame
 
     /*!
-      \preliminary
       The list of values that will be shown under the label text
      */
     property variant values
 
     /*!
-      \preliminary
       The index of the currently selected element from the \l values array.
      */
     property int selectedIndex: 0
 
     /*!
-      \preliminary
       Specifies whether the selector is 'open' or 'closed'.
      */
     property bool expanded: false
@@ -236,8 +202,7 @@ Empty {
                     id: accordionIcon
                     anchors.right: parent.right
                     anchors.verticalCenter: parent.verticalCenter
-                    // TODO: Replace this placeholder graphic with the official one.
-                    source: "artwork/ListItemProgressionArrow.png"
+                    source: "artwork/chevron.png"
                     opacity: enabled ? 1.0 : 0.5
                     rotation: expanded ? 270 : 90
                     width: implicitWidth / 1.5

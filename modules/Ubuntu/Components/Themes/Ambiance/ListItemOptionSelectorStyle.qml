@@ -16,12 +16,12 @@
  */
 
 import QtQuick 2.0
-import Ubuntu.Components 0.1
+import Ubuntu.Components 1.1
 
 Item {
     id: ambianceStyle
 
-    property url chevron: "../../artwork/chevron_down@30.png"
-    property url tick: "../../artwork/tick@30.png"
+    property url chevron: "artwork/chevron_down.png"
+    property url tick: "artwork/tick.png"
     property bool colourComponent: true
 }

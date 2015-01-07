@@ -18,13 +18,13 @@ import QtQuick 2.0
 
 /*!
     \qmltype SingleValue
-    \inqmlmodule Ubuntu.Components.ListItems 0.1
+    \inqmlmodule Ubuntu.Components.ListItems 1.0
     \ingroup ubuntu-listitems
     \brief A list item displaying a single value
 
     Examples:
     \qml
-        import Ubuntu.Components.ListItems 0.1 as ListItem
+        import Ubuntu.Components.ListItems 1.0 as ListItem
         Column {
             ListItem.SingleValue {
                 text: "Label"
@@ -40,21 +40,16 @@ import QtQuick 2.0
             }
         }
     \endqml
-
-    \b{This component is under heavy development.}
-
 */
 Base {
     id: listItem
 
     /*!
-      \preliminary
       The text that is shown in the list item as a label.
       \qmlproperty string text
      */
 
     /*!
-      \preliminary
       \qmlproperty string value
       The values that will be shown next to the label text
      */

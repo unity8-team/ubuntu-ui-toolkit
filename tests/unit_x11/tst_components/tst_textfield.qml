@@ -16,14 +16,14 @@
 
 import QtQuick 2.0
 import QtTest 1.0
-import Ubuntu.Components 0.1
-import Ubuntu.Unity.Action 1.0 as UnityActions
+import Ubuntu.Test 1.0
+import Ubuntu.Components 1.1
 
 Item {
     id: textItem
-    width: 200; height: 200
+    width: units.gu(50); height: units.gu(70)
 
-    property bool hasOSK: QuickUtils.inputMethodProvider !== ""
+    property bool hasOSK: false
 
     function reset() {
         colorTest.focus = false;
@@ -32,41 +32,79 @@ Item {
         t2.focus = false;
     }
 
-    TextField {
-        id: colorTest
-        color: colorTest.text.length < 4 ? "#0000ff" : "#00ff00"
-    }
-
-    TextField {
-        id: textField
-        SignalSpy {
-            id: signalSpy
-            target: parent
+    Column {
+        TextField {
+            id: colorTest
+            color: colorTest.text.length < 4 ? "#0000ff" : "#00ff00"
+            text: "colorTest"
         }
 
-        property int keyPressData
-        property int keyReleaseData
-        Keys.onPressed: keyPressData = event.key
-        Keys.onReleased: keyReleaseData = event.key
-        action: Action {
-            enabled: true
-            name: 'spam'
-            text: 'Spam'
-        }
-    }
+        TextField {
+            id: textField
+            SignalSpy {
+                id: signalSpy
+                target: parent
+            }
 
-    Item {
+            property int keyPressData
+            property int keyReleaseData
+            Keys.onPressed: keyPressData = event.key
+            Keys.onReleased: keyReleaseData = event.key
+            action: Action {
+                enabled: true
+                name: 'spam'
+                text: 'Spam'
+            }
+        }
+
         TextField {
             id: t1
+            text: "t1"
         }
         TextField {
             id: t2
+            text: "t2"
+        }
+
+        TextField {
+            id: enabledTextField
+            enabled: true
+            text: "enabledTextField"
+        }
+
+        TextField {
+            id: disabledTextField
+            enabled: false
+            text: "disabledTextField"
+        }
+        TextField {
+            id: longText
+            text: "The orange (specifically, the sweet orange) is the fruit of the citrus species Citrus × ​sinensis in the family Rutaceae."
         }
     }
 
-    TestCase {
+    UbuntuTestCase {
         name: "TextFieldAPI"
         when: windowShown
+
+        // initialize test objects
+        function init() {
+            textItem.hasOSK = QuickUtils.inputMethodProvider !== ""
+            longText.cursorPosition = 0;
+        }
+
+        // empty event buffer
+        function cleanup() {
+            colorTest.focus =
+            textField.focus =
+            t1.focus =
+            t2.focus =
+            enabledTextField.focus =
+            longText.focus = false;
+            var scroller = findChild(longText, "input_scroller");
+            scroller.contentX = 0;
+            wait(200);
+        }
 
         function initTestCase() {
             textField.forceActiveFocus();
@@ -113,12 +151,13 @@ Item {
 
         function test_0_contentHeight() {
             // line size is the font pixel size + 3 dp
+            skip("This test is flaky, must be checked or removed completely!");
             var lineSize = textField.font.pixelSize + units.dp(3)
             compare(textField.contentHeight, lineSize,"contentHeight by default")
         }
 
         function test_0_cursorDelegate() {
-            verify(textField.cursorDelegate, "cursorDelegate set by default")
+            verify(textField.cursorDelegate === null, "cursorDelegate not set by default")
         }
 
         function test_0_cursorPosition() {
@@ -130,7 +169,9 @@ Item {
         }
 
         function test_0_cursorVisible() {
-            compare(textField.cursorVisible, true, "cursorVisible true by default")
+            compare(textField.cursorVisible, false, "cursorVisible false by default when inactive");
+            textField.focus = true;
+            compare(textField.cursorVisible, true, "cursorVisible true by default when active");
         }
 
         function test_0_customSoftwareInputPanel() {
@@ -158,7 +199,7 @@ Item {
         function test_0_alignments() {
             compare(textField.horizontalAlignment, TextInput.AlignLeft, "horizontalAlignmen is Left by default")
             compare(textField.effectiveHorizontalAlignment, TextInput.AlignLeft, "effectiveHorizontalAlignmen is Left by default")
-            compare(textField.verticalAlignment, TextInput.AlignTop, "verticalAlignmen is Top by default")
+            compare(textField.verticalAlignment, TextInput.AlignVCenter, "verticalAlignmen is VCenter by default")
         }
 
         function test_hasClearButton() {
@@ -220,6 +261,8 @@ Item {
             compare(textField.readOnly, false, "readOnly is false by default")
             textField.readOnly = true
             compare(textField.readOnly, true, "set/get")
+            var clearButton = findChild(textField, "clear_button")
+            compare(clearButton.visible, false, "readOnly must not provide a clear button")
         }
 
         function test_0_secondaryItem() {
@@ -281,7 +324,7 @@ Item {
             compare(textField.keyReleaseData, Qt.Key_Control, "Key release filtered");
         }
 
-        function test_1_undo_redo() {
+        function test_undo_redo() {
             textField.readOnly = false;
             textField.text = "";
             textField.focus = true;
@@ -294,7 +337,7 @@ Item {
             compare(textField.text, "test", "redone");
         }
 
-        function test_1_getText() {
+        function test_getText() {
             textField.text = "this is a longer text";
             compare(textField.getText(0, 10), "this is a ", "getText(0, 10)");
             compare(textField.getText(10, 0), "this is a ", "getText(10, 0)");
@@ -302,7 +345,7 @@ Item {
             compare(textField.getText(4, 0), "this", "getText(4, 0)");
         }
 
-        function test_1_removeText() {
+        function test_removeText() {
             textField.text = "this is a longer text";
             textField.remove(0, 10);
             compare(textField.text, "longer text", "remove(0, 10)");
@@ -325,14 +368,14 @@ Item {
             compare(textField.text, "this is a longer text", "select(0, 4) && remove()");
         }
 
-        function test_1_moveCursorSelection() {
+        function test_moveCursorSelection() {
             textField.text = "this is a longer text";
             textField.cursorPosition = 5;
             textField.moveCursorSelection(9, TextInput.SelectCharacters);
             compare(textField.selectedText, "is a", "moveCursorSelection from 5 to 9, selecting the text");
         }
 
-        function test_1_isRightToLeft() {
+        function test_isRightToLeft() {
             textField.text = "this is a longer text";
             compare(textField.isRightToLeft(0), false, "isRightToLeft(0)");
             compare(textField.isRightToLeft(0, 0), false, "isRightToLeft(0, 0)");
@@ -383,7 +426,7 @@ Item {
         }
 
         // need to make the very first test case, otherwise OSK detection fails on phablet
-        function test_zz_OSK_ShownWhenNextTextFieldIsFocused() {
+        function test_OSK_ShownWhenNextTextFieldIsFocused() {
             if (!hasOSK)
                 expectFail("", "OSK can be tested only when present");
             t1.focus = true;
@@ -392,7 +435,7 @@ Item {
             compare(Qt.inputMethod.visible, true, "OSK is shown for the second TextField");
         }
 
-        function test_zz_RemoveOSKWhenFocusLost() {
+        function test_RemoveOSKWhenFocusLost() {
             if (!hasOSK)
                 expectFail("", "OSK can be tested only when present");
             t1.focus = true;
@@ -401,7 +444,7 @@ Item {
             compare(Qt.inputMethod.visible, false, "OSK is hidden when TextField looses focus");
         }
 
-        function test_zz_ReEnabledInput() {
+        function test_ReEnabledInput() {
             textField.forceActiveFocus();
             textField.enabled = false;
             compare(textField.enabled, false, "textField is disabled");
@@ -418,7 +461,7 @@ Item {
             compare(Qt.inputMethod.visible, true, "OSK shown");
         }
 
-        function test_zz_Trigger() {
+        function test_Trigger() {
             signalSpy.signalName = 'accepted'
             textField.enabled = true
             textField.text = 'eggs'
@@ -426,30 +469,42 @@ Item {
             signalSpy.wait()
         }
 
-        function test_zz_ActionInputMethodHints() {
+        function test_ActionInputMethodHints() {
             // Preset digit only for numbers
             textField.inputMethodHints = Qt.ImhNone
-            textField.action.parameterType = UnityActions.Action.Integer
+            textField.action.parameterType = Action.Integer
             compare(textField.inputMethodHints, Qt.ImhDigitsOnly)
 
             textField.inputMethodHints = Qt.ImhNone
-            textField.action.parameterType = UnityActions.Action.Real
+            textField.action.parameterType = Action.Real
             compare(textField.inputMethodHints, Qt.ImhDigitsOnly)
 
             // No preset for strings
             textField.inputMethodHints = Qt.ImhNone
-            textField.action.parameterType = UnityActions.Action.String
+            textField.action.parameterType = Action.String
             compare(textField.inputMethodHints, Qt.ImhNone)
 
             // Never interfere with a manual setting
             textField.inputMethodHints = Qt.ImhDate
-            textField.action.parameterType = UnityActions.Action.Integer
+            textField.action.parameterType = Action.Integer
             compare(textField.inputMethodHints, Qt.ImhDate)
         }
 
         RegExpValidator {
             id: regExpValidator
             regExp: /[a-z]*/
+        }
+
+        function test_click_enabled_textfield_must_give_focus() {
+            textField.forceActiveFocus();
+            compare(enabledTextField.focus, false, 'enabledTextField is not focused');
+            mouseClick(enabledTextField, enabledTextField.width/2, enabledTextField.height/2);
+            compare(enabledTextField.focus, true, 'enabledTextField is focused');
+        }
+
+        function test_click_disabled_textfield_must_not_give_focus() {
+            mouseClick(disabledTextField, disabledTextField.width/2, disabledTextField.height/2);
+            compare(textField.focus, false, 'disabledTextField is not focused');
         }
     }
 }

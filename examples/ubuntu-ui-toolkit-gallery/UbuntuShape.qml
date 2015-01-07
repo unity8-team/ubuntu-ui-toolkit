@@ -18,6 +18,8 @@ import QtQuick 2.0
 import Ubuntu.Components 0.1
 
 Template {
+    objectName: "ubuntuShapesTemplate"
+
     TemplateSection {
         title: "Ubuntu Shape"
         className: "UbuntuShape"
@@ -33,7 +35,7 @@ Template {
             }
 
             UbuntuShape {
-                objectName: "ubuntushape_color_lightblue"
+                objectName: "ubuntushape_color_lightaubergine"
                 color: UbuntuColors.lightAubergine
             }
 

@@ -15,9 +15,12 @@
  */
 
 import QtQuick 2.0
-import Ubuntu.Components 0.1
+import Ubuntu.Components 1.1
+import Ubuntu.Components.ListItems 1.0
 
 Template {
+    objectName: "buttonsTemplate"
+
     TemplateSection {
         className: "Button"
 
@@ -31,12 +34,22 @@ Template {
         }
 
         TemplateRow {
+            title: i18n.tr("Stroke")
+
+            Button {
+                objectName: "button_stroke"
+                text: i18n.tr("Call")
+                strokeColor: UbuntuColors.warmGrey
+            }
+        }
+
+        TemplateRow {
             title: i18n.tr("Color")
 
             Button {
                 objectName: "button_color"
                 text: i18n.tr("Call")
-                gradient: UbuntuColors.greyGradient
+                color: UbuntuColors.green
             }
         }
 
@@ -75,6 +88,69 @@ Template {
                 objectName: "button_text_disabled"
                 text: i18n.tr("Call")
                 enabled: false
+            }
+        }
+    }
+
+    TemplateSection {
+        className: "ComboButton"
+
+        TemplateRow {
+            title: i18n.tr("Collapsed")
+
+            ComboButton {
+                text: "Press me"
+                objectName: "combobutton_collapsed"
+                comboList:  UbuntuListView {
+                    model: 10
+                    delegate: Standard {
+                        text: "item #" + modelData
+                    }
+                }
+            }
+        }
+
+        TemplateRow {
+            title: i18n.tr("Icon")
+
+            ComboButton {
+                iconSource: "call.png"
+                comboList:  UbuntuListView {
+                    model: 10
+                    delegate: Standard {
+                        text: "item #" + modelData
+                    }
+                }
+            }
+        }
+
+        TemplateRow {
+            title: i18n.tr("Icon+Text")
+
+            ComboButton {
+                text: "Answer"
+                iconSource: "call.png"
+                comboList:  UbuntuListView {
+                    model: 10
+                    delegate: Standard {
+                        text: "item #" + modelData
+                    }
+                }
+            }
+        }
+        TemplateRow {
+            title: i18n.tr("Expanded")
+
+            ComboButton {
+                text: "Press me"
+                objectName: "combobutton_expanded"
+                expanded: true
+                comboList:  UbuntuListView {
+                    model: 10
+                    delegate: Standard {
+                        text: "item #" + modelData
+                    }
+                }
             }
         }
     }

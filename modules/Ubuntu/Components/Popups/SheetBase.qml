@@ -15,22 +15,27 @@
  */
 
 import QtQuick 2.0
-import Ubuntu.Components 0.1
+import Ubuntu.Components 1.1
 
 /*!
     \qmltype SheetBase
-    \inqmlmodule Ubuntu.Components.Popups 0.1
+    \deprecated
+    \inqmlmodule Ubuntu.Components.Popups 1.0
     \ingroup ubuntu-popups
     \brief Parent class of different types of sheets. Not to be used directly.
 
     Examples: See subclasses.
-    \b{This component is under heavy development.}
+    \b{Sheets are deprecated. Consider using \l Dialog, \l Popover or \l PageStack instead.}
 */
 PopupBase {
     id: sheet
 
+    Component.onCompleted: {
+        print("WARNING: Sheets are deprecated. " +
+              "Consider using Dialog, Popover or PageStack instead.")
+    }
+
     /*!
-      \preliminary
       \qmlproperty list<Object> container
       Content will be put inside the foreround of the sheet.
     */
@@ -44,7 +49,6 @@ PopupBase {
     property alias contentsWidth: foreground.contentsWidth
 
     /*!
-      \preliminary
       Override the default height of the contents of the sheet.
       Total sheet height will be clamped between 40 grid units and the screen height.
       \qmlproperty real contentsHeight
@@ -52,7 +56,6 @@ PopupBase {
     property alias contentsHeight: foreground.contentsHeight
 
     /*!
-      \preliminary
       The text shown in the header of the sheet.
       \qmlproperty string title
      */
@@ -80,6 +83,7 @@ PopupBase {
 
     StyledItem {
         id: foreground
+        activeFocusOnPress: true
 
         property string title
         property real contentsWidth: units.gu(64)

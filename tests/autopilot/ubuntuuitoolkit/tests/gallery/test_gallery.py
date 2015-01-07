@@ -1,6 +1,6 @@
 # -*- Mode: Python; coding: utf-8; indent-tabs-mode: nil; tab-width: 4 -*-
 #
-# Copyright (C) 2012, 2013 Canonical Ltd.
+# Copyright (C) 2012, 2013, 2014 Canonical Ltd.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -16,31 +16,24 @@
 
 """Tests for the Ubuntu UI Toolkit Gallery"""
 
-from autopilot.matchers import Eventually
-from testtools.matchers import Is, Not, Equals
+import testscenarios
 
-from ubuntuuitoolkit.tests.gallery import GalleryTestCase
+import ubuntuuitoolkit
+from ubuntuuitoolkit import ubuntu_scenarios
+from ubuntuuitoolkit.tests import gallery
 
 
-class GenericTests(GalleryTestCase):
+class GalleryAppTestCase(gallery.GalleryTestCase):
     """Generic tests for the Gallery"""
 
-    def test_0_can_select_mainwindow(self):
-        """Must be able to select the main window."""
+    scenarios = ubuntu_scenarios.get_device_simulation_scenarios()
 
-        rootItem = self.main_view
-        self.assertThat(rootItem, Not(Is(None)))
-        self.assertThat(rootItem.visible, Eventually(Equals(True)))
-
-    def test_navigation(self):
-        item = "Navigation"
-        self.loadItem(item)
-        self.checkPageHeader(item)
+    def test_select_main_view_must_return_main_window_emulator(self):
+        main_view = self.main_view
+        self.assertIsInstance(main_view, ubuntuuitoolkit.MainView)
 
     def test_slider(self):
-        item = "Slider"
-        self.loadItem(item)
-        self.checkPageHeader(item)
+        self.open_page('slidersElement')
 
         item_data = [
             ["slider_standard"],
@@ -56,9 +49,7 @@ class GenericTests(GalleryTestCase):
             # TODO: move slider value
 
     def test_progress_and_activity(self):
-        item = "Progress and activity"
-        self.loadItem(item)
-        self.checkPageHeader(item)
+        self.open_page('progressBarsElement')
 
         item_data = [
             ["progressbar_standard"],
@@ -74,9 +65,11 @@ class GenericTests(GalleryTestCase):
             # TODO: check for properties
 
     def test_ubuntushape(self):
-        item = "Ubuntu Shape"
-        self.loadItem(item)
-        self.checkPageHeader(item)
+        # Flaky test case
+        # FIXME: https://bugs.launchpad.net/ubuntu-ui-toolkit/+bug/1308979
+        return
+
+        self.open_page('ubuntuShapesElement')
 
         item_data = [
             ["ubuntushape_color_hex"],
@@ -92,3 +85,37 @@ class GenericTests(GalleryTestCase):
         for data in item_data:
             objName = data[0]
             self.getObject(objName)
+
+
+class OpenPagesTestCase(gallery.GalleryTestCase):
+
+    names = [
+        'navigation', 'toggles', 'buttons', 'sliders', 'textinputs',
+        'optionSelectors', 'pickers', 'progressBars', 'ubuntuShapes', 'icons',
+        'labels', 'listItems', 'ubuntuListView', 'dialogs', 'popovers',
+        'sheets', 'animations'
+    ]
+
+    pages_scenarios = [
+        (name, dict(
+            element_name=name+'Element',
+            template_name=name+'Template'))
+        for name in names
+    ]
+
+    scenarios = testscenarios.multiply_scenarios(
+        ubuntu_scenarios.get_device_simulation_scenarios(),
+        pages_scenarios)
+
+    def test_open_page(self):
+        self.open_page(self.element_name)
+        element = self.main_view.select_single(
+            'Standard', objectName=self.element_name)
+        self.checkPageHeader(element.text)
+        if self.template_name == 'textinputsTemplate':
+            page_type = 'TextInputs'
+        else:
+            page_type = 'Template'
+        self.main_view.wait_select_single(
+            page_type, objectName=self.template_name)
+        # TODO check that the template is visible. --elopio - 2013-11-28

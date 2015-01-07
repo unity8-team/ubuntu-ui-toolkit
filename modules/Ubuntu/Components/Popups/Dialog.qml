@@ -15,13 +15,13 @@
  */
 
 import QtQuick 2.0
-import Ubuntu.Components 0.1
+import Ubuntu.Components 1.1
 import "internalPopupUtils.js" as InternalPopupUtils
 
 /*!
     \qmltype Dialog
     \inherits PopupBase
-    \inqmlmodule Ubuntu.Components.Popups 0.1
+    \inqmlmodule Ubuntu.Components.Popups 1.0
     \ingroup ubuntu-popups
     \brief The Dialog caters for cases in which the application requires the user to determine
         between optional actions. The Dialog will interrupt the user flow and lock the view
@@ -33,8 +33,8 @@ import "internalPopupUtils.js" as InternalPopupUtils
     Example:
     \qml
         import QtQuick 2.0
-        import Ubuntu.Components 0.1
-        import Ubuntu.Components.Popups 0.1
+        import Ubuntu.Components 1.1
+        import Ubuntu.Components.Popups 1.0
 
         Item {
             width: units.gu(80)
@@ -75,28 +75,24 @@ PopupBase {
     id: dialog
 
     /*!
-      \preliminary
       \qmlproperty list<Object> contents
       Content will be put inside a column in the foreround of the Dialog.
     */
     default property alias contents: contentsColumn.data
 
     /*!
-      \preliminary
       The title of the question to ask the user.
       \qmlproperty string title
      */
     property alias title: foreground.title
 
     /*!
-      \preliminary
       The question to the user.
       \qmlproperty string text
      */
     property alias text: foreground.text
 
     /*!
-      \preliminary
       The Item such as a \l Button that the user interacted with to open the Dialog.
       This property will be used for the automatic positioning of the Dialog next to
       the caller, if possible.
@@ -157,6 +153,7 @@ PopupBase {
 
     StyledItem {
         id: foreground
+        activeFocusOnPress: true
         width: Math.min(minimumWidth, dialog.width)
         anchors.centerIn: parent
 
@@ -170,40 +167,48 @@ PopupBase {
         property real itemSpacing: units.gu(2)
         property Item dismissArea: dialog.dismissArea
 
-        height: Math.min(childrenRect.height, dialog.height)
+        height: Math.min(contentsColumn.height + foreground.margins, dialog.height)
 
-        Column {
-            id: contentsColumn
-            anchors {
-                top: parent.top
-                left: parent.left
-                right: parent.right
-                margins: foreground.margins
-            }
-            spacing: foreground.itemSpacing
-            height: childrenRect.height + foreground.margins
-            onWidthChanged: updateChildrenWidths();
+        Flickable {
+            anchors.fill: parent
+            anchors.margins: foreground.margins
+            contentWidth: contentsColumn.width
+            contentHeight: contentsColumn.height - foreground.margins
+            boundsBehavior: Flickable.StopAtBounds
 
-            Label {
-                horizontalAlignment: Text.AlignHCenter
-                text: dialog.title
-                fontSize: "large"
-                color: Qt.rgba(1, 1, 1, 0.9)
-            }
+            Column {
+                id: contentsColumn
+                spacing: foreground.itemSpacing
+                width: foreground.width - foreground.margins * 2 - foreground.itemSpacing
+                height: childrenRect.height + foreground.margins
+                onWidthChanged: updateChildrenWidths();
 
-            Label {
-                horizontalAlignment: Text.AlignHCenter
-                text: dialog.text
-                fontSize: "medium"
-                color: Qt.rgba(1, 1, 1, 0.6)
-                wrapMode: Text.Wrap
-            }
+                Label {
+                    horizontalAlignment: Text.AlignHCenter
+                    text: dialog.title
+                    wrapMode: Text.Wrap
+                    maximumLineCount: 2
+                    elide: Text.ElideRight
+                    fontSize: "large"
+                    color: UbuntuColors.darkGrey
+                    visible: (text !== "")
+                }
 
-            onChildrenChanged: updateChildrenWidths()
+                Label {
+                    horizontalAlignment: Text.AlignHCenter
+                    text: dialog.text
+                    fontSize: "medium"
+                    color: UbuntuColors.darkGrey
+                    wrapMode: Text.Wrap
+                    visible: (text !== "")
+                }
 
-            function updateChildrenWidths() {
-                for (var i = 0; i < children.length; i++) {
-                    children[i].width = contentsColumn.width;
+                onChildrenChanged: updateChildrenWidths()
+
+                function updateChildrenWidths() {
+                    for (var i = 0; i < children.length; i++) {
+                        children[i].width = contentsColumn.width;
+                    }
                 }
             }
         }

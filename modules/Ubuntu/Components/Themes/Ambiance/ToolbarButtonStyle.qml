@@ -15,7 +15,7 @@
  */
 
 import QtQuick 2.0
-import Ubuntu.Components 0.1
+import Ubuntu.Components 1.1
 
 Item {
     id: visuals
@@ -23,6 +23,7 @@ Item {
     property int iconWidth: units.gu(2)
     property int iconHeight: units.gu(2)
 
+    implicitWidth: label.paintedWidth
     anchors.fill: parent
 
     Item {

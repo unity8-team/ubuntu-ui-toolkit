@@ -15,47 +15,81 @@
  */
 
 import QtQuick 2.0
-import Ubuntu.Components 0.1 as Toolkit
-import "Popups" 0.1
+import Ubuntu.Components 1.1
+import Ubuntu.Components.Popups 1.0
 
-ActionSelectionPopover {
-    objectName: "text_input_popover"
-    actions: ActionList {
+Popover {
+    id: popover
+    objectName: "text_input_contextmenu"
+    property Item target
+    property list<Action> actions: [
         Action {
-            text: i18n.tr("Select All")
-            enabled: target && target.text !== "" && target.text !== target.selectedText
+            text: i18n.dtr('ubuntu-ui-toolkit', "Select All")
+            iconName: "edit-select-all"
+            enabled: target.text !== ""
+            visible: target && target.selectedText === ""
             onTriggered: target.selectAll()
-        }
+        },
         Action {
-            text: i18n.tr("Select Word")
-            enabled: target && target.text !== "" && target.selectedText === ""
-            onTriggered: target.selectWord()
-        }
+            text: i18n.dtr('ubuntu-ui-toolkit', "Cut")
+            iconName: "edit-cut"
+            // If paste/editing is not possible, then disable also "Cut" operation
+            // It is applicable for ReadOnly's TextFields and TextAreas
+            enabled: target && target.selectedText !== "" && !target.readOnly
+            visible: target.selectedText !== ""
+            onTriggered: {
+                PopupUtils.close(popover);
+                target.cut();
+            }
+        },
         Action {
-            text: i18n.tr("Cut")
+            text: i18n.dtr('ubuntu-ui-toolkit', "Copy")
+            iconName: "edit-copy"
             enabled: target && target.selectedText !== ""
-            onTriggered: target.cut()
-        }
+            visible: target.selectedText !== ""
+            onTriggered: {
+                PopupUtils.close(popover);
+                target.copy();
+            }
+        },
         Action {
-            text: i18n.tr("Copy")
-            enabled: target && target.selectedText !== ""
-            onTriggered: target.copy()
-        }
-        Action {
-            text: i18n.tr("Paste")
+            text: i18n.dtr('ubuntu-ui-toolkit', "Paste")
+            iconName: "edit-paste"
             enabled: target && target.canPaste
-            onTriggered: target.paste()
+            onTriggered: {
+                PopupUtils.close(popover);
+                target.paste();
+            }
         }
-        Action {
-            text: i18n.tr("Undo")
-            enabled: target && target.canUndo
-            onTriggered: target.undo()
-        }
-        Action {
-            text: i18n.tr("Redo")
-            enabled: target && target.canRedo
-            onTriggered: target.redo()
+    ]
+
+    // removes hide animation
+    function hide() {
+        popover.visible = false;
+    }
+
+    autoClose: false
+    contentHeight: row.childrenRect.height
+    contentWidth: row.childrenRect.width
+    Row {
+        id: row
+        height: units.gu(6)
+
+        Repeater {
+            model: actions.length
+            AbstractButton {
+                id: button
+                /*
+                  Workaround for autopilot used in the text input's context menu to access
+                  action.text so we can get the proper button by text, action being not
+                  accessible. https://bugs.launchpad.net/autopilot/+bug/1334599
+                  */
+                property string text: action.text
+                width: Math.max(units.gu(4), implicitWidth) + units.gu(2)
+                height: units.gu(6)
+                action: actions[modelData]
+                style: Theme.createStyleComponent("ToolbarButtonStyle.qml", button)
+            }
         }
     }
 }
-

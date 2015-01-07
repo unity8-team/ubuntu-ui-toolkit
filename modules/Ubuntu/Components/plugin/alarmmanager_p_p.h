@@ -20,6 +20,7 @@
 #define ALARMMANAGER_P_H
 
 #include "ucalarm.h"
+#include "ucalarm_p.h"
 #include "alarmmanager_p.h"
 #include <QtCore/QUrl>
 
@@ -32,17 +33,29 @@ public:
 
     static AlarmManagerPrivate *get(AlarmManager *instance = 0) {
         if (!instance) {
-            return AlarmManager::instance().d_func();
+            return AlarmManager::instance().d_ptr.data();
         } else {
-            return instance->d_func();
+            return instance->d_ptr.data();
         }
     }
 
     AlarmManager *q_ptr;
-    QList<AlarmData> alarmList;
+    // used by alarmAt() and findAlarm() methods
+    UCAlarm *alarmHolder;
     bool completed:1;
 
+    virtual void init() = 0;
     virtual bool fetchAlarms() = 0;
+    virtual int alarmCount() = 0;
+    virtual void getAlarmAt(const UCAlarm &alarm, int index) const = 0;
+    virtual bool findAlarm(const UCAlarm &alarm, const QVariant &cookie) const = 0;
+
+    // function to verify whether the given alarm property has a given value set
+    // used for testing purposes
+    virtual bool verifyChange(UCAlarm *alarm, AlarmManager::Change change, const QVariant &value) = 0;
+
+    // creates an alarm data adaptation object
+    virtual UCAlarmPrivate *createAlarmData(UCAlarm *alarm) = 0;
 };
 
 AlarmManagerPrivate * createAlarmsAdapter(AlarmManager *alarms);

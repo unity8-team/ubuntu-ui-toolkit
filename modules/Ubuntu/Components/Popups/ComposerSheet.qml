@@ -15,11 +15,12 @@
  */
 
 import QtQuick 2.0
-import Ubuntu.Components 0.1
+import Ubuntu.Components 1.1
 /*!
     \qmltype ComposerSheet
     \inherits SheetBase
-    \inqmlmodule Ubuntu.Components.Popups 0.1
+    \inqmlmodule Ubuntu.Components.Popups 1.0
+    \deprecated
     \ingroup ubuntu-popups
     \brief Much like the \l DefaultSheet the Composer Sheet allows an application to insert a content
         view over the focused view without disrupting the navigation pattern. However the Composer Sheet
@@ -31,8 +32,8 @@ import Ubuntu.Components 0.1
 
     Example:
     \qml
-        import Ubuntu.Components 0.1
-        import Ubuntu.Components.Popups 0.1
+        import Ubuntu.Components 1.1
+        import Ubuntu.Components.Popups 1.0
 
         Item {
             Component {
@@ -56,25 +57,25 @@ import Ubuntu.Components 0.1
             }
         }
     \endqml
+
+    \b{Sheets are deprecated. Consider using \l Dialog, \l Popover or \l PageStack instead.}
 */
 
 SheetBase {
     id: composer
 
     /*!
-      \preliminary
       The user clicked the "cancel" button.
     */
     signal cancelClicked
 
     /*!
-      \preliminary
       The user clicked the "confirm" button.
      */
     signal confirmClicked
 
     __leftButton: Button {
-        text: i18n.dtr("ubuntu-sdk", "cancel")
+        text: i18n.dtr("ubuntu-ui-toolkit", "Cancel")
         objectName: "cancelButton"
         /*! \internal */ // avoid warning when generating documentation
         onClicked: {
@@ -84,7 +85,7 @@ SheetBase {
     }
 
     __rightButton: Button {
-        text: i18n.dtr("ubuntu-sdk", "confirm")
+        text: i18n.dtr("ubuntu-ui-toolkit", "Confirm")
         objectName: "confirmButton"
         color: UbuntuColors.orange
         /*! \internal */ // avoid warning when generating documentation

@@ -25,4 +25,6 @@ OTHER_FILES += \
     NestedDynamics.qml \
     RepeaterStates.qml \
     ListViewItems.qml \
-    GridViewItems.qml
+    GridViewItems.qml \
+    NormalAppClose.qml \
+    SaveEnum.qml

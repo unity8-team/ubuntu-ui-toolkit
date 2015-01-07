@@ -16,14 +16,13 @@
 
 import QtQuick 2.0
 import QtFeedback 5.0
+import Ubuntu.Components 1.1
 
 /*!
     \qmlabstract AbstractButton
-    \inqmlmodule Ubuntu.Components 0.1
+    \inqmlmodule Ubuntu.Components 1.1
     \ingroup ubuntu
     \brief The AbstractButton class defines the behavior of the button.
-
-    \b{This component is under heavy development.}
 
     This class defines the behavior of the button: it defines the MouseArea
     and the states.
@@ -41,7 +40,7 @@ ActionItem {
 
     /*!
        This handler is called when there is a mouse click on the button
-       and the button is not disabled. If \l action is defined,
+       and the button is not disabled. If \b action is defined,
        the action will be triggered.
     */
     signal clicked()
@@ -82,13 +81,15 @@ ActionItem {
      */
     property alias __mouseArea: mouseArea
 
+    activeFocusOnPress: true
+
     HapticsEffect {
         id: pressEffect
         attackIntensity: 0.0
-        attackTime: 250
+        attackTime: 50
         intensity: 1.0
-        duration: 100
-        fadeTime: 250
+        duration: 10
+        fadeTime: 50
         fadeIntensity: 0.0
     }
 

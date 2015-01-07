@@ -15,9 +15,9 @@
  */
 
 import QtQuick 2.0
-import Ubuntu.Components 0.1
-import Ubuntu.Components.Popups 0.1
-import Ubuntu.Components.ListItems 0.1
+import Ubuntu.Components 1.1
+import Ubuntu.Components.Popups 1.0
+import Ubuntu.Components.ListItems 1.0
 
 Dialog {
     id:root
@@ -25,11 +25,6 @@ Dialog {
     property var alarm
 
     title: "Choose days"
-
-    Button {
-        text: "Done"
-        onClicked: PopupUtils.close(root);
-    }
 
     ListModel {
         id: daysModel
@@ -63,28 +58,24 @@ Dialog {
         }
     }
 
-    Column {
-        anchors {
-            left: contents.left
-            top: contents.top
-            right: contents.right
-        }
-        height: childrenRect.height
-        Repeater {
-            model: daysModel
-            Standard {
-                text: day
-                control: CheckBox {
-                    checked: (alarm.daysOfWeek & flag) == flag
-                    onCheckedChanged: {
-                        if (checked) {
-                            alarm.daysOfWeek |= flag;
-                        } else {
-                            alarm.daysOfWeek &= ~flag;
-                        }
+    Repeater {
+        model: daysModel
+        Standard {
+            text: day
+            control: CheckBox {
+                checked: (alarm.daysOfWeek & flag) == flag
+                onCheckedChanged: {
+                    if (checked) {
+                        alarm.daysOfWeek |= flag;
+                    } else {
+                        alarm.daysOfWeek &= ~flag;
                     }
                 }
             }
         }
+    }
+    Button {
+        text: "Done"
+        onClicked: PopupUtils.close(root);
     }
 }

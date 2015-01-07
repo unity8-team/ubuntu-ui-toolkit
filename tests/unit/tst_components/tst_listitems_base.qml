@@ -16,7 +16,7 @@
 
 import QtQuick 2.0
 import QtTest 1.0
-import Ubuntu.Components.ListItems 0.1 as ListItem
+import Ubuntu.Components.ListItems 1.0 as ListItem
 
 TestCase {
      name: "ListItemsBaseAPI"
@@ -27,14 +27,11 @@ TestCase {
      }
 
      function test_icon() {
+         ignoreWarning('WARNING: ListItems.Base.icon is DEPRECATED. Use iconName and iconSource instead.')
          compare(listItemBase.icon,undefined,"icon is not set by default")
 
-         // test with item
-         listItemBase.icon = testItem
-         compare(listItemBase.icon,testItem,"set/get from Item")
-
          // test with url
-         var newIcon = "../../../examples/ubuntu-ui-toolkit-gallery/small_avatar.png"
+         var newIcon = "../../../../examples/ubuntu-ui-toolkit-gallery/small_avatar.png"
          listItemBase.icon = newIcon
          compare(listItemBase.icon,newIcon,"set/get from url")
      }

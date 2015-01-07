@@ -27,7 +27,7 @@
 /*!
  * \qmltype UbuntuApplication
  * \instantiates UCApplication
- * \inqmlmodule Ubuntu.Components 0.1
+ * \inqmlmodule Ubuntu.Components 1.1
  * \ingroup ubuntu
  * \brief UbuntuApplication is a QML binding for a subset of QCoreApplication.
  *
@@ -35,6 +35,9 @@
  */
 UCApplication::UCApplication(QObject* parent) : QObject(parent), m_context(0)
 {
+    // Make sure we receive application name changes from C++ modules
+    connect(QCoreApplication::instance(), &QCoreApplication::applicationNameChanged,
+            this, &UCApplication::applicationNameChanged);
 }
 
 void UCApplication::setContext(QQmlContext* context) {
@@ -66,7 +69,7 @@ void UCApplication::setApplicationName(const QString& applicationName) {
     QQmlEngine* engine(m_context->engine());
     QString dataFolder(QStandardPaths::writableLocation(QStandardPaths::DataLocation));
     engine->setOfflineStoragePath(dataFolder);
-
-    Q_EMIT applicationNameChanged();
+    // Get Qtlabs.settings to use a sane path
+    QCoreApplication::setOrganizationDomain(applicationName);
 }
 

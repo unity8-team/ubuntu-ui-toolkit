@@ -16,11 +16,12 @@
 
 import QtQuick 2.0
 import QtQuick.Window 2.0
-import Ubuntu.Components 0.1
+import Ubuntu.Components 1.1
 
 Item{
     id: root
     property string log: ""
+//    onLogChanged: print("LOG", log)
     width: units.gu(100)
     height: units.gu(100)
 
@@ -28,9 +29,11 @@ Item{
         objectName: "isawindow"
         width: units.gu(50)
         height: units.gu(50)
+        visible: true
 
         Item {
             id: clickArea
+            objectName: "clickArea"
             anchors {
                 left: parent.left
                 right: parent.right

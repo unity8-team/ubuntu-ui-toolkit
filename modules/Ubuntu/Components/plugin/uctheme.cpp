@@ -21,6 +21,7 @@
 #include "listener.h"
 #include "quickutils.h"
 #include "i18n.h"
+#include "ucfontutils.h"
 
 #include <QtQml/qqml.h>
 #include <QtQml/qqmlinfo.h>
@@ -32,11 +33,13 @@
 #include <QtCore/QTextStream>
 #include <QtCore/QLibraryInfo>
 #include <QtCore/QStandardPaths>
+#include <QtGui/QGuiApplication>
+#include <QtGui/QFont>
 
 /*!
     \qmltype Theme
     \instantiates UCTheme
-    \inqmlmodule Ubuntu.Components 0.1
+    \inqmlmodule Ubuntu.Components 1.1
     \ingroup theming
     \brief The Theme class provides facilities to interact with the current theme.
 
@@ -48,7 +51,7 @@
 
     \qml
     import QtQuick 2.0
-    import Ubuntu.Components 0.1
+    import Ubuntu.Components 1.1
 
     Item {
         Button {
@@ -61,7 +64,7 @@
 
     \qml
     import QtQuick 2.0
-    import Ubuntu.Components 0.1
+    import Ubuntu.Components 1.1
 
     StyledItem {
         id: myItem
@@ -74,16 +77,28 @@
 
 const QString THEME_FOLDER_FORMAT("%1/%2/");
 const QString PARENT_THEME_FILE("parent_theme");
-const char *ENV_PATH = "UBUNTU_UI_TOOLKIT_THEMES_PATH";
 
 QStringList themeSearchPath() {
     QString envPath = QLatin1String(getenv("UBUNTU_UI_TOOLKIT_THEMES_PATH"));
     QStringList pathList = envPath.split(':', QString::SkipEmptyParts);
     if (pathList.isEmpty()) {
         // get the default path list from generic data location, which contains
-        // ~/.local/share and XDG_DATA_DIRS
+        // XDG_DATA_DIRS
+        QString xdgDirs = QLatin1String(getenv("XDG_DATA_DIRS"));
+        if (!xdgDirs.isEmpty()) {
+            pathList << xdgDirs.split(':', QString::SkipEmptyParts);
+        }
+        // ~/.local/share
         pathList << QStandardPaths::standardLocations(QStandardPaths::GenericDataLocation);
     }
+
+    // append QML import path(s); we must explicitly support env override here
+    QString qml2ImportPath(getenv("QML2_IMPORT_PATH"));
+    if (!qml2ImportPath.isEmpty()) {
+        pathList << qml2ImportPath.split(':', QString::SkipEmptyParts);
+    }
+    pathList << QLibraryInfo::location(QLibraryInfo::Qml2ImportsPath).split(':', QString::SkipEmptyParts);
+
     // fix folders
     QStringList result;
     Q_FOREACH(const QString &path, pathList) {
@@ -91,8 +106,8 @@ QStringList themeSearchPath() {
             result << path + '/';
         }
     }
-    // append standard QML2_IMPORT_PATH value
-    result << QLibraryInfo::location(QLibraryInfo::Qml2ImportsPath);
+    // prepend current folder
+    result.prepend(QDir::currentPath());
     return result;
 }
 
@@ -109,6 +124,13 @@ UCTheme::UCTheme(QObject *parent) :
 
     QObject::connect(this, SIGNAL(nameChanged()),
                      this, SLOT(loadPalette()), Qt::UniqueConnection);
+
+    // set the default font
+    QFont defaultFont;
+    defaultFont.setFamily("Ubuntu");
+    defaultFont.setPixelSize(UCFontUtils::instance().sizeToPixels("medium"));
+    defaultFont.setWeight(QFont::Light);
+    QGuiApplication::setFont(defaultFont);
 }
 
 void UCTheme::updateEnginePaths()
@@ -119,7 +141,7 @@ void UCTheme::updateEnginePaths()
 
     QStringList paths = themeSearchPath();
     Q_FOREACH(const QString &path, paths) {
-        if (QDir(path).exists()) {
+        if (QDir(path).exists() && !m_engine->importPathList().contains(path)) {
             m_engine->addImportPath(path);
         }
     }
@@ -215,7 +237,7 @@ QString UCTheme::parentThemeName(const QString& themeName)
     QString parentTheme;
     QUrl themePath = pathFromThemeName(themeName);
     if (!themePath.isValid()) {
-        qWarning() << UbuntuI18n::instance().tr("Theme not found: ") << themeName;
+        qWarning() << qPrintable(UbuntuI18n::instance().tr("Theme not found: \"%1\"").arg(themeName));
     } else {
         QFile file(themePath.resolved(PARENT_THEME_FILE).toLocalFile());
         if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {

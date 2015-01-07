@@ -15,15 +15,15 @@
  */
 
 import QtQuick 2.0
+import Ubuntu.Components 1.1
 
 /*!
     \qmltype Divider
-    \inqmlmodule Ubuntu.Components.ListItems 0.1
+    \inqmlmodule Ubuntu.Components.ListItems 1.0
     \ingroup ubuntu-listitems
     \brief Divider to break up list items into groups.
 
     Examples: see \l Header
-    \b{This component is under heavy development.}
 */
 Image {
     source: "artwork/ListItemDivider6px.png"

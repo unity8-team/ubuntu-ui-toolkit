@@ -18,13 +18,13 @@ import QtQuick 2.0
 
 /*!
     \qmltype Header
-    \inqmlmodule Ubuntu.Components.ListItems 0.1
+    \inqmlmodule Ubuntu.Components.ListItems 1.0
     \ingroup ubuntu-listitems
     \brief Header for grouping list items together
 
     Examples:
     \qml
-        import Ubuntu.Components.ListItems 0.1 as ListItem
+        import Ubuntu.Components.ListItems 1.0 as ListItem
         Column {
             ListItem.Header { text: "Title" }
             ListItem.Standard { text: "Item one" }
@@ -34,7 +34,6 @@ import QtQuick 2.0
             ListItem.Standard { text: "Item four" }
         }
     \endqml
-    \b{This component is under heavy development.}
 */
 
 Item {
@@ -45,7 +44,6 @@ Item {
     }
 
     /*!
-     \preliminary
      The text that is shown as the header text.
      \qmlproperty string text
     */
@@ -60,11 +58,12 @@ Item {
     LabelVisual {
         id: label
         fontSize: "medium"
+        font.weight: Text.Normal
         anchors {
             verticalCenter: parent.verticalCenter
             left: parent.left
             right: parent.right
-            margins: units.gu(1)
+            margins: units.gu(2)
         }
     }
 

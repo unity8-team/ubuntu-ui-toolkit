@@ -17,10 +17,12 @@
  */
 
 #include "i18n.h"
-#include <QtCore/QStandardPaths>
+#include <QtCore/QDir>
 
 namespace C {
 #include <libintl.h>
+#include <glib.h>
+#include <glib/gi18n.h>
 }
 
 #include <stdlib.h>
@@ -29,7 +31,7 @@ namespace C {
 /*!
  * \qmltype i18n
  * \instantiates UbuntuI18n
- * \inqmlmodule Ubuntu.Components 0.1
+ * \inqmlmodule Ubuntu.Components 1.1
  * \ingroup ubuntu
  * \brief i18n is a context property that provides internationalization support.
  *
@@ -101,13 +103,16 @@ void UbuntuI18n::setDomain(const QString &domain) {
     m_domain = domain;
     C::textdomain(domain.toUtf8());
     /*
-     Look for locale folder as per XDG basedir spec
      The default is /usr/share/locale if we don't set a folder
+     For click we use APP_DIR/share/locale
+     e.g. /usr/share/click/preinstalled/com.example.foo/current/share/locale
      */
-    QString localePath (QStandardPaths::locate(QStandardPaths::GenericDataLocation,
-        "locale", QStandardPaths::LocateDirectory));
-    if (!localePath.isEmpty())
-        C::bindtextdomain(domain.toUtf8(), localePath.toUtf8());
+    QString appDir(getenv("APP_DIR"));
+    if (!QDir::isAbsolutePath (appDir)) {
+        appDir = "/usr";
+    }
+    QString localePath(QDir(appDir).filePath("share/locale"));
+    C::bindtextdomain(domain.toUtf8(), localePath.toUtf8());
     Q_EMIT domainChanged();
 }
 
@@ -182,5 +187,29 @@ QString UbuntuI18n::dtr(const QString& domain, const QString& singular, const QS
         return QString::fromUtf8(C::dngettext(NULL, singular.toUtf8(), plural.toUtf8(), n));
     } else {
         return QString::fromUtf8(C::dngettext(domain.toUtf8(), singular.toUtf8(), plural.toUtf8(), n));
+    }
+}
+
+/*!
+ * \qmlmethod string i18n::ctr(string context, string text)
+ * Translate \a text using gettext and return the translation.
+ * \a context is only visible to the translator and helps disambiguating for very short texts
+ */
+QString UbuntuI18n::ctr(const QString& context, const QString& text)
+{
+    return dctr(QString(), context, text);
+}
+
+/*!
+ * \qmlmethod string i18n::dctr(string domain, string context, string text)
+ * Translate \a text using gettext. Uses the specified domain \a domain instead of i18n.domain.
+ * \a context is only visible to the translator and helps disambiguating for very short texts
+ */
+QString UbuntuI18n::dctr(const QString& domain, const QString& context, const QString& text)
+{
+    if (domain.isNull()) {
+        return QString::fromUtf8(C::g_dpgettext2(NULL, context.toUtf8(), text.toUtf8()));
+    } else {
+        return QString::fromUtf8(C::g_dpgettext2(domain.toUtf8(), context.toUtf8(), text.toUtf8()));
     }
 }

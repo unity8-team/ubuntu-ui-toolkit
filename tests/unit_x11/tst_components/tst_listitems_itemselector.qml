@@ -16,9 +16,9 @@
 
 import QtQuick 2.0
 import QtTest 1.0
-import Ubuntu.Components 0.1
-import Ubuntu.Components.ListItems 0.1 as ListItem
-import Ubuntu.Test 0.1
+import Ubuntu.Components 1.1
+import Ubuntu.Components.ListItems 1.0 as ListItem
+import Ubuntu.Test 1.0
 
 Item {
     width: 400
@@ -44,6 +44,18 @@ Item {
             subText: "test"
             iconSource: "../../resources/optionselector/test.png"
             constrainImage: true
+        }
+    }
+
+    Column {
+        anchors.left: parent.left
+        anchors.right: parent.right
+
+        ListItem.ItemSelector {
+            id: expandedSelector
+            text: i18n.tr("Return results from:")
+            model: [i18n.tr("Phone only"), i18n.tr("Phone and Internet")]
+            expanded: true
         }
     }
 
@@ -88,15 +100,18 @@ Item {
              compare(selector.text, newText, "set/get");
          }
 
-         function test_selectedIndex() {
+         function test_0_selectedIndex() {
             compare(selector.selectedIndex, 0, "selectedIndex is 0 by default");
          }
 
          function test_model() {
+             selector.delegate = null;
              selector.model = undefined;
              var newValues = ["value0","value1","value2","value3"];
              selector.model = newValues;
              compare(selector.model, newValues, "set/get");
+             selector.model = customModel;
+             selector.delegate = selectorDelegate
          }
 
          function test_custom_model_delegate() {
@@ -107,6 +122,10 @@ Item {
          function test_image_constraint() {
             var image = findChild(testDelegate, "icon");
             compare(image.height, testDelegate.height);
+         }
+
+         function test_expandedSelector() {
+             verify(expandedSelector.containerHeight > 0, "Expanded ItemSelector height negative");
          }
     }
 }

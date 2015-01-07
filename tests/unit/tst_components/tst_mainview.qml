@@ -16,7 +16,7 @@
 
 import QtQuick 2.0
 import QtTest 1.0
-import Ubuntu.Components 0.1
+import Ubuntu.Components 1.1
 
 TestCase {
     name: "MainViewAPI"
@@ -53,8 +53,8 @@ TestCase {
 
     function test_actions() {
         // FIXME: Check the contents of mainView.actions. This is currently not
-        //  possible because UnityActions.ActionContext.actions does not support it,
-        //  so changes to UnityActions are needed.
+        //  possible because ActionContext.actions does not support it,
+        //  so changes to ActionContext are needed.
         mainView.actions = [action0];
         compare(mainView.actions.length, 1, "Actions can be added to page actions");
         mainView.actions = [];

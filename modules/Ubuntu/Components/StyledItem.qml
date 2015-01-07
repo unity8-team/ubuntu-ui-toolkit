@@ -15,10 +15,11 @@
  */
 
 import QtQuick 2.0
+import Ubuntu.Components 1.1
 
 /*!
     \qmlabstract StyledItem
-    \inqmlmodule Ubuntu.Components 0.1
+    \inqmlmodule Ubuntu.Components 1.1
     \ingroup theming
     \brief The StyledItem class allows items to be styled by the theme.
 
@@ -44,7 +45,7 @@ import QtQuick 2.0
 
     \sa {Theme}
 */
-FocusScope {
+StyledItemBase {
     id: styledItem
 
     /*!

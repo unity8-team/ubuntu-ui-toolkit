@@ -18,15 +18,13 @@ import QtQuick 2.0
 
 /*!
     \qmltype CheckBox
-    \inqmlmodule Ubuntu.Components 0.1
+    \inqmlmodule Ubuntu.Components 1.1
     \ingroup ubuntu
     \brief CheckBox is a component with two states, checked or unchecked. It can
     be used to set boolean options. The behavior is the same as \l Switch, the
     only difference is the graphical style.
 
     \l {http://design.ubuntu.com/apps/building-blocks/toggles}{See also the Design Guidelines on Toggles}.
-
-    \b{This component is under heavy development.}
 
     Example:
     \qml
@@ -41,7 +39,6 @@ AbstractButton {
     id: checkBox
 
     /*!
-      \preliminary
       Specifies whether the checkbox is checked or not. By default the property
       is set to false.
     */

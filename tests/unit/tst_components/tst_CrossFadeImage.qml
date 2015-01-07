@@ -16,7 +16,7 @@
 
 import QtQuick 2.0
 import QtTest 1.0
-import Ubuntu.Components 0.1
+import Ubuntu.Components 1.1
 
 TestCase {
     name: "CrossFadeImage"
@@ -45,7 +45,6 @@ TestCase {
     }
 
     function loadImage(url) {
-        console.log("Loading image...");
         source = url;
 
         signalSpy.signalName = "statusChanged";
@@ -61,7 +60,6 @@ TestCase {
         }
 
         compare(status, Image.Ready, "Image not ready");
-        console.log("Image loaded.");
     }
 
     function waitForAnimation() {
@@ -74,7 +72,6 @@ TestCase {
         }
 
         signalSpy.clear();
-        console.log("Waiting for animation to finish...");
         signalSpy.wait();
         compare(running, false, "Animation did not stop within 5 seconds.");
 
@@ -85,15 +82,30 @@ TestCase {
         compare(running, false, "Animation is running after testcase");
     }
 
+    function test_fade_data() {
+        return [
+                    {style: "overlay"},
+                    {style: "cross"}
+                ];
+    }
 
-    function test_fade() {
+    function test_fade(data) {
+        crossFadeImage.fadeStyle = data.style;
         loadImage("../../../examples/ubuntu-ui-toolkit-gallery/demo_image.jpg");
         loadImage("../../../examples/ubuntu-ui-toolkit-gallery/map_icon.png");
         waitForAnimation();
         cleanupTest();
     }
 
-    function test_fadeDuration() {
+    function test_fadeDuration_data() {
+        return [
+                    {style: "overlay"},
+                    {style: "cross"}
+                ];
+    }
+
+    function test_fadeDuration(data) {
+        crossFadeImage.fadeStyle = data.style;
         fadeDuration = UbuntuAnimation.SleepyDuration;
         loadImage("../../../examples/ubuntu-ui-toolkit-gallery/demo_image.jpg");
         loadImage("../../../examples/ubuntu-ui-toolkit-gallery/map_icon.png");

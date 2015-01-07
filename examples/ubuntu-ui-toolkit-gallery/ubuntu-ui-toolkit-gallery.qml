@@ -15,7 +15,7 @@
  */
 
 import QtQuick 2.0
-import Ubuntu.Components 0.1
+import Ubuntu.Components 1.1
 import Ubuntu.Components.ListItems 0.1 as ListItem
 
 MainView {
@@ -26,6 +26,7 @@ MainView {
     // Note! applicationName needs to match the .desktop filename
     applicationName: "ubuntu-ui-toolkit-gallery"
 
+    useDeprecatedToolbar: false
 
     width: units.gu(120)
     height: units.gu(75)
@@ -94,11 +95,11 @@ MainView {
         }
     ]
 
-
-    property var selectedWidget
+    property var selectedWidget: null
 
     Page {
         id: mainPage
+        active: selectedWidget == null
 
         title: "Ubuntu UI Toolkit"
         /* Page internally sets the topMargin of its flickable to account for
@@ -117,6 +118,7 @@ MainView {
                 model: widgetsModel
                 delegate: ListItem.Standard {
                     text: model.label
+                    objectName: model.objectName
                     enabled: model.source != ""
                     progression: true
                     selected: enabled && selectedWidget == model
@@ -133,7 +135,7 @@ MainView {
 
     Page {
         id: contentPage
-
+        active: selectedWidget != null
         title: selectedWidget ? selectedWidget.label : ""
         /* Page internally sets the topMargin of its flickable to account for
            the height of the header. Undo it when unsetting the flickable.

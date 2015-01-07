@@ -16,20 +16,18 @@
 
 import QtQuick 2.0
 import "ListItems" as ListItem
-import Ubuntu.Components 0.1 as Toolkit
+import Ubuntu.Components 1.1 as Toolkit
 
 /*!
     \qmltype OptionSelector
-    \inqmlmodule Ubuntu.Components 0.1
+    \inqmlmodule Ubuntu.Components 1.1
     \ingroup ubuntu-components
     \brief Component displaying either a single selected value or expanded multiple choice with an optional image and subtext when not expanded, when expanding it opens a
     listing of all the possible values for selection with an additional option of always being expanded. If multiple choice is selected the list is expanded automatically.
 
-    \b{This component is under heavy development.}
-
     Examples:
     \qml
-        import Ubuntu.Components 0.1
+        import Ubuntu.Components 1.1
         Column {
             spacing: units.gu(3)
 
@@ -116,37 +114,31 @@ ListItem.Empty {
     id: optionSelector
 
     /*!
-      \preliminary
       The list of values that will be shown under the label text. This is a model.
      */
     property var model
 
     /*!
-      \preliminary
       Specifies whether the list is always expanded.
      */
     property bool expanded: false
 
     /*!
-      \preliminary
       If the multiple choice selection is enabled the list is always expanded.
      */
     property bool multiSelection: false
 
     /*!
-      \preliminary
       Colours image according to the fieldText colour of the theme, otherwise source colour is maintained.
      */
     property bool colourImage: false
 
     /*!
-      \preliminary
       ListView delegate.
      */
     property Component delegate: Toolkit.OptionSelectorDelegate {}
 
     /*!
-      \preliminary
       Custom height for list container which allows scrolling inside the selector.
      */
     property real containerHeight: {
@@ -220,6 +212,7 @@ ListItem.Empty {
         StyledItem {
             id: listContainer
             objectName: "listContainer"
+            activeFocusOnPress: true
 
             readonly property url chevron: __styleInstance.chevron
             readonly property url tick: __styleInstance.tick
@@ -278,6 +271,10 @@ ListItem.Empty {
                 readonly property alias container: listContainer
                 property real itemHeight
                 signal delegateClicked(int index)
+
+                onMovementStarted: optionSelector.requestFocus(Qt.MouseFocusReason)
+                onFlickStarted: optionSelector.requestFocus(Qt.MouseFocusReason)
+                Toolkit.Mouse.onClicked: optionSelector.requestFocus(Qt.MouseFocusReason)
 
                 onDelegateClicked: optionSelector.delegateClicked(index);
                 interactive: listContainer.height !== list.contentHeight && listContainer.currentlyExpanded ? true : false

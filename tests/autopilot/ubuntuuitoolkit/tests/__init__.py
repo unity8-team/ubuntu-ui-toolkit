@@ -1,6 +1,6 @@
 # -*- Mode: Python; coding: utf-8; indent-tabs-mode: nil; tab-width: 4 -*-
 #
-# Copyright (C) 2012, 2013 Canonical Ltd.
+# Copyright (C) 2012, 2013, 2014 Canonical Ltd.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -23,12 +23,13 @@ from autopilot.input import Pointer
 from autopilot.matchers import Eventually
 from testtools.matchers import Is, Not, Equals
 
-from ubuntuuitoolkit import base, emulators
+import ubuntuuitoolkit
+from ubuntuuitoolkit import base, fixture_setup
 
 
 _DESKTOP_FILE_CONTENTS = ("""[Desktop Entry]
 Type=Application
-Exec=Not important
+Exec=/usr/bin/whoami
 Path=Not important
 Name=Test app
 Icon=Not important
@@ -39,6 +40,10 @@ def _write_test_desktop_file():
     desktop_file_dir = get_local_desktop_file_directory()
     if not os.path.exists(desktop_file_dir):
         os.makedirs(desktop_file_dir)
+    # Strip underscores which look like an APP_ID to Unity
+    # See https://bugs.launchpad.net/ubuntu-ui-toolkit/+bug/1329141
+    chars = tempfile._RandomNameSequence.characters.strip("_")
+    tempfile._RandomNameSequence.characters = chars
     desktop_file = tempfile.NamedTemporaryFile(
         suffix='.desktop', dir=desktop_file_dir, delete=False)
     desktop_file.write(_DESKTOP_FILE_CONTENTS.encode('utf-8'))
@@ -60,49 +65,63 @@ def get_path_to_source_root():
             os.path.dirname(__file__), '..', '..', '..', '..'))
 
 
-class QMLStringAppTestCase(base.UbuntuUIToolkitAppTestCase):
-    """Base test case for self tests that define the QML on an string."""
+class UbuntuUIToolkitWithFakeAppRunningTestCase(
+        base.UbuntuUIToolkitAppTestCase):
 
     test_qml = ("""
 import QtQuick 2.0
-import Ubuntu.Components 0.1
+import Ubuntu.Components 1.1
 
 MainView {
     width: units.gu(48)
-    height: units.gu(60)
+    height: units.gu(80)
 }
 """)
 
     def setUp(self):
-        super(QMLStringAppTestCase, self).setUp()
-        self.pointing_device = Pointer(self.input_device_class.create())
+        super(UbuntuUIToolkitWithFakeAppRunningTestCase, self).setUp()
         self.launch_application()
 
     def launch_application(self):
-        qml_file_path = self._write_test_qml_file()
-        self.addCleanup(os.remove, qml_file_path)
-        desktop_file_path = _write_test_desktop_file()
-        self.addCleanup(os.remove, desktop_file_path)
-        self.app = self.launch_test_application(
-            base.get_qmlscene_launch_command(),
-            '-I' + _get_module_include_path(),
-            qml_file_path,
-            '--desktop_file_hint={0}'.format(desktop_file_path),
-            emulator_base=emulators.UbuntuUIToolkitEmulatorBase,
-            app_type='qt')
+        fake_application = fixture_setup.FakeApplication(
+            qml_file_contents=self.test_qml)
+        self.useFixture(fake_application)
 
+        local_modules_path = _get_module_include_path()
+        if os.path.exists(local_modules_path):
+            self.use_local_modules(local_modules_path)
+        desktop_file_name = os.path.basename(
+            fake_application.desktop_file_path)
+        application_name, _ = os.path.splitext(desktop_file_name)
+        self.app = self.launch_upstart_application(
+            application_name,
+            emulator_base=ubuntuuitoolkit.UbuntuUIToolkitCustomProxyObjectBase)
+
+    def use_local_modules(self, local_modules_path):
+        env_vars = [
+            'QML_IMPORT_PATH',
+            'QML2_IMPORT_PATH',
+            'UBUNTU_UI_TOOLKIT_THEMES_PATH'
+        ]
+        kwargs = {'global_': True}
+        for env in env_vars:
+            kwargs[env] = local_modules_path
+        self.useFixture(fixture_setup.InitctlEnvironmentVariable(**kwargs))
+
+
+class QMLStringAppTestCase(UbuntuUIToolkitWithFakeAppRunningTestCase):
+    """Base test case for self tests that define the QML on an string."""
+
+    def setUp(self):
+        super(QMLStringAppTestCase, self).setUp()
         self.assertThat(
             self.main_view.visible, Eventually(Equals(True)))
 
-    def _write_test_qml_file(self):
-        qml_file = tempfile.NamedTemporaryFile(suffix='.qml', delete=False)
-        qml_file.write(self.test_qml.encode('utf-8'))
-        qml_file.close()
-        return qml_file.name
+        self.pointing_device = Pointer(self.input_device_class.create())
 
     @property
     def main_view(self):
-        return self.app.select_single(emulators.MainView)
+        return self.app.select_single(ubuntuuitoolkit.MainView)
 
 
 class FlickDirection:
@@ -122,14 +141,20 @@ class QMLFileAppTestCase(base.UbuntuUIToolkitAppTestCase):
         self.pointing_device = Pointer(self.input_device_class.create())
         self.launch_application()
 
+    def get_command_line(self, command_line):
+        return command_line
+
     def launch_application(self):
         desktop_file_path = self._get_desktop_file_path()
-        self.app = self.launch_test_application(
-            base.get_qmlscene_launch_command(),
-            "-I" + _get_module_include_path(),
+        command_line = [
+            base.get_toolkit_launcher_command(),
+            "-I", _get_module_include_path(),
             self.test_qml_file_path,
-            '--desktop_file_hint={0}'.format(desktop_file_path),
-            emulator_base=emulators.UbuntuUIToolkitEmulatorBase,
+            '--desktop_file_hint={0}'.format(desktop_file_path)
+            ]
+        self.app = self.launch_test_application(
+            *self.get_command_line(command_line),
+            emulator_base=ubuntuuitoolkit.UbuntuUIToolkitCustomProxyObjectBase,
             app_type='qt')
 
         self.assertThat(
@@ -145,92 +170,7 @@ class QMLFileAppTestCase(base.UbuntuUIToolkitAppTestCase):
 
     @property
     def main_view(self):
-        return self.app.select_single(emulators.MainView)
-
-    def checkListItem(self, itemText):
-        item = self.getListItem(itemText)
-        self.assertThat(item, Not(Is(None)))
-
-    def getListItem(self, itemText):
-        # XXX We shouldn't access the elements by text, because that's likely
-        # to change often and might be translated. We should always use the
-        # objectName instead. --elopio - 2013-06-26216
-        return self.main_view.select_single("Standard", text=itemText)
-
-    def getWidgetLoaderAndListView(self):
-        contentLoader = self.main_view.select_single(
-            "QQuickLoader", objectName="contentLoader")
-        listView = self.main_view.select_single(
-            "QQuickListView", objectName="widgetList")
-        self.assertThat(listView, Not(Is(None)))
-        self.assertThat(listView.visible, Eventually(Equals(True)))
-        return (contentLoader, listView)
-
-    def loadItem(self, item):
-        self.selectItem(item)
-        contentLoader = self.main_view.select_single(
-            "QQuickLoader", objectName="contentLoader")
-        self.assertThat(contentLoader.progress, Eventually(Equals(1.0)))
-        loadedPage = self.getListItem(item)
-        self.assertThat(loadedPage, Not(Is(None)))
-        #loadedPage is not a page, it is the list item which goes in
-        #background when the item is selected, which changes the visible
-        #property of item in list itself to False. So followin check
-        #fails on Nexus 4. Commenting it for now.
-        #self.assertThat(loadedPage.visible, Eventually(Equals(True)))
-
-    def drag(self, itemText, itemTextTo):
-        item = self.getListItem(itemText)
-        itemTo = self.getListItem(itemTextTo)
-
-        self.pointing_device.move_to_object(item)
-        self.pointing_device.press()
-        self.pointing_device.move_to_object(itemTo)
-        self.pointing_device.release()
-
-    def reveal_item_by_flick(self, item, flickable, direction):
-        x1, y1, w1, h1 = item.globalRect
-        x2, y2, w2, h2 = flickable.globalRect
-        if direction is FlickDirection.UP:
-            while y1 + h1 > y2 + h2:
-                self.flick(flickable, direction)
-                x1, y1, w1, h1 = item.globalRect
-        elif direction is FlickDirection.DOWN:
-            while y1 < y2:
-                self.flick(flickable, direction)
-                x1, y1, w1, h1 = item.globalRect
-
-    def flick(self, flickable, direction, delta=40):
-        """This funcito flicks the page from middle to the given direction."""
-        x, y, w, h = flickable.globalRect
-        if direction == FlickDirection.UP:
-            self.pointing_device.drag(x + w / 2, y + h / 2, x + w / 2,
-                                      y + h / 2 - delta)
-            flickable.flicking.wait_for(False)
-        elif direction == FlickDirection.DOWN:
-            self.pointing_device.drag(x + w / 2, y + h / 2, x + w / 2,
-                                      y + h / 2 + delta)
-            flickable.flicking.wait_for(False)
-        else:
-            raise ValueError("Invalid direction or not implementd yet")
-
-    def selectItem(self, itemText):
-        item = self.getListItem(itemText)
-        x1, y1, w1, h1 = item.globalRect
-        x2, y2, w2, h2 = self.main_view.globalRect
-
-        orientationHelper = self.getOrientationHelper()
-        rot = orientationHelper.rotation
-        scrollTo = h2 / 2 - (y1 - h2 - h1)
-        if rot == 0.0 and y1 > h2:
-            self.pointing_device.drag(w2 / 2, h2 / 2, w2 / 2, scrollTo)
-
-        self.assertThat(item.selected, Eventually(Equals(False)))
-
-        self.pointing_device.move_to_object(item)
-        self.pointing_device.click()
-
-        self.assertThat(item.selected, Eventually(Equals(True)))
+        return self.app.select_single(ubuntuuitoolkit.MainView)
 
     def getOrientationHelper(self):
         orientationHelper = self.main_view.select_many(
@@ -240,7 +180,7 @@ class QMLFileAppTestCase(base.UbuntuUIToolkitAppTestCase):
 
     def checkPageHeader(self, pageTitle):
         orientationHelper = self.getOrientationHelper()
-        header = orientationHelper.select_many("Header", title=pageTitle)[0]
+        header = orientationHelper.select_single("AppHeader", title=pageTitle)
         self.assertThat(header, Not(Is(None)))
         self.assertThat(header.visible, Eventually(Equals(True)))
         return header
@@ -254,29 +194,3 @@ class QMLFileAppTestCase(base.UbuntuUIToolkitAppTestCase):
         obj = self.getObject(objectName)
         self.pointing_device.move_to_object(obj)
         self.pointing_device.click()
-
-    def mousePress(self, objectName):
-        obj = self.getObject(objectName)
-        self.pointing_device.move_to_object(obj)
-        self.pointing_device.press()
-
-    def mouseRelease(self):
-        self.pointing_device.release()
-
-    def type_string(self, string):
-        self.keyboard.type(string)
-
-    def type_key(self, key):
-        self.keyboard.key(key)
-
-    def tap_clearButton(self, objectName):
-        textField = self.getObject(objectName)
-        self.assertIsNotNone(textField)
-        self.pointing_device.click_object(textField)
-        self.assertThat(textField.focus, Eventually(Equals(True)))
-        self.assertThat(textField.hasClearButton, Eventually(Equals(True)))
-        btn = textField.select_single("AbstractButton")
-        self.assertIsNotNone(btn)
-        self.assertThat(btn.visible, Eventually(Equals(True)))
-        self.pointing_device.click_object(btn)
-        self.assertThat(btn.pressed, Eventually(Equals(False)))

@@ -16,12 +16,12 @@
 
 import QtQuick 2.0
 import "internalPopupUtils.js" as InternalPopupUtils
-import Ubuntu.Components 0.1
+import Ubuntu.Components 1.1
 
 /*!
     \qmltype Popover
     \inherits PopupBase
-    \inqmlmodule Ubuntu.Components.Popups 0.1
+    \inqmlmodule Ubuntu.Components.Popups 1.0
     \ingroup ubuntu-popups
     \brief A popover allows an application to present additional content without changing the view.
         A popover has a fixed width and automatic height, depending on is contents.
@@ -32,9 +32,9 @@ import Ubuntu.Components 0.1
     Example:
     \qml
         import QtQuick 2.0
-        import Ubuntu.Components 0.1
-        import Ubuntu.Components.ListItems 0.1 as ListItem
-        import Ubuntu.Components.Popups 0.1
+        import Ubuntu.Components 1.1
+        import Ubuntu.Components.ListItems 1.0 as ListItem
+        import Ubuntu.Components.Popups 1.0
 
         Rectangle {
             color: Theme.palette.normal.background
@@ -127,7 +127,7 @@ PopupBase {
       The property holds the margins from the popover's dismissArea. The property
       is themed.
       */
-    property real edgeMargins: units.gu(2)
+    property real edgeMargins: foreground.square ? 0 : units.gu(2)
 
     /*!
       The property holds the margin from the popover's caller. The property
@@ -153,7 +153,6 @@ PopupBase {
     property alias foregroundStyle: foreground.style
 
     /*!
-      \preliminary
       Make the popover visible. Reparent to the background area object first if needed.
       Only use this function if you handle memory management. Otherwise use
       PopupUtils.open() to do it automatically.
@@ -170,7 +169,6 @@ PopupBase {
     }
 
     /*!
-      \preliminary
       Hide the popover.
       Only use this function if you handle memory management. Otherwise use
       PopupUtils.close() to do it automatically.
@@ -204,6 +202,8 @@ PopupBase {
 
     StyledItem {
         id: foreground
+        activeFocusOnPress: true
+        objectName: "popover_foreground"
 
         //styling properties
         property real minimumWidth: units.gu(40)
@@ -230,6 +230,7 @@ PopupBase {
         property point target: Qt.point(pointer.x - x, pointer.y - y)
         property string direction: pointer.direction
         property bool clipContent: true
+        property bool square: popover.hasOwnProperty("square") ? popover.square : false
 
         signal show()
         signal hide()
@@ -287,5 +288,5 @@ PopupBase {
     /*! \internal */
     onHeightChanged: internal.updatePosition()
     /*! \internal */
-    onRotationChanged: internal.updatePosition()
+    onRotatingChanged: hide()
 }

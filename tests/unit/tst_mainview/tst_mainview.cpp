@@ -31,9 +31,11 @@
 #include <QtCore/QFileInfo>
 #include <QtCore/QDir>
 #include <QCryptographicHash>
+#include <QSettings>
 
 #include "ucapplication.h"
 #include "ucunits.h"
+#include "uctestcase.h"
 
 class tst_MainView : public QObject
 {
@@ -143,15 +145,72 @@ private Q_SLOTS:
         QVERIFY(QFile::exists(database));
     }
 
-    void testNoWarnings_bug186065() {
-        QSignalSpy spy(view->engine(), SIGNAL(warnings(QList<QQmlError>)));
-        spy.setParent(view);
+    QString getConfFile(QString applicationName) {
+        QString configFolder(QStandardPaths::writableLocation(QStandardPaths::ConfigLocation));
+        QString subFolder(configFolder + "/" + applicationName);
+        QString filename(subFolder + "/" + applicationName + ".conf");
+        return filename;
+    }
 
-        QQuickItem *root = loadTest("AppName.qml"); // An empty MainView would suffice
+    void testLabsSettings() {
+        QString applicationName("red.riding.hood");
+        // Delete file if it exists to avoid false positives
+        QString filename(getConfFile(applicationName));
+        QFile::remove(filename);
+
+        QQuickItem *root = loadTest("Settings.qml");
         QVERIFY(root);
+        QQuickItem *mainView = root;
+        QCOMPARE(applicationName, mainView->property("applicationName").toString());
+        QCOMPARE(QString(applicationName), QCoreApplication::organizationDomain());
+        QQuickItem *textField(testItem(mainView, "textfield"));
+        textField->setProperty("text", "Blue");
+        delete root;
+        QVERIFY(QFile::exists(filename));
+    }
+
+    void testQSettings() {
+        QString applicationName("i.prefer.pi");
+        // Delete file if it exists to avoid false positives
+        QString filename(getConfFile(applicationName));
+        QFile::remove(filename);
+
+        UCApplication::instance().setApplicationName(applicationName);
+        // QSettings with defaults
+        QSettings mySettings;
+        mySettings.setValue("spam", "eggs");
+        // Force writing to disk
+        mySettings.sync();
+        QVERIFY(QFile::exists(filename));
+    }
+
+    void testNoWarnings_bug186065() {
+        // An empty MainView would suffice
+        QScopedPointer<UbuntuTestCase>testCase (new UbuntuTestCase("AppName.qml"));
 
         // No warnings from QML
-        QCOMPARE(spy.count(), 0);
+        QCOMPARE(testCase->warnings(), 0);
+    }
+
+    void testWindowTitleFromPage() {
+        QScopedPointer<UbuntuTestCase> testCase(new UbuntuTestCase("PageTitle.qml"));
+        QQuickItem *page = testCase->findItem<QQuickItem*>("page");
+        QCOMPARE(QString("Once upon a time"), page->property("title").toString());
+        QCOMPARE(testCase->title(), page->property("title").toString());
+    }
+
+    void testWindowTitleFromStack() {
+        QScopedPointer<UbuntuTestCase> testCase(new UbuntuTestCase("PageStack.qml"));
+        QQuickItem *page = testCase->findItem<QQuickItem*>("page");
+        QCOMPARE(QString("Far far away"), page->property("title").toString());
+        QCOMPARE(testCase->title(), page->property("title").toString());
+    }
+
+    void testWindowTitleFromTabs() {
+        QScopedPointer<UbuntuTestCase> testCase(new UbuntuTestCase("TabsTitle.qml"));
+        QQuickItem *page = testCase->findItem<QQuickItem*>("page");
+        QCOMPARE(QString("Long long ago"), page->property("title").toString());
+        QCOMPARE(testCase->title(), page->property("title").toString());
     }
 };
 

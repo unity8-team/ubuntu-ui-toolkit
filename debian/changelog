@@ -1,3 +1,1551 @@
+ubuntu-ui-toolkit (1.1.1370+15.04.20141217-0ubuntu1) vivid; urgency=medium
+
+  [ Zoltán Balogh ]
+  * fixing gles dependency for ubuntu-ui-toolkit-autopilot, so we can
+     have functional tests on x86 emulator
+
+  [ Christian Dywan ]
+  * Asterisk are needed for cp -R.
+  * Use correct unfocussed text field color. Fixes LP: #1396062
+
+  [ Zsombor Egri ]
+  * CPOs
+
+  [ Daniel d'Andrada ]
+  * Refactor OrientationHelper
+    Simplify animation code and make it more robust. It now survives 
+    changes in Screen.primaryOrientation and Screen.orientation 
+    happening one right after the other.
+
+  [ CI Train Bot ]
+  * Resync trunk
+  * Resync trunk
+  * Resync trunk
+  * Resync trunk
+
+  [ Ubuntu daily release ]
+  * New rebuild forced
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Wed, 17 Dec 2014 09:52:55 +0000
+
+ubuntu-ui-toolkit (1.1.1364+15.04.20141209-0ubuntu1) vivid; urgency=medium
+
+  [ Zsombor Egri ]
+  * Theming fixes: application theming, binding loop fix, auto-theming 
+    moved into MainView and it is applicable only on Ambiance and 
+    SuruDark, SuruGradient is no longer auto-themed. 
+    Fixes: LP: #1213043, LP: #1277647, LP: #1330510, LP: #1356779, 
+           LP: #1389792.
+  * ServiceProperties component to Ubuntu.Components 1.1. 
+    Fixes: LP: #1391877.
+  * New ListItem component base. Support for leading/trailing actions. 
+    Exported in Ubuntu.Components 1.2 UNSTABLE release. 
+    Fixes: LP: #1097728, LP: #1372592, LP: #1383870.
+  * removing failing ServiceProperties and app-theming branches
+  * Application theming ant other theming related binding loop fixes
+  * ServiceProperties DBus property watcher
+
+  [ Christian Dywan ]
+  * Do the default theme check properly: for non-debug and without 
+    build errors.
+  * Don't activate the control in ListItem.Standard implicitly. 
+    Fixes: LP: #1372563.
+  * Improve AutoPilot caret dragging test cases.
+  * Use new qt_gl_set_global_share_context setter with Qt 5.4. 
+    Fixes: LP: #1397979.
+  * Add sortCaseSensitivity to the SortFilterModel example. 
+    Fixes: LP: #1391034.
+  * Change offending links into bold font. Fixes: LP: #1395011.
+
+  
+  [ Daniel d'Andrada ]
+  * This is needed by unity8 for the "shell rotation" feature (ie 
+    shell does all the rotation work instead of apps rotating
+    themselves). unity8's dialogs (like the power dialog when you 
+    long press the power button) should follow its parent item 
+    rotation and size, as one would expect, and not be sneakily 
+    reparented to the scene root item, in which case the shell 
+    UI would be rotated but its dialog would not. 
+    Related bug LP: #1394511. Fixes: LP: #1394511.
+
+  [ Tim Peeters ]
+  * Remove the old header separator style. Fixes: LP: #1372590.
+  
+  [ Loïc Molinari ]
+  * Made the UCAlarmPrivate destructor private.
+
+  [ Ubuntu daily release ]
+  * New rebuild forced
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Tue, 09 Dec 2014 11:47:33 +0000
+
+ubuntu-ui-toolkit (1.1.1347+15.04.20141126-0ubuntu1) vivid; urgency=medium
+
+  [ Zsombor Egri ]
+  * Expose refresh() function in revision 1 (Ubuntu.Components 1.1). 
+    Fixes LP: #1380559
+  * Alarm adaptation refactored to support change granular model 
+    updates. Fixes LP: #1322558, LP: #1360359, LP: #1370649, 
+    LP: #1380553
+  * Fix Header thin divider margins, restored to original no-margins. 
+    Fixes LP: #1380766.
+
+  [ Tim Peeters ]
+  * Add ensure_visible() function to header AP helper. 
+    Fixes LP: #1363591
+
+  [ Albert Astals Cid ] 
+  * Add context support for i18n.tr calls. This allows to have strings 
+    like "All" translated to two different strings in the translated 
+    language if different contexts are given. Fixes LP: #1394904
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Wed, 26 Nov 2014 08:33:25 +0000
+
+ubuntu-ui-toolkit (1.1.1341+15.04.20141124-0ubuntu1) vivid; urgency=medium
+
+  [ Christian Dywan ]
+  * Re-introduce NOTIFY to Image under a different name.
+   Fixes LP: #1395690 LP: #1395793
+
+  [ Florian Boucault ] 
+  * TextArea/TextField: make sure that the copy/paste popup is far
+    enough from the finger for it to be visible and legible. 
+    Fixes LP: #1384422
+
+  [ Zoltán Balogh ]
+  * Updated test plan executer script
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Mon, 24 Nov 2014 22:14:25 +0000
+
+ubuntu-ui-toolkit (1.1.1338+15.04.20141121-0ubuntu1) vivid; urgency=medium
+
+  [ Loïc Molinari ]
+  * [UbuntuShape] Added detailed doc for borderSource. Fixes LP: #1354753
+  * [Gallery] Fixed bad object naming. Fixes LP: #1240555
+  
+  [ Chris Gagnoni ]
+  * fix compare string in
+    ubuntuuitoolkit.tests.gallery.test_textinput.DisabledTextInputTestCase.
+    Fixes LP: #1388896
+
+  [ Christian Dywan ]
+  * autopilot package needs to depend on python-autopilot-trace.
+    Fixes LP: #1385326
+  * Check if pressed is a property before using its value.
+    Fixes LP: #1384376
+  * Fix toolkit gallery translation template.
+    Ignore expected warnings in unit tests. Fixes LP: #1272431
+  * Make it clear that ToolbarItems is deprecated.
+  * Always append QML2 import path regardless of QML2_IMPORT_PATH
+  * Depend on dbus to ensure /etc/machine-id exists.
+  * Allow manual execution of unit tests using Qt.Test.
+  * Autopilot package needs to depend on QtTest
+
+  [ Tim Peeters]
+  * Add color properties to PageHeadStyle.
+  * Fix the ItemSelector style for SuruDark and SuruGradient themes.
+    Fixes LP: #1389112
+  * Fix the panel colors for the tabs and actions overflow in the
+    header. Fixes LP: #1386208
+  * Fix the size of the highlight when clicking a section in the header
+    divider. Fixes LP: #1372932.
+  * Fix untranslated "In Progress" label. Fixes LP: #1391617
+  * Remove \preliminary tags and "under heavy development" text in
+    docs. Fixes LP: #1389119.
+  * Small fix in documentation for PageHeadConfiguration.
+  * Update the CheckBox style:
+      - Expose color and padding properties
+      - Make icon themable
+      - use theme icon by default
+      - Update default size.
+    Fixes LP: #1372582, LP: #1390440.
+  * Various tweaks to SwitchStyle:
+      - Scaling of icons when changing the size of the Switch,
+      - Smaller default Switch size, Use icons from theme,
+      - Make check/uncheck animation faster, Prevent animations on
+        width change (during initialization),
+      - Expose SwitchStyle in Themes.Ambience, Add all visualization
+        parameters as properties to SwitchStyle.
+    Fixes LP: #1211483, LP: #1332092, LP: #1368711, LP: #1372582,
+    LP: #1381008
+
+  [ Zoltán Balogh ]
+  * Use absolute path for the UITK Gallery icon. Fixes LP: #1304874
+
+  [ Zsombor Egri ]
+  * Fixing typo in the Label test case. Refactoring tests to use data
+    driven test. Fixes LP: #1076771.
+  * Ignore QT_IM_MODULE values like ibus, none or compose.
+    Fixes LP: #1382121.
+  * Remove overloaded signal, we should use the default signals
+    whenever we override a property. Fixes LP: #1194778.
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Fri, 21 Nov 2014 13:13:53 +0000
+
+ubuntu-ui-toolkit (1.1.1311+15.04.20141111-0ubuntu1) vivid; urgency=low
+
+  [ Zsombor Egri ]
+  * Zsombor Egri's "Ignore QT_IM_MODULE values like ibus, none or
+    compose." for Qt 5.3.2 specific fix.
+
+  [ Christian Dywan ]
+  * Update po/ubuntu-ui-toolkit.pot
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Tue, 11 Nov 2014 06:06:52 +0000
+
+ubuntu-ui-toolkit (1.1.1311+15.04.20141102-0ubuntu1) vivid; urgency=medium
+
+  [ Zoltán Balogh ]
+  [ Christian Dywan ]
+  * Explicitly use Orange in Slider and ProgressBar. 
+    Fixes: LP: #1372585.
+  * Copy components correctly in push_to_phone.sh and make copy.sh 
+    more robust.
+  * Make push_to_phone.sh use a temporary folder and sudo.
+  [ Zoltán Balogh ]
+  [ Zsombor Egri ] 
+  * ThinDivider margins rolled back to edge-to-edge. Divider colors
+    adjusted with design. Fixes: LP: #1380766.
+  [ Zoltán Balogh ]
+  [ Tim Peeters ] 
+  * Add updated header divider to use rectangles instead of images,
+    and to auto-detect its color. Fixes: LP: #1372590.
+  * Add internal property to hide the header separator. 
+    Needed in Unity8.
+  [ Zoltán Balogh ]
+  [ Leonardo Arias Fonseca ] 
+  * Fixed the infinite loop when running flickable tests. 
+    Fixes: LP: #1384703.
+  * Added an autopilot helper for expandable list items. 
+    Fixes: LP: #1340227.
+  * The autopilot helpers to swipe to show more now get the flickable
+    containers by default. Fixes: LP: #1365674.
+  * Replaced the tabs for spaces in UbuntuTestCase. 
+   Fixes: LP: #1324469.
+   Fixes: LP: #1324469.
+ 
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Sun, 02 Nov 2014 13:01:56 +0000
+
+ubuntu-ui-toolkit (1.1.1298+15.04.20141111.2~rtm-0ubuntu1) 14.09; urgency=low
+
+  [ Ubuntu daily release ]
+  * New rebuild forced
+
+  [ Florian Boucault ]
+  * Many TextField/TextArea fixes improving user experience greatly and
+    making it more in line with the design:
+
+  [ Christian Dywan ]
+  * Update po/ubuntu-ui-toolkit.pot
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Tue, 11 Nov 2014 11:25:44 +0000
+
+ubuntu-ui-toolkit (1.1.1298+15.04.20141107.2~rtm-0ubuntu1) 14.09; urgency=low
+
+  [ Florian Boucault ]
+  * TextField: make sure that a long press always works even when the
+    field is empty by ensuring the TextInput's size is set properly.
+    (LP: #1384403)
+
+  [ Christian Dywan ]
+  * Update po/ubuntu-ui-toolkit.pot
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Fri, 07 Nov 2014 12:35:11 +0000
+
+ubuntu-ui-toolkit (1.1.1298+14.10.20141030~rtm-0ubuntu1) 14.09; urgency=low
+
+  [ CI bot ]
+  * Resync trunk
+
+  [ Timo Jyrinki ]
+  * Modify test .desktop file (LP: #1382414) (LP: #1382414)
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Thu, 30 Oct 2014 07:39:12 +0000
+
+ubuntu-ui-toolkit (1.1.1298+14.10.20141016.1-0ubuntu1) 14.09; urgency=medium
+
+  [ Jussi Pakkanen]
+  * Remove the thumbnailer image provider here, because thumbnailer 
+    provides it by itself Fixes LP: #1368492
+
+  [ Lars Uebernickel ]
+  * Icon: size correctly even if no or only one dimension is given
+
+  [ Michael Sheldon] 
+  * Check that orientation changes are acceptable before applying new
+    orientation based on active window change. Fixes LP: #1375306
+
+  [ Zoltán Balogh ]
+  * Updated test plan executer
+
+  [ Zeller Benjamin ]
+  * RenderTimer includes EGL platform files in the rendertime header,
+    which can cause problems when included after QDataStream. The 
+    EGL headers pull the XLib files which define the Symbol Status.
+  * Preparing qmlapicheck to support out of source builds for the 
+    cmake migration
+
+  [ Renato Filho ]
+  * Save alarms in invalid time zone. Use invalid time zone to 
+    floating time alarms.
+
+  [ Tim Peeters ]
+  * Make icons from theme in showcase gallery scrollable. 
+    Fixes: LP: #1336279.
+  * Fix width of header contents. Fixes LP: #1378261.
+
+  [ Sebastien Bacher ]
+  * Don't use simple quotes around translatable strings, xgetting 
+    ignore those. Fixes LP: #1378774.
+
+  [ Zsombor Egri ] 
+  * Alarm update regression caused by EDS changes. Also fixes Tags 
+    update. Requires qtorganizer5-eds updates as well!. 
+    Fixes LP: #1364949.
+  * Forgotten Interface declaration in objects. Fixes LP: #1378298
+
+  [ Christian Dywan ]
+  * Make dialog contents scrollable. Fixes LP: #1376763
+  * Make mouseMoveSlowly work with a negative distance. 
+    Fixes LP: #1343334
+  * Read-only text entries don't blink or visibly take focus 
+    Fixes LP: #1370571
+  * Anchor overflow button labels to the right. 
+    Fixes LP: #1354812 LP: #1378247
+  * Don't allow inserting a line break into readOnly text areas. 
+    Fixes LP: #1334344
+
+  [ Ubuntu daily release ]
+  * New rebuild forced
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Thu, 16 Oct 2014 13:01:01 +0000
+
+ubuntu-ui-toolkit (1.1.1286+14.10.20141007-0ubuntu2) UNRELEASED; urgency=medium
+
+  [ Renato Filho ]
+  * Save alarms in invalid time zone. Use invalid time zone to 
+    floating time alarms.
+
+  [ Tim Peeters ]
+  * Make icons from theme in showcase gallery scrollable. 
+    Fixes: LP: #1336279.
+  * Fix width of header contents. Fixes LP: #1378261.
+
+  [ Sebastien Bacher ]
+  * Don't use simple quotes around translatable strings, xgetting 
+    ignore those. Fixes LP: #1378774.
+
+  [ Zsombor Egri ] 
+  * Alarm update regression caused by EDS changes. Also fixes Tags 
+    update. Requires qtorganizer5-eds updates as well!. 
+    Fixes LP: #1364949.
+
+  [ Christian Dywan ]
+  * Make dialog contents scrollable. Fixes LP: #1376763
+  * Make mouseMoveSlowly work with a negative distance. 
+    Fixes LP: #1343334
+
+ -- Zoltán Balogh <zoltan@bakter.hu>  Fri, 10 Oct 2014 11:19:10 +0300
+
+ubuntu-ui-toolkit (1.1.1279.1+14.10.20141014-0ubuntu1) 14.09; urgency=low
+
+  [ Ubuntu daily release ]
+  * New rebuild forced
+
+  [ Tim Peeters ]
+  * Fix margins in header contents.
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Tue, 14 Oct 2014 14:40:58 +0000
+
+ubuntu-ui-toolkit (1.1.1279+14.10.20141007-0ubuntu1) 14.09; urgency=medium
+
+  [ Michael Sheldon ]
+  * Removes the keyboard anchor animation as this is now implemented
+    in the keyboard.
+
+  [ Tim Peeters ]
+  * PageStack push returns the pushed page. Fixes LP: #1361919
+  * Add selection mode as a preset to the header configuration. 
+    Fixes LP: #1370146.
+
+  [ Zsombor Egri ]
+  * Fix Dialog foreground sizing. Fixes LP: #1337555, LP: #1337556.
+  * Workaround for StateSaver to fall back to use qgetenv() when 
+    QStandardPaths fails to return XDG_RUNTIME_DIR path. 
+    Fixes LP: #1363112.
+
+  [ Christian Dywan ]
+  * Add unit tests for MathUtils API. 
+    Fixes LP: #1244685.
+  * Text field hint should use the same font as the editor. 
+    Fixes LP: #1237400.
+  * Read-only text fields mustn't have a clear button. 
+    Fixes LP: #1337257.
+  * autopilot package should source-depend on QML plugin. 
+    Fixes LP: #1236085.
+
+  [ CI bot ]
+  * Resync trunk
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Tue, 07 Oct 2014 12:09:39 +0000
+
+ubuntu-ui-toolkit (1.1.1269+14.10.20141001-0ubuntu1) 14.09; urgency=medium
+
+  [ Tim Peeters ]
+  * Add Autopilot wait_for_animation() dummy function.
+  * Implement header animations in PageHeadStyle and prepare 
+    PageStack for enabling the animations.
+
+  [ Loïc Molinari ]
+  * [UbuntuShape] Removed useless dirty flags.
+
+  [ Zsombor Egri ]
+  *  Use tags as workaround for an alarm and an additional one for a 
+     disabled alarm. The alarm should always save the visual and 
+     audible reminder attachments no matter if disabled or not. 
+     Fixes LP: #1361702
+
+  [ Christian Dywan ]
+  * Selection handler should be centered and not blinking. 
+    Fixes LP: #1371205
+  * Hide pop over when changing orientation. 
+    Fixes LP: #1369506 and LP: #1375837
+
+  [ CI bot ]
+  * Resync trunk
+
+  [ Ubuntu daily release ]
+  * New rebuild forced
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Wed, 01 Oct 2014 08:21:27 +0000
+
+ubuntu-ui-toolkit (1.1.1262+14.10.20140922.2-0ubuntu1) utopic; urgency=medium
+
+  [ Leo Arias ]
+  * Add logging to the textfield autopilot helpers Fixes LP: #1361750
+
+  [ Zsombor Egri ]
+  * Sheet header button space reservation made button presence
+    dependent. Fixes: LP: #1356636
+  * Tweaks for ListItem dividers. Header margins and font weight
+    updated.
+  * Exclude UbuntuColors dumped erroneously by qmlplugindump as it
+    would be a C++ type.
+  * Organizer audible reminder wasn't updated when Alarm sound
+    changed.
+  * Fix for a wrong Action reference
+  * Removing dependency towards Unity.Action, ActionContext and 
+    ActionManager QML API transferred to UI Toolkit. 
+    Fixes LP: #1234339, LP: #1294298.
+  * Fixing wrong path used in saving state file. Fixes LP: #1363112
+
+  [ Loïc Molinari ]
+  * Fixed parallel build, tests/unit_x11 had no rules.
+    Fixes LP: #1367850
+
+  [ Zoltán Balogh ]
+  * Updated test plan execution for RTM images and for new phablet
+    tools.
+  * New test plan script
+
+  [ Christian Dywan ]
+  * Specify /sbin when calling initctl just like autopilot does.
+  * Change gallery to use launcher to allow -touch argument.
+  * Overflow panel button 0.5 opacity if disabled Fixes LP: #1369640
+  * Open text context menu when pressing Menu key.
+  * Do not open context menu when dragging.
+  * Hide text input handlers while typing. Fixes LP: #1343821
+
+  [ Albert Astals ]
+  * Make the scaling provider respect requestedSizes with one of the
+    values 0 
+
+  [ Leo Arias ]
+  * On autopilot tests launched by upstart, use the local modules
+    if running from a branch.
+
+  [ Christian Dywan ]
+  * Change gallery to use launcher to allow -touch argument.
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Mon, 22 Sep 2014 15:52:55 +0000
+
+ubuntu-ui-toolkit (1.1.1239+14.10.20140908-0ubuntu1) utopic; urgency=medium
+
+  [ Zsombor Egri ]
+  * Use proper QML Singleton structure introduced in Qt 5.2.
+  * Move to use QQmlExtensionPlugin::baseUrl(), remove workaround. 
+    Prerequisite for transitioning to proper QML singleton use and 
+    new ListItem.
+  * Focus should not be taken by a component if disabled. Complete 
+    child filtering properly.
+  * Organizer audible reminder was not updated when Alarm sound 
+    changed
+  * Exclude UbuntuColors dumped erroneously by qmlplugindump as it
+    would be a C++ type.
+
+  [ Christian Dywan ]
+  * Handle singleton in qmldir and explicitly skip unknown keywords.
+
+  [ Tim Peeters ]
+  * Revert Icon10 change from header animations MR to fix coloring 
+    of icons.
+  * Update tabs AP tests. By moving the qml code in separate files, 
+    it is easier to modify them individually and to execute them with
+    qmlscene for testing. 
+  * Ensure active and current pages are always updated in the same 
+    order in PageStack.
+  * Update qml files in tests/resources.
+
+  [ Lars Uebernickel ]
+  * unitythemeiconprovider: manually load icons
+    Previously, UnityThemeIconProvider used QIcon::fromTheme() to 
+    lookup and load icons. That function uses fdo's default icon 
+    lookup algorithm: it looks at the current theme and all parent
+    themes for each icon in turn. We'd prefer a breadth-first search,
+    where all icon names are looked up in the current theme before 
+    falling back to the parent themes. This change implements fdo's 
+    FindBestIcon() algorithm, which behaves like that.
+    It also now properly support rectangular icons and always returns
+    an icon with the requested size (adjusted for preserving the 
+    aspect ratio).
+    As a result, the Icon component is much simpler and only requires 
+    height to be set for rectangular icons. Fixes LP: #1324184
+
+  [ Ubuntu daily release ]
+  * New rebuild forced
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Mon, 08 Sep 2014 17:53:18 +0000
+
+ubuntu-ui-toolkit (1.1.1227+14.10.20140904-0ubuntu1) utopic; urgency=medium
+
+  [ Zsombor Egri ]
+  * Thin divider adjustments.
+  * Dialog title is wrapped into maximum two lines, then elides. 
+    Fixes LP: #1354376
+
+  [Florian Boucault ]
+  * Page: only compile and load ToolbarItems if strictly necessary.
+  * Fixed usage of images across the board:
+    - Made images as small as possible:
+      - ListItemDivider6px.png
+      - bubble_shadow*.png
+      - header_overflow_dropshadow.png
+  * Removed direct references to @GU in OptionSelector
+  * Button's stroke_button.png now loaded only when necessary, 
+    asynchronously and not cached.
+  * Removed unused ListItemDivider24px.png.
+
+  [ Ugo Riboni ]
+  * Disable the mousearea on top of the content when using the new
+    header, as it is useless and it interferes with other input 
+    elements in the content area. Fixes LP: #1358327
+
+
+  [ Christian Dywan ]
+  * Update caret visuals and position.
+  * Use iconSource for actions in the overflow panel. 
+    Fixes LP: #1354036, LP: #1354811
+  * Replace off white with pure white. Fixes LP: #1354077
+  * Push Python3 dist-packages to Phone in addition to Python2.7
+  * Fix wrong sheet labels and pick up dtr strings. Fixes LP: #1354485
+
+  [ Tim Peeters ]
+  * Fix header test
+
+  [ CI bot ]
+  * Resync trunk
+
+  [ Ubuntu daily release ]
+  * New rebuild forced
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Thu, 04 Sep 2014 07:57:06 +0000
+
+ubuntu-ui-toolkit (1.1.1214+14.10.20140826-0ubuntu1) utopic; urgency=medium
+
+  [ Tim Peeters ]
+  * Push modules/Ubuntu/Components/qmldir in push_to_phone.sh.
+  * Add PageStack tests that use the new header.
+  * Add tabs unit tests using the new header.
+
+  [ Leo Arias ]
+  * On autopilot helpers, take into account that text areas can have
+    multiple lines when deleting the text. Fixes LP: #1359167
+  * Fixed the four failing autopilot open page tests.
+  * Added an autopilot custom proxy for QQuickGridView. 
+    Fixes LP: #1351670
+  * Fixed the autopilot helper to search elements on lists, that 
+    failed when the element searched is on the first page of the list. 
+    Fixes LP: #1342521
+  * On the autopilot scrollbar tests, we should not assume that the
+    window is on the top left.
+
+  [ Benjamin Zeller ]
+  * Add a more stable regression test for bug LP: #1338602 
+
+  [ Zsombor Egri ]
+  * Introducing Ubuntu Components FocusScope which extends QtQuick 
+    FocusScope with the ability to focus by mouse clicks.
+  * Slider blocks Flickable while sliding. Fixes LP: #1353966
+  * Save alarms data into JSON format. Affects test environments 
+    using fallback memory manager. Does not affect EDS backend 
+    functionality. Prerequisite for further alarm changes.
+  * Focus handling on components. Fixes LP: #1234982
+  * Fixing alarm disabling issue. Change organiser item fields 
+    only if those were marked as changed. Fixes LP: #1360101
+  * AlamrModel is no longer reset when individual alarm is changed.
+    This avoids UI flickering in Clock app. Fixes LP: #1359112
+
+  [ Florian Boucault ]
+  * Publish palettes of the themes.
+  * Removed workaround that forced relayout when layout mirroring was
+    enabled since bug was fixed in Qt. Fixes LP: #1353863
+  * Visual feedback upon press for Header.
+  * Better visual feedback upon press for List Items. 
+    Fixes LP: #1354036
+  * Three startup optimisations that lead to saving 160ms
+      MainView: load background asynchronously and do not cache it.
+      MainView: delay popover menus creation until when necessary.
+      Page: removed useless instantiation of ToolbarItems.
+
+  [ Christian Dywan ]
+  * Set organizationDomain which Qt.labs.settings uses. 
+    Fixes LP: #1241424 and LP: #1354321
+  * Allow context menu buttons to grow wider for non-English locales
+    to fit.
+
+  [ Zoltán Balogh ]
+  * Add a script to execute the test plan on a device.
+  * Fix the desktop file for the UITK Gallery 
+    Fixes LP: #1357205 and LP: #1176918
+
+  [ Martin Pitt ]
+  * The autopilot-qt was split into Qt4 and Qt5 packages2. The 
+    libautopilot-qt used to pull qt4 packages. Avoid pulling qt4 
+    packages by depending on the Qt5 specific packages only.
+
+  [ Nicholas Skaggs ]
+  * Fix the warning for the emulators module. The warning will now 
+    only appear if you use the module directly. Fixes LP: #134169
+
+  [ Ubuntu daily release ]
+  * New rebuild forced
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Tue, 26 Aug 2014 16:59:18 +0000
+
+ubuntu-ui-toolkit (1.1.1188+14.10.20140813.4-0ubuntu1) utopic; urgency=medium
+
+  [ Tim Peeters ]
+  * Document the default anchors of PageStack. LP: #1349366
+
+  [ Leo Arias ]
+  * Made public the swipe methods in the flickable autopilot helper
+
+  [Michael Zanetti ]
+  * Properly parent UCAlarm objects. LP: #1337405
+
+  [ Zsombor Egri ]
+  * Alarm sounds lost during fetch fix. LP: #1338697
+  * TextField clear button size changed to 2.5 GU, artwork mosified
+    to use "clear-search" from icon-theme. LP: #1350797
+
+  [ CI bot ]
+  * Resync trunk
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Wed, 13 Aug 2014 11:31:54 +0000
+
+ubuntu-ui-toolkit (1.1.1181+14.10.20140806-0ubuntu1) utopic; urgency=medium
+
+  [ Florian Boucault ]
+  * Ubuntu Shape: store geometry before redrawing can occur so that 
+    the geometry is more reliably respected. 
+    Fixes: https://bugs.launchpad.net/bugs/1353493
+
+  [ Christian Dywan ]
+  * Square overflow panel style for header pop overs. 
+    Fixes: https://bugs.launchpad.net/bugs/1336789
+ 
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Wed, 06 Aug 2014 16:37:33 +0000
+
+ubuntu-ui-toolkit (1.1.1179+14.10.20140804-0ubuntu1) utopic; urgency=medium
+
+  [ Florian Boucault ]
+  * UbuntuShape: removed QML proxy.
+
+  [ Loïc Molinari ]
+  * [UbuntuShape] Implemented QSGMaterial::compare() methods so that 
+    Ubuntu shapes can be batched. 
+    Fixes: https://bugs.launchpad.net/bugs/1350863.
+  * Disconnected from old texture provider signals (Ubuntushape)
+
+
+  [ Tim Peeters ]
+  * Make header text color configurable, and always match the header
+    icon colors to the header text color. 
+    Fixes: https://bugs.launchpad.net/bugs/1315884
+           https://bugs.launchpad.net/bugs/1317816.
+
+  [ Christian Dywan ]
+  * Move QSKIP for test_updateAlarm_Repeating one line up.
+
+  [ Zsombor Egri ]
+  * Text input context menu facelift.
+
+  [ Michał Sawicz ]
+   * Add "source" property to the Icon component.
+     Fixes: https://bugs.launchpad.net/bugs/1284233
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Mon, 04 Aug 2014 16:00:56 +0000
+
+ubuntu-ui-toolkit (0.1.51+14.10.20140731.1-0ubuntu1) utopic; urgency=medium
+  [ Michał Sawicz ]
+  * Add "source" property to the Icon component.
+
+  [ Tim Peeters ]
+  * Reduce header height by 0.5 grid units.
+  * Visual updates: colors, icon sizes, semi-transparent buttons.
+  * Allow app developers to disable the back button by setting an 
+    invisible back action for the page.
+  * Fix icon loading problems. 
+    Fixes: https://bugs.launchpad.net/bugs/1349769
+  * New visuals for sections in the header divider.
+
+  [ Christian Dywan ] 
+  * Implement optional strokeColor in AbstractButton. 
+    Fixes: https://bugs.launchpad.net/bugs/1332580
+
+  [ Florian Boucault]
+  * StateSaver: also save the type of each property along with its 
+    value so that we can convert them back to the right type during
+    state restoration. This makes some problematic cases such as 
+    enumeration to work.
+
+  [ Albert Astals ]
+  * Placeholder is also shown on focus
+
+  [ Martin Pitt ]
+  * Fix installability of ubuntu-ui-toolkit-examples with 
+    qtdeclarative5-ubuntu-ui-toolkit-plugin-gles. 
+    Fixes: https://bugs.launchpad.net/bugs/1346650
+
+  [ Omer Akram ]
+  * Add helper methods for TextArea. There is a separate 'clear' 
+    method because the one that exists in TextField class checks
+    the property hasClearButton which TextArea does not have.
+    Fixes: https://bugs.launchpad.net/bugs/1327354
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Thu, 31 Jul 2014 11:12:39 +0000
+
+ubuntu-ui-toolkit (0.1.50+14.10.20140724.2-0ubuntu1) utopic; urgency=medium
+
+  [ Christian Dywan ]
+  * Wrap tempfile.NamedTemporaryFile to discard underscored 
+    filenames
+  * Print errors and help to sys.stderr
+  * Fixes false positives where buttons say for example Anrufen 
+    as opposed to Call depending on the local
+  * Use memory alarm backend for API/ deployment and don't warn 
+    about it
+  * Update selection and cursor to blue 
+  * Suppress error output from dpkg-architecture.
+
+  [ Tim Peeters ]
+  * New sizes for icons and touch areas in header.
+  * Workaround for large-timestamp autopilot bug
+  * Push modules/Ubuntu/Components/qmldir in push_to_phone.sh
+  * Various design tweaks:
+    - Update CheckBox/Switch colors
+    - Use new header by default in UITK gallery
+    - Add margins for left and rightmost buttons in header
+  * Updateed font sizes
+  * Don't automatically close a Panel when the user presses next 
+    to it, and update Panel position when its height changes.
+  * Support sections in header divider.
+  * Add new colors to UbuntuColors. 
+    Fixes: https://bugs.launchpad.net/bugs/1335826.
+
+  [ Renato Filho ]
+  * Reset item state if the cancelItemRemoval() function was 
+    called after the item be removed.
+
+  [ Zeller Benjamin ]
+  * Work around LP: #1338602, RotationAnimator crashes application
+
+  [ Michael Zanetti ]
+  * Add typeString to UbuntuTestCase
+
+  [ Ugo Riboni ]
+  * Add a boolean property to allow hiding the ProgressBar label. 
+    Fixes: https://bugs.launchpad.net/bugs/1317377.
+
+  [ Nekhelesh Ramananthan ]
+  * Adds examples to Actions, backAction and fixed the contents 
+    example in the PageHeadConfiguration.
+
+  [ Leo Arias ]
+  * Simulate the supported devices on gallery autopilot tests.
+  * Remove the hiding of the toolbar on the option selector 
+    gallery autopilot tests.
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Thu, 24 Jul 2014 14:45:50 +0000
+
+ubuntu-ui-toolkit (0.1.49+14.10.20140715-0ubuntu1) utopic; urgency=low
+
+  [ Dimitri John Ledkov ]
+  * Build in parallel by default.
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Tue, 15 Jul 2014 11:41:34 +0000
+
+ubuntu-ui-toolkit (0.1.49+14.10.20140710-0ubuntu1) utopic; urgency=low
+
+  [ Florian Boucault ]
+  * Move keyboard anchoring logic of OrientationHelper from MainView to
+    OrientationHelper itself. (LP: #1339616)
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Thu, 10 Jul 2014 12:26:37 +0000
+
+ubuntu-ui-toolkit (0.1.49+14.10.20140709-0ubuntu1) utopic; urgency=low
+
+  [ Zoltán Balogh ]
+  * Match the theme package version with the plugin's binary-package
+    version
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Wed, 09 Jul 2014 17:49:05 +0000
+
+ubuntu-ui-toolkit (0.1.49+14.10.20140707-0ubuntu1) utopic; urgency=medium
+
+  * Increase upstream version to 0.1.49 due to API additions in previous
+    release, which did not make it to utopic release.
+
+ -- Iain Lane <iain@orangesquash.org.uk>  Tue, 08 Jul 2014 14:41:49 +0100
+
+ubuntu-ui-toolkit (0.1.48+14.10.20140707-0ubuntu1) utopic; urgency=medium
+
+  [ Tim Peeters ]
+  * Fix API doc links in UITK gallery.
+  * Allow the developer to specify custom header contents. 
+    Fixes: https://bugs.launchpad.net/bugs/1324084.
+  * Close actions popover when pushing new page using the new API.
+  * Add tests for new header API.
+  * Get rid of an unneeded deprecation warning.
+  * Expose PageHeadStyle.
+  * Expose PageHeadConfiguration.
+  * New header API. Fixes: https://bugs.launchpad.net/bugs/1316676.
+  * Print a warning when using deprecated Header component.
+  * Fix empty toolbar bug with Qt 5.3. 
+    Fixes: https://bugs.launchpad.net/bugs/1327189.
+  * Use icons from the new suru icon theme only
+  * Add PageHeadState component.
+
+  [ Christian Dywan ]
+  * Use orange and no translucency for links in the gallery.
+  * Commit input changes on focus change in text components. 
+    Fixes: https://bugs.launchpad.net/bugs/1324955.
+  * Add a section for the Toolbar to the gallery. 
+    Fixes: https://bugs.launchpad.net/bugs/1312713.
+  * Add a page Tweaks to change theme and header style in the 
+    gallery. Fixes: https://bugs.launchpad.net/bugs/1211382.
+  * Multi-arch aware alternative launcher.
+
+  [ Andrea Cimitan ]
+  * Add "fadeStyle" property to the CrossFadeImage component.
+
+  [ Leo Arias ]
+  * Deprecate the swipe to delete from r2l on the autopilot helpers. 
+    Fixes: https://bugs.launchpad.net/bugs/1330352.
+  * Moved the regression autopilot test for the actions popover to 
+    the components module.
+
+  [ Zsombor Egri ]
+  * PullToRefresh component that can be used in Flickable and all 
+    its derivates to initiate model refresh.
+  * Text input UX updates Changes:
+    - text cursor carets (handlers) are shown only in touch 
+      environment
+    - long press handling
+      - long tap selects the word under pressed area (if not 
+        previously selected) and opens context menu - same as 
+        right mouse click
+      - long tap does not focus the non-focused component
+      - long mouse press with left button does not do anything
+    - tap and drag scrolls the content
+    - left mouse button press and drag selects the text
+    - text can be scrolled with mouse wheel and scrollbar only 
+      beside the touchAndDrag
+    NOTE: text caret tests are skipped when XVFB, as the 
+          activeFocusItem is not set on that environment, which 
+          causes text cursor not to be created. 
+    Fixes: https://bugs.launchpad.net/bugs/1276176.
+  * Exposing touch functions to QML test.
+  * Default font for the toolkit: Ubuntu, medium sized and light 
+    weight. Fixes: https://bugs.launchpad.net/bugs/1263963.
+  * Extend launcher to convert mouse to touch events. 
+    MouseTouchAdaptor taken from unity8 launcher.
+
+  [ Michał Sawicz ]
+  * Prefer new package names for QML modules. This fixes 
+    cross-building of dependants.
+
+  [ Florian Boucault]
+  * OrientationHelper: made rotation animation visually smoother.
+  * Icon: remove warning when Icon.visible is set to false:
+  * ShaderEffect: Property 'source' is not assigned a valid texture 
+    provider (QQuickImage*).
+  * OrientationHelper: prevent unnecessary changes of width and 
+    height with a workaround.
+
+  [ CI bot ]
+  * Resync trunk
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Mon, 07 Jul 2014 11:05:59 +0000
+
+ubuntu-ui-toolkit (0.1.48+14.10.20140701.2-0ubuntu1) utopic; urgency=medium
+
+  [ Michał Sawicz ]
+  * Bump version to indicate requirement for new theme icons.
+  * Change "not…in" to "…not in" in qmlapicheck.py.
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Tue, 01 Jul 2014 15:47:29 +0000
+
+ubuntu-ui-toolkit (0.1.47+14.10.20140619-0ubuntu1) utopic; urgency=low
+
+  [ Ubuntu daily release ]
+  * New rebuild forced
+
+  [ Timo Jyrinki ]
+  * Fix empty toolbar bug with Qt 5.3.
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Thu, 19 Jun 2014 06:55:24 +0000
+
+ubuntu-ui-toolkit (0.1.47+14.10.20140618-0ubuntu1) utopic; urgency=medium
+
+  [Leo Arias ]
+  * On the autopilot helper for the header, fix the swipe to show 
+    when hidden.
+  * Added a fixture for autopilot tests to use a fake home directory.
+    Fixes: https://bugs.launchpad.net/bugs/1317639
+  * Cleaned the containers in unity test using the alternate 
+    launcher.
+  * Fixed the creation of the fake Xauthority file on mako for the 
+    fixture tests. Fixes: https://bugs.launchpad.net/bugs/1326072
+  * Fixed the swipe to delete on the list item autopilot helper.
+    Fixes: https://bugs.launchpad.net/bugs/1311392.
+  * clean ups to the autopilot tests for the widget gallery.
+
+  [ Christian Dywan ]   
+  * Add a launcher with a switch for the QQMLEngine.
+  * The presence of a mouse enables the interactive thumb. 
+    Fixes: https://bugs.launchpad.net/bugs/1165173
+  * Initialize sort.order explicitly. 
+    Fixes: https://bugs.launchpad.net/bugs/1324087
+  * Swiping from Left to Right to Delete only.
+  * Show explicit failure when test wasn't built yet.
+  * Add push_to_phone script to push QML/ Python/ artwork.
+
+
+  [ Tim Peeters ]
+  * Anchor the internal PageTreeNode of PageStack to fill its parent. 
+    Fixes: https://bugs.launchpad.net/bugs/1322527
+  * Deprecate sheets. Fixes: https://bugs.launchpad.net/bugs/1304541
+  * Fix bug where header overflow action popover does not close when 
+    the associated action pushes a new page on the pagestack. 
+    Fixes: https://bugs.launchpad.net/bugs/1326963.
+
+  [ Zsombor Egri]
+  * Adding touch functions to UbuntuTestCase.
+  * Qt5.3 related fixes. Fixes: 
+    https://bugs.launchpad.net/bugs/1324070, 
+    https://bugs.launchpad.net/bugs/1324088, 
+    https://bugs.launchpad.net/bugs/1324089.
+  * Reverting InverseMouseAreaType updateArea() method to update(). 
+    Calling shadowed superclass' update() method.
+
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Wed, 18 Jun 2014 17:10:43 +0000
+
+ubuntu-ui-toolkit (0.1.46+14.10.20140602-0ubuntu1) utopic; urgency=low
+
+  [ Christian Dywan ]   
+  * Tweak API parsing to include the Button.font property. 
+    Fixes: https://bugs.launchpad.net/bugs/1322169
+  * Call bindtextdomain on /usr if APP_DIR is not defined. 
+    Fixes: https://bugs.launchpad.net/bugs/1322630
+
+  [ Tim Peeters ]
+  * On the autopilot Header helper, do not assume that the top 
+    container will be a MainView
+  * Make Header component internal as it was always documented.
+
+  [ Zsombor Egri ]
+  * Missing "default" keyword added to children property of Base,
+    causing rendering and test case failures on Qt 5.3. 
+    Fixes: https://bugs.launchpad.net/bugs/1317881
+
+  [ Ugo Riboni ]
+  * Allow requesting extra large thumbnails.
+
+  [ Florian Boucault ]
+  * AnimatedItem: deprecated as it was not used and still costly.
+ 
+  [ Zoltán Balogh ]
+  * Replace split with match to work around failing split() 
+    function usage.
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Mon, 02 Jun 2014 11:33:42 +0000
+
+ubuntu-ui-toolkit (0.1.46+14.10.20140527-0ubuntu1) utopic; urgency=medium
+
+  [ Timo Jyrinki ]
+  * Allow using the renamed QML packages. Allow also old names 
+    for eg. trusty backporting. For additional cross-building 
+    friendliness, add :any to python build dependencies.
+
+  [ Leo Arias ]
+  * Rewrite OptionSelector tests using new helpers.
+  * Added autopilot helpers to pick a time from a date picker.
+  * In autopilot select all text only if not already selected.
+    Fixes: https://bugs.launchpad.net/bugs/1321222.
+
+  [ Christian Dywan ]
+  * Skip flaky test_updateAlarm_Repeating.
+  * Skip test_ubuntushape which is flakey and add a FIXME.
+  * Read ubuntu-ui-toolkit.ini from $XDG_CONFIG_HOME.
+  * More unit tests and property corrections for SortFilterModel.
+
+  [ Tim Peeters ]
+  * Fix bug where header actions are painted in the middle 
+    of the page. Fixes: https://bugs.launchpad.net/bugs/1319861
+  * Add header demo program to the resources.
+  * Show header if it was not visible before clicking header 
+    button in autopilot test. 
+
+  [ Florian Boucault ]
+  * ActivityIndicator: do not rely on the main thread to animate
+    by using an Animator.
+  * ThinDivider: use a Rectangle instead of an Image. 
+    5x faster creation.
+  * Label: default font weight is now light.
+
+  [ Zsombor Egri ]
+  * Ubuntu Layouts reparents those default layout components which
+    are not subject of layout instead of altering their visible and
+    enabled properties. 
+    Fixes: https://bugs.launchpad.net/bugs/1204834
+    https://bugs.launchpad.net/bugs/1298886
+    https://bugs.launchpad.net/bugs/1300668.
+
+  [ Alberto Mardegan ]
+  * Keep a map of windows and associated textures. 
+    Fixes: https://bugs.launchpad.net/bugs/1296728.
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Tue, 27 May 2014 07:51:29 +0000
+
+ubuntu-ui-toolkit (0.1.46+14.10.20140520-0ubuntu1) utopic; urgency=medium
+
+  [ Leo Arias ]
+  * Added the swipe_into_view method to autopilot helpers.
+    Fixed the name of the QQuickFlickable autopilot helper. 
+    Fixes: https://bugs.launchpad.net/bugs/1286479 
+    https://bugs.launchpad.net/bugs/1314433.
+  * On the autopilot helpers, find the top container starting from
+    the flickable. Fixes: https://bugs.launchpad.net/bugs/1314390.
+
+  [ Christian Dywan ] 
+  * Use i18n.dtr for toolkit-owned translations. 
+    Fixes: https://bugs.launchpad.net/bugs/1317539
+  * Introduce QML bindings for SortFilterModel. 
+    Fixes: https://bugs.launchpad.net/bugs/1266529
+  * Pick data path if .click is present. 
+    Fixes: https://bugs.launchpad.net/bugs/1317772
+
+  [ Tim Peeters ]
+  * Quick fix for TabBarStyle.qml:119: TypeError: Cannot 
+    read property of null.
+
+  [ Zsombor Egri ]
+  * One time alarms omit dayOfWeek value changes. 
+    Fixes: https://bugs.launchpad.net/bugs/1319401
+
+  [ CI bot ]
+  * Resync trunk
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Tue, 20 May 2014 08:35:48 +0000
+
+ubuntu-ui-toolkit (0.1.46+14.10.20140516-0ubuntu1) utopic; urgency=medium
+
+  [ Tim Peeters ]
+  * Take visibility of actions into account when determining whether 
+    an overflow is needed in header. 
+    Fixes: https://bugs.launchpad.net/bugs/1316631
+  * Improve automatic setting of the active property of Pages, 
+    Tabs, PageStack.
+    Pages defined as children of PageStack are now not active by 
+    default until they are pushed on the stack, and inactive pages 
+    are not visible. Fixes: https://bugs.launchpad.net/bugs/1225079 
+    https://bugs.launchpad.net/bugs/1260116
+    https://bugs.launchpad.net/bugs/1317902
+  * Elide titles in the header that are too long to fit.
+  * Add documentation and print a warning when apps put 
+    PageStack/Tabs/Page inside a Page.
+
+  [ Christian Dywan ]
+  * Add a Theme section to the Icon section in the gallery. 
+    Fixes: https://bugs.launchpad.net/bugs/1312710
+
+  [ Zsombor Egri ]
+  * Right selection caret positioning fix.
+
+  [ Andrew Hayzen ]
+  * Block wheel events to items below PopupBase.qml
+    Fixes: https://bugs.launchpad.net/bugs/1315775.
+
+  [ Oliver Grawert ]
+  * Improve the haptics button feedback to be more like other 
+    on mobile architectures (less rattling, more realistic).
+    Fixes: https://bugs.launchpad.net/bugs/1290201.
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Fri, 16 May 2014 11:58:25 +0000
+
+ubuntu-ui-toolkit (0.1.46+14.10.20140512-0ubuntu1) utopic; urgency=low
+
+  [ Tim Peeters ]
+  * Make it possible to replace the title in the header with a
+    custom Item. Fixes: https://bugs.launchpad.net/bugs/1314948
+  * Use selectedIndex of the tabs model instead of the TabBar
+    everywhere in TabBarStyle to fix a bug that uses Tabs on a
+    PageStack. Fixes: https://bugs.launchpad.net/bugs/1316736
+  * Fix the positioning of a popover pointer on a small screen
+    in portrait mode. Fixes: https://bugs.launchpad.net/bugs/1208833
+
+  [ Christian Dywan ]
+  * Export to load modules from source and allow arguments.
+  * linearSecondsPicker check it's not resetting and
+    count is correct
+
+  [ Zsombor Egri ]
+  * Text input caret positioning fix for the cases when TextField
+    has overlay primary items and when RTL is enabled.
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Mon, 12 May 2014 12:27:41 +0000
+
+ubuntu-ui-toolkit (0.1.46+14.10.20140508-0ubuntu1) utopic; urgency=low
+
+  [ Christian Dywan ]
+  * Export to load modules from source and allow arguments.
+  * linearSecondsPicker check it's not resetting and count is correct
+  * Add a section for the ThinDivider to the gallery.
+    Fixes: https://bugs.launchpad.net/bugs/1312716.
+  * Use locale format specifier in textfield_numbers.
+    Fixes: https://bugs.launchpad.net/bugs/1311907.
+
+  [ Zsombor Egri ]
+  * PageUp/PageDown fix in text inputs.
+    Fixes: https://bugs.launchpad.net/bugs/1180188.
+  * Text input caret handler visuals and functionality.
+    Fixes: https://bugs.launchpad.net/bugs/1183257.
+  * Introducing Ubuntu.Components.Styles 1.1 module.
+
+  [ Tim Peeters ]
+  * Add the possibility to override the back button in the header.
+    Fixes: https://bugs.launchpad.net/bugs/1314945.
+  * Simplify code by setting header and toolbar properties in
+    MainView instead of Page.
+  * Move toolbar tools that were defined using an Action to header
+    Fixes: https://bugs.launchpad.net/bugs/1273185.
+  * Remove already inherited properties from OptionSelectorDelegate,
+    ValueSelector, Subtitled, Standard and Base list item components
+  * Change parent of OptionSelectorDelegate from Standard to Empty,
+    because it effectively disabled all the visuals of Standard.
+
+  [ Andrew Hayzen ]
+  * Currently there is no animation of the listItem when
+    cancelItemRemoval() is called, which causes a 'jump' in the
+    listItem, this allows for the animation to occur.
+
+  [ Leo Arias ]
+  * Deprecated the ubuntuuitoolkit.emulators namespace. Split the
+    autopilot helpers in smaller files.
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Thu, 08 May 2014 10:54:32 +0000
+
+ubuntu-ui-toolkit (0.1.46+14.10.20140502.6-0ubuntu1) utopic; urgency=low
+
+  [ Zoltán Balogh]
+  * Skip tests only for powerpc
+
+  [ Christian Dywan ]
+  * Use locale format specifier in textfield_numbers. Fixes: (LP: #1311907)
+  * Resolve QList<QQmlError> warnings by porting to UbuntuTestCase.warnings.
+
+  [Andrew Hayzen]
+  * Animation of the listItem when cancelItemRemoval() is called
+
+  [ Zsombor Egri ]
+  * Introducing Ubuntu.Components.Styles 1.1 module.
+  * Text inputs show context menu when right-clicked on desktop. Fixes: (LP: #1276821)
+  * Fixes TextField and TextArea selection and scrolling behaviors. Fixes: (LP: #1168914), (LP: #1183255)
+  * Dismiss Popovers when any of the mouse buttons is pressed.
+  * ComboButton component. Fixes: (LP: #1276172)
+  * QuickUtils::rootItem() to return the actual root object in case the internal root item is reached.
+  * Moving to import version 1.0, which is the same as version 0.1.
+  * Fix for alarm dates to occur in the same time in all timezones. Fixes: (LP: #1283236)
+  * Mouse filters forwarding fix to proxy items.
+  * Fix for arm64 test failure. Fixes: (LP: #1308086)
+  * Fix alarm fetching order and interval. Fixes: (LP: #1283212, (LP: #1285958)
+  * Flick and mouse long press simulation added to UbuntuTestCase. Fixes: (LP: #1288937)
+
+  [ Tim Peeters ]
+  * Remove already inherited properties from OptionSelectorDelegate, ValueSelector, Subtitled, Standard and Base list item components.
+  * Change parent of OptionSelectorDelegate from Standard to Empty, because it effectively disabled all the visuals of Standard.
+  * Back button in new header. Fixes: (LP: #1256424)
+  * First version of the tabs in a drawer. Fixes: (LP: #1228042), (LP: #1273187)
+  * Put the TabBar inside of the HeaderStyle instead of directly in the style. Fixes: (LP: #1292601)
+  * Make the panel draggable again instead of opening completely on press.
+  * Create a new entry in CHANGES to record the changes for Ubuntu.Components 1.1.
+  * Move the property to keep track of the selected tab to the tabs model.
+
+  [ Leo Arias ]
+  * Deprecated the ubuntuuitoolkit.emulators namespace. Split the autopilot helpers in smaller files.
+
+  [ Chris Gagnon ]
+  * autopilot emulator for OptionSelector.
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Fri, 02 May 2014 16:31:41 +0000
+
+ubuntu-ui-toolkit (0.1.46+14.04.20140408.1-0ubuntu1) trusty; urgency=low
+
+  [ Zoltán Balogh ]
+  * Change Ubuntu API links in the docs (LP: #1303535) (LP: #1303535)
+
+  [ Leo Arias ]
+  * Improve the check of tab selection mode by moving to it first.
+  * On the autopilot helpers to click a toolbar button, check that the
+    toolbar is opened first. (LP: #1302706)
+
+  [ tpeeters ]
+  * Improve toolbar handling on desktop by opening it on mouse hover.
+    (LP: #1182734)
+  * If a Page is inside a Tab and has no title set, get it automatically
+    from the Tab. (LP: #1289695)
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Tue, 08 Apr 2014 14:47:06 +0000
+
+ubuntu-ui-toolkit (0.1.46+14.04.20140404.1.is.0.1.46+14.04.20140404-0ubuntu1) trusty; urgency=medium
+
+  * Revert to previous version as it's making gallery-app AP tests
+    failing on the CI dashboard
+
+ -- Didier Roche <didrocks@ubuntu.com>  Tue, 08 Apr 2014 13:34:12 +0200
+
+ubuntu-ui-toolkit (0.1.46+14.04.20140404.1-0ubuntu1) trusty; urgency=low
+
+  [ tpeeters ]
+  * Move the property to keep track of the selected tab to the tabs
+    model. (LP: #1290121)
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Fri, 04 Apr 2014 15:08:22 +0000
+
+ubuntu-ui-toolkit (0.1.46+14.04.20140404-0ubuntu1) trusty; urgency=low
+
+  [ Michael Zanetti ]
+  * fix collapseOnClick in combination with UbuntuListView (LP:
+    #1293996)
+
+  [ Leo Arias ]
+  * Added a helper for autopilot tests to override the values of initctl
+    vars during tests.
+  * Take into account the visibility of the container when making list
+    elements visible on the autopilot helpers. (LP: #1275060)
+
+  [ Christian Dywan ]
+  * Set the window title based on the Header title (LP: #1289695)
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Fri, 04 Apr 2014 11:03:59 +0000
+
+ubuntu-ui-toolkit (0.1.46+14.04.20140331-0ubuntu1) trusty; urgency=low
+
+  [ Zoltán Balogh ]
+  * Separate the online and offline documentation and install the QtC
+    help file
+
+  [ Zsombor Egri ]
+  * Move state data file to temp folder (LP: #1276760)
+  * StateSaver does cleanup if the app is closed due to SIGTERM. This is
+    needed as upstart sends this signal when the application is closed
+    from app scope. SIGINT saves the state. (LP: #1259498)
+  * MainView binding loop fix when backgroundColor is changed runtime.
+    (LP: #1204453)
+
+  [ Loïc Molinari ]
+  * [Perf metrics] Considered number of CPU cores for CPU usage.
+
+  [ tpeeters ]
+  * Add useDeprecatedToolbar property to MainView which can be used to
+    disable the current toolbar. Unsetting that property will in future
+    also enable new features in the header. (LP: #1273184)
+  * Close panel on contents press instead of click, so that composed
+    events are not eaten by the InverseMouseArea of the Panel. (LP:
+    #1295720)
+
+  [ Christian Dywan ]
+  * Treat QML warnings as fatal except for explicitly listed tests
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Mon, 31 Mar 2014 18:26:59 +0000
+
+ubuntu-ui-toolkit (0.1.46+14.04.20140321.1-0ubuntu1) trusty; urgency=low
+
+  [ Bartosz Kosiorek ]
+  * Fix selection and coping text from TextFields (LP: 1130369) (LP:
+    #1130369)
+  * "Cut" operation do not shows for "ReadOnly's" TextField and TextArea
+    (LP: 1293149) (LP: #1293149, #1267821)
+
+  [ Zsombor Egri ]
+  * InverseMouseArea not getting mouse events converted from touch when
+    set as topmost item. (LP: #1288876)
+
+  [ Michael Zanetti ]
+  * drop BottomBarVisiblityCommunicator as it has gone from unity8 - no
+    more HUD from the lower edge
+
+  [ Christian Dywan ]
+  * Introduce UbuntuTestCase API for C++ (LP: #1261396)
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Fri, 21 Mar 2014 11:29:53 +0000
+
+ubuntu-ui-toolkit (0.1.46+14.04.20140317-0ubuntu1) trusty; urgency=low
+
+  [ Didier Roche ]
+  * remove the doc generation for UITK autopilot emulator. Autopilot is
+    in universe for now, it needs MIRing first
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Mon, 17 Mar 2014 09:03:08 +0000
+
+ubuntu-ui-toolkit (0.1.46+14.04.20140314-0ubuntu1) trusty; urgency=low
+
+  [ CI bot ]
+  * Resync trunk
+
+  [ Colin Watson ]
+  * With Qt 5.2, QtDeclarative now supports all architectures, at least
+    in principle. Switch back to trying to build everywhere, since
+    ubuntu-ui-toolkit has no intrinsic reason to be non-portable.
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Fri, 14 Mar 2014 15:07:46 +0000
+
+ubuntu-ui-toolkit (0.1.46+14.04.20140306.1-0ubuntu1) trusty; urgency=low
+
+  [ Zsombor Egri ]
+  * DatePicker flaky test fix. (LP: #1287009)
+
+  [ Ubuntu daily release ]
+  * New rebuild forced
+
+  [ Michael Zanetti ]
+  * Make the UbuntuListView tests more stable (LP: #1288597)
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Thu, 06 Mar 2014 12:46:50 +0000
+
+ubuntu-ui-toolkit (0.1.46+14.04.20140304-0ubuntu1) trusty; urgency=low
+
+  [ CI bot ]
+  * Ship python3 autopilot emulators/tests.
+
+  [ Florian Boucault ]
+  * More compact visual style for a few widgets: Button: switched
+    default color to plain instead of gradient. Height from 5gu to 4gu.
+    OptionSelector: row height from 6gu to 5gu. Slider: much thinner
+    visual style. Switch: size from 10gu x 5gu to 8gu x 4gu. CheckBox:
+    size from 4.25gu x 4gu to 3.25gu x 3gu. smaller 'x-large' font size.
+    (LP: #1276173)
+
+  [ tpeeters ]
+  * Expose a position property in Panel to make it more useful for
+    implementing new bottom-edge behavior.
+
+  [ Christian Dywan ]
+  * The wrapper is intended to make API test more visible in the output
+    regardless of failure or success. A semi-related fix increases
+    coverage so that UbuntuTestCase and Layouts are also checked.
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Tue, 04 Mar 2014 13:01:40 +0000
+
+ubuntu-ui-toolkit (0.1.46+14.04.20140301-0ubuntu1) trusty; urgency=low
+
+  [ Zsombor Egri ]
+  * StateSaver does no longer save the component states upon
+    destruction. State is saved when the application is deactivated
+    (looses focus) and cleaned once the application gets re-activated
+    (gains focus). Discards saved states when the application closes
+    properly. Ignores state saving when the app is launched thru content
+    pickers. (LP: #1276174)
+
+  [ Ugo Riboni ]
+  * Allow appending query strings (which are then ignored) to the image
+    id to allow a workaround for QT's inability to selectively clean the
+    image cache.
+
+  [ Leo Arias ]
+  * Add a common autopilot test to try load pages in gallery (LP:
+    #1231265)
+
+  [ Michael Zanetti ]
+  * Introduce the almighty UbuntuListView. So far not /that/ mighty tho.
+    Can only deal with Expandables. (LP: #1169258)
+
+  [ CI bot ]
+  * On the autopilot listview emulator, scroll to the bottom to try to
+    find elements not yet created. (LP: #1270200)
+
+  [ tpeeters ]
+  * Always use the ubuntu-mobile icon theme in UITK apps. (LP: #1284218)
+  * Fix autopilot and unit tests for TabBar.
+
+  [ Christian Dywan ]
+  * Look for locale folder in the same prefix as the app data (LP:
+    #1259540)
+  * Remove activeFocus hack for OSK from QuickUtils (LP: #1259476)
+  * Add a common autopilot test to try load pages in gallery (LP:
+    #1231265)
+  * Use PIPESTATUS to avoid getting the wrong return value (LP:
+    #1284699)
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Sat, 01 Mar 2014 12:53:03 +0000
+
+ubuntu-ui-toolkit (0.1.46+14.04.20140224-0ubuntu1) trusty; urgency=low
+
+  [ Renato Araujo Oliveira Filho ]
+  * [alarms] Filter only alarms of the current week. This is necessary
+    because query for events without a valid date interval will return
+    all events on the database, including the recurrence ones. Ex. A
+    alarm that recurs every day, will be returned infinite times. (LP:
+    #1282129)
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Mon, 24 Feb 2014 21:54:01 +0000
+
+ubuntu-ui-toolkit (0.1.46+14.04.20140220-0ubuntu1) trusty; urgency=low
+
+  [ Michael Zanetti ]
+  * use data instead of children In ListItems.Base to allow having
+    QtObjects as childs. In findChild() to be able to find invisible
+    things like QtObject and Animations. Changes the return value from
+    undefined to null as that's more correct.
+  * Fix some issues in DatePicker's docs
+
+  [ CI bot ]
+  * Resync trunk
+
+  [ Iain Lane ]
+  * Support building with DEB_BUILD_OPTIONS=nocheck to skip the
+    testsuite, per Debian policy.
+
+  [ Leo Arias ]
+  * Refactor the fake application used by the autopilot emulator tests
+    to make a fixture that can be reused by other projects.
+
+  [ Zsombor Egri ]
+  * Mouse filters attacheable to mouse handling primitives.
+  * Item instances set as property values were excluded from layouting,
+    causing segfaults when re-layouting was performed or when the
+    component got deleted due to or during re-layouting. (LP: #1280359)
+  * ItemSelector regression fix. (LP: #1275861)
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Thu, 20 Feb 2014 10:04:25 +0000
+
+ubuntu-ui-toolkit (0.1.46+14.04.20140212-0ubuntu1) trusty; urgency=low
+
+  [ Andrew Hayzen ]
+  * Fixed text not aligned at vertical centre if the listitem height has
+    changed dynamically. Fixed no removeItemAnimation if the listitem
+    height has been set. (LP: #1263688, #1263682)
+
+  [ CI bot ]
+  * Trunk as is, for CI Train release.
+
+  [ William Hua ]
+  * Also update LANGUAGE when setLanguage is called for dynamic
+    translation. (LP: #1263163). (LP: #1263163)
+
+  [ Timo Jyrinki ]
+  * A qtdeclarative5-private-dev packaging change adding a dependency on
+    libqt5v8-5-private-dev has been backported to all Ubuntu versions
+    now, so this workaround can now be dropped - building both against
+    Qt 5.2 and 5.0.2 works.
+  * Add #include for QDebug to fix Qt 5.2 build.
+
+  [ Christian Dywan ]
+  * Split build and install steps in debian/rules.
+  * Use integer Date constructor in date picker tests for Qt 5.2.
+  * Run unit_x11 test cases via Xvfb and address failures. (LP:
+    #1258017, #1237812, #1242646)
+  * Don't redirect output of the input file in itself.
+  * Don't try to deploy non-existing qml and js files. (LP: #1259228)
+  * Assert textField focus, button visibility and pressed after tapping
+    clear.
+  * Split documentation for previously group properties. (LP: #1266842)
+  * Suppress errors to work-around font error messages. (LP: #1256999)
+  * ListItems.Empty's default property needs to be data not children.
+    (LP: #1190509)
+
+  [ Pete Woods ]
+  * Handle the unity-action-api quit signal. (LP: #1269409)
+
+  [ Zsombor Egri ]
+  * Date picker component. Provides full date and month only picking
+    functionality.
+  * DatePicker test case fix, setting the minimum limit to value that is
+    earlier than the date value set. (LP: #1266515)
+  * Fixing state restoration when nested dynamic component properties
+    are restored. (LP: #1267039)
+  * Removing obsolete functionality from QuickUtils. (LP: #1266707)
+  * StateSaver failure with Repeater fixed. Indirectly fixes StateSaver
+    with ListView and GridView. (LP: #1267900)
+  * TabBar test case failure fix for Qt5.2. (LP: #1256930)
+  * InverseMouseArea API test removed, being a duplicate of the other
+    InverseMouseArea tests. Connecting to th eproper enabledChanged
+    signal in InverseMouseArea resolves the warning in Qt5.2 stating
+    enabledChanged was overwritten in QQuickMouseArea. (LP: #1266707)
+  * Panel implementation for DatePicker. Presents the DatePicker either
+    in a panel covering the OSK area or in a Popover, depending on the
+    form factor and presence of input method provider.
+  * Layout tests now wait for the currentLayout change completion. (LP:
+    #1266707)
+  * Extra QQmlEngine instance removed from plugin, which seemed to cause
+    some race conditions with Qt5.2. As result UbuntuColors got
+    transferred from context property into singleton object, Theme's
+    palette creation delayed till its first access. (LP: #1266707)
+  * DateUtils test failure fix. (LP: #1273893)
+
+  [ Florian Boucault ]
+  * Ubuntu UI Toolkit Gallery: reimplemented in a cleaner way the
+    responsiveness of the UI. That will allow for working right-to-left
+    support. (LP: #1172652, #1182599)
+  * Added Right-to-Left languages support to most widgets and to the UI
+    Toolkit Gallery. The following widgets now behave properly in RTL
+    environments: - List Items - Popups - Slider - TextArea - TextField
+    - Button - ProgressBar - Toolbar - Header - Switch Tabs still need
+    to be reversed. Relayout issues had to be workarounded (QTBUG 35095)
+    for Label and Row. . (LP: #1181740, #35095)
+
+  [ Leo Arias ]
+  * Added an autopilot emulator for list views, with tests.
+  * Added the TextField autopilot emulator.
+  * Use the autopilot text field helper in the gallery test cases. (LP:
+    #1274240, #1259476)
+
+  [ Andrea Cimitan ]
+  * Use integer Date constructor in date picker tests for Qt 5.2.
+
+  [ tpeeters ]
+  * Date picker component. Provides full date and month only picking
+    functionality.
+  * Fix the positioning of a flickable in a Page which has a parent that
+    is not a PageTreeNode. (LP: #1261907)
+  * Fix the height of a Page in case its parent is a Loader. (LP:
+    #1259917)
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Wed, 12 Feb 2014 10:56:52 +0000
+
 ubuntu-ui-toolkit (0.1.46+14.04.20131216-0ubuntu1) trusty; urgency=low
 
   [ Zsombor Egri ]

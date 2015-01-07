@@ -16,15 +16,13 @@
 
 /*!
     \qmltype OptionSelectorDelegate
-    \inqmlmodule Ubuntu.Components 0.1
+    \inqmlmodule Ubuntu.Components 1.1
     \ingroup ubuntu-components
     \brief OptionSelector delegate which can display text, subtext and an image from a custom model.
 
-    \b{This component is under heavy development.}
-
     Examples:
     \qml
-        import Ubuntu.Components 0.1
+        import Ubuntu.Components 1.1
         Column {
             width: 250
             OptionSelector {
@@ -45,19 +43,14 @@
 
 import QtQuick 2.0
 import "ListItems" as ListItem
-import Ubuntu.Components 0.1 as Toolkit
+import Ubuntu.Components 1.1 as Toolkit
 
-ListItem.Standard {
+ListItem.Empty {
     id: option
 
-    /*!
-      \preliminary
-      Main text.
-     */
-    property string text
+    __height: units.gu(5)
 
     /*!
-      \preliminary
       Subtext which appears below the main text.
      */
     property string subText
@@ -76,57 +69,26 @@ ListItem.Standard {
                    }
 
     /*!
-      The image shown for that option.
-      \qmlproperty url iconSource
-
-      This is a URL to any image file.
-      In order to use an icon from the Ubuntu theme, use the iconName property instead.
-     */
-    property url iconSource: iconName ? "image://theme/" + iconName : ""
-
-    /*!
-      The icon shown for that option.
-
-      \qmlproperty string iconName
-
-      If both iconSource and iconName are defined, iconName will be ignored.
-
-      \note The complete list of icons available in Ubuntu is not published yet.
-            For now please refer to the folders where the icon themes are installed:
-            \list
-              \li Ubuntu Touch: \l file:/usr/share/icons/ubuntu-mobile
-              \li Ubuntu Desktop: \l file:/usr/share/icons/ubuntu-mono-dark
-            \endlist
-            These 2 separate icon themes will be merged soon.
-    */
-    property string iconName
-
-    /*!
-      \preliminary
       Constrains the size of the image to nothing greater than that of the delegate. Changes fillMode to Image.PreserveAspectFit.
      */
     property bool constrainImage: false
 
     /*!
-      \preliminary
       Whether or not left image is coloured by our theme.
      */
     property bool colourImage: listView.container.colourImage
 
     /*!
-      \preliminary
       Colour of left image.
      */
     property color assetColour: listView.container.themeColour
 
     /*!
-      \preliminary
       OptionSelector's ListView.
      */
     readonly property ListView listView: ListView.view
 
     /*!
-      \preliminary
       Colourising fragment shader.
      */
     readonly property string fragColourShader:
@@ -337,7 +299,7 @@ ListItem.Standard {
             objectName: "icon"
 
             height: constrainImage ? option.height : sourceSize.height
-            source: icon
+            source: option.iconSource
             fillMode: constrainImage ? Image.PreserveAspectFit : Image.Stretch
 
             ShaderEffect {

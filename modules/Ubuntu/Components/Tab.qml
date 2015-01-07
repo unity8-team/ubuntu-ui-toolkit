@@ -18,7 +18,7 @@ import QtQuick 2.0
 
 /*!
     \qmltype Tab
-    \inqmlmodule Ubuntu.Components 0.1
+    \inqmlmodule Ubuntu.Components 1.1
     \ingroup ubuntu
     \brief Component to represent a single tab in a \l Tabs environment.
 
@@ -35,7 +35,6 @@ PageTreeNode {
     property string title
 
     /*!
-      \preliminary
       \deprecated
       The location of the icon that is displayed inside the button used to select this tab (optional).
       Either \l title or iconSource, or both must be defined.

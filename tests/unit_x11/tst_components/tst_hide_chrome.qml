@@ -16,7 +16,7 @@
 
 import QtQuick 2.0
 import QtTest 1.0
-import Ubuntu.Components 0.1
+import Ubuntu.Components 1.1
 
 Item {
     width: units.gu(50)
@@ -61,6 +61,11 @@ Item {
         when: windowShown
         id: testCase
 
+        function cleanup() {
+            // clean buffers
+            waitForRendering(mainView, 500);
+        }
+
         function openToolbar() {
             var toolbar = mainView.__propagated.toolbar;
             toolbar.open();
@@ -72,7 +77,7 @@ Item {
         function setTabBarSelectionMode(newSelectionMode) {
             var tabBar = tabs.tabBar;
             var header = mainView.__propagated.header;
-            compare(tabBar, header.contents, "TabBar is not the active header contents");
+            compare(tabBar, header.__styleInstance.__tabBar, "TabBar is not the active header contents");
             header.show();
             tabBar.selectionMode = newSelectionMode;
             compare(tabBar.selectionMode, newSelectionMode, "Failed to set the tab bar selection mode");

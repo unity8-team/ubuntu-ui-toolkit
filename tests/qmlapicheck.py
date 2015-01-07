@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 # Copyright 2013 Canonical Ltd.
@@ -23,7 +23,7 @@ import os
 
 if len(sys.argv) < 2 or '-h' in sys.argv or '--help' in sys.argv:
     basename = os.path.basename(sys.argv[0])
-    print (
+    sys.exit(
         'Usage:\n  env BUILTINS=foo,bar %s FILENAME [FILENAME2..N]\n\n'
         '  Generate a QML API file\n'
         'Example:\n'
@@ -42,30 +42,55 @@ if len(sys.argv) < 2 or '-h' in sys.argv or '--help' in sys.argv:
         '\n'
         'Use the following command to see changes in the API:\n'
         '  diff -Fqml -u components.api{,.new}\n' % (basename, basename))
-    sys.exit(1)
 
 builtins = os.getenv('BUILTINS', '').split(',')
 inputfiles = []
+classes = {}
 for line in fileinput.input():
     if fileinput.filename()[-6:] == 'qmldir':
+        if line == '\n' or line[:1] == '#':
+            # Comments
+            continue
         if line[:8] == 'internal':
             # Internal components are not part of public API
             continue
         pieces = line.strip().split(' ')
-        if len(pieces) > 2:
-            filename = pieces[2]
-            # We only work with QML
-            if filename[-3:] == 'qml':
-                # Filenames are relative to the qmldir
-                # Foo 1.0 Foo.qml
-                folder = os.path.dirname(fileinput.filename())
-                inputfiles.append(folder + '/' + filename)
+        # [singleton] Foo 1.0 Foo.qml
+        if pieces[0] == 'singleton':
+            pieces.pop(0)
+        if pieces[0].islower():
+            # Unknown keyword
+            continue
+        classname, version, filename = pieces
+        if filename[-3:] == 'qml':
+            # Filenames are relative to the qmldir
+            folder = os.path.dirname(fileinput.filename())
+            fullpath = folder + '/' + filename
+            if fullpath not in inputfiles:
+                inputfiles.append(fullpath)
+                classes[fullpath] = [classname, version]
+            else:
+                versions = classes[fullpath]
+                if classname not in versions:
+                    versions.append(classname)
+                versions.append(version)
     else:
         inputfiles.append(fileinput.filename())
         fileinput.nextfile()
 
-inputfiles.sort()
-for line in fileinput.input(inputfiles):
+
+# Sort filenames to maintain a consistent order
+# Get un/versioned files in the same order
+def skipversion(filename):
+    for v in ['10', '11']:
+        filename = filename.replace(v + '/', '')
+    if filename[-8:] == 'qmltypes':
+        filename = os.path.basename(filename)
+    return filename
+inputfiles.sort(key=skipversion)
+
+hook = fileinput.hook_encoded('utf-8')
+for line in fileinput.input(inputfiles, openhook=hook):
     # New file
     if fileinput.isfirstline():
         in_block = 0
@@ -83,9 +108,12 @@ for line in fileinput.input(inputfiles):
                         'prototype',
                         'exports']
         else:
-            print('Unknown filetype %s' % fileinput.filename())
-            sys.exit(1)
-        print('%s' % fileinput.filename())
+            sys.exit('Unknown filetype %s' % fileinput.filename())
+        if fileinput.filename() in classes:
+            classname = ' '.join(classes[fileinput.filename()])
+        else:
+            classname = os.path.basename(fileinput.filename())
+        print(classname)
 
     line = line.split('//')[0]
     # alias properties only define their type through qdoc comments
@@ -101,7 +129,7 @@ for line in fileinput.input(inputfiles):
         # internal without type always relates to the next declared property
         annotated_properties['internal'] = 'internal'
 
-    if '/*' in line and not '*/' in line:
+    if '/*' in line and '*/' not in line:
         in_comment = True
         continue
     if '*/' in line:
@@ -113,10 +141,10 @@ for line in fileinput.input(inputfiles):
     if '{' in line and '}' in line:
         if filetype == 'qmltypes' and not in_builtin_type:
             print('    ' + line.strip())
-        continue
+            continue
 
     # End of function/ signal/ Item block
-    if '}' in line:
+    if '}' in line and '{' not in line:
         in_block -= 1
         block_meta = {}
         if in_block == 1 and in_builtin_type:
@@ -126,7 +154,7 @@ for line in fileinput.input(inputfiles):
     # Only root "Item {" is inspected for QML, otherwise all children
     if in_block == 1 or filetype == 'qmltypes':
         # Left hand side specifies a keyword, a type and a variable name
-        declaration = line.split(':')[0]
+        declaration = line.split(':', 1)[0]
         words = declaration.strip().split(' ')
         # Skip types with prefixes considered builtin
         if filetype == 'qmltypes' and words[0] == 'name':
@@ -145,7 +173,7 @@ for line in fileinput.input(inputfiles):
 
         block_meta[words[0]] = line
         # Omit prototype if it comes before the name since we may skip it
-        if not 'name' in block_meta and words[0] == 'prototype':
+        if 'name' not in block_meta and words[0] == 'prototype':
             continue
 
         # Don't consider the qml variable name as a keyword
@@ -158,20 +186,21 @@ for line in fileinput.input(inputfiles):
         for word in words:
             if word in keywords:
                 if filetype == 'qml':
-                    signature = declaration.split('{')[0].strip()
+                    separator = '{' if 'function' in declaration else ':'
+                    signature = declaration.split(separator, 1)[0].strip()
                     if 'alias' in line:
                         no_mods = signature
                         for mod in ['readonly', 'default']:
                             no_mods = no_mods.replace(mod, '')
                         name = no_mods.strip().split(' ')[2]
                         if 'internal' in annotated_properties:
-                            if not name in annotated_properties:
+                            if name not in annotated_properties:
                                 annotated_properties[name] = 'internal'
                             del annotated_properties['internal']
-                        if not name in annotated_properties:
-                            print('    %s' % (signature))
-                            print('Error: Missing \\qmlproperty for %s' % name)
-                            sys.exit(1)
+                        if name not in annotated_properties:
+                            sys.exit(
+                                '    %s\nError: Missing \\qmlproperty for %s'
+                                % (signature, name))
                         real_type = annotated_properties[name]
                         signature = signature.replace('alias', real_type)
                 elif filetype == 'qmltypes':
@@ -181,7 +210,7 @@ for line in fileinput.input(inputfiles):
                 break
 
     # Start of function/ signal/ Item block
-    if '{' in line:
+    if '{' in line and '}' not in line:
         in_block += 1
         block_meta = {}
         # The parent type can affect API

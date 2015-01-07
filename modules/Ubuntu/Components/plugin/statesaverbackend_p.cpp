@@ -26,17 +26,34 @@
 #include <QtCore/QFile>
 #include <QtCore/QStringList>
 #include "i18n.h"
+#include "quickutils.h"
+#include <QtCore/QStandardPaths>
+
+#include "unixsignalhandler_p.h"
 
 StateSaverBackend::StateSaverBackend(QObject *parent)
     : QObject(parent)
     , m_archive(0)
+    , m_globalEnabled(true)
 {
+    // connect to application quit signal so when that is called, we can clean the states saved
+    QObject::connect(QCoreApplication::instance(), &QCoreApplication::aboutToQuit,
+                     this, &StateSaverBackend::cleanup);
+    QObject::connect(&QuickUtils::instance(), &QuickUtils::activated,
+                     this, &StateSaverBackend::reset);
+    QObject::connect(&QuickUtils::instance(), &QuickUtils::deactivated,
+                     this, &StateSaverBackend::initiateStateSaving);
+    // catch eventual app name changes so we can have different path for the states if needed
+    QObject::connect(&UCApplication::instance(), &UCApplication::applicationNameChanged,
+                     this, &StateSaverBackend::initialize);
     if (!UCApplication::instance().applicationName().isEmpty()) {
         initialize();
-    } else {
-        QObject::connect(&UCApplication::instance(), &UCApplication::applicationNameChanged,
-                         this, &StateSaverBackend::initialize);
     }
+
+    UnixSignalHandler::instance().connectSignal(UnixSignalHandler::Terminate);
+    UnixSignalHandler::instance().connectSignal(UnixSignalHandler::Interrupt);
+    QObject::connect(&UnixSignalHandler::instance(), SIGNAL(signalTriggered(int)),
+                     this, SLOT(signalHandler(int)));
 }
 
 StateSaverBackend::~StateSaverBackend()
@@ -48,8 +65,68 @@ StateSaverBackend::~StateSaverBackend()
 
 void StateSaverBackend::initialize()
 {
-    m_archive = new QSettings(UCApplication::instance().applicationName());
+    if (m_archive) {
+        // delete previous archive
+        QFile archiveFile(m_archive.data()->fileName());
+        archiveFile.remove();
+        delete m_archive.data();
+        m_archive.clear();
+    }
+    QString applicationName(UCApplication::instance().applicationName());
+    if (applicationName.isEmpty()) {
+        qCritical() << "[StateSaver] Cannot create appstate file, application name not defined.";
+        return;
+    }
+    // make sure the path is in sync with https://wiki.ubuntu.com/SecurityTeam/Specifications/ApplicationConfinement
+    // the file must be saved under XDG_RUNTIME_DIR/<APP_PKGNAME> path.
+    // NOTE!!: we cannot use QStandardPaths::writableLocation(QStandardPaths::RuntimeLocation)
+    // as that is going to perform a chmod +w on the path, see bug #1359831. Therefore we must
+    // fetch the XDG_RUNTIME_DIR either from QStandardPaths::standardLocations() or from env var
+    // see bug https://bugreports.qt-project.org/browse/QTBUG-41735
+    QString runtimeDir = QStandardPaths::writableLocation(QStandardPaths::RuntimeLocation);
+    if (runtimeDir.isEmpty()) {
+        runtimeDir = qgetenv("XDG_RUNTIME_DIR");
+    }
+    if (runtimeDir.isEmpty()) {
+        qCritical() << "[StateSaver] No XDG_RUNTIME_DIR path set, cannot create appstate file.";
+        return;
+    }
+    m_archive = new QSettings(QString("%1/%2/statesaver.appstate").
+                              arg(runtimeDir).
+                              arg(applicationName), QSettings::NativeFormat);
     m_archive->setFallbacksEnabled(false);
+}
+
+void StateSaverBackend::cleanup()
+{
+    reset();
+    m_archive.clear();
+}
+
+void StateSaverBackend::signalHandler(int type)
+{
+    if (type == UnixSignalHandler::Interrupt) {
+        Q_EMIT initiateStateSaving();
+        // disconnect aboutToQuit() so the state file doesn't get wiped upon quit
+        QObject::disconnect(QCoreApplication::instance(), &QCoreApplication::aboutToQuit,
+                         this, &StateSaverBackend::cleanup);
+    }
+    QCoreApplication::quit();
+}
+
+bool StateSaverBackend::enabled() const
+{
+    return m_globalEnabled;
+}
+void StateSaverBackend::setEnabled(bool enabled)
+{
+    if (m_globalEnabled != enabled) {
+        m_globalEnabled = enabled;
+        Q_EMIT enabledChanged(m_globalEnabled);
+        if (!m_globalEnabled) {
+            reset();
+        }
+    }
 }
 
 bool StateSaverBackend::registerId(const QString &id)
@@ -90,8 +167,20 @@ int StateSaverBackend::load(const QString &id, QObject *item, const QStringList 
         }
         QQmlProperty qmlProperty(item, propertyName.toLocal8Bit().constData(), qmlContext(item));
         if (qmlProperty.isValid() && qmlProperty.isWritable()) {
-            qmlProperty.write(value);
-            result++;
+            QVariant type = m_archive.data()->value(propertyName + "_TYPE");
+            value.convert(type.toInt());
+            bool writeSuccess = qmlProperty.write(value);
+            if (writeSuccess) {
+                result++;
+            } else {
+                qmlInfo(item) << UbuntuI18n::instance().tr("property \"%1\" of "
+                    "object %2 has type %3 and cannot be set to value \"%4\" of"
+                    " type %5").arg(propertyName)
+                               .arg(qmlContext(item)->nameForObject(item))
+                               .arg(qmlProperty.propertyTypeName())
+                               .arg(value.toString())
+                               .arg(value.typeName());
+            }
         } else {
             qmlInfo(item) << UbuntuI18n::instance().tr("property \"%1\" does not exist or is not writable for object %2")
                              .arg(propertyName).arg(qmlContext(item)->nameForObject(item));
@@ -118,6 +207,15 @@ int StateSaverBackend::save(const QString &id, QObject *item, const QStringList 
             QVariant value = qmlProperty.read();
             if (static_cast<QMetaType::Type>(value.type()) != QMetaType::QObjectStar) {
                 m_archive.data()->setValue(propertyName, value);
+                /* Save the type of the property along with its value.
+                 * This is important because QSettings deserializes values as QString.
+                 * Setting these strings to QML properties usually works because the
+                 * implicit type conversion from string to the type of the QML property
+                 * usually works. In some cases cases however (e.g. enum) it fails.
+                 *
+                 * See Qt Bug: https://bugreports.qt-project.org/browse/QTBUG-40474
+                 */
+                m_archive.data()->setValue(propertyName + "_TYPE", QVariant::fromValue((int)value.type()));
                 result++;
             }
         }

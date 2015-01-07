@@ -16,8 +16,8 @@
 
 import QtQuick 2.0
 import QtTest 1.0
-import Ubuntu.Components 0.1
-import Ubuntu.Components.ListItems 0.1 as ListItem
+import Ubuntu.Components 1.1
+import Ubuntu.Components.ListItems 1.0 as ListItem
 
 Item {
     width: 400
@@ -66,34 +66,29 @@ Item {
             mouseMove(listItemStandard, 10, 10)
             mouseClick(listItemStandard, 10, 10, Qt.LeftButton)
             compare(listItemStandard.control, testControl, "control can be set")
-            controlClickedCount++;
+            listItemClickedCount++;
             compare(controlClickedSpy.count, controlClickedCount, "Control clicked triggered")
             compare(listItemClickedSpy.count, listItemClickedCount, "List item clicked not triggered when there is a control")
             listItemStandard.control = null;
         }
 
         function test_bug1166982_disabled_control_clicked() {
-            var listItemClickedCount = listItemClickedSpy.count
             var controlClickedCount = controlClickedSpy.count
             listItemStandard.control = testControl
             testControl.enabled = false
             mouseMove(listItemStandard, 10, 10)
             mouseClick(listItemStandard, 10, 10, Qt.LeftButton)
-            compare(listItemClickedSpy.count, listItemClickedCount, "List item clicked not triggered with disabled control")
             compare(controlClickedSpy.count, controlClickedCount, "Control clicked not triggered with disabled control")
             testControl.enabled = true
             listItemStandard.control = null
         }
 
         function test_icon() {
+            ignoreWarning("WARNING: ListItems.Standard.icon is DEPRECATED. Use iconName and iconSource instead.")
             compare(listItemStandard.icon,undefined,"icon is not set by default")
 
-            // test with item
-            listItemStandard.icon = testItem
-            compare(listItemStandard.icon,testItem,"set/get from Item")
-
             // test with url
-            var newIcon = "../../../examples/ubuntu-ui-toolkit-gallery/small_avatar.png"
+            var newIcon = "../../../../examples/ubuntu-ui-toolkit-gallery/small_avatar.png"
             listItemStandard.icon = newIcon
             compare(listItemStandard.icon,newIcon,"set/get from url")
         }

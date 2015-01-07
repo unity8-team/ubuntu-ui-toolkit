@@ -1,6 +1,6 @@
 # -*- Mode: Python; coding: utf-8; indent-tabs-mode: nil; tab-width: 4 -*-
 #
-# Copyright (C) 2012, 2013 Canonical Ltd.
+# Copyright (C) 2012, 2013, 2014 Canonical Ltd.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -14,4 +14,70 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-"""Ubuntu UI Toolkit autopilot tests and emulators - top level package."""
+"""Ubuntu UI Toolkit Autopilot tests and helpers."""
+
+
+__all__ = [
+    'AppHeader',
+    'base',
+    'check_autopilot_version',
+    'CheckBox',
+    'environment',
+    'fixture_setup',
+    'get_keyboard',
+    'get_pointing_device',
+    'Header',
+    'listitems',
+    'UCListItem',
+    'MainView',
+    'OptionSelector',
+    'pickers',
+    'popups',
+    'QQuickFlickable',
+    'QQuickGridView',
+    'QQuickListView',
+    'TabBar',
+    'Tabs',
+    'tests',
+    'TextArea',
+    'TextField',
+    'Toolbar',
+    'ToolkitException',
+    'ubuntu_scenarios',
+    'UbuntuListView11',
+    'UbuntuUIToolkitCustomProxyObjectBase',
+]
+
+
+from ubuntuuitoolkit import (
+    base,
+    environment,
+    fixture_setup,
+    tests,
+    ubuntu_scenarios
+)
+from ubuntuuitoolkit._custom_proxy_objects import (
+    AppHeader,
+    check_autopilot_version,
+    CheckBox,
+    get_keyboard,
+    get_pointing_device,
+    Header,
+    listitems,
+    UCListItem,
+    MainView,
+    OptionSelector,
+    pickers,
+    popups,
+    QQuickFlickable,
+    QQuickGridView,
+    QQuickListView,
+    TabBar,
+    Tabs,
+    TextArea,
+    TextField,
+    Toolbar,
+    ToolkitException,
+    UbuntuUIToolkitCustomProxyObjectBase,
+    UbuntuListView11,
+)
