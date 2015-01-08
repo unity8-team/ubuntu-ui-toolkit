@@ -29,15 +29,15 @@ UCDragHandler::~UCDragHandler()
 // listen for attached property's draggable change signal to activate dragging mode on the list item
 void UCDragHandler::initialize()
 {
-    if (!listItem->attachedProperties) {
+    if (!listItem->parentAttached) {
         return;
     }
-    connect(listItem->attachedProperties, &UCListItemAttached::dragModeChanged,
+    connect(listItem->parentAttached, &UCViewItemsAttached::dragModeChanged,
             this, &UCDragHandler::setupDragMode);
     if (listItem->isDraggable()) {
         setupDragMode();
         // is the current one the dragged source?
-        UCListItemAttachedPrivate *pAttached = UCListItemAttachedPrivate::get(listItem->attachedProperties);
+        UCViewItemsAttachedPrivate *pAttached = UCViewItemsAttachedPrivate::get(listItem->parentAttached);
         if (listItem->index() == pAttached->dragFromIndex) {
             setDragging(true);
             if (pAttached->dragTempItem) {

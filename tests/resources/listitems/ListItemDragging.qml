@@ -48,7 +48,7 @@ MainView {
         title: "Dragging test"
         ListView {
             anchors.fill: parent
-            ListItem.selectMode: ListItem.dragMode
+//            ViewItems.selectMode: ViewItems.dragMode
             contentItem.objectName: "ListViewContent"
             moveDisplaced: Transition {
                 UbuntuNumberAnimation {
@@ -56,7 +56,7 @@ MainView {
                 }
             }
 
-            ListItem.onDraggingStarted: {
+            ViewItems.onDraggingStarted: {
                 if (!restrictOnStart) {
                     return;
                 }
@@ -76,7 +76,7 @@ MainView {
                 }
             }
 
-            ListItem.onDraggingUpdated: {
+            ViewItems.onDraggingUpdated: {
                 if (main.liveDrag || event.direction == ListItemDrag.None) {
                     // last drag, or live drag, drop it
                     model.move(event.from, event.to, 1);
@@ -108,6 +108,7 @@ MainView {
             }
 
             delegate: ListItem {
+                id: item
                 objectName: "ListItem-" + index
                 color: dragging ? "#30BBBBBB" : "transparent"
 
@@ -118,13 +119,17 @@ MainView {
                     actions: trailingActionList
                 }
 
+                Rectangle {
+                    anchors.fill: parent
+                    color: "#69aa69"
+                }
                 Label {
                     text: label + ", now @ index " + index
                 }
 
                 onPressAndHold: {
                     print("entering/leaving draggable mode")
-                    ListView.view.ListItem.dragMode = !ListView.view.ListItem.dragMode;
+                    ListView.view.ViewItems.dragMode = !ListView.view.ViewItems.dragMode;
                 }
             }
         }
