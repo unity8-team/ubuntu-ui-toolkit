@@ -1,10 +1,10 @@
 ubuntuuitoolkit Package
 =======================
 
-:mod:`emulators` Module
+:mod:`custom proxy object` Module
 -----------------------
 
-.. automodule:: ubuntuuitoolkit.emulators
+.. automodule:: ubuntuuitoolkit
     :members:
     :undoc-members:
     :show-inheritance:
