@@ -55,6 +55,14 @@ Item {
     ListItemActions {
         id: actionsDefault
     }
+    ListModel {
+        id: objectModel
+        Component.onCompleted: {
+            for (var i = 0; i < 25; i++) {
+                append({data: i})
+            }
+        }
+    }
 
     Component {
         id: customDelegate
@@ -105,14 +113,15 @@ Item {
             width: parent.width
             height: units.gu(28)
             clip: true
-            model: 10
+            model: objectModel
             ViewItems.selectMode: false
+//            ViewItems.onDraggingUpdated: {}
             delegate: ListItem {
                 objectName: "listItem" + index
                 color: "lightgray"
-                width: parent.width
                 leadingActions: leading
                 trailingActions: trailing
+                Label { text: modelData }
             }
         }
         Flickable {
@@ -198,6 +207,15 @@ Item {
                 movingSpy.wait();
             }
             movingSpy.target = null;
+        }
+
+        function drag(item, x, y, dx, dy) {
+            mousePress(item, x, y);
+            // use 10 steps to be sure the move is detected by the list item
+            mouseMoveSlowly(item, x, y, dx, dy, 10, 100);
+            mouseRelease(item, x + dx, y + dy);
+            // perform a drop, needs one more mouse release
+            mouseRelease(item, x + dx, y + dy);
         }
 
         function initTestCase() {
@@ -875,20 +893,155 @@ Item {
             verify(panel, "Selection panel not found, wrong attached property target?");
         }
 
-        function test_1_dragmode_availability_data() {
+        function test_dragmode_availability_data() {
             return [
                 {tag: "Attached to Column", item: testColumn, lookupOn: testItem, xfail: true},
                 {tag: "Attached to ListView", item: listView, lookupOn: findChild(listView, "listItem0"), xfail: false},
             ];
         }
-        function test_1_dragmode_availability(data) {
-            data.item.ListItem.dragMode = true;
-            waitForRendering(data.lookupOn);
-            var panel = findChild(data.lookupOn, "draghandler_panel");
+        function test_dragmode_availability(data) {
+            data.item.ViewItems.dragMode = true;
+            waitForRendering(data.lookupOn, 500);
+            var panel = findChild(data.lookupOn, "draghandler_panel0");
             if (data.xfail) {
                 expectFailContinue(data.tag, "There should be no drag handler shown!")
             }
             verify(panel, "No drag handler found!");
+        }
+
+        function test_drag_data() {
+            return [
+                {tag: "Live 0->1 OK", live: true, from: 0, to: 1, count: 1, fromData: 1, toData: 0, accept: true}, // data is 1,0,2,3,4
+                {tag: "Live 0->2 OK", live: true, from: 0, to: 2, count: 2, fromData: 0, toData: 1, accept: true}, // data is 0,2,1,3,4
+                {tag: "Live 0->3 OK", live: true, from: 0, to: 3, count: 3, fromData: 2, toData: 0, accept: true}, // data is 2,1,3,0,4
+                {tag: "Live 3->0 OK", live: true, from: 3, to: 0, count: 3, fromData: 3, toData: 0, accept: true}, // data is 0,2,1,3,4
+                        // do not accept moves
+                {tag: "Live 0->1 NOK", live: true, from: 0, to: 1, count: 0, fromData: 0, toData: 2, accept: false}, // data is 0,2,1,3,4
+                {tag: "Live 0->2 NOK", live: true, from: 0, to: 2, count: 0, fromData: 0, toData: 1, accept: false}, // data is 0,2,1,3,4
+                {tag: "Live 0->3 NOK", live: true, from: 0, to: 3, count: 0, fromData: 0, toData: 3, accept: false}, // data is 0,2,1,3,4
+                {tag: "Live 3->0 NOK", live: true, from: 3, to: 0, count: 0, fromData: 3, toData: 0, accept: false}, // data is 0,2,1,3,4
+
+                        // non-live updates
+                {tag: "Drop 0->1 OK", live: false, from: 0, to: 1, count: 1, fromData: 2, toData: 0, accept: true}, // data is 2,0,1,3,4
+                {tag: "Drop 0->2 OK", live: false, from: 0, to: 2, count: 1, fromData: 0, toData: 2, accept: true}, // data is 0,1,2,3,4
+                {tag: "Drop 0->3 OK", live: false, from: 0, to: 3, count: 1, fromData: 1, toData: 0, accept: true}, // data is 1,2,3,0,4
+                {tag: "Drop 3->0 OK", live: false, from: 3, to: 0, count: 1, fromData: 3, toData: 0, accept: true}, // data is 0,1,2,3,4
+                        // do not accept moves
+                {tag: "Drop 0->1 NOK", live: false, from: 0, to: 1, count: 0, fromData: 0, toData: 1, accept: false}, // data is 0,1,2,3,4
+                {tag: "Drop 0->2 NOK", live: false, from: 0, to: 2, count: 0, fromData: 0, toData: 2, accept: false}, // data is 0,1,2,3,4
+                {tag: "Drop 0->3 NOK", live: false, from: 0, to: 3, count: 0, fromData: 0, toData: 3, accept: false}, // data is 0,1,2,3,4
+                {tag: "Drop 3->0 NOK", live: false, from: 3, to: 0, count: 0, fromData: 3, toData: 0, accept: false}, // data is 0,1,2,3,4
+            ];
+        }
+
+        function test_drag(data) {
+            return;
+            var moveCount = 0;
+            function liveUpdate(event) {
+                if (data.accept) {
+                    moveCount++;
+                    listView.model.move(event.from, event.to, 1);
+                }
+                event.accept = data.accept;
+            }
+            function singleDrop(event) {
+                if (event.direction == ListItemDrag.None) {
+                    if (data.accept) {
+                        moveCount++;
+                        listView.model.move(event.from, event.to, 1);
+                    }
+                    event.accept = data.accept;
+                } else {
+                    event.accept = false;
+                }
+            }
+
+            listView.positionViewAtBeginning();
+            var func = data.live ? liveUpdate : singleDrop;
+            listView.ViewItems.draggingUpdated.connect(func);
+
+            // enter drag mode
+            listView.ViewItems.dragMode = true;
+            waitForRendering(findChild(listView, "listItem0"));
+            var dragArea = findChild(listView, "draghandler_area");
+            verify(dragArea, "Cannot locate drag area!");
+
+            // grab the source item
+            var panel = findChild(listView, "draghandler_panel" + data.from);
+            verify(panel, "Drag handler cannot be located");
+            // drag panel
+            var x = centerOf(panel).x;
+            var y = dragArea.mapFromItem(panel, panel.x, panel.y).y;
+            // move the mouse downwards
+            var dy = Math.abs(data.to - data.from) * panel.height + units.gu(1)
+            dy *= (data.to > data.from) ? 1 : -1;
+            drag(dragArea, x, y, 0, dy);
+            waitForRendering(listView, 500);
+            compare(moveCount, data.count, "Move did not happen or more than one item was moved");
+            compare(listView.model.get(data.from).data, data.fromData, "the 'from' data is not the expected one");
+            compare(listView.model.get(data.to).data, data.toData, "the 'to' data is not the expected one");
+
+            // cleanup
+            listView.ViewItems.draggingUpdated.disconnect(func);
+            listView.ViewItems.dragMode = false;
+            // wait half a second, as waitForRendering is not reliably waits till the list item is rendered
+            wait(500);
+        }
+
+        // preconditions:
+        // the first 2 items cannot be dragged anywhere, nothing can be dropped in this area
+        // the 3-> items can be interchanged in between, cannot be dragged outside
+        function test_1_drag_restricted_data() {
+            return [
+                {tag: "Live 0->1 NOK", from: 0, to: 1, count: 0, fromData: 0, toData: 1},
+                {tag: "Live 1->2 NOK", from: 1, to: 2, count: 0, fromData: 1, toData: 2},
+            ];
+        }
+        function test_1_drag_restricted(data) {
+            return;
+            var moveCount = 0;
+            function startHandler(event) {
+                if (event.from < 2) {
+                    event.accept = false;
+                } else {
+                    event.minimumIndex = 2;
+                }
+            }
+            function updateHandler(event) {
+                listView.model.move(event.from, event.to, 1);
+            }
+
+            listView.positionViewAtBeginning();
+            listView.ViewItems.draggingStarted.connect(startHandler);
+            listView.ViewItems.draggingUpdated.connect(updateHandler);
+
+            // enter drag mode
+            listView.ViewItems.dragMode = true;
+            waitForRendering(findChild(listView, "listItem0"));
+            var dragArea = findChild(listView, "draghandler_area");
+            verify(dragArea, "Cannot locate drag area!");
+
+            // grab the source item
+            var panel = findChild(listView, "draghandler_panel" + data.from);
+            verify(panel, "Drag handler cannot be located");
+            // drag panel
+            var x = centerOf(panel).x;
+            var y = dragArea.mapFromItem(panel, panel.x, panel.y).y;
+            // move the mouse downwards
+            var dy = Math.abs(data.to - data.from) * panel.height + units.gu(1)
+            dy *= (data.to > data.from) ? 1 : -1;
+            drag(dragArea, x, y, 0, dy);
+            waitForRendering(listView, 500);
+            compare(moveCount, data.count, "Move did not happen or more than one item was moved");
+            compare(listView.model.get(data.from).data, data.fromData, "the 'from' data is not the expected one");
+            compare(listView.model.get(data.to).data, data.toData, "the 'to' data is not the expected one");
+
+            // cleanup
+            listView.ViewItems.draggingStarted.disconnect(startHandler);
+            listView.ViewItems.draggingUpdated.disconnect(updateHandler);
+            listView.ViewItems.dragMode = false;
+            // wait half a second, as waitForRendering is not reliably waits till the list item is rendered
+            wait(500);
         }
     }
 }

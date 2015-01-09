@@ -526,14 +526,6 @@ void UCViewItemsAttachedPrivate::setDragMode(bool value)
             qmlInfo(q->parent()) << UbuntuI18n::instance().tr("dragging mode requires ListView");
             return;
         }
-        QVariant modelValue = listView->property("model");
-        if (!modelValue.isValid()) {
-            return;
-        }
-        if (modelValue.type() == QVariant::Int || modelValue.type() == QVariant::Double) {
-            qmlInfo(listView) << UbuntuI18n::instance().tr("model must be a list, ListModel or a derivate of QAbstractItemModel");
-            return;
-        }
     }
     draggable = value;
     if (draggable) {
@@ -553,6 +545,7 @@ void UCViewItemsAttachedPrivate::enterDragMode()
         return;
     }
     dragHandlerArea = new QQuickMouseArea(listView);
+    dragHandlerArea->setObjectName("draghandler_area");
     dragHandlerArea->setParentItem(listView);
     QQuickAnchors *areaAnchors = QQuickItemPrivate::get(dragHandlerArea)->anchors();
     QQuickItemPrivate *listViewPrivate = QQuickItemPrivate::get(listView);
@@ -623,7 +616,7 @@ void UCViewItemsAttached::stopDragging(QQuickMouseEvent *event)
     if (d->dragTempItem) {
         // stop scroll timer
         d->dragScrollTimer.stop();
-        if (d->isDraggingUpdatedConnected()) {
+        if (d->isDraggingUpdatedConnected() && d->dragFromIndex != d->dragToIndex) {
             UCDragEvent dragEvent(UCDragEvent::None, d->dragFromIndex, d->dragToIndex, d->dragMinimum, d->dragMaximum);
             Q_EMIT draggingUpdated(&dragEvent);
             d->updateDraggedItem();

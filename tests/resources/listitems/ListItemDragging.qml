@@ -46,6 +46,7 @@ MainView {
 
     Page {
         title: "Dragging test"
+
         ListView {
             anchors.fill: parent
 //            ViewItems.selectMode: ViewItems.dragMode
@@ -79,9 +80,11 @@ MainView {
             ViewItems.onDraggingUpdated: {
                 if (main.liveDrag || event.direction == ListItemDrag.None) {
                     // last drag, or live drag, drop it
+                    print("MOVE", event.from, event.to)
                     model.move(event.from, event.to, 1);
                 } else {
                     event.accept = false;
+                    print("SKIP", event.toIndex);
                 }
             }
 
