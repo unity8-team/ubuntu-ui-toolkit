@@ -210,13 +210,25 @@ Item {
             movingSpy.target = null;
         }
 
-        function drag(item, x, y, dx, dy) {
-            mousePress(item, x, y);
+        function drag(view, from, to) {
+            var dragArea = findChild(view, "draghandler_area");
+            verify(dragArea, "Cannot locate drag area!");
+
+            // grab the source item
+            var panel = findChild(view, "draghandler_panel" + from);
+            verify(panel, "Drag handler cannot be located");
+            // drag panel
+            var x = centerOf(panel).x;
+            var y = dragArea.mapFromItem(panel, panel.x, panel.y).y;
+            // move the mouse downwards
+            var dy = Math.abs(to - from) * panel.height + units.gu(1)
+            dy *= (to > from) ? 1 : -1;
+            mousePress(dragArea, x, y);
             // use 10 steps to be sure the move is detected by the list item
-            mouseMoveSlowly(item, x, y, dx, dy, 10, 100);
-            mouseRelease(item, x + dx, y + dy);
+            mouseMoveSlowly(dragArea, x, y, 0, dy, 10, 100);
+            mouseRelease(dragArea, x, y + dy);
             // perform a drop, needs one more mouse release
-            mouseRelease(item, x + dx, y + dy);
+            mouseRelease(dragArea, x, y + dy);
         }
 
         function initTestCase() {
@@ -965,19 +977,7 @@ Item {
             // enter drag mode
             listView.ViewItems.dragMode = true;
             waitForRendering(findChild(listView, "listItem0"));
-            var dragArea = findChild(listView, "draghandler_area");
-            verify(dragArea, "Cannot locate drag area!");
-
-            // grab the source item
-            var panel = findChild(listView, "draghandler_panel" + data.from);
-            verify(panel, "Drag handler cannot be located");
-            // drag panel
-            var x = centerOf(panel).x;
-            var y = dragArea.mapFromItem(panel, panel.x, panel.y).y;
-            // move the mouse downwards
-            var dy = Math.abs(data.to - data.from) * panel.height + units.gu(1)
-            dy *= (data.to > data.from) ? 1 : -1;
-            drag(dragArea, x, y, 0, dy);
+            drag(listView, data.from, data.to);
             waitForRendering(listView, 500);
             compare(moveCount, data.count, "Move did not happen or more than one item was moved");
             compare(listView.model.get(data.from).data, data.fromData, "the 'from' data is not the expected one");
@@ -1026,19 +1026,7 @@ Item {
             // enter drag mode
             listView.ViewItems.dragMode = true;
             waitForRendering(findChild(listView, "listItem0"));
-            var dragArea = findChild(listView, "draghandler_area");
-            verify(dragArea, "Cannot locate drag area!");
-
-            // grab the source item
-            var panel = findChild(listView, "draghandler_panel" + data.from);
-            verify(panel, "Drag handler cannot be located");
-            // drag panel
-            var x = centerOf(panel).x;
-            var y = dragArea.mapFromItem(panel, panel.x, panel.y).y;
-            // move the mouse downwards
-            var dy = Math.abs(data.to - data.from) * panel.height + units.gu(1)
-            dy *= (data.to > data.from) ? 1 : -1;
-            drag(dragArea, x, y, 0, dy);
+            drag(listView, data.from, data.to);
             waitForRendering(listView, 500);
             compare(moveCount, data.count, "Move did not happen or more than one item was moved");
             compare(listView.model.get(data.from).data, data.fromData, "the 'from' data is not the expected one");
@@ -1050,6 +1038,28 @@ Item {
             listView.ViewItems.dragMode = false;
             // wait half a second, as waitForRendering is not reliably waits till the list item is rendered
             wait(500);
+        }
+
+        function test_1_drag_keeps_selected_indexes() {
+            function updateHandler(event) {
+                listView.model.move(event.from, event.to, 1);
+            }
+
+            listView.ViewItems.selectedIndexes = [0,2];
+            listView.ViewItems.draggingUpdated.connect(updateHandler);
+            listView.ViewItems.dragMode = true;
+            waitForRendering(findChild(listView, "listItem0"));
+
+            drag(listView, 0, 1);
+            waitForRendering(listView, 500);
+            listView.ViewItems.draggingUpdated.disconnect(updateHandler);
+            listView.ViewItems.dragMode = false;
+            // wait half a second, as waitForRendering is not reliably waits till the list item is rendered
+            wait(500);
+
+            // we can compare now
+            verify(listView.ViewItems.selectedIndexes.indexOf(2) >= 0, "2->2 Selected indexes were not updated!");
+            verify(listView.ViewItems.selectedIndexes.indexOf(1) >= 0, "0->1 Selected indexes were not updated!");
         }
     }
 }
