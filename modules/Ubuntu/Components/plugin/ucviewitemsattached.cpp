@@ -66,11 +66,12 @@ void UCViewItemsAttachedPrivate::clearFlickablesList()
 {
     Q_Q(UCViewItemsAttached);
     Q_FOREACH(const QPointer<QQuickFlickable> &flickable, flickables) {
-        if (flickable.data())
-        QObject::disconnect(flickable.data(), &QQuickFlickable::movementStarted,
-                            q, &UCViewItemsAttached::unbindItem);
-        QObject::disconnect(flickable, &QQuickFlickable::flickStarted,
-                            q, &UCViewItemsAttached::unbindItem);
+        if (flickable) {
+            QObject::disconnect(flickable, &QQuickFlickable::movementStarted,
+                                q, &UCViewItemsAttached::unbindItem);
+            QObject::disconnect(flickable, &QQuickFlickable::flickStarted,
+                                q, &UCViewItemsAttached::unbindItem);
+        }
     }
     flickables.clear();
 }

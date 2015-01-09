@@ -57,11 +57,13 @@ Item {
     }
     ListModel {
         id: objectModel
-        Component.onCompleted: {
+        function reset() {
+            clear();
             for (var i = 0; i < 25; i++) {
                 append({data: i})
             }
         }
+        Component.onCompleted: reset()
     }
 
     Component {
@@ -115,7 +117,6 @@ Item {
             clip: true
             model: objectModel
             ViewItems.selectMode: false
-//            ViewItems.onDraggingUpdated: {}
             delegate: ListItem {
                 objectName: "listItem" + index
                 color: "lightgray"
@@ -910,6 +911,8 @@ Item {
         }
 
         function test_drag_data() {
+            objectModel.reset();
+            waitForRendering(listView);
             return [
                 {tag: "Live 0->1 OK", live: true, from: 0, to: 1, count: 1, fromData: 1, toData: 0, accept: true}, // data is 1,0,2,3,4
                 {tag: "Live 0->2 OK", live: true, from: 0, to: 2, count: 2, fromData: 0, toData: 1, accept: true}, // data is 0,2,1,3,4
@@ -935,7 +938,6 @@ Item {
         }
 
         function test_drag(data) {
-            return;
             var moveCount = 0;
             function liveUpdate(event) {
                 if (data.accept) {
@@ -991,14 +993,19 @@ Item {
         // preconditions:
         // the first 2 items cannot be dragged anywhere, nothing can be dropped in this area
         // the 3-> items can be interchanged in between, cannot be dragged outside
-        function test_1_drag_restricted_data() {
+        function test_drag_restricted_data() {
+            objectModel.reset();
+            waitForRendering(listView);
             return [
                 {tag: "Live 0->1 NOK", from: 0, to: 1, count: 0, fromData: 0, toData: 1},
                 {tag: "Live 1->2 NOK", from: 1, to: 2, count: 0, fromData: 1, toData: 2},
+                {tag: "Live 2->1 NOK", from: 2, to: 1, count: 0, fromData: 2, toData: 1},
+                {tag: "Live 2->0 NOK", from: 2, to: 0, count: 0, fromData: 2, toData: 0},
+                        // drag
+                {tag: "Live 2->3 NOK", from: 2, to: 3, count: 1, fromData: 3, toData: 2}, // data: 0,1,3,2,4,5
             ];
         }
-        function test_1_drag_restricted(data) {
-            return;
+        function test_drag_restricted(data) {
             var moveCount = 0;
             function startHandler(event) {
                 if (event.from < 2) {
@@ -1009,6 +1016,7 @@ Item {
             }
             function updateHandler(event) {
                 listView.model.move(event.from, event.to, 1);
+                moveCount++;
             }
 
             listView.positionViewAtBeginning();
