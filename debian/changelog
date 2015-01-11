@@ -1,8 +1,9 @@
-ubuntu-ui-toolkit-gles (1.1.1376+15.04.20150111-0ubuntu1) UNRELEASED; urgency=medium
+ubuntu-ui-toolkit-gles (1.1.1376+15.04.20150111-0ubuntu1) vivid; urgency=medium
 
+  [ Zoltán Balogh ]
   * Sync with 1.1.1376+15.04.20150111-0ubuntu1
 
- -- Zoltán Balogh <zoltan@bakter.hu>  Sun, 11 Jan 2015 20:51:56 +0200
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Sun, 11 Jan 2015 20:13:44 +0000
 
 ubuntu-ui-toolkit-gles (1.1.1370+15.04.20141217-0ubuntu1) vivid; urgency=medium
 
