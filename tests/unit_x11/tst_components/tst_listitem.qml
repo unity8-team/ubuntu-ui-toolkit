@@ -1070,26 +1070,40 @@ Item {
             wait(500);
         }
 
-        function test_1_drag_keeps_selected_indexes() {
+
+        function test_1_drag_keeps_selected_indexes_data() {
+            return [
+                        {tag: "top to bottom direction", selected: [0,1,2], from: 0, to: 3, expected: [0,1,3]},
+                        {tag: "bottom to top direction", selected: [0,2,3], from: 3, to: 0, expected: [0,1,3]},
+                    ];
+        }
+        function test_1_drag_keeps_selected_indexes(data) {
             function updateHandler(event) {
                 listView.model.move(event.from, event.to, 1);
             }
 
-            listView.ViewItems.selectedIndexes = [0,2];
+            listView.ViewItems.selectedIndexes = data.selected;
             listView.ViewItems.draggingUpdated.connect(updateHandler);
             listView.ViewItems.dragMode = true;
             waitForRendering(findChild(listView, "listItem0"));
 
-            drag(listView, 0, 1);
+            print(listView.ViewItems.selectedIndexes);
+            drag(listView, data.from, data.to);
+            print(listView.ViewItems.selectedIndexes);
             waitForRendering(listView, 500);
             listView.ViewItems.draggingUpdated.disconnect(updateHandler);
             listView.ViewItems.dragMode = false;
             // wait half a second, as waitForRendering is not reliably waits till the list item is rendered
             wait(500);
+            print(listView.ViewItems.selectedIndexes);
 
-            // we can compare now
-            verify(listView.ViewItems.selectedIndexes.indexOf(2) >= 0, "2->2 Selected indexes were not updated!");
-            verify(listView.ViewItems.selectedIndexes.indexOf(1) >= 0, "0->1 Selected indexes were not updated!");
+            // NOTE: the selected indexes order is arbitrar and cannot be predicted by the test
+            // therefore we check the selected indexes presence in the expected list.
+            compare(listView.ViewItems.selectedIndexes.length, data.expected.length, "The selected indexes and expected list size differs");
+            for (var i = 0; i < listView.ViewItems.selectedIndexes.length; i++) {
+                var index = data.expected.indexOf(listView.ViewItems.selectedIndexes[i]);
+                verify(index >= 0, "Index " + listView.ViewItems.selectedIndexes[i] + " is not expected to be selected!");
+            }
         }
     }
 }

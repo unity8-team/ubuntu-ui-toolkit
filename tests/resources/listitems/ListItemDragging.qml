@@ -47,15 +47,11 @@ MainView {
     Page {
         title: "Dragging test"
 
-        ListView {
+        UbuntuListView {
             anchors.fill: parent
-//            ViewItems.selectMode: ViewItems.dragMode
+            ViewItems.selectMode: ViewItems.dragMode
             contentItem.objectName: "ListViewContent"
-            moveDisplaced: Transition {
-                UbuntuNumberAnimation {
-                    properties: "y";
-                }
-            }
+            ViewItems.onSelectedIndexesChanged: print("selected:", ViewItems.selectedIndexes)
 
             ViewItems.onDraggingStarted: {
                 if (!restrictOnStart) {
@@ -80,11 +76,11 @@ MainView {
             ViewItems.onDraggingUpdated: {
                 if (main.liveDrag || event.direction == ListItemDrag.None) {
                     // last drag, or live drag, drop it
-                    print("MOVE", event.from, event.to)
+//                    print("MOVE", event.from, event.to)
                     model.move(event.from, event.to, 1);
                 } else {
                     event.accept = false;
-                    print("SKIP", event.toIndex);
+//                    print("SKIP", event.to);
                 }
             }
 
@@ -133,6 +129,7 @@ MainView {
                 onPressAndHold: {
                     print("entering/leaving draggable mode")
                     ListView.view.ViewItems.dragMode = !ListView.view.ViewItems.dragMode;
+                    ListView.view.ViewItems.selectedIndexes = [4,5,6]
                 }
             }
         }
