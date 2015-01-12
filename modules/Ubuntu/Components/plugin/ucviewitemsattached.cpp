@@ -309,6 +309,7 @@ void UCViewItemsAttachedPrivate::setSelectedIndexes(const QList<int> &list)
         return;
     }
     selectedList = list;
+
     Q_Q(UCViewItemsAttached);
     Q_EMIT q->selectedIndexesChanged();
 }
@@ -506,6 +507,10 @@ bool UCViewItemsAttachedPrivate::isItemSelected(UCListItem *item)
  *    }
  * }
  * \endqml
+ *
+ * \note Do not forget to set \b{event.attached} to false in \l draggingUpdated,
+ * otherwise the system will not know whether the move has been performed or not,
+ * and selected indexes will not be synchronized properly.
  */
 bool UCViewItemsAttachedPrivate::dragMode() const
 {
@@ -621,6 +626,9 @@ void UCViewItemsAttached::stopDragging(QQuickMouseEvent *event)
             UCDragEvent dragEvent(UCDragEvent::None, d->dragFromIndex, d->dragToIndex, d->dragMinimum, d->dragMaximum);
             Q_EMIT draggingUpdated(&dragEvent);
             d->updateDraggedItem();
+            if (dragEvent.m_accept) {
+                d->updateSelectedIndexes(d->dragFromIndex, d->dragToIndex);
+            }
         }
         // unlock flickables
         d->clearChangesList();
@@ -694,6 +702,9 @@ void UCViewItemsAttached::updateDragging(QQuickMouseEvent *event)
                 UCDragEvent event(d->dragDirection, d->dragFromIndex, d->dragToIndex, d->dragMinimum, d->dragMaximum);
                 Q_EMIT draggingUpdated(&event);
                 update = event.m_accept;
+                if (update) {
+                    d->updateSelectedIndexes(d->dragFromIndex, d->dragToIndex);
+                }
             }
             if (update) {
                 // update item coordinates in the dragged item
@@ -795,4 +806,15 @@ void UCViewItemsAttachedPrivate::updateDraggedItem()
         UCListItem *targetItem = itemAt(dragTempItem->x(), dragTempItem->y() + dragTempItem->height() / 2);
         UCListItemPrivate::get(dragTempItem)->dragHandler->update(targetItem);
     }
+}
+
+void UCViewItemsAttachedPrivate::updateSelectedIndexes(int fromIndex, int toIndex)
+{
+    if (selectedList.count() == listView->property("count").toInt()) {
+        // all the items are selected, leave
+        return;
+    }
+
+    Q_UNUSED(fromIndex)
+    Q_UNUSED(toIndex)
 }

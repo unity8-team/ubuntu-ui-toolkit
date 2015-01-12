@@ -185,6 +185,7 @@ public:
     UCListItem *itemAt(qreal x, qreal y);
     void createDraggedItem(UCListItem *dragItem);
     void updateDraggedItem();
+    void updateSelectedIndexes(int fromIndex, int toIndex);
 
     UCViewItemsAttached *q_ptr;
     QQuickFlickable *listView;
