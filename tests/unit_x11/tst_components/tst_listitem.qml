@@ -943,6 +943,9 @@ Item {
             ];
         }
         function test_dragmode_availability(data) {
+            if (data.xfail) {
+                ignoreWarning(warningFormat(79, 5, "QML Column: dragging mode requires ListView"));
+            }
             data.item.ViewItems.dragMode = true;
             waitForRendering(data.lookupOn, 500);
             var panel = findChild(data.lookupOn, "draghandler_panel0");
@@ -1016,7 +1019,7 @@ Item {
             // cleanup
             listView.ViewItems.draggingUpdated.disconnect(func);
             listView.ViewItems.dragMode = false;
-            // wait half a second, as waitForRendering is not reliably waits till the list item is rendered
+            // wait half a second, as waitForRendering is not reliably waiting till the list item is rendered
             wait(500);
         }
 
@@ -1027,12 +1030,12 @@ Item {
             objectModel.reset();
             waitForRendering(listView);
             return [
-                {tag: "Live 0->1 NOK", from: 0, to: 1, count: 0, fromData: 0, toData: 1},
-                {tag: "Live 1->2 NOK", from: 1, to: 2, count: 0, fromData: 1, toData: 2},
-                {tag: "Live 2->1 NOK", from: 2, to: 1, count: 0, fromData: 2, toData: 1},
-                {tag: "Live 2->0 NOK", from: 2, to: 0, count: 0, fromData: 2, toData: 0},
+                {tag: "[0,1] locked, drag 0->1 NOK", from: 0, to: 1, count: 0, fromData: 0, toData: 1},
+                {tag: "[0,1] locked, drag 1->2 NOK", from: 1, to: 2, count: 0, fromData: 1, toData: 2},
+                {tag: "[0,1] locked, drag 2->1 NOK", from: 2, to: 1, count: 0, fromData: 2, toData: 1},
+                {tag: "[0,1] locked, drag 2->0 NOK", from: 2, to: 0, count: 0, fromData: 2, toData: 0},
                         // drag
-                {tag: "Live 2->3 NOK", from: 2, to: 3, count: 1, fromData: 3, toData: 2}, // data: 0,1,3,2,4,5
+                {tag: "[0,1] locked, drag 2->3 OK", from: 2, to: 3, count: 1, fromData: 3, toData: 2}, // data: 0,1,3,2,4,5
             ];
         }
         function test_drag_restricted(data) {
@@ -1066,20 +1069,30 @@ Item {
             listView.ViewItems.draggingStarted.disconnect(startHandler);
             listView.ViewItems.draggingUpdated.disconnect(updateHandler);
             listView.ViewItems.dragMode = false;
-            // wait half a second, as waitForRendering is not reliably waits till the list item is rendered
+            // wait half a second, as waitForRendering is not reliably waiting till the list item is rendered
             wait(500);
         }
 
-
-        function test_1_drag_keeps_selected_indexes_data() {
+        function test_drag_keeps_selected_indexes_data() {
             return [
-                        {tag: "top to bottom direction", selected: [0,1,2], from: 0, to: 3, expected: [0,1,3]},
-                        {tag: "bottom to top direction", selected: [0,2,3], from: 3, to: 0, expected: [0,1,3]},
-                    ];
+                {tag: "[0,1,2] selected, move 0->3, live", selected: [0,1,2], from: 0, to: 3, expected: [0,1,3], live: true},
+                {tag: "[1,2] selected, move 3->2, live", selected: [1,2], from: 3, to: 2, expected: [1,3], live: true},
+                {tag: "[1,2] selected, move 0->3, live", selected: [1,2], from: 0, to: 3, expected: [0,1], live: true},
+                {tag: "[1,2] selected, move 3->0, live", selected: [1,2], from: 3, to: 0, expected: [2,3], live: true},
+                // non-live updates
+                {tag: "[0,1,2] selected, move 0->3, non-live", selected: [0,1,2], from: 0, to: 3, expected: [0,1,3], live: false},
+                {tag: "[1,2] selected, move 3->2, non-live", selected: [1,2], from: 3, to: 2, expected: [1,3], live: false},
+                {tag: "[1,2] selected, move 0->3, non-live", selected: [1,2], from: 0, to: 3, expected: [0,1], live: false},
+                {tag: "[1,2] selected, move 3->0, non-live", selected: [1,2], from: 3, to: 0, expected: [2,3], live: false},
+            ];
         }
-        function test_1_drag_keeps_selected_indexes(data) {
+        function test_drag_keeps_selected_indexes(data) {
             function updateHandler(event) {
-                listView.model.move(event.from, event.to, 1);
+                if (data.live || event.direction == ListItemDrag.None) {
+                    listView.model.move(event.from, event.to, 1);
+                } else {
+                    event.accept = false;
+                }
             }
 
             listView.ViewItems.selectedIndexes = data.selected;
@@ -1087,15 +1100,12 @@ Item {
             listView.ViewItems.dragMode = true;
             waitForRendering(findChild(listView, "listItem0"));
 
-            print(listView.ViewItems.selectedIndexes);
             drag(listView, data.from, data.to);
-            print(listView.ViewItems.selectedIndexes);
             waitForRendering(listView, 500);
             listView.ViewItems.draggingUpdated.disconnect(updateHandler);
             listView.ViewItems.dragMode = false;
-            // wait half a second, as waitForRendering is not reliably waits till the list item is rendered
+            // wait half a second, as waitForRendering is not reliably waiting till the list item is rendered
             wait(500);
-            print(listView.ViewItems.selectedIndexes);
 
             // NOTE: the selected indexes order is arbitrar and cannot be predicted by the test
             // therefore we check the selected indexes presence in the expected list.

@@ -815,31 +815,23 @@ void UCViewItemsAttachedPrivate::updateSelectedIndexes(int fromIndex, int toInde
         selectedList.remove(fromIndex);
         Q_EMIT q->selectedIndexesChanged();
     }
-    if (fromIndex < toIndex) {
-        // forwards
-        qDebug() << "FORWARD" << fromIndex << toIndex;
-        for (int i = fromIndex + 1; i <= toIndex; i++) {
-            if (selectedList.contains(i)) {
-                qDebug() << "FORWARD MOVE" << i << (i - 1);
-                selectedList.remove(i);
-                selectedList.insert(i - 1);
-                Q_EMIT q->selectedIndexesChanged();
-            }
+    // direction is -1 (forwards) or 1 (backwards)
+    int direction = (fromIndex < toIndex) ? -1 : 1;
+    int i = (direction < 0) ? fromIndex + 1 : fromIndex - 1;
+    while (1) {
+        if (((direction < 0) && (i > toIndex)) ||
+            ((direction > 0) && (i < toIndex))) {
+            break;
         }
-    } else {
-        // backwards
-        qDebug() << "BACKWARD" << fromIndex << toIndex;
-        for (int i = fromIndex - 1; i >= toIndex; i--) {
-            if (selectedList.contains(i)) {
-                qDebug() << "BACKWARD MOVE" << i << (i + 1);
-                selectedList.remove(i);
-                selectedList.insert(i + 1);
-                Q_EMIT q->selectedIndexesChanged();
-            }
+
+        if (selectedList.contains(i)) {
+            selectedList.remove(i);
+            selectedList.insert(i + direction);
+            Q_EMIT q->selectedIndexesChanged();
         }
+        i -= direction;
     }
     if (isFromSelected) {
-        qDebug() << "DROP" << toIndex;
         selectedList.insert(toIndex);
         Q_EMIT q->selectedIndexesChanged();
     }
