@@ -72,13 +72,6 @@ Item {
             width: parent.width
         }
         ListItem {
-            id: highlightTest
-        }
-        ListItem {
-            id: clickedConnected
-            onClicked: {}
-        }
-        ListItem {
             id: testItem
             width: parent.width
             color: "blue"
@@ -87,15 +80,6 @@ Item {
             Item {
                 id: bodyItem
                 anchors.fill: parent
-            }
-        }
-        ListItem {
-            id: controlItem
-            Button {
-                id: button
-                objectName: "button_in_list"
-                anchors.centerIn: parent
-                text: "Button"
             }
         }
         ListView {
@@ -124,8 +108,8 @@ Item {
         }
 
         SignalSpy {
-            id: highlightedSpy
-            signalName: "highlightedChanged"
+            id: pressedSpy
+            signalName: "pressedChanged"
             target: testItem
         }
 
@@ -170,7 +154,7 @@ Item {
 
         function cleanup() {
             movingSpy.clear();
-            highlightedSpy.clear();
+            pressedSpy.clear();
             clickSpy.clear();
             actionSpy.clear();
             interactiveSpy.clear();
@@ -189,7 +173,7 @@ Item {
             verify(defaults.contentItem !== null, "Defaults is null");
             compare(defaults.color, "#000000", "Transparent by default");
             compare(defaults.highlightColor, Theme.palette.selected.background, "Theme.palette.selected.background color by default")
-            compare(defaults.highlighted, false, "Not highlighted by default");
+            compare(defaults.pressed, false, "Not pressed buy default");
             compare(defaults.swipeOvershoot, 0.0, "No overshoot till the style is loaded!");
             compare(defaults.divider.visible, true, "divider is visible by default");
             compare(defaults.divider.leftMargin, units.dp(2), "divider's left margin is 2GU");
@@ -210,16 +194,14 @@ Item {
             compare(bodyItem.parent, testItem.contentItem, "Content is not in the right holder!");
         }
 
-        function test_highlightedChanged_on_click() {
-            highlightedSpy.target = testItem;
+        function test_pressedChanged_on_click() {
             mousePress(testItem, testItem.width / 2, testItem.height / 2);
-            highlightedSpy.wait();
+            pressedSpy.wait();
             mouseRelease(testItem, testItem.width / 2, testItem.height / 2);
         }
-        function test_highlightedChanged_on_tap() {
-            highlightedSpy.target = testItem;
+        function test_pressedChanged_on_tap() {
             TestExtras.touchPress(0, testItem, centerOf(testItem));
-            highlightedSpy.wait();
+            pressedSpy.wait();
             TestExtras.touchRelease(0, testItem, centerOf(testItem));
             // local cleanup, wait few msecs to suppress double tap
             wait(400);
@@ -239,14 +221,14 @@ Item {
             verify(listItem, "Cannot find listItem0");
 
             mousePress(listItem, listItem.width / 2, 0);
-            compare(listItem.highlighted, true, "Item is not highlighted?");
+            compare(listItem.pressed, true, "Item is not pressed?");
             // do 5 moves to be able to sense it
             var dy = 0;
             for (var i = 1; i <= 5; i++) {
                 dy += i * 10;
                 mouseMove(listItem, listItem.width / 2, dy);
             }
-            compare(listItem.highlighted, false, "Item is highlighted still!");
+            compare(listItem.pressed, false, "Item is pressed still!");
             mouseRelease(listItem, listItem.width / 2, dy);
             // dismiss
             rebound(listItem);
@@ -256,14 +238,14 @@ Item {
             verify(listItem, "Cannot find listItem0");
 
             TestExtras.touchPress(0, listItem, Qt.point(listItem.width / 2, 5));
-            compare(listItem.highlighted, true, "Item is not highlighted?");
+            compare(listItem.pressed, true, "Item is not pressed?");
             // do 5 moves to be able to sense it
             var dy = 0;
             for (var i = 1; i <= 5; i++) {
                 dy += i * 10;
                 TestExtras.touchMove(0, listItem, Qt.point(listItem.width / 2, dy));
             }
-            compare(listItem.highlighted, false, "Item is highlighted still!");
+            compare(listItem.pressed, false, "Item is pressed still!");
             // cleanup, wait few milliseconds to avoid dbl-click collision
             TestExtras.touchRelease(0, listItem, Qt.point(listItem.width / 2, dy));
             // dismiss
@@ -552,8 +534,8 @@ Item {
             var item2 = findChild(listView, "listItem2");
             var item3 = findChild(listView, "listItem3");
             return [
-                // testItem is the child item @index 3 in the topmost Column.
-                {tag: "Standalone item, child index 3", item: testItem, result: 3},
+                // testItem is the child item @index 1 in the topmost Column.
+                {tag: "Standalone item, child index 1", item: testItem, result: 1},
                 {tag: "ListView, item index 0", item: item0, result: 0},
                 {tag: "ListView, item index 1", item: item1, result: 1},
                 {tag: "ListView, item index 2", item: item2, result: 2},
@@ -583,25 +565,6 @@ Item {
             // SignalSpy.signalArguments[0] is an array of arguments, where the index is set as index 0
             var param = actionSpy.signalArguments[0];
             compare(param[0], data.result, "Action parameter differs");
-        }
-
-        function test_highlight_data() {
-            return [
-                {tag: "No actions", item: highlightTest, x: centerOf(highlightTest).x, y: centerOf(highlightTest).y, pressed: false},
-                {tag: "Leading/trailing actions", item: testItem, x: centerOf(testItem).x, y: centerOf(testItem).y, pressed: true},
-                {tag: "Active component content", item: controlItem, x: units.gu(1), y: units.gu(1), pressed: true},
-                {tag: "Center of active component content", item: controlItem, x: centerOf(controlItem).x, y: centerOf(controlItem).y, pressed: false},
-                {tag: "clicked() connected", item: clickedConnected, x: centerOf(clickedConnected).x, y: centerOf(clickedConnected).y, pressed: true},
-            ];
-        }
-        function test_highlight(data) {
-            highlightedSpy.target = data.item;
-            mouseClick(data.item, data.x, data.y);
-            if (data.pressed) {
-                highlightedSpy.wait();
-            } else {
-                compare(highlightedSpy.count, 0, "Should not be highlighted!");
-            }
         }
     }
 }

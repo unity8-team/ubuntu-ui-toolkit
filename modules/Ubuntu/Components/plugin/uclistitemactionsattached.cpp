@@ -74,12 +74,12 @@ void UCListItemActionsAttached::connectListItem(UCListItem *item, bool connect)
         return;
     }
     if (connect) {
-        QObject::connect(item, &UCListItem::highlightedChanged,
+        QObject::connect(item, &UCListItem::pressedChanged,
                          this, &UCListItemActionsAttached::updateSwipeState);
         QObject::connect(item, &UCListItem::contentMovingChanged,
                          this, &UCListItemActionsAttached::updateSwipeState);
     } else {
-        QObject::disconnect(item, &UCListItem::highlightedChanged,
+        QObject::disconnect(item, &UCListItem::pressedChanged,
                             this, &UCListItemActionsAttached::updateSwipeState);
         QObject::disconnect(item, &UCListItem::contentMovingChanged,
                             this, &UCListItemActionsAttached::updateSwipeState);
@@ -112,7 +112,7 @@ void UCListItemActionsAttached::updateSwipeState()
     }
     UCListItem *item = static_cast<UCListItem*>(panelItem->parentItem());
     UCListItemPrivate *listItem = UCListItemPrivate::get(item);
-    bool swiped = listItem->highlighted && listItem->contentMoved;
+    bool swiped = listItem->pressed && listItem->contentMoved;
     if (swiped != m_swiping) {
         m_swiping = swiped;
         Q_EMIT swipingChanged();

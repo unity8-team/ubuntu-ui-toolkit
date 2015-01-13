@@ -24,7 +24,6 @@ __all__ = [
     'get_keyboard',
     'get_pointing_device',
     'Header',
-    'Dialog',
     'listitems',
     'UCListItem',
     'MainView',
@@ -57,11 +56,6 @@ from ubuntuuitoolkit._custom_proxy_objects._header import (
     AppHeader,
     Header,
 )
-
-from ubuntuuitoolkit._custom_proxy_objects.popups import (
-    Dialog
-)
-
 from ubuntuuitoolkit._custom_proxy_objects import listitems
 from ubuntuuitoolkit._custom_proxy_objects._uclistitem import (
     UCListItem

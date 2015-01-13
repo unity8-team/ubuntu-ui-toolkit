@@ -327,7 +327,7 @@ void UCListItemDivider::setColorTo(const QColor &color)
  */
 UCListItemPrivate::UCListItemPrivate()
     : UCStyledItemBasePrivate()
-    , highlighted(false)
+    , pressed(false)
     , contentMoved(false)
     , highlightColorChanged(false)
     , swiped(false)
@@ -379,16 +379,6 @@ void UCListItemPrivate::init()
     _q_updateSize();
 }
 
-// inspired from IS_SIGNAL_CONNECTED(q, UCListItem, pressAndHold, ())
-// the macro cannot be used due to Arguments cannot be an empty ()
-bool UCListItemPrivate::isClickedConnected()
-{
-    Q_Q(UCListItem);
-    static QMetaMethod method = QMetaMethod::fromSignal(&UCListItem::clicked);
-    static int signalIdx = QMetaObjectPrivate::signalIndex(method);
-    return QObjectPrivate::get(q)->isSignalConnected(signalIdx);
-}
-
 void UCListItemPrivate::_q_updateThemedData()
 {
     // update colors, panels
@@ -402,7 +392,7 @@ void UCListItemPrivate::_q_updateThemedData()
 
 void UCListItemPrivate::_q_rebound()
 {
-    setHighlighted(false);
+    setPressed(false);
     // initiate rebinding only if there were actions tugged
     Q_Q(UCListItem);
     if (!UCListItemActionsPrivate::isConnectedTo(leadingActions, q) &&
@@ -507,13 +497,14 @@ QQuickItem *UCListItemPrivate::styleInstance() const
 // rebound without animation
 void UCListItemPrivate::promptRebound()
 {
-    setHighlighted(false);
+    setPressed(false);
     setSwiped(false);
     if (animator) {
         animator->snapOut();
     }
 }
 
+// set pressed flag and update background
 // called when units size changes
 void UCListItemPrivate::_q_updateSize()
 {
@@ -549,18 +540,18 @@ bool UCListItemPrivate::canHighlight(QMouseEvent *event)
    // action, leading or trailing actions list or at least an active child component declared
    QQuickMouseArea *ma = q->findChild<QQuickMouseArea*>();
    bool activeMouseArea = ma && ma->isEnabled();
-   return !activeComponent && (isClickedConnected() || leadingActions || trailingActions || activeMouseArea);
+   return !activeComponent && (leadingActions || trailingActions || activeMouseArea);
 }
 
-// set highlighted flag and update contentItem
-void UCListItemPrivate::setHighlighted(bool highlighted)
+// set pressed flag and update contentItem
+void UCListItemPrivate::setPressed(bool pressed)
 {
-    if (this->highlighted != highlighted) {
-        this->highlighted = highlighted;
+    if (this->pressed != pressed) {
+        this->pressed = pressed;
         suppressClick = false;
         Q_Q(UCListItem);
         q->update();
-        Q_EMIT q->highlightedChanged();
+        Q_EMIT q->pressedChanged();
     }
 }
 // toggles the tugged flag and installs/removes event filter
@@ -652,63 +643,8 @@ void UCListItemPrivate::clampAndMoveX(qreal &x, qreal dx)
  * good performance when used in long list views.
  *
  * The component provides two color properties which configures the item's background
- * when normal or highlighted. This can be configured through \l color and \l highlightColor
- * properties. The list item is highlighted if there is an action attached to it.
- * This means that the list item must have an active component declared as child,
- * at least leading- or trailing actions specified, or to have a slot connected to
- * \l clicked signal. In any other case the component will not be highlighted, and
- * \l highlighted property will not be toggled either. Also, there will be no highlight
- * happening if the click happens on the active component.
- * \qml
- * import QtQuick 2.3
- * import Ubuntu.Components 1.2
- *
- * MainView {
- *    width: units.gu(40)
- *    height: units.gu(71)
- *
- *    Column {
- *        anchors.fill: parent
- *        ListItem {
- *            Button {
- *                text: "Press me"
- *            }
- *            onClicked: console.log("clicked on ListItem")
- *        }
- *        ListItem {
- *            leadingActions: ListItemActions {
- *                actions: [
- *                    Action {
- *                        iconName: "delete"
- *                    }
- *                ]
- *            }
- *            onClicked: console.log("clicked on ListItem with leadingActions set")
- *        }
- *        ListItem {
- *            trailingActions: ListItemActions {
- *                actions: [
- *                    Action {
- *                        iconName: "edit"
- *                    }
- *                ]
- *            }
- *            onClicked: console.log("clicked on ListItem with trailingActions set")
- *        }
- *        ListItem {
- *            Label {
- *                text: "onClicked implemented"
- *            }
- *            onClicked: console.log("clicked on ListItem with onClicked implemented")
- *        }
- *        ListItem {
- *            Label {
- *                text: "No highlight"
- *            }
- *        }
- *    }
- * }
- * \endqml
+ * when normal or pressed. This can be configured through \l color and \l highlightColor
+ * properties.
  *
  * \c contentItem holds all components and resources declared as child to ListItem.
  * Being an Item, all properties can be accessed or altered. However, make sure you
@@ -782,7 +718,7 @@ void UCListItemPrivate::clampAndMoveX(qreal &x, qreal dx)
 /*!
  * \qmlsignal ListItem::clicked()
  *
- * The signal is emitted when the component gets released while the \l highlighted property
+ * The signal is emitted when the component gets released while the \l pressed property
  * is set. The signal is not emitted if the ListItem content is swiped or when used in
  * Flickable (or ListView, GridView) and the Flickable gets moved.
  */
@@ -873,7 +809,7 @@ QSGNode *UCListItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *data
     Q_UNUSED(data);
 
     Q_D(UCListItem);
-    QColor color = d->highlighted ? d->highlightColor : d->color;
+    QColor color = d->pressed ? d->highlightColor : d->color;
 
     if (width() <= 0 || height() <= 0) {
         delete oldNode;
@@ -929,7 +865,7 @@ void UCListItem::mousePressEvent(QMouseEvent *event)
         return;
     }
     if (event->button() == Qt::LeftButton && d->canHighlight(event)) {
-        d->setHighlighted(true);
+        d->setPressed(true);
         d->lastPos = d->pressedPos = event->localPos();
         // connect the Flickable to know when to rebound
         d->listenToRebind(true);
@@ -948,7 +884,7 @@ void UCListItem::mouseReleaseEvent(QMouseEvent *event)
     UCStyledItemBase::mouseReleaseEvent(event);
     Q_D(UCListItem);
     // set released
-    if (d->highlighted) {
+    if (d->pressed) {
         d->listenToRebind(false);
         if (d->attachedProperties) {
             d->attachedProperties->disableInteractive(this, false);
@@ -959,7 +895,7 @@ void UCListItem::mouseReleaseEvent(QMouseEvent *event)
             d->_q_rebound();
         }
     }
-    d->setHighlighted(false);
+    d->setPressed(false);
 }
 
 void UCListItem::mouseMoveEvent(QMouseEvent *event)
@@ -970,7 +906,7 @@ void UCListItem::mouseMoveEvent(QMouseEvent *event)
     // accept the tugging only if the move is within the threshold
     bool leadingAttached = UCListItemActionsPrivate::isConnectedTo(d->leadingActions, this);
     bool trailingAttached = UCListItemActionsPrivate::isConnectedTo(d->trailingActions, this);
-    if (d->highlighted && !(leadingAttached || trailingAttached)) {
+    if (d->pressed && !(leadingAttached || trailingAttached)) {
         // check if we can initiate the drag at all
         // only X direction matters, if Y-direction leaves the threshold, but X not, the tug is not valid
         qreal threshold = UCUnits::instance().gu(d->xAxisMoveThresholdGU);
@@ -1182,16 +1118,16 @@ UCListItemDivider* UCListItem::divider() const
 }
 
 /*!
- * \qmlproperty bool ListItem::highlighted
- * True when the item is pressed. The items stays highlighted when the mouse or touch
- * is moved horizontally. When in Flickable (or ListView), the item gets un-highlighted
+ * \qmlproperty bool ListItem::pressed
+ * True when the item is pressed. The items stays pressed when the mouse or touch
+ * is moved horizontally. When in Flickable (or ListView), the item gets un-pressed
  * (false) when the mouse or touch is moved towards the vertical direction causing
  * the flickable to move.
  */
-bool UCListItem::highlighted() const
+bool UCListItem::pressed() const
 {
     Q_D(const UCListItem);
-    return d->highlighted;
+    return d->pressed;
 }
 
 /*!
@@ -1253,7 +1189,7 @@ void UCListItem::setColor(const QColor &color)
 
 /*!
  * \qmlproperty color ListItem::highlightColor
- * Configures the color when highlighted. Defaults to the theme palette's background color.
+ * Configures the color when pressed. Defaults to the theme palette's background color.
  */
 QColor UCListItem::highlightColor() const
 {
