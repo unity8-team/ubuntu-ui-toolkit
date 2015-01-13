@@ -18,6 +18,8 @@ import logging
 
 from autopilot import logging as autopilot_logging
 from autopilot.introspection import dbus
+from time import sleep
+import pdb
 
 from ubuntuuitoolkit._custom_proxy_objects import _common, _flickable
 
@@ -85,3 +87,51 @@ class QQuickListView(_flickable.QQuickFlickable):
         child = self.select_single(objectName=object_name)
         containers = self._get_containers()
         return self._is_child_visible(child, containers)
+
+    @autopilot_logging.log_action(logger.info)
+    def drag_list_item(self, fromIndex, toIndex):
+        """Drags the ListItem. The ListView delegates must be ListItems.
+           ListItems must have objectName set to "listitem"+index.
+
+           parameters: fromIndex - ListItem index to be dragged
+                       toIndex - ListItem index to be dropped
+        """
+        direction = 1 if fromIndex < toIndex else -1
+        # bring fromIndex into visible area and move mouse over the drag handler
+        from_item = self._find_element('listitem' + str(fromIndex))
+#        pdb.set_trace()
+        # we cannot get ListView.view attached property, so teh assumption is that
+        # the parent's parent is the ListView
+        view = from_item.get_parent().get_parent()
+        name = 'draghandler_panel' + str(fromIndex)
+        drag_handler = from_item.select_single(objectName=name)
+        self.pointing_device.move_to_object(drag_handler)
+        mouse_x = self.pointing_device.x
+        mouse_y = self.pointing_device.y
+        delta = abs(toIndex - fromIndex)
+        move_dy = mouse_y + delta * from_item.height
+        # we cannot move the mouse further than the edges of the ListView
+        hold_at_edge = False
+        if move_dy < view.y:
+            move_dy = view.y
+            hold_at_edge = True
+        if move_dy > view.y + view.height:
+            move_dy = view.y + view.height
+            hold_at_edge = True
+        # proceed with drag
+        self.pointing_device.press()
+        self.pointing_device.move(mouse_x, move_dy)
+        if hold_at_edge:
+            # hold at edge till we get the targetted item in range
+            fcount = 0
+            while (1):
+                try:
+                    dragged_item = self.select_single('listitem' + str(toIndex))
+                    break
+                except dbus.StateNotFoundError:
+                    print(fcount)
+                    fcount += 1
+                    pass
+                sleep(0.5)
+        self.pointing_device.release()
+

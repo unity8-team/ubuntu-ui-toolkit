@@ -14,6 +14,8 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+import os
+from time import sleep
 try:
     from unittest import mock
 except ImportError:
@@ -222,3 +224,29 @@ MainView {
 
         self.list_view.click_element('testListElement9')
         self.assertEqual(self.label.text, 'testListElement9')
+
+
+class QQuickListViewDraggingTestCase(tests.QMLFileAppTestCase):
+    path = os.path.abspath(__file__)
+    dir_path = os.path.dirname(path)
+    test_qml_file_path = os.path.join(
+        dir_path, 'test_listitem.ListViewDraggingTestCase.qml')
+
+    def _enable_drag_mode(self):
+        list_item = self.main_view.select_single(
+                        ubuntuuitoolkit.UCListItem, objectName='listitem0')
+        self.pointing_device.click_object(list_item)
+        self.pointing_device.press()
+        sleep(2)
+        self.pointing_device.release()
+        self.assertTrue(list_item.draggable)
+
+    def setUp(self):
+        super(QQuickListViewDraggingTestCase, self).setUp()
+        self.test_view = self.main_view.select_single(
+            ubuntuuitoolkit.QQuickListView, objectName='test_view')
+
+    def test_drag_from_top_to_bottom(self):
+        self._enable_drag_mode()
+        self.test_view.drag_list_item(0, 20)
+
