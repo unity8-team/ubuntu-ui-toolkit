@@ -2,7 +2,7 @@ ubuntuuitoolkit Package
 =======================
 
 :mod:`custom proxy object` Module
------------------------
+---------------------------------
 
 .. automodule:: ubuntuuitoolkit
     :members:
