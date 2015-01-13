@@ -50,6 +50,7 @@ MainView {
         UbuntuListView {
             anchors.fill: parent
             ViewItems.selectMode: ViewItems.dragMode
+            ViewItems.selectedIndexes: [14,15,16]
             contentItem.objectName: "ListViewContent"
             ViewItems.onSelectedIndexesChanged: print("selected:", ViewItems.selectedIndexes)
 
@@ -129,7 +130,6 @@ MainView {
                 onPressAndHold: {
                     print("entering/leaving draggable mode")
                     ListView.view.ViewItems.dragMode = !ListView.view.ViewItems.dragMode;
-                    ListView.view.ViewItems.selectedIndexes = [4,5,6]
                 }
             }
         }

@@ -809,26 +809,38 @@ void UCViewItemsAttachedPrivate::updateSelectedIndexes(int fromIndex, int toInde
     }
 
     // the direction
-    bool selectedListChanged = false;
-    int direction = fromIndex < toIndex ? -1 : 1;
+    Q_Q(UCViewItemsAttached);
     bool isFromSelected = selectedList.contains(fromIndex);
-    selectedList.remove(fromIndex);
-    int min = direction < 0 ? fromIndex + 1 : toIndex - 1;
-    int max = direction < 0 ? toIndex : fromIndex;
-    qDebug() << "REORDER" << min << max << fromIndex << toIndex;
-    for (int i = min; i <= max; i++) {
-        if (selectedList.contains(i)) {
-            selectedList.remove(i);
-            selectedList.insert(i + direction);
-            selectedListChanged = true;
+    if (isFromSelected) {
+        selectedList.remove(fromIndex);
+        Q_EMIT q->selectedIndexesChanged();
+    }
+    if (fromIndex < toIndex) {
+        // forwards
+        qDebug() << "FORWARD" << fromIndex << toIndex;
+        for (int i = fromIndex + 1; i <= toIndex; i++) {
+            if (selectedList.contains(i)) {
+                qDebug() << "FORWARD MOVE" << i << (i - 1);
+                selectedList.remove(i);
+                selectedList.insert(i - 1);
+                Q_EMIT q->selectedIndexesChanged();
+            }
+        }
+    } else {
+        // backwards
+        qDebug() << "BACKWARD" << fromIndex << toIndex;
+        for (int i = fromIndex - 1; i >= toIndex; i--) {
+            if (selectedList.contains(i)) {
+                qDebug() << "BACKWARD MOVE" << i << (i + 1);
+                selectedList.remove(i);
+                selectedList.insert(i + 1);
+                Q_EMIT q->selectedIndexesChanged();
+            }
         }
     }
     if (isFromSelected) {
+        qDebug() << "DROP" << toIndex;
         selectedList.insert(toIndex);
-        selectedListChanged = true;
-    }
-    if (selectedListChanged) {
-        Q_Q(UCViewItemsAttached);
         Q_EMIT q->selectedIndexesChanged();
     }
 }
