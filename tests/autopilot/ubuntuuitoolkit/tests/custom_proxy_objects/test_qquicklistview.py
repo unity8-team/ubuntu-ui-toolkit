@@ -14,8 +14,9 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+import copy
 import os
-from time import sleep
+
 try:
     from unittest import mock
 except ImportError:
@@ -226,7 +227,7 @@ MainView {
         self.assertEqual(self.label.text, 'testListElement9')
 
 
-class QQuickListViewDraggingTestCase(tests.QMLFileAppTestCase):
+class QQuickListViewDraggingBaseTestCase(tests.QMLFileAppTestCase):
 
     path = os.path.abspath(__file__)
     dir_path = os.path.dirname(path)
@@ -234,24 +235,68 @@ class QQuickListViewDraggingTestCase(tests.QMLFileAppTestCase):
         dir_path, 'test_listitem.ListViewDraggingTestCase.qml')
 
     def setUp(self):
-        super(QQuickListViewDraggingTestCase, self).setUp()
+        super(QQuickListViewDraggingBaseTestCase, self).setUp()
         self.list_view = self.main_view.select_single(
             ubuntuuitoolkit.QQuickListView, objectName='test_view')
 
+
+class QQuickListViewDraggingTestCase(QQuickListViewDraggingBaseTestCase):
+
     def test_long_press_must_enable_drag_mode(self):
         self.list_view._enable_drag_mode()
+        # The item will not exist if the list is not in drag mode.
         self.list_view.select_single(
             'QQuickItem', objectName='draghandler_panel0')
 
-    def _enable_drag_mode(self):
-        list_item = self.main_view.select_single(
-                        ubuntuuitoolkit.UCListItem, objectName='listitem0')
-        self.pointing_device.click_object(list_item)
-        self.pointing_device.press()
-        sleep(2)
-        self.pointing_device.release()
-        self.assertTrue(list_item.draggable)
 
-    def _test_drag_from_top_to_bottom(self):
-        self._enable_drag_mode()
-        self.test_view.drag_list_item(0, 20)
+class QQuickListViewReorderingTestCase(QQuickListViewDraggingBaseTestCase):
+
+    scenarios = [
+        ('both items visible, to bottom', {'from_index': 0, 'to_index': 1}),
+        ('both items visible, to top', {'from_index': 1, 'to_index': 0}),
+        ('to item not visible, to bottom', {'from_index': 0, 'to_index': 20})
+    ]
+
+    def _get_all_items(self):
+        self.list_view.swipe_to_top()
+        index = 0
+        items = []
+        while not self.list_view.atYEnd:
+            while self._item_exists(index):
+                item = self._get_item_text(index)
+                items.append(item)
+                index += 1
+            self.list_view.swipe_to_show_more_below()
+        while self._item_exists(index):
+            item = self._get_item_text(index)
+            items.append(item)
+            index += 1
+        self.list_view.swipe_to_top()
+        return items
+
+    def _item_exists(self, index):
+        try:
+            self._get_item(index)
+            return True
+        except:
+            return False
+
+    def _get_item(self, index):
+        return self.list_view.select_single(
+            ubuntuuitoolkit.UCListItem, objectName='listitem{}'.format(index))
+
+    def _get_item_text(self, index):
+        item = self._get_item(index)
+        return item.select_single('Label').text
+
+    def test_drag_item_must_reorder_list(self):
+        original_items = self._get_all_items()
+        self.list_view.drag_item(self.from_index, self.to_index)
+
+        from_item = original_items[self.from_index]
+        to_item = original_items[self.to_index]
+        reordered_items = copy.copy(original_items)
+        reordered_items[self.to_index] = from_item
+        reordered_items[self.from_index] = to_item
+
+        self.assertEqual(self._get_all_items(), reordered_items)

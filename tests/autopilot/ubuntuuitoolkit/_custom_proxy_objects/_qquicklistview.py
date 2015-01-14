@@ -16,9 +16,11 @@
 
 import logging
 
-from autopilot import logging as autopilot_logging
+from autopilot import (
+    input,
+    logging as autopilot_logging
+)
 from autopilot.introspection import dbus
-from time import sleep
 
 from ubuntuuitoolkit._custom_proxy_objects import _common, _flickable
 
@@ -87,58 +89,52 @@ class QQuickListView(_flickable.QQuickFlickable):
         containers = self._get_containers()
         return self._is_child_visible(child, containers)
 
+    @autopilot_logging.log_action(logger.info)
+    def drag_item(self, from_index, to_index):
+        self._enable_drag_mode()
+        both_items_visible = (
+            self._is_drag_handler_visible(from_index) and
+            self._is_drag_handler_visible(to_index))
+        if both_items_visible:
+            from_drag_handler = self._get_drag_handler(from_index)
+            to_drag_handler = self._get_drag_handler(to_index)
+            start_x, start_y = input.get_center_point(from_drag_handler)
+            stop_x, stop_y = input.get_center_point(to_drag_handler)
+            self.pointing_device.drag(start_x, start_y, stop_x, stop_y)
+        else:
+            self._drag_item_with_pagination(from_index, to_index)
+
+    def _drag_item_with_pagination(self, from_index, to_index):
+        from_drag_handler = self._get_drag_handler(from_index)
+        if from_index < to_index:
+            containers = self._get_containers()
+            visible_bottom = _flickable._get_visible_container_bottom(
+                containers)
+            start_x, start_y = input.get_center_point(from_drag_handler)
+            stop_x = start_x
+            stop_y = visible_bottom
+            self.pointing_device.drag(start_x, start_y, stop_x, stop_y)
+
     @autopilot_logging.log_action(logger.debug)
     def _enable_drag_mode(self):
         self.swipe_to_top()
-        items = self.get_children_by_type('QQuickItem')[0].get_children()
-        items = sorted(items, key=lambda item: item.globalRect.y)
-        first_item = items[0]
+        first_item = self._get_first_item()
         self.pointing_device.click_object(first_item, press_duration=2)
         self.wait_select_single('QQuickItem', objectName='draghandler_panel0')
 
-    @autopilot_logging.log_action(logger.info)
-    def drag_list_item(self, fromIndex, toIndex):
-        """Drags the ListItem. The ListView delegates must be ListItems.
-           ListItems must have objectName set to "listitem"+index.
+    def _get_first_item(self):
+        items = self.get_children_by_type('QQuickItem')[0].get_children()
+        items = sorted(items, key=lambda item: item.globalRect.y)
+        return items[0]
 
-           parameters: fromIndex - ListItem index to be dragged
-                       toIndex - ListItem index to be dropped
-        """
-        direction = 1 if fromIndex < toIndex else -1
-        # bring fromIndex into visible area and move mouse over the drag handler
-        from_item = self._find_element('listitem' + str(fromIndex))
-#        pdb.set_trace()
-        # we cannot get ListView.view attached property, so teh assumption is that
-        # the parent's parent is the ListView
-        view = from_item.get_parent().get_parent()
-        name = 'draghandler_panel' + str(fromIndex)
-        drag_handler = from_item.select_single(objectName=name)
-        self.pointing_device.move_to_object(drag_handler)
-        mouse_x = self.pointing_device.x
-        mouse_y = self.pointing_device.y
-        delta = abs(toIndex - fromIndex)
-        move_dy = mouse_y + delta * from_item.height
-        # we cannot move the mouse further than the edges of the ListView
-        hold_at_edge = False
-        if move_dy < view.y:
-            move_dy = view.y
-            hold_at_edge = True
-        if move_dy > view.y + view.height:
-            move_dy = view.y + view.height
-            hold_at_edge = True
-        # proceed with drag
-        self.pointing_device.press()
-        self.pointing_device.move(mouse_x, move_dy)
-        if hold_at_edge:
-            # hold at edge till we get the targetted item in range
-            fcount = 0
-            while (1):
-                try:
-                    dragged_item = self.select_single('listitem' + str(toIndex))
-                    break
-                except dbus.StateNotFoundError:
-                    print(fcount)
-                    fcount += 1
-                    pass
-                sleep(0.5)
-        self.pointing_device.release()
+    def _is_drag_handler_visible(self, index):
+        try:
+            drag_handler = self._get_drag_handler(index)
+        except:
+            return False
+        else:
+            return self.is_child_visible(drag_handler)
+
+    def _get_drag_handler(self, index):
+        return self.select_single(
+            'QQuickItem', objectName='draghandler_panel{}'.format(index))
