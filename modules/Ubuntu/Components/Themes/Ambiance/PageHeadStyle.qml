@@ -307,6 +307,7 @@ Style.PageHeadStyle {
                 id: backButton
                 objectName: "backButton"
 
+//                onVisibleChanged: print("Back button.visible = "+visible)
                 iconName: "back"
                 visible: styledItem.pageStack !== null &&
                          styledItem.pageStack !== undefined &&

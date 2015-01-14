@@ -60,7 +60,10 @@ StyledItem {
         internal.movementEnded();
     }
 
-    visible: title || contents || tabsModel
+    // XXX: Currently the header is hidden when there is no title/contents/tabs.
+    //  Some apps may make use of this to hide the header, but it is now a hack for
+    //  backwards compatibility that should be replaced by a 'hidden' header mode.
+    visible: title || contents || tabsModel || (pageStack && pageStack.depth > 1)
     onVisibleChanged: {
         internal.checkFlickableMargins();
     }
