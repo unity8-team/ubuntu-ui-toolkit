@@ -227,10 +227,21 @@ MainView {
 
 
 class QQuickListViewDraggingTestCase(tests.QMLFileAppTestCase):
+
     path = os.path.abspath(__file__)
     dir_path = os.path.dirname(path)
     test_qml_file_path = os.path.join(
         dir_path, 'test_listitem.ListViewDraggingTestCase.qml')
+
+    def setUp(self):
+        super(QQuickListViewDraggingTestCase, self).setUp()
+        self.list_view = self.main_view.select_single(
+            ubuntuuitoolkit.QQuickListView, objectName='test_view')
+
+    def test_long_press_must_enable_drag_mode(self):
+        self.list_view._enable_drag_mode()
+        self.list_view.select_single(
+            'QQuickItem', objectName='draghandler_panel0')
 
     def _enable_drag_mode(self):
         list_item = self.main_view.select_single(
@@ -241,12 +252,6 @@ class QQuickListViewDraggingTestCase(tests.QMLFileAppTestCase):
         self.pointing_device.release()
         self.assertTrue(list_item.draggable)
 
-    def setUp(self):
-        super(QQuickListViewDraggingTestCase, self).setUp()
-        self.test_view = self.main_view.select_single(
-            ubuntuuitoolkit.QQuickListView, objectName='test_view')
-
-    def test_drag_from_top_to_bottom(self):
+    def _test_drag_from_top_to_bottom(self):
         self._enable_drag_mode()
         self.test_view.drag_list_item(0, 20)
-

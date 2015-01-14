@@ -19,7 +19,6 @@ import logging
 from autopilot import logging as autopilot_logging
 from autopilot.introspection import dbus
 from time import sleep
-import pdb
 
 from ubuntuuitoolkit._custom_proxy_objects import _common, _flickable
 
@@ -88,6 +87,10 @@ class QQuickListView(_flickable.QQuickFlickable):
         containers = self._get_containers()
         return self._is_child_visible(child, containers)
 
+    @autopilot_logging.log_action(logger.debug)
+    def _enable_drag_mode(self):
+        pass
+
     @autopilot_logging.log_action(logger.info)
     def drag_list_item(self, fromIndex, toIndex):
         """Drags the ListItem. The ListView delegates must be ListItems.
@@ -134,4 +137,3 @@ class QQuickListView(_flickable.QQuickFlickable):
                     pass
                 sleep(0.5)
         self.pointing_device.release()
-
