@@ -89,7 +89,12 @@ class QQuickListView(_flickable.QQuickFlickable):
 
     @autopilot_logging.log_action(logger.debug)
     def _enable_drag_mode(self):
-        pass
+        self.swipe_to_top()
+        items = self.get_children_by_type('QQuickItem')[0].get_children()
+        items = sorted(items, key=lambda item: item.globalRect.y)
+        first_item = items[0]
+        self.pointing_device.click_object(first_item, press_duration=2)
+        self.wait_select_single('QQuickItem', objectName='draghandler_panel0')
 
     @autopilot_logging.log_action(logger.info)
     def drag_list_item(self, fromIndex, toIndex):
