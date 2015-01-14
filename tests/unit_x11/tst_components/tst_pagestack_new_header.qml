@@ -51,6 +51,10 @@ Item {
             title: "Inner"
         }
     }
+    Page {
+        id: noTitlePage
+    }
+
     Tabs {
         id: tabs
         Tab {
@@ -85,6 +89,11 @@ Item {
 
         function wait_for_animation() {
             tryCompareFunction(function(){return testCase.head_style.animating}, false);
+        }
+
+        function cleanup() {
+            pageStack.clear();
+            wait_for_animation();
         }
 
         function test_depth() {
@@ -122,8 +131,6 @@ Item {
             pageStack.pop();
             wait_for_animation();
             compare(pageStack.currentPage, page1, "popping puts previously pushed page on top");
-            pageStack.clear();
-            wait_for_animation();
         }
 
         function test_active_bug1260116() {
@@ -150,8 +157,6 @@ Item {
             pageStack.pop();
             wait_for_animation();
             compare(pageInStack.active, false, "Popping a page from PageStack makes it inactive");
-            pageStack.clear();
-            wait_for_animation();
         }
 
         function test_title_bug1143345_bug1317902() {
@@ -169,14 +174,31 @@ Item {
             pageStack.push(pageWithPage);
             wait_for_animation();
             compare(mainView.__propagated.header.title, pageWithPage.title, "Embedded page sets title of outer page");
-            pageStack.clear();
-            wait_for_animation();
         }
 
         function get_tabs_button() {
             var button = findChild(mainView, "tabsButton");
             if (!button.visible) return null;
             return button;
+        }
+
+        function get_back_button() {
+            var button = findChild(testCase.head_style, "backButton");
+            if (!button.visible) return null;
+            return button;
+        }
+
+        function test_back_button_bug1402054() {
+            compare(get_back_button(), null, "With 0 pages on the stack, there is no visible back button.");
+            pageStack.push(page1);
+            wait_for_animation();
+            compare(get_back_button(), null, "With 1 page on the stack, there is no visible back button.");
+            pageStack.push(page2);
+            wait_for_animation();
+            verify(get_back_button() !== null, "With 2 pages on the stack, there is a visible back button.");
+            pageStack.push(noTitlePage);
+            wait_for_animation();
+            verify(get_back_button() !== null, "Page with no title on stack has a back button.");
         }
 
         function test_tabs_inside_stack_bug1187850() {
@@ -195,8 +217,6 @@ Item {
             wait_for_animation();
             compare(tabs.active, true, "Tabs on top of PageStack is active");
             compare(get_tabs_button().visible, true, "Active Tabs controls header contents");
-            pageStack.clear();
-            wait_for_animation();
         }
 
         function test_pop_to_tabs_bug1316736() {
@@ -210,8 +230,6 @@ Item {
             wait_for_animation();
             compare(tabs.active, true, "Tabs on top of PageStack is active");
             compare(tabs.selectedTabIndex, 1, "Pushing and popping another page on top of Tabs does not change selectedTabsIndex");
-            pageStack.clear();
-            wait_for_animation();
         }
 
         function test_push_return_values() {
@@ -224,8 +242,6 @@ Item {
             pushedPage = pageStack.push(Qt.resolvedUrl("MyExternalPage.qml"));
             compare(pushedPage.title, "Page from QML file",
                     "PageStack.push() returns Page created from QML file");
-            pageStack.clear();
-            wait_for_animation();
         }
     }
 }
