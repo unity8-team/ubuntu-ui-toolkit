@@ -16,12 +16,15 @@
 
 import logging
 
-from autopilot import logging as autopilot_logging
+from autopilot import (
+    input,
+    logging as autopilot_logging
+)
 from autopilot.introspection import dbus
 from time import sleep
 import pdb
 
-from ubuntuuitoolkit._custom_proxy_objects import _common, _flickable
+from ubuntuuitoolkit._custom_proxy_objects import _common, _flickable, _uclistitem
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +54,13 @@ class QQuickListView(_flickable.QQuickFlickable):
         self.pointing_device.click_object(element)
 
     @autopilot_logging.log_action(logger.info)
-    def _find_element(self, object_name, direction=None):
+    def find_element(self, object_name, direction=None):
+        """Looks for an element in the ListView identifed with a given
+           object_name. On success returns the element.
+
+        :parameter object_name: The objectName property of the lookup element
+
+        """
         if direction is None:
             # We don't know where the object is so we start looking for it from
             # the top.
@@ -88,50 +97,112 @@ class QQuickListView(_flickable.QQuickFlickable):
         containers = self._get_containers()
         return self._is_child_visible(child, containers)
 
-    @autopilot_logging.log_action(logger.info)
-    def drag_list_item(self, fromIndex, toIndex):
-        """Drags the ListItem. The ListView delegates must be ListItems.
-           ListItems must have objectName set to "listitem"+index.
+#    @autopilot_logging.log_action(logger.info)
+#    def drag_item(self, fromIndex, toIndex):
+#        """Drags the ListItem. The ListView delegates must be ListItems.
+#           ListItems must have objectName set to "listitem"+index.
 
-           parameters: fromIndex - ListItem index to be dragged
-                       toIndex - ListItem index to be dropped
+#           parameters: fromIndex - ListItem index to be dragged
+#                       toIndex - ListItem index to be dropped
+#        """
+#        # bail out if the ListView delegate is not  using ListItems
+#        items = self.get_children_by_type('QQuickItem')[0].get_children()
+#        if not(isinstance(items[0], _uclistitem.UCListItem)):
+#            raise _common.ToolkitException(
+#                'ListView must have ListItem as delegate to drag')
+#        # also bail out if the two indexes are same or out of count
+#        if fromIndex == toIndex:
+#            raise _common.ToolkitException(
+#                'fromIndex and toIndex are the same.')
+#        if fromIndex < 0 or fromIndex > self.count:
+#            raise _common.ToolkitException(
+#                'fromIndex out of range.')
+#        if toIndex < 0 or toIndex > self.count:
+#            raise _common.ToolkitException(
+#                'toIndex out of range.')
+#        direction = 1 if fromIndex < toIndex else -1
+#        # bring fromIndex into visible area and move mouse over the drag handler
+#        from_item = self.find_element('listitem{}'.format(fromIndex))
+#        from_item.swipe_into_view()
+#        # bail out if the drag mode is not set
+#        if not(from_item.draggable):
+#            raise _common.ToolkitException(
+#                'ListView must be in drag mode.')
+#        drag_panel_name = 'draghandler_panel' + str(fromIndex)
+#        drag_handler = from_item.select_single(objectName=drag_panel_name)
+#        self.pointing_device.move_to_object(drag_handler)
+#        mouse_x = self.pointing_device.x
+#        mouse_y = self.pointing_device.y
+#        delta = abs(toIndex - fromIndex)
+#        move_dy = mouse_y + direction * delta * from_item.height
+#        # we cannot move the mouse further than the edges of the ListView
+#        hold_at_edge = False
+#        if move_dy < self.globalRect.y + self.topMargin:
+#            move_dy = self.globalRect.y + self.topMargin
+#            hold_at_edge = True
+#        if move_dy > self.globalRect.y + self.height:
+#            move_dy = self.globalRect.y + self.height
+#            hold_at_edge = True
+#        # proceed with drag
+#        self.pointing_device.press()
+#        self.pointing_device.move(mouse_x, move_dy)
+#        if hold_at_edge:
+#            # hold at edge till we get the targetted item in range
+#            fcount = 0
+#            while (1):
+#                try:
+#                    to_name = 'listitem{}'.format(toIndex)
+#                    dragged_item = self.select_many('UCListItem', objectName=to_name)
+#                    if self.is_child_visible(dragged_item[0]):
+#                        break
+#                except:
+#                    print(fcount)
+#                    pass
+#                fcount += 1
+#                sleep(0.1)
+#        self.pointing_device.release()
+
+    def drag_item(self, from_index, to_index):
+        both_items_visible = (
+            self._is_drag_handler_visible(from_index) and
+            self._is_drag_handler_visible(to_index))
+        if both_items_visible:
+            from_drag_handler = self._get_drag_handler(from_index)
+            to_drag_handler = self._get_drag_handler(to_index)
+            start_x, start_y = input.get_center_point(from_drag_handler)
+            stop_x, stop_y = input.get_center_point(to_drag_handler)
+            self.pointing_device.drag(start_x, start_y, stop_x, stop_y)
+        else:
+            self._drag_item_with_pagination(from_index, to_index)
+
+    def _drag_item_with_pagination(self, from_index, to_index):
+        from_drag_handler = self._get_drag_handler(from_index)
+        if from_index < to_index:
+            containers = self._get_containers()
+            visible_bottom = _flickable._get_visible_container_bottom(
+                containers)
+            start_x, start_y = input.get_center_point(from_drag_handler)
+            stop_x = start_x
+            stop_y = visible_bottom
+            self.pointing_device.drag(start_x, start_y, stop_x, stop_y)
+
+    @autopilot_logging.log_action(logger.debug)
+    def get_first_item(self):
+        """Returns the first item from the ListView.
         """
-        direction = 1 if fromIndex < toIndex else -1
-        # bring fromIndex into visible area and move mouse over the drag handler
-        from_item = self._find_element('listitem' + str(fromIndex))
-#        pdb.set_trace()
-        # we cannot get ListView.view attached property, so teh assumption is that
-        # the parent's parent is the ListView
-        view = from_item.get_parent().get_parent()
-        name = 'draghandler_panel' + str(fromIndex)
-        drag_handler = from_item.select_single(objectName=name)
-        self.pointing_device.move_to_object(drag_handler)
-        mouse_x = self.pointing_device.x
-        mouse_y = self.pointing_device.y
-        delta = abs(toIndex - fromIndex)
-        move_dy = mouse_y + delta * from_item.height
-        # we cannot move the mouse further than the edges of the ListView
-        hold_at_edge = False
-        if move_dy < view.y:
-            move_dy = view.y
-            hold_at_edge = True
-        if move_dy > view.y + view.height:
-            move_dy = view.y + view.height
-            hold_at_edge = True
-        # proceed with drag
-        self.pointing_device.press()
-        self.pointing_device.move(mouse_x, move_dy)
-        if hold_at_edge:
-            # hold at edge till we get the targetted item in range
-            fcount = 0
-            while (1):
-                try:
-                    dragged_item = self.select_single('listitem' + str(toIndex))
-                    break
-                except dbus.StateNotFoundError:
-                    print(fcount)
-                    fcount += 1
-                    pass
-                sleep(0.5)
-        self.pointing_device.release()
+        items = self.get_children_by_type('QQuickItem')[0].get_children()
+        items = sorted(items, key=lambda item: item.globalRect.y)
+        return items[0]
+
+    def _is_drag_handler_visible(self, index):
+        try:
+            drag_handler = self._get_drag_handler(index)
+        except:
+            return False
+        else:
+            return self.is_child_visible(drag_handler)
+
+    def _get_drag_handler(self, index):
+        return self.select_single(
+            'QQuickItem', objectName='draghandler_panel{}'.format(index))
 

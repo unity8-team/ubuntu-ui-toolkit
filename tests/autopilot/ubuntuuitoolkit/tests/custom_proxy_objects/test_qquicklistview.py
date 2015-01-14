@@ -15,7 +15,6 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import os
-from time import sleep
 try:
     from unittest import mock
 except ImportError:
@@ -226,27 +225,58 @@ MainView {
         self.assertEqual(self.label.text, 'testListElement9')
 
 
-class QQuickListViewDraggingTestCase(tests.QMLFileAppTestCase):
+class QQuickListViewDraggingBaseTestCase(tests.QMLFileAppTestCase):
     path = os.path.abspath(__file__)
     dir_path = os.path.dirname(path)
     test_qml_file_path = os.path.join(
         dir_path, 'test_listitem.ListViewDraggingTestCase.qml')
 
-    def _enable_drag_mode(self):
-        list_item = self.main_view.select_single(
-                        ubuntuuitoolkit.UCListItem, objectName='listitem0')
-        self.pointing_device.click_object(list_item)
-        self.pointing_device.press()
-        sleep(2)
-        self.pointing_device.release()
-        self.assertTrue(list_item.draggable)
+    def enable_drag_mode(self):
+        """Enable drag mode by long tapping on the first item
+        """
+        self.list_view.swipe_to_top()
+        first_item = self.list_view.get_first_item()
+        self.pointing_device.click_object(first_item, press_duration=2)
+        self.list_view.wait_select_single('QQuickItem', objectName='draghandler_panel0')
 
     def setUp(self):
-        super(QQuickListViewDraggingTestCase, self).setUp()
-        self.test_view = self.main_view.select_single(
+        super(QQuickListViewDraggingBaseTestCase, self).setUp()
+        self.list_view = self.main_view.select_single(
             ubuntuuitoolkit.QQuickListView, objectName='test_view')
 
-    def test_drag_from_top_to_bottom(self):
-        self._enable_drag_mode()
-        self.test_view.drag_list_item(0, 20)
 
+class QQuickListViewDraggingTestCase(QQuickListViewDraggingBaseTestCase):
+
+    def test_long_press_must_enable_drag_mode(self):
+        self.enable_drag_mode()
+        # The item will not exist if the list is not in drag mode.
+        self.list_view.select_single(
+            'QQuickItem', objectName='draghandler_panel0')
+
+
+class QQuickListViewReorderingTestCase(QQuickListViewDraggingBaseTestCase):
+
+    scenarios = [
+        ('both items visible, to bottom', {'from_index': 0, 'to_index': 1}),
+        ('both items visible, to top', {'from_index': 1, 'to_index': 0}),
+        ('both items visible, to bottom', {'from_index': 0, 'to_index': 6})
+#        ('to item not visible, to bottom', {'from_index': 0, 'to_index': 20})
+    ]
+
+    def _get_item_text(self, index):
+        item = self.list_view.find_element('listitem{}'.format(index))
+        item.swipe_into_view()
+        return item.select_single('Label').text
+
+    def test_drag_item_must_reorder_list(self):
+        direction = 1 if self.from_index < self.to_index else -1
+        expected_from_text = self._get_item_text(self.from_index + direction)
+        expected_to_text = self._get_item_text(self.from_index)
+        # drag
+        self.enable_drag_mode()
+        self.list_view.drag_item(self.from_index, self.to_index)
+
+        from_text = self._get_item_text(self.from_index)
+        to_text = self._get_item_text(self.to_index)
+        self.assertEqual(from_text, expected_from_text)
+        self.assertEqual(to_text, expected_to_text)
