@@ -177,7 +177,7 @@ Item {
         }
 
         function get_tabs_button() {
-            var button = findChild(mainView, "tabsButton");
+            var button = findChild(testCase.head_style, "tabsButton");
             if (!button.visible) return null;
             return button;
         }
