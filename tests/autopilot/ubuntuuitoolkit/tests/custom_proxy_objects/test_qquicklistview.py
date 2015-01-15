@@ -254,49 +254,22 @@ class QQuickListViewReorderingTestCase(QQuickListViewDraggingBaseTestCase):
     scenarios = [
         ('both items visible, to bottom', {'from_index': 0, 'to_index': 1}),
         ('both items visible, to top', {'from_index': 1, 'to_index': 0}),
-        ('to item not visible, to bottom', {'from_index': 0, 'to_index': 20})
+        ('both items visible, to bottom, first non visible', {
+            'from_index': 0, 'to_index': 7}),
+        ('to item not visible, to middle', {'from_index': 0, 'to_index': 15}),
+        ('to item not visible, to bottom', {'from_index': 0, 'to_index': 24})
     ]
 
-    def _get_all_items(self):
-        self.list_view.swipe_to_top()
-        index = 0
-        items = []
-        while not self.list_view.atYEnd:
-            while self._item_exists(index):
-                item = self._get_item_text(index)
-                items.append(item)
-                index += 1
-            self.list_view.swipe_to_show_more_below()
-        while self._item_exists(index):
-            item = self._get_item_text(index)
-            items.append(item)
-            index += 1
-        self.list_view.swipe_to_top()
-        return items
-
-    def _item_exists(self, index):
-        try:
-            self._get_item(index)
-            return True
-        except:
-            return False
-
-    def _get_item(self, index):
-        return self.list_view.select_single(
-            ubuntuuitoolkit.UCListItem, objectName='listitem{}'.format(index))
+    def _find_item(self, index):
+        return self.list_view._find_element('listitem{}'.format(index))
 
     def _get_item_text(self, index):
-        item = self._get_item(index)
+        item = self._find_item(index)
         return item.select_single('Label').text
 
     def test_drag_item_must_reorder_list(self):
-        original_items = self._get_all_items()
+        original_from_text = self._get_item_text(self.from_index)
         self.list_view.drag_item(self.from_index, self.to_index)
 
-        from_item = original_items[self.from_index]
-        to_item = original_items[self.to_index]
-        reordered_items = copy.copy(original_items)
-        reordered_items[self.to_index] = from_item
-        reordered_items[self.from_index] = to_item
-
-        self.assertEqual(self._get_all_items(), reordered_items)
+        self.assertEqual(
+            original_from_text, self._get_item_text(self.to_index))

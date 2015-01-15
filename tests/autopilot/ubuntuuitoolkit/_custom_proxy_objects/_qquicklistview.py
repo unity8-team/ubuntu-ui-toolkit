@@ -111,9 +111,23 @@ class QQuickListView(_flickable.QQuickFlickable):
             visible_bottom = _flickable._get_visible_container_bottom(
                 containers)
             start_x, start_y = input.get_center_point(from_drag_handler)
+            self.pointing_device.move(start_x, start_y)
+            self.pointing_device.press()
             stop_x = start_x
-            stop_y = visible_bottom
-            self.pointing_device.drag(start_x, start_y, stop_x, stop_y)
+            self.pointing_device.move(stop_x, visible_bottom)
+            to_drag_handler = self.wait_select_single(
+                'QQuickItem',
+                objectName='draghandler_panel{}'.format(to_index))
+            while not self.is_child_visible(to_drag_handler):
+                pass
+            # stop moving
+            self.pointing_device.move(stop_x, self.pointing_device.y - 50)
+            # move under the item with the to_index
+            stop_y = (
+                to_drag_handler.globalRect.y +
+                to_drag_handler.globalRect.height)
+            self.pointing_device.move(stop_x, stop_y)
+            self.pointing_device.release()
 
     @autopilot_logging.log_action(logger.debug)
     def _enable_drag_mode(self):
