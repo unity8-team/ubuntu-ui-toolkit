@@ -90,6 +90,23 @@ class QQuickListView(_flickable.QQuickFlickable):
         containers = self._get_containers()
         return self._is_child_visible(child, containers)
 
+    def _get_first_item(self):
+        """Returns the first item from the ListView."""
+        items = self.get_children_by_type('QQuickItem')[0].get_children()
+        items = sorted(items, key=lambda item: item.globalRect.y)
+        return items[0]
+
+    @autopilot_logging.log_action(logger.info)
+    def enable_select_mode(self):
+        """Default implementation to enable select mode. Performs a long tap
+           over the first list item in the ListView. The delegates must be
+           the new ListItem components.
+        """
+        self.swipe_to_top()
+        first_item = self._get_first_item()
+        self.pointing_device.click_object(first_item, press_duration=2)
+        self.wait_select_single('QQuickItem', objectName='selection_panel0')
+
     @autopilot_logging.log_action(logger.info)
     def drag_item(self, from_index, to_index):
         self._enable_drag_mode()
@@ -141,12 +158,6 @@ class QQuickListView(_flickable.QQuickFlickable):
         first_item = self._get_first_item()
         self.pointing_device.click_object(first_item, press_duration=2)
         self.wait_select_single('QQuickItem', objectName='draghandler_panel0')
-
-    def _get_first_item(self):
-        """Returns the first item from the ListView."""
-        items = self.get_children_by_type('QQuickItem')[0].get_children()
-        items = sorted(items, key=lambda item: item.globalRect.y)
-        return items[0]
 
     def _is_drag_handler_visible(self, index):
         try:
