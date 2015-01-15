@@ -14,7 +14,9 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+import copy
 import os
+
 try:
     from unittest import mock
 except ImportError:
@@ -226,18 +228,11 @@ MainView {
 
 
 class QQuickListViewDraggingBaseTestCase(tests.QMLFileAppTestCase):
+
     path = os.path.abspath(__file__)
     dir_path = os.path.dirname(path)
     test_qml_file_path = os.path.join(
         dir_path, 'test_listitem.ListViewDraggingTestCase.qml')
-
-    def enable_drag_mode(self):
-        """Enable drag mode by long tapping on the first item
-        """
-        self.list_view.swipe_to_top()
-        first_item = self.list_view.get_first_item()
-        self.pointing_device.click_object(first_item, press_duration=2)
-        self.list_view.wait_select_single('QQuickItem', objectName='draghandler_panel0')
 
     def setUp(self):
         super(QQuickListViewDraggingBaseTestCase, self).setUp()
@@ -248,7 +243,7 @@ class QQuickListViewDraggingBaseTestCase(tests.QMLFileAppTestCase):
 class QQuickListViewDraggingTestCase(QQuickListViewDraggingBaseTestCase):
 
     def test_long_press_must_enable_drag_mode(self):
-        self.enable_drag_mode()
+        self.list_view._enable_drag_mode()
         # The item will not exist if the list is not in drag mode.
         self.list_view.select_single(
             'QQuickItem', objectName='draghandler_panel0')
@@ -259,24 +254,23 @@ class QQuickListViewReorderingTestCase(QQuickListViewDraggingBaseTestCase):
     scenarios = [
         ('both items visible, to bottom', {'from_index': 0, 'to_index': 1}),
         ('both items visible, to top', {'from_index': 1, 'to_index': 0}),
-        ('both items visible, to bottom', {'from_index': 0, 'to_index': 6})
-#        ('to item not visible, to bottom', {'from_index': 0, 'to_index': 20})
+        ('both items visible, to bottom, first non visible', {
+            'from_index': 0, 'to_index': 7}),
+        ('to item not visible, to middle', {'from_index': 0, 'to_index': 15}),
+        ('to item not visible, to bottom', {'from_index': 0, 'to_index': 24})
     ]
 
+    def _find_item(self, index):
+        return self.list_view._find_element('listitem{}'.format(index))
+
     def _get_item_text(self, index):
-        item = self.list_view.find_element('listitem{}'.format(index))
-        item.swipe_into_view()
+        item = self._find_item(index)
         return item.select_single('Label').text
 
     def test_drag_item_must_reorder_list(self):
-        direction = 1 if self.from_index < self.to_index else -1
-        expected_from_text = self._get_item_text(self.from_index + direction)
-        expected_to_text = self._get_item_text(self.from_index)
-        # drag
-        self.enable_drag_mode()
+        original_from_text = self._get_item_text(self.from_index)
+
         self.list_view.drag_item(self.from_index, self.to_index)
 
-        from_text = self._get_item_text(self.from_index)
-        to_text = self._get_item_text(self.to_index)
-        self.assertEqual(from_text, expected_from_text)
-        self.assertEqual(to_text, expected_to_text)
+        self.assertEqual(
+            original_from_text, self._get_item_text(self.to_index))
