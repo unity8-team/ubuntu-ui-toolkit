@@ -383,7 +383,7 @@ public:
     }
 
     void startDragging(UCListItem *item);
-    void stopDragging();
+    void drop();
     void update(UCListItem *newItem);
 
 Q_SIGNALS:

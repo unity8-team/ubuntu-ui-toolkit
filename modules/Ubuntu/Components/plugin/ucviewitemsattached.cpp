@@ -625,7 +625,7 @@ void UCViewItemsAttached::stopDragging(QQuickMouseEvent *event)
         }
         // unlock flickables
         d->clearChangesList();
-        UCListItemPrivate::get(d->dragTempItem)->dragHandler->stopDragging();
+        UCListItemPrivate::get(d->dragTempItem)->dragHandler->drop();
         d->dragFromIndex = d->dragToIndex = -1;
     }
 }

@@ -118,6 +118,8 @@ void UCDragHandler::startDragging(UCListItem *item)
     // if we have animation, connect to it
     repositionAnimation = UCListItemPrivate::get(fakeItem)->styleItem->m_dragRepositionAnimation;
     if (repositionAnimation) {
+        // complete any previous animation
+        repositionAnimation->complete();
         // setup from-part of the animation, so we know where to reposition in case the original item is deleted
         connect(repositionAnimation, &QQuickPropertyAnimation::stopped,
                 this, &UCDragHandler::repositionDraggedItem,
@@ -132,10 +134,11 @@ void UCDragHandler::startDragging(UCListItem *item)
         }
         repositionAnimation->setTo(originalItem->y());
         repositionAnimation->setTargetObject(fakeItem);
+
     }
 }
 
-void UCDragHandler::stopDragging()
+void UCDragHandler::drop()
 {
     if (repositionAnimation) {
         repositionAnimation->setFrom(listItem->item()->y());
@@ -148,7 +151,7 @@ void UCDragHandler::stopDragging()
 void UCDragHandler::update(UCListItem *newItem)
 {
     // update only if the original one disappeared
-    if (repositionAnimation) {
+    if (repositionAnimation && repositionAnimation->isRunning() && repositionAnimation->target() == this && isFakeItem) {
         repositionAnimation->setTo(newItem->y());
     }
 }

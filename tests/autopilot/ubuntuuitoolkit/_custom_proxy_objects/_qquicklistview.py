@@ -89,9 +89,75 @@ class QQuickListView(_flickable.QQuickFlickable):
         containers = self._get_containers()
         return self._is_child_visible(child, containers)
 
+#    @autopilot_logging.log_action(logger.info)
+#    def drag_item(self, fromIndex, toIndex):
+#        """Drags the ListItem. The ListView delegates must be ListItems.
+#           ListItems must have objectName set to "listitem"+index.
+
+#           parameters: fromIndex - ListItem index to be dragged
+#                       toIndex - ListItem index to be dropped
+#        """
+#        # bail out if the ListView delegate is not  using ListItems
+#        items = self.get_children_by_type('QQuickItem')[0].get_children()
+#        if not(isinstance(items[0], _uclistitem.UCListItem)):
+#            raise _common.ToolkitException(
+#                'ListView must have ListItem as delegate to drag')
+#        # also bail out if the two indexes are same or out of count
+#        if fromIndex == toIndex:
+#            raise _common.ToolkitException(
+#                'fromIndex and toIndex are the same.')
+#        if fromIndex < 0 or fromIndex > self.count:
+#            raise _common.ToolkitException(
+#                'fromIndex out of range.')
+#        if toIndex < 0 or toIndex > self.count:
+#            raise _common.ToolkitException(
+#                'toIndex out of range.')
+#        direction = 1 if fromIndex < toIndex else -1
+#        # bring fromIndex into visible area and move mouse over the drag handler
+#        from_item = self.find_element('listitem{}'.format(fromIndex))
+#        from_item.swipe_into_view()
+#        # bail out if the drag mode is not set
+#        if not(from_item.draggable):
+#            raise _common.ToolkitException(
+#                'ListView must be in drag mode.')
+#        drag_panel_name = 'draghandler_panel' + str(fromIndex)
+#        drag_handler = from_item.select_single(objectName=drag_panel_name)
+#        self.pointing_device.move_to_object(drag_handler)
+#        mouse_x = self.pointing_device.x
+#        mouse_y = self.pointing_device.y
+#        delta = abs(toIndex - fromIndex)
+#        move_dy = mouse_y + direction * delta * from_item.height
+#        # we cannot move the mouse further than the edges of the ListView
+#        hold_at_edge = False
+#        if move_dy < self.globalRect.y + self.topMargin:
+#            move_dy = self.globalRect.y + self.topMargin
+#            hold_at_edge = True
+#        if move_dy > self.globalRect.y + self.height:
+#            move_dy = self.globalRect.y + self.height
+#            hold_at_edge = True
+#        # proceed with drag
+#        self.pointing_device.press()
+#        self.pointing_device.move(mouse_x, move_dy)
+#        if hold_at_edge:
+#            # hold at edge till we get the targetted item in range
+#            fcount = 0
+#            while (1):
+#                try:
+#                    to_name = 'listitem{}'.format(toIndex)
+#                    dragged_item = self.select_many('UCListItem', objectName=to_name)
+#                    if self.is_child_visible(dragged_item[0]):
+#                        break
+#                except:
+#                    print(fcount)
+#                    pass
+#                fcount += 1
+#                sleep(0.1)
+#        self.pointing_device.release()
+
     @autopilot_logging.log_action(logger.info)
     def drag_item(self, from_index, to_index):
         self._enable_drag_mode()
+
         both_items_visible = (
             self._is_drag_handler_visible(from_index) and
             self._is_drag_handler_visible(to_index))
@@ -111,6 +177,7 @@ class QQuickListView(_flickable.QQuickFlickable):
             visible_bottom = _flickable._get_visible_container_bottom(
                 containers)
             start_x, start_y = input.get_center_point(from_drag_handler)
+
             self.pointing_device.move(start_x, start_y)
             self.pointing_device.press()
             stop_x = start_x
@@ -137,6 +204,7 @@ class QQuickListView(_flickable.QQuickFlickable):
         self.wait_select_single('QQuickItem', objectName='draghandler_panel0')
 
     def _get_first_item(self):
+        """Returns the first item from the ListView."""
         items = self.get_children_by_type('QQuickItem')[0].get_children()
         items = sorted(items, key=lambda item: item.globalRect.y)
         return items[0]

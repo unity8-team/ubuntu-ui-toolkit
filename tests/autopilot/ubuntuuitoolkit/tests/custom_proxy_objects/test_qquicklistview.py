@@ -269,6 +269,7 @@ class QQuickListViewReorderingTestCase(QQuickListViewDraggingBaseTestCase):
 
     def test_drag_item_must_reorder_list(self):
         original_from_text = self._get_item_text(self.from_index)
+
         self.list_view.drag_item(self.from_index, self.to_index)
 
         self.assertEqual(
