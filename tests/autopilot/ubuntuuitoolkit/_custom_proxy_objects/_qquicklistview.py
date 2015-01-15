@@ -190,6 +190,7 @@ class QQuickListView(_flickable.QQuickFlickable):
             # stop moving
             self.pointing_device.move(stop_x, self.pointing_device.y - 50)
             # move under the item with the to_index
+            to_drag_handler = self._get_drag_handler(to_index - 1)
             stop_y = (
                 to_drag_handler.globalRect.y +
                 to_drag_handler.globalRect.height)
