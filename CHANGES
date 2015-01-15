@@ -19,6 +19,7 @@ Ubuntu.Components 1.0
 
 API Changes
 ***********
+* CHANGED IN: ThinDivider: base class Image TO Rectangle
 * ADDED IN: all modules exported as 0.1 as well as 1.0 version
 * ADDED IN: PickerDelegate: readonly property Picker picker
 * CHANGED IN: OptionSelector: readonly property bool currentlyExpanded TO property bool currentlyExpanded
@@ -107,6 +108,7 @@ Compatibility Breaks
 * CHANGED IN Page: Automatic detection of flickable inside a Page to control the header is now limited to Flickables that are anchored to the top of the Page or fill the Page. Header automatically shows when flickable.contentHeight becomes <= flickable.height.
 * CHANGED IN Action, ActionItem, OptionSelectorDelegate: Setting iconName now always selects the requested icon from ubuntu-mobile theme, not the system icon theme.
 * CHANGED IN TabBar: The model now needs to have a selectedIndex property.
+* CHANGED IN Panel: The panel no longer closes automatically when the user presses outside of the opened panel. That was deprecated behavior that was useful in the first version of the Toolbar. Set __closeOnContentsClicks to restore the old behavior, but a better solution is to deal with the press in the app and call Panel.close() when needed.
 
 SDK 0.1.46
 ##########

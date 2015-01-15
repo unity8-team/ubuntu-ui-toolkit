@@ -89,6 +89,8 @@ public:
     UCAlarm(const QDateTime &dt, DaysOfWeek days = AutoDetect, const QString &message = QString(), QObject *parent = 0);
     ~UCAlarm();
 
+    bool operator==(const UCAlarm &that) const;
+
 public: // getter/setter
     bool enabled() const;
     void setEnabled(bool enabled);
@@ -105,6 +107,8 @@ public: // getter/setter
 
     int error() const;
     Status status() const;
+    QVariant cookie() const;
+    void wait(int msec = 0);
 
 Q_SIGNALS:
     void enabledChanged();
@@ -124,10 +128,12 @@ public Q_SLOTS:
 
 private:
     Q_DISABLE_COPY(UCAlarm)
-    Q_DECLARE_PRIVATE(UCAlarm)
+    friend class UCAlarmPrivate;
     QScopedPointer<UCAlarmPrivate> d_ptr;
 
-    Q_PRIVATE_SLOT(d_func(), void _q_syncStatus(int operation, int status, int error))
+    Q_PRIVATE_SLOT(d_ptr, void _q_syncStatus(int operation, int status, int error))
+    Q_PRIVATE_SLOT(d_ptr, void completeSave())
+    Q_PRIVATE_SLOT(d_ptr, void completeCancel())
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(UCAlarm::DaysOfWeek)

@@ -6,6 +6,8 @@ usr/lib/*/qt5/qml/Ubuntu/Layouts/qmldir
 usr/lib/*/qt5/qml/Ubuntu/Layouts/plugins.qmltypes
 usr/lib/*/qt5/qml/Ubuntu/Layouts/libUbuntuLayouts.so
 usr/lib/*/qt5/qml/Ubuntu/Components/*.qml
+usr/lib/*/qt5/qml/Ubuntu/Components/10/*.qml
+usr/lib/*/qt5/qml/Ubuntu/Components/11/*.qml
 usr/lib/*/qt5/qml/Ubuntu/Components/*.js
 usr/lib/*/qt5/qml/Ubuntu/Components/qmldir
 usr/lib/*/qt5/qml/Ubuntu/Components/plugins.qmltypes
@@ -19,7 +21,6 @@ usr/lib/*/qt5/qml/Ubuntu/Components/Popups/*.qml
 usr/lib/*/qt5/qml/Ubuntu/Components/Popups/*.js
 usr/lib/*/qt5/qml/Ubuntu/Components/Pickers/*.qml
 usr/lib/*/qt5/qml/Ubuntu/Components/Pickers/qmldir
-usr/lib/*/qt5/qml/Ubuntu/Components/Colors/*.qml
 usr/lib/*/qt5/qml/Ubuntu/Components/Styles/*.qml
 usr/lib/*/qt5/qml/Ubuntu/Components/Styles/qmldir
 usr/lib/*/qt5/qml/Ubuntu/Test

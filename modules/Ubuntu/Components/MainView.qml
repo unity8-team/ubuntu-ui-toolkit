@@ -14,8 +14,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import QtQuick 2.0
-import Ubuntu.Unity.Action 1.1 as UnityActions
+import QtQuick 2.2
+import Ubuntu.Components 1.1 as Toolkit
 import Ubuntu.PerformanceMetrics 1.0
 import QtQuick.Window 2.0
 
@@ -136,7 +136,6 @@ PageTreeNode {
     id: mainView
 
     /*!
-      \preliminary
       The property holds the application's name, which must be the same as the
       desktop file's name.
       The name also sets the name of the QCoreApplication and defaults for data
@@ -147,7 +146,6 @@ PageTreeNode {
     property string applicationName: ""
 
     /*!
-      \preliminary
       The property holds if the application should automatically resize the
       contents when the input method appears
 
@@ -207,6 +205,22 @@ PageTreeNode {
         property color headerColor: backgroundColor
         property color backgroundColor: Theme.palette.normal.background
         property color footerColor: backgroundColor
+
+        /*
+          As we don't know the order the property bindings and onXXXChanged signals are evaluated
+          we should rely only on one property when changing the theme to avoid intermediate
+          theme changes due to properties being evaluated separately.
+
+          Qt bug: https://bugreports.qt-project.org/browse/QTBUG-11712
+          */
+        property string theme: (ColorUtils.luminance(backgroundColor) >= 0.85) ?
+                                   "Ambiance" : "SuruDark"
+        onThemeChanged: {
+            // only change the theme if the current one is a system one.
+            if (theme !== "" && (Theme.name.search("Ubuntu.Components.Themes") >= 0)) {
+                Theme.name = "Ubuntu.Components.Themes.%1".arg(theme);
+            }
+        }
     }
 
     /*!
@@ -215,7 +229,6 @@ PageTreeNode {
     active: true
 
     /*!
-      \preliminary
       Sets whether the application will be automatically rotating when the
       device is.
 
@@ -244,15 +257,7 @@ PageTreeNode {
         id: canvas
 
         automaticOrientation: false
-        // this will make sure that the keyboard does not obscure the contents
-        anchors {
-            bottomMargin: Qt.inputMethod.visible && anchorToKeyboard ? Qt.inputMethod.keyboardRectangle.height : 0
-            //this is an attempt to keep the keyboard animation in sync with the content resize
-            //but this does not work very well because the keyboard animation has different steps
-            Behavior on bottomMargin {
-                NumberAnimation { easing.type: Easing.InOutQuad }
-            }
-        }
+        anchorToKeyboard: mainView.anchorToKeyboard
 
         // clip the contents so that it does not overlap the header
         Item {
@@ -302,6 +307,7 @@ PageTreeNode {
                     }
                 }
                 propagateComposedEvents: true
+                enabled: mainView.useDeprecatedToolbar
             }
         }
 
@@ -334,7 +340,7 @@ PageTreeNode {
           The header of the MainView. Can be used to obtain the height of the header
           in \l Page to determine the area for the \l Page to fill.
          */
-        Header {
+        AppHeader {
             // FIXME We need to set an object name to this header in order to differentiate it from the ListItem.Header on Autopilot tests.
             // This is a temporary workaround while we find a better solution for https://bugs.launchpad.net/autopilot/+bug/1210265
             // --elopio - 2013-08-08
@@ -342,18 +348,57 @@ PageTreeNode {
             id: headerItem
             property real bottomY: headerItem.y + headerItem.height
             animate: canvas.animate
+            dividerColor: Qt.darker(background.headerColor, 1.1)
+            panelColor: Qt.lighter(background.headerColor, 1.1)
 
             title: internal.activePage ? internal.activePage.title : ""
             flickable: internal.activePage ? internal.activePage.flickable : null
             pageStack: internal.activePage ? internal.activePage.pageStack : null
-            __customBackAction: internal.activePage && internal.activePage.tools &&
+
+            PageHeadConfiguration {
+                id: headerConfig
+                // for backwards compatibility with deprecated tools property
+                actions: internal.activePage ?
+                             getActionsFromTools(internal.activePage.tools) : null
+
+                backAction: internal.activePage && internal.activePage.tools &&
                           internal.activePage.tools.hasOwnProperty("back") &&
                           internal.activePage.tools.back &&
                           internal.activePage.tools.back.hasOwnProperty("action") ?
                               internal.activePage.tools.back.action : null
 
+                function getActionsFromTools(tools) {
+                    if (!tools || !tools.hasOwnProperty("contents")) {
+                        // tools is not of type ToolbarActions. Not supported.
+                        return null;
+                    }
+
+                    var actionList = [];
+                    for (var i in tools.contents) {
+                        var item = tools.contents[i];
+                        if (item && item.hasOwnProperty("action") && item.action !== null) {
+                            var action = item.action;
+                            if (action.hasOwnProperty("iconName") && action.hasOwnProperty("text")) {
+                                // it is likely that the action is of type Action.
+                                actionList.push(action);
+                            }
+                        }
+                    }
+                    return actionList;
+                }
+            }
+
             contents: internal.activePage ?
                           internal.activePage.__customHeaderContents : null
+
+            // FIXME: This can be simplified a lot when we drop support for using
+            //  the deprecated tools property.
+            config: internal.activePage && internal.activePage.hasOwnProperty("head") &&
+                    (internal.activePage.head.actions.length > 0 ||
+                     internal.activePage.head.backAction !== null ||
+                     internal.activePage.head.contents !== null ||
+                     internal.activePage.head.sections.model !== undefined) ?
+                        internal.activePage.head : headerConfig
 
             property Item tabBar: null
             Binding {
@@ -392,28 +437,6 @@ PageTreeNode {
             }
 
             useDeprecatedToolbar: mainView.useDeprecatedToolbar
-
-            function getActionsFromTools(tools) {
-                if (!tools || !tools.hasOwnProperty("contents")) {
-                    // tools is not of type ToolbarActions. Not supported.
-                    return null;
-                }
-
-                var actionList = [];
-                for (var i in tools.contents) {
-                    var item = tools.contents[i];
-                    if (item && item.hasOwnProperty("action") && item.action !== null) {
-                        var action = item.action;
-                        if (action.hasOwnProperty("iconName") && action.hasOwnProperty("text")) {
-                            // it is likely that the action is of type Action.
-                            actionList.push(action);
-                        }
-                    }
-                }
-                return actionList;
-            }
-            actions: internal.activePage ?
-                         getActionsFromTools(internal.activePage.tools) : null
         }
 
         Connections {
@@ -450,21 +473,24 @@ PageTreeNode {
       over the actions, e.g. if one wants to add/remove actions dynamically, create
       specific action contexts, etc.
 
-      \qmlproperty UnityActions.ActionManager actionManager
+      \qmlproperty ActionManager actionManager
+      \readonly
      */
     property alias actionManager: unityActionManager
 
     Object {
         id: internal
 
-        property Page activePage: isPage(mainView.activeLeafNode) ? mainView.activeLeafNode : null
+        // Even when using MainView 1.1, we still support Page 1.0.
+        // PageBase (=Page 1.0) is the superclass of Page 1.1.
+        property PageBase activePage: isPage(mainView.activeLeafNode) ? mainView.activeLeafNode : null
 
         function isPage(item) {
             return item && item.hasOwnProperty("__isPageTreeNode") && item.__isPageTreeNode &&
                     item.hasOwnProperty("title") && item.hasOwnProperty("tools");
         }
 
-        UnityActions.ActionManager {
+        Toolkit.ActionManager {
             id: unityActionManager
             onQuit: {
                 // FIXME Wire this up to the application lifecycle management API instead of quit().
@@ -479,7 +505,7 @@ PageTreeNode {
           The header that will be propagated to the children in the page tree node.
           It is used by Tabs to bind header's tabsModel.
          */
-        property Header header: headerItem
+        property AppHeader header: headerItem
 
         /*!
           \internal

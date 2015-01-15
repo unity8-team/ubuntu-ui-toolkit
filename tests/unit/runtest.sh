@@ -22,58 +22,42 @@ _TARGET=$1
 _TESTFILE=$2
 _MINIMAL=$3
 _XML="../../test_$_TARGET_$_TESTFILE.xml"
-_ARGS="-o $_XML,xunitxml -o -,txt"
+_ARGS="-p -o -p $_XML,xunitxml -p -o -p -,txt"
 set +e
 
 function create_test_cmd {
-  _CMD="./$_TARGET"
+  _CMD="dbus-test-runner --task ./$_TARGET -n $_TESTFILE -m 300"
   if [ "$_MINIMAL" = "minimal" ]; then
-      _CMD="$_CMD -platform minimal"
+      _CMD="$_CMD -p -platform -p minimal"
   fi
   if [ $_TARGET != $_TESTFILE ]; then
-      _CMD="$_CMD -input $_TESTFILE"
+      _CMD="$_CMD -p -input -p $_TESTFILE"
   fi
-  _CMD="$_CMD -maxwarnings 40"
+  _CMD="$_CMD -p -maxwarnings -p 40"
 }
 
 function execute_test_cmd {
   echo "Executing $_CMD $_ARGS"
-  if [ $DISPLAY ]; then
+  if [ ! -x $_TARGET ]; then
+    echo "Error: $_TARGET wasn't built!"
+    RESULT=2
+  elif [ $DISPLAY ]; then
     # https://bugs.launchpad.net/ubuntu-ui-toolkit/+bug/1256999
     # https://bugreports.qt-project.org/browse/QTBUG-36243
     QML2_IMPORT_PATH=../../../modules:$QML2_IMPORT_PATH UBUNTU_UI_TOOLKIT_THEMES_PATH=../../../modules \
+    ALARM_BACKEND=memory \
     $_CMD $_ARGS 2>&1 | grep -v 'QFontDatabase: Cannot find font directory'
     # Note: Get first command before the pipe, $? would be ambiguous
     RESULT=${PIPESTATUS[0]}
     WARNINGS=$(grep -c qwarn $_XML)
     EXCEPTIONS='tst_components_benchmark \
-                tst_toolbaritems.qml \
                 tst_tabbar.qml \
-                tst_alarms \
-                tst_pickerpanel.qml \
-                tst_picker.qml \
-                tst_i18n \
-                tst_listitems_standard.qml \
-                tst_optionselector.qml \
-                tst_arguments \
-                tst_mainview \
-                tst_popups_actionselectionpopover.qml \
-                tst_layouts tst_datepicker.qml \
-                tst_listitems_valueselector.qml \
-                tst_listitems_itemselector.qml \
-                tst_ubuntu_shape \
-                tst_page.qml \
+                tst_datepicker.qml \
                 tst_qquick_image_extension \
-                tst_listitems_divider.qml tst_layouts \
-                tst_checkbox.qml \
-                tst_performance \
-                tst_inversemousearea \
-                tst_listitems_base.qml \
-                tst_statesaver \
-                tst_theme_engine \
+                tst_page.qml \
+                tst_toolbar.qml \
                 tst_tabs.qml \
-                tst_textfield.qml \
-                tst_mousefilters'
+                '
     if [ $WARNINGS -ne 0 ]; then
       if [[ $EXCEPTIONS == *$_TARGET_$_TESTFILE* ]]; then
         echo "FIXME: $WARNINGS warnings - Known problematic test"

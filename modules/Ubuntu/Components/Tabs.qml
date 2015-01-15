@@ -155,7 +155,6 @@ PageTreeNode {
     anchors.fill: parent
 
     /*!
-      \preliminary
       \qmlproperty int selectedTabIndex
       The index of the currently selected tab.
       The first tab is 0, and -1 means that no tab is selected.
@@ -164,7 +163,6 @@ PageTreeNode {
     property alias selectedTabIndex: tabsModel.selectedIndex
 
     /*!
-      \preliminary
       The currently selected tab.
      */
     readonly property Tab selectedTab: (selectedTabIndex < 0) || (tabsModel.count <= selectedTabIndex) ?
@@ -303,7 +301,7 @@ PageTreeNode {
 
     Object {
         id: internal
-        property Header header: tabs.__propagated ? tabs.__propagated.header : null
+        property AppHeader header: tabs.__propagated ? tabs.__propagated.header : null
 
         /*
           List of connected Repeaters to avoid repeater "hammering" of itemAdded() signal.
@@ -338,7 +336,7 @@ PageTreeNode {
         function connectToRepeaters(children) {
             for (var i = 0; i < children.length; i++) {
                 var child = children[i];
-                if (internal.isRepeater(child) && (internal.repeaters.indexOf(child) < 0)) {
+                if (internal.isRepeater(child) && internal.repeaters && (internal.repeaters.indexOf(child) < 0)) {
                     internal.connectRepeater(child);
                 }
             }

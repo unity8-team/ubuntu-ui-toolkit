@@ -19,6 +19,7 @@
 #ifndef UBUNTU_TEST_UBUNTUTESTCASE_H
 #define UBUNTU_TEST_UBUNTUTESTCASE_H
 
+#include <QtTest/QtTest>
 #include <QtQuick/QQuickItem>
 #include <QtQuick/QQuickView>
 #include <QtTest/QSignalSpy>
@@ -40,6 +41,21 @@ public:
             qFatal("Item '%s' found with unexpected type", qPrintable(objectName));
         qFatal("No item '%s' found", qPrintable(objectName));
     }
+
+    static inline QPointF centerOf(QQuickItem *item, bool windowPos = false)
+    {
+        QPointF center;
+        if (item) {
+            center = item->boundingRect().center();
+            if (windowPos) {
+                center = item->mapToScene(center);
+            }
+        }
+        return center;
+    }
+
+    static void ignoreWarning(const QString& fileName, uint line, uint column, const QString& message, uint occurences=1);
+
 private:
     QSignalSpy* m_spy;
 };

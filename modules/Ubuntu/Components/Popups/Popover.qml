@@ -127,7 +127,7 @@ PopupBase {
       The property holds the margins from the popover's dismissArea. The property
       is themed.
       */
-    property real edgeMargins: units.gu(2)
+    property real edgeMargins: foreground.square ? 0 : units.gu(2)
 
     /*!
       The property holds the margin from the popover's caller. The property
@@ -153,7 +153,6 @@ PopupBase {
     property alias foregroundStyle: foreground.style
 
     /*!
-      \preliminary
       Make the popover visible. Reparent to the background area object first if needed.
       Only use this function if you handle memory management. Otherwise use
       PopupUtils.open() to do it automatically.
@@ -170,7 +169,6 @@ PopupBase {
     }
 
     /*!
-      \preliminary
       Hide the popover.
       Only use this function if you handle memory management. Otherwise use
       PopupUtils.close() to do it automatically.
@@ -204,6 +202,7 @@ PopupBase {
 
     StyledItem {
         id: foreground
+        activeFocusOnPress: true
         objectName: "popover_foreground"
 
         //styling properties
@@ -231,6 +230,7 @@ PopupBase {
         property point target: Qt.point(pointer.x - x, pointer.y - y)
         property string direction: pointer.direction
         property bool clipContent: true
+        property bool square: popover.hasOwnProperty("square") ? popover.square : false
 
         signal show()
         signal hide()
@@ -288,5 +288,5 @@ PopupBase {
     /*! \internal */
     onHeightChanged: internal.updatePosition()
     /*! \internal */
-    onRotationChanged: internal.updatePosition()
+    onRotatingChanged: hide()
 }

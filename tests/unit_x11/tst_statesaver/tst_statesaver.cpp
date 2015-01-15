@@ -36,8 +36,10 @@
 #include <signal.h>
 
 #define protected public
+#define private public
 #include "ucstatesaver.h"
 #include "statesaverbackend_p.h"
+#undef private
 #undef protected
 
 class tst_StateSaverTest : public QObject
@@ -59,6 +61,8 @@ private:
     {
         Q_EMIT StateSaverBackend::instance().initiateStateSaving();
         view.reset();
+        // Make sure that the state is reloaded from file
+        StateSaverBackend::instance().m_archive.data()->sync();
         view.reset(new UbuntuTestCase(file));
     }
 
@@ -66,13 +70,15 @@ private:
     {
         Q_EMIT StateSaverBackend::instance().initiateStateSaving();
         view.reset();
+        // Make sure that the state is reloaded from file
+        StateSaverBackend::instance().m_archive.data()->sync();
         view.reset(createView(file));
     }
 
     QString stateFile(const QString &appId)
     {
-        return QString("%1/%2.state")
-                .arg(QStandardPaths::standardLocations(QStandardPaths::TempLocation)[0])
+        return QString("%1/%2/statesaver.appstate")
+                .arg(QStandardPaths::writableLocation(QStandardPaths::RuntimeLocation))
                 .arg(appId);
     }
 
@@ -80,11 +86,19 @@ private Q_SLOTS:
 
     void initTestCase()
     {
-        QCoreApplication::setApplicationName("tst_statesaver");
+        QCoreApplication::setApplicationName("savedstate");
         QCoreApplication::setOrganizationName("");
         QDir modules ("../../../modules");
         QVERIFY(modules.exists());
         m_modulePath = modules.absolutePath();
+        // XDG_RUNTIME_DIR may not be set in a test environment
+        QDir tempDir(QStandardPaths::writableLocation(QStandardPaths::TempLocation));
+        QString testRuntimeDir(tempDir.filePath("tst_statesaver"));
+        // Remove to guarantee subsequent test runs are consistent
+        QDir(testRuntimeDir).removeRecursively();
+        // Create manually to avoid wrong ownership
+        tempDir.mkdir("tst_statesaver");
+        setenv("XDG_RUNTIME_DIR", testRuntimeDir.toUtf8(), 1);
         // invoke initialization
         StateSaverBackend::instance();
     }
@@ -171,6 +185,31 @@ private Q_SLOTS:
         }
     }
 
+    void test_SaveEnum()
+    {
+        /* This test is important because when saving the value of an enum
+         * property to QSettings, it is deserialized as a string. Setting that
+         * string value to an enum property fails and therefore the state
+         * restoration does not work.
+         * In most cases implicit type conversion from string to the appropriate
+         * type works.
+         */
+        QScopedPointer<QQuickView> view(createView("SaveEnum.qml"));
+        QVERIFY(view);
+        QObject *testItem = view->rootObject();
+        QVERIFY(testItem);
+
+        testItem->setProperty("horizontalAlignment", Qt::AlignRight);
+
+        resetView(view, "SaveEnum.qml");
+        QVERIFY(view);
+        testItem = view->rootObject();
+        QVERIFY(testItem);
+
+
+        QVERIFY(testItem->property("horizontalAlignment") == Qt::AlignRight);
+    }
+
     void test_SavePropertyGroup()
     {
         QScopedPointer<QQuickView> view(createView("SavePropertyGroups.qml"));
@@ -231,9 +270,12 @@ private Q_SLOTS:
 
     void test_InvalidUID()
     {
+        QString filePath(QFileInfo("InvalidUID.qml").absoluteFilePath());
+        QString objectId(filePath.replace("/", "_") + ":21:5:testItem");
+        UbuntuTestCase::ignoreWarning("InvalidUID.qml", 20, 1,
+            QString("QML Item: All the parents must have an id.\nState saving disabled for %1, class %2")
+            .arg(objectId).arg("QQuickItem"), 2);
         QScopedPointer<UbuntuTestCase> view(new UbuntuTestCase("InvalidUID.qml"));
-        QVERIFY(view);
-        QCOMPARE(view->warnings(), 1);
         QObject *testItem = view->rootObject()->findChild<QObject*>("testItem");
         QVERIFY(testItem);
 
@@ -241,7 +283,6 @@ private Q_SLOTS:
 
         resetView(view, "InvalidUID.qml");
         QVERIFY(view);
-        QCOMPARE(view->warnings(), 1);
         testItem = view->rootObject()->findChild<QObject*>("updated");
         QVERIFY(testItem == 0);
     }
@@ -263,17 +304,15 @@ private Q_SLOTS:
 
     void test_InvalidGroupProperty()
     {
+        UbuntuTestCase::ignoreWarning("InvalidGroupProperty.qml", 24, 29,
+            "QML QtObject: Warning: attachee must have an ID. State will not be saved.", 2);
         QScopedPointer<UbuntuTestCase> view(new UbuntuTestCase("InvalidGroupProperty.qml"));
-        QVERIFY(view);
-        QCOMPARE(view->warnings(), 1);
         QObject *testItem = view->rootObject()->findChild<QObject*>("testItem");
         QVERIFY(testItem);
 
         testItem->setObjectName("group");
 
         resetView(view, "InvalidGroupProperty.qml");
-        QVERIFY(view);
-        QCOMPARE(view->warnings(), 1);
         testItem = view->rootObject()->findChild<QObject*>("group");
         QVERIFY(testItem == 0);
     }
@@ -382,8 +421,9 @@ private Q_SLOTS:
 
     void test_ComponentsWithStateSaversNoId()
     {
+        UbuntuTestCase::ignoreWarning("ComponentsWithStateSaversNoId.qml", 25, 5,
+            "QML Rectangle: Warning: attachee must have an ID. State will not be saved.");
         QScopedPointer<UbuntuTestCase> view(new UbuntuTestCase("ComponentsWithStateSaversNoId.qml"));
-        QVERIFY(view);
         QObject *control1 = view->rootObject()->findChild<QObject*>("control1");
         QVERIFY(control1);
         QObject *control2 = view->rootObject()->findChild<QObject*>("control2");
@@ -391,7 +431,6 @@ private Q_SLOTS:
         UCStateSaverAttached *stateSaver1 = qobject_cast<UCStateSaverAttached*>(qmlAttachedPropertiesObject<UCStateSaver>(control1, false));
         QVERIFY(stateSaver1);
         QVERIFY(stateSaver1->enabled() == false);
-        QCOMPARE(view->warnings(), 1);
         UCStateSaverAttached *stateSaver2 = qobject_cast<UCStateSaverAttached*>(qmlAttachedPropertiesObject<UCStateSaver>(control2, false));
         QVERIFY(stateSaver2);
         QVERIFY(stateSaver2->enabled());
@@ -519,9 +558,6 @@ private Q_SLOTS:
     void test_normalAppClose()
     {
         QProcess testApp;
-        QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-        env.insert("APP_ID", "NormalAppClose");
-        testApp.setProcessEnvironment(env);
         testApp.start("qmlscene", QStringList() << "-I" <<  "../../../modules" << "NormalAppClose.qml");
         testApp.waitForFinished();
 
@@ -532,9 +568,6 @@ private Q_SLOTS:
     void test_SigTerm()
     {
         QProcess testApp;
-        QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-        env.insert("APP_ID", "SimpleApp");
-        testApp.setProcessEnvironment(env);
         testApp.start("qmlscene -I ../../../modules SimpleApp.qml");
         testApp.waitForStarted();
 
@@ -549,9 +582,6 @@ private Q_SLOTS:
     void test_SigInt()
     {
         QProcess testApp;
-        QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-        env.insert("APP_ID", "SimpleApp");
-        testApp.setProcessEnvironment(env);
         testApp.start("qmlscene -I ../../../modules SimpleApp.qml");
         testApp.waitForStarted();
 
@@ -570,7 +600,7 @@ private Q_SLOTS:
         testApp.waitForFinished();
 
         QString fileName = stateFile("SimpleApp");
-        QVERIFY(QFile(fileName).exists());
+        QVERIFY2(QFile(fileName).exists(), qPrintable(fileName));
         // clean the file
         QFile::remove(fileName);
     }

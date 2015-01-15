@@ -15,7 +15,7 @@
  */
 
 import QtQuick 2.0
-import Ubuntu.Components 0.1
+import Ubuntu.Components 1.1
 import Ubuntu.Components.ListItems 0.1 as ListItem
 
 MainView {
@@ -26,6 +26,7 @@ MainView {
     // Note! applicationName needs to match the .desktop filename
     applicationName: "ubuntu-ui-toolkit-gallery"
 
+    useDeprecatedToolbar: false
 
     width: units.gu(120)
     height: units.gu(75)

@@ -49,7 +49,6 @@ StyledItem {
     id: slider
 
     /*!
-       \preliminary
        The minimum value from the continuous range of values. If this value is
        greater than maximumValue, the component will be in an inconsistent
        state.
@@ -57,7 +56,6 @@ StyledItem {
     property real minimumValue: 0.0
 
     /*!
-       \preliminary
        The maximum value from the continuous range of values. If this value is
        lesser than minimumValue, the component will be in an inconsistent state.
     */
@@ -66,21 +64,18 @@ StyledItem {
     // FIXME(loicm) Add Support for the stepSize property.
 
     // /*!
-    //    \preliminary
     //    The distance between two selectable values in the range defined by
     //    [minimumValue, maximumValue].
     // */
     // property real stepSize: 1.0
 
     /*!
-       \preliminary
        The current value of the slider. This property is not changed while the
        thumb is dragged unless the live property is set to true.
     */
     property real value: 0.0
 
     /*!
-       \preliminary
        Defines whether the value is updated while the thumb is dragged or just
        when the thumb is released.
     */
@@ -89,20 +84,17 @@ StyledItem {
     /*!
        \qmlproperty bool pressed
 
-       \preliminary
        Whether the Slider is currently being pressed.
     */
     property alias pressed: mouseArea.pressed
 
     /*!
-       \preliminary
        The signal is emitted when there is a click on the slider. The onThumb parameter provides information if the click, was inside of the thumb element.
     */
     signal touched(bool onThumb)
 
 
     /*!
-      \preliminary
       This function is used by the value indicator to show the current value.
       Reimplement this function if you want to show different information. By
       default, the value v is rounded to the nearest interger value.
@@ -118,6 +110,8 @@ StyledItem {
 
     /*! \internal */
     onValueChanged: mouseArea.liveValue = slider.value
+
+    activeFocusOnPress: true
 
     Binding {
         target: slider
@@ -140,6 +134,26 @@ StyledItem {
         property real dragInitMouseX: 0.0
         property real dragInitNormalizedValue: 0.0
 
+        property Flickable flickable: {
+            // traverse parents to catch whether we have an ancestor Flickable
+            var pl = slider.parent;
+            while (pl) {
+                if (pl.hasOwnProperty("flicking")) {
+                    return pl;
+                }
+                pl = pl.parent;
+            }
+            return null;
+        }
+
+        states: State {
+            name: "sliding"
+            when: mouseArea.flickable && mouseArea.pressed
+            PropertyChanges {
+                target: mouseArea.flickable
+                interactive: false
+            }
+        }
         function normalizedValueFromValue(value) {
             if (Qt.application.layoutDirection == Qt.RightToLeft) {
                 return MathUtils.clampAndProject(value, slider.minimumValue,
@@ -188,6 +202,8 @@ StyledItem {
             var normalizedOffsetX = (mouseArea.mouseX - dragInitMouseX) / barMinusThumb;
             liveValue = valueFromNormalizedValue(dragInitNormalizedValue + normalizedOffsetX);
         }
+        onClicked: slider.requestFocus(Qt.MouseFocusReason)
+        onLiveValueChanged: if (isPressed) slider.requestFocus(Qt.MouseFocusReason)
     }
 
     style: Theme.createStyleComponent("SliderStyle.qml", slider)

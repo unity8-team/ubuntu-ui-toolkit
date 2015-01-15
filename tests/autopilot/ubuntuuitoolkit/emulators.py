@@ -31,11 +31,13 @@ __all__ = [
     'check_autopilot_version',
     'get_keyboard',
     'get_pointing_device',
+    'TextInputPopover',
     'ActionSelectionPopover',
     'Base',
     'CheckBox',
     'ComposerSheet',
     'Empty',
+    'UCListItem',
     'Header',
     'ItemSelector',
     'MainView',
@@ -62,6 +64,7 @@ from ubuntuuitoolkit._custom_proxy_objects import (
     get_pointing_device,
     CheckBox,
     Header,
+    UCListItem,
     MainView,
     OptionSelector,
     QQuickFlickable,
@@ -84,6 +87,7 @@ from ubuntuuitoolkit._custom_proxy_objects.listitems import (
     Subtitled
 )
 from ubuntuuitoolkit._custom_proxy_objects.popups import (
+    TextInputPopover,
     ActionSelectionPopover,
     ComposerSheet
 )

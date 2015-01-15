@@ -35,7 +35,6 @@
 #include "inversemouseareatype.h"
 #include "qquickclipboard.h"
 #include "qquickmimedata.h"
-#include "thumbnailgenerator.h"
 #include "ucubuntuanimation.h"
 #include "ucfontutils.h"
 #include "ucarguments.h"
@@ -49,21 +48,24 @@
 #include "ucmouse.h"
 #include "ucinversemouse.h"
 #include "sortfiltermodel.h"
+#include "ucstyleditembase.h"
+#include "ucaction.h"
+#include "ucactioncontext.h"
+#include "ucactionmanager.h"
+#include "uclistitem.h"
+#include "uclistitem_p.h"
+#include "uclistitemactions.h"
+#include "uclistitemstyle.h"
 
 #include <sys/types.h>
 #include <unistd.h>
 #include <stdexcept>
 
+QUrl UbuntuComponentsPlugin::m_baseUrl = QUrl();
+
 /*
  * Type registration functions.
  */
-
-static QObject *registerPickerPanel(QQmlEngine *engine, QJSEngine *scriptEngine)
-{
-    Q_UNUSED(scriptEngine)
-    return UbuntuComponentsPlugin::registerQmlSingletonType(engine,
-           "Ubuntu.Components", "Pickers/PickerPanel.qml");
-}
 
 static QObject *registerClipboard(QQmlEngine *engine, QJSEngine *scriptEngine)
 {
@@ -90,41 +92,6 @@ static QObject *registerUriHandler(QQmlEngine *engine, QJSEngine *scriptEngine)
 
     UCUriHandler *uriHandler = new UCUriHandler();
     return uriHandler;
-}
-
-static QObject *registerUbuntuColors(QQmlEngine *engine, QJSEngine *scriptEngine)
-{
-    Q_UNUSED(scriptEngine)
-    return UbuntuComponentsPlugin::registerQmlSingletonType(engine,
-           "Ubuntu.Components", "Colors/UbuntuColors.qml");
-}
-
-QUrl UbuntuComponentsPlugin::baseUrl(const QStringList& importPathList, const char* uri)
-{
-    /* FIXME: remove when migrating to Qt 5.1 and use QQmlExtensionPlugin::baseUrl()
-       http://doc-snapshot.qt-project.org/qt5-stable/qtqml/qqmlextensionplugin.html#baseUrl
-    */
-    QString pluginRelativePath = QString::fromUtf8(uri).replace(".", "/").prepend("/").append("/");
-    QString pluginPath;
-    Q_FOREACH (QString importPath, importPathList) {
-        pluginPath = importPath.append(pluginRelativePath);
-        /* We verify that the directory ending in Ubuntu/Components contains the
-           file libUbuntuComponents.so therefore proving it's the right directory.
-
-           Ref.: https://bugs.launchpad.net/ubuntu-ui-toolkit/+bug/1197293
-        */
-        if (QFile(pluginPath + "libUbuntuComponents.so").exists()) {
-            return QUrl::fromLocalFile(pluginPath);
-        }
-    }
-
-    return QUrl();
-}
-
-QObject *UbuntuComponentsPlugin::registerQmlSingletonType(QQmlEngine *engine, const char* uri, const char* qmlFile)
-{
-    QUrl url = baseUrl(engine->importPathList(), uri).resolved(QUrl::fromLocalFile(qmlFile));
-    return QuickUtils::instance().createQmlObject(url, engine);
 }
 
 void UbuntuComponentsPlugin::registerWindowContextProperty()
@@ -154,10 +121,15 @@ void UbuntuComponentsPlugin::setWindowContextProperty(QWindow* focusWindow)
 
 void UbuntuComponentsPlugin::registerTypesToVersion(const char *uri, int major, int minor)
 {
-    qmlRegisterSingletonType<QObject>(uri, major, minor, "UbuntuColors", registerUbuntuColors);
+    qmlRegisterType<UCAction>(uri, major, minor, "Action");
+    qmlRegisterType<UCActionContext>(uri, major, minor, "ActionContext");
+    qmlRegisterType<UCActionManager>(uri, major, minor, "ActionManager");
+    qmlRegisterType<UCStyledItemBase>(uri, major, minor, "StyledItemBase");
     qmlRegisterUncreatableType<UbuntuI18n>(uri, major, minor, "i18n", "Singleton object");
     qmlRegisterExtendedType<QQuickImageBase, UCQQuickImageExtension>(uri, major, minor, "QQuickImageBase");
     qmlRegisterUncreatableType<UCUnits>(uri, major, minor, "UCUnits", "Not instantiable");
+    qmlRegisterType<ShapeItem>(uri, major, minor, "UbuntuShape");
+    // FIXME/DEPRECATED: Shape is exported for backwards compatibity only
     qmlRegisterType<ShapeItem>(uri, major, minor, "Shape");
     qmlRegisterType<InverseMouseAreaType>(uri, major, minor, "InverseMouseArea");
     qmlRegisterType<QQuickMimeData>(uri, major, minor, "MimeData");
@@ -173,8 +145,6 @@ void UbuntuComponentsPlugin::registerTypesToVersion(const char *uri, int major, 
     qmlRegisterSingletonType<UCUriHandler>(uri, major, minor, "UriHandler", registerUriHandler);
     qmlRegisterType<UCMouse>(uri, major, minor, "Mouse");
     qmlRegisterType<UCInverseMouse>(uri, major, minor, "InverseMouse");
-    // register QML singletons
-    qmlRegisterSingletonType<QObject>(uri, major, minor, "PickerPanel", registerPickerPanel);
 }
 
 void UbuntuComponentsPlugin::registerTypes(const char *uri)
@@ -192,13 +162,26 @@ void UbuntuComponentsPlugin::registerTypes(const char *uri)
     qmlRegisterUncreatableType<QAbstractItemModel>(uri, 1, 1, "QAbstractItemModel", "Not instantiable");
 
     // register 1.1 only API
+    qmlRegisterType<UCStyledItemBase, 1>(uri, 1, 1, "StyledItemBase");
     qmlRegisterType<QSortFilterProxyModelQML>(uri, 1, 1, "SortFilterModel");
     qmlRegisterUncreatableType<FilterBehavior>(uri, 1, 1, "FilterBehavior", "Not instantiable");
     qmlRegisterUncreatableType<SortBehavior>(uri, 1, 1, "SortBehavior", "Not instantiable");
+
+    // ListItem and related types, released to 1.2
+    qmlRegisterType<UCListItem, 2>(uri, 1, 2, "ListItem");
+    qmlRegisterType<UCListItemDivider>();
+    qmlRegisterType<UCListItemActions, 2>(uri, 1, 2, "ListItemActions");
 }
 
 void UbuntuComponentsPlugin::initializeEngine(QQmlEngine *engine, const char *uri)
 {
+    // initialize baseURL
+    m_baseUrl = QUrl(baseUrl().toString() + '/');
+
+    // register internal styles
+    const char *styleUri = "Ubuntu.Components.Styles";
+    qmlRegisterType<UCListItemStyle, 2>(styleUri, 1, 2, "ListItemStyle");
+
     QQmlExtensionPlugin::initializeEngine(engine, uri);
     QQmlContext* context = engine->rootContext();
 
@@ -242,12 +225,6 @@ void UbuntuComponentsPlugin::initializeEngine(QQmlEngine *engine, const char *ur
 
     // register icon provider
     engine->addImageProvider(QLatin1String("theme"), new UnityThemeIconProvider);
-
-    try {
-        engine->addImageProvider(QLatin1String("thumbnailer"), new ThumbnailGenerator);
-    } catch(std::runtime_error &e) {
-        qDebug() << "Could not create thumbnailer: " << e.what();
-    }
 
     // Necessary for Screen.orientation (from import QtQuick.Window 2.0) to work
     QGuiApplication::primaryScreen()->setOrientationUpdateMask(

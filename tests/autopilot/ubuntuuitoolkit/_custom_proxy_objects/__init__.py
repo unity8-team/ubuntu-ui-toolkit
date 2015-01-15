@@ -18,23 +18,28 @@
 
 
 __all__ = [
+    'AppHeader',
     'check_autopilot_version',
     'CheckBox',
     'get_keyboard',
     'get_pointing_device',
     'Header',
     'listitems',
+    'UCListItem',
     'MainView',
     'OptionSelector',
     'pickers',
     'popups',
     'QQuickFlickable',
+    'QQuickGridView',
     'QQuickListView',
     'TabBar',
     'Tabs',
+    'TextArea',
     'TextField',
     'Toolbar',
     'ToolkitException',
+    'UbuntuListView11',
     'UbuntuUIToolkitCustomProxyObjectBase',
 ]
 
@@ -47,18 +52,31 @@ from ubuntuuitoolkit._custom_proxy_objects._common import (
     UbuntuUIToolkitCustomProxyObjectBase,
 )
 from ubuntuuitoolkit._custom_proxy_objects._flickable import QQuickFlickable
-from ubuntuuitoolkit._custom_proxy_objects._header import Header
+from ubuntuuitoolkit._custom_proxy_objects._header import (
+    AppHeader,
+    Header,
+)
 from ubuntuuitoolkit._custom_proxy_objects import listitems
+from ubuntuuitoolkit._custom_proxy_objects._uclistitem import (
+    UCListItem
+)
 from ubuntuuitoolkit._custom_proxy_objects._mainview import MainView
 from ubuntuuitoolkit._custom_proxy_objects._optionselector import (
     OptionSelector
 )
 from ubuntuuitoolkit._custom_proxy_objects import pickers
 from ubuntuuitoolkit._custom_proxy_objects import popups
+from ubuntuuitoolkit._custom_proxy_objects._qquickgridview import (
+    QQuickGridView
+)
 from ubuntuuitoolkit._custom_proxy_objects._qquicklistview import (
     QQuickListView
 )
 from ubuntuuitoolkit._custom_proxy_objects._tabbar import TabBar
 from ubuntuuitoolkit._custom_proxy_objects._tabs import Tabs
+from ubuntuuitoolkit._custom_proxy_objects._textarea import TextArea
 from ubuntuuitoolkit._custom_proxy_objects._textfield import TextField
 from ubuntuuitoolkit._custom_proxy_objects._toolbar import Toolbar
+from ubuntuuitoolkit._custom_proxy_objects._ubuntulistview import (
+    UbuntuListView11
+)

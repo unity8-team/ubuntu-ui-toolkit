@@ -15,8 +15,8 @@
  */
 
 import QtQuick 2.0
-import Ubuntu.Unity.Action 1.1 as UnityActions
 import Ubuntu.Components 1.1 as Ubuntu
+import Ubuntu.Components.Popups 1.0
 
 /*!
     \qmltype TextField
@@ -25,8 +25,6 @@ import Ubuntu.Components 1.1 as Ubuntu
     \brief The TextField element displays a single line of editable plain text.
     Input constraints can be set through validator or inputMask. Setting echoMode
     to an appropriate value enables TextField to be used as password input field.
-
-    \b{This component is under heavy development.}
 
     \l {http://design.ubuntu.com/apps/building-blocks/text-field}{See also the Design Guidelines on the Text Field}.
 
@@ -115,7 +113,7 @@ ActionItem {
     property bool highlighted: focus
 
     /*!
-      Text that appears when there is no focus and no content in the component.
+      Text that appears when there is no content in the component.
 
       \qmlproperty string placeholderText
     */
@@ -135,7 +133,7 @@ ActionItem {
 
     /*!
       The property overrides the default popover of the TextField. When set, the TextField
-      will open the given popover instead of the defaul tone defined. The popover can either
+      will open the given popover instead of the default one defined. The popover can either
       be a component or a URL to be loaded.
       */
     property var popover
@@ -176,8 +174,9 @@ ActionItem {
     /*!
       Whether the TextField should gain active focus on a mouse press. By default
       this is set to true.
+      \qmlproperty bool activeFocusOnPress
     */
-    property bool activeFocusOnPress: true
+    property alias activeFocusOnPress: editor.activeFocusOnPress
 
     /*!
       Whether the TextField should scroll when the text is longer than the width.
@@ -472,8 +471,9 @@ ActionItem {
 
       If false, the user cannot use the mouse to select text, only can use it to
       focus the input.
+      \qmlproperty bool selectByMouse
     */
-    property bool selectByMouse: true
+    property alias selectByMouse: editor.selectByMouse
 
     /*!
       This read-only property provides the text currently selected in the text input.
@@ -737,15 +737,6 @@ ActionItem {
     }
 
     /*!
-      \internal
-       Ensure focus propagation
-    */
-    function forceActiveFocus()
-    {
-        inputHandler.activateInput();
-    }
-
-    /*!
       Returns true if the natural reading direction of the editor text found between
       positions start and end is right to left.
     */
@@ -825,6 +816,7 @@ ActionItem {
     // internals
 
     opacity: enabled ? 1.0 : 0.3
+    activeFocusOnPress: true
 
     /*! \internal */
     onVisibleChanged: {
@@ -856,14 +848,14 @@ ActionItem {
         property real lineSpacing: units.dp(3)
         property real lineSize: editor.font.pixelSize + lineSpacing
 
-        property int type: action ? action.parameterType : 0
+        property int type: action ? action.parameterType : Ubuntu.Action.None
         onTypeChanged: {
             // Don't undo explicitly specified hints
             if (inputMethodHints != Qt.ImhNone)
                 return
 
-            if (type == UnityActions.Action.Integer
-             || type == UnityActions.Action.Real)
+            if (type == Ubuntu.Action.Integer
+             || type == Ubuntu.Action.Real)
                 inputMethodHints = Qt.ImhDigitsOnly
         }
     }
@@ -911,24 +903,31 @@ ActionItem {
     AbstractButton {
         id: clearButton
         objectName: "clear_button"
-        property url iconSource: control.__styleInstance.iconSource
+        activeFocusOnPress: false
+
         anchors {
             top: parent.top
             right: rightPane.left
             bottom: parent.bottom
             margins: internal.spacing
         }
-        width: visible ? height : 0
+        /* draggedItemMouseArea and dragger in TextCursor are reparented to the
+           TextField and end up being on top of the clear button.
+           Ensure that the clear button receives touch/mouse events first.
+        */
+        z: 100
+        width: visible ? icon.width : 0
         visible: control.hasClearButton &&
+                 !control.readOnly &&
                     (control.activeFocus && ((editor.text != "") || editor.inputMethodComposing))
 
-        Image {
+        Icon {
+            id: icon
             anchors.verticalCenter: parent.verticalCenter
-            width: units.gu(3)
+            width: units.gu(2.5)
             height: width
-            smooth: true
-            source: control.hasClearButton ? clearButton.iconSource : ""
-            onSourceChanged: print(source)
+            // use icon from icon-theme
+            name: control.hasClearButton && !control.readOnly ? "clear-search" : ""
         }
 
         onClicked: editor.text = ""
@@ -949,7 +948,7 @@ ActionItem {
         // hint is shown till user types something in the field
         visible: (editor.text == "") && !editor.inputMethodComposing
         color: Theme.palette.normal.backgroundText
-        fontSize: "medium"
+        font: editor.font
         elide: Text.ElideRight
     }
 
@@ -957,7 +956,7 @@ ActionItem {
     // text input
     Flickable {
         id: flicker
-        objectName: "textfield_scroller"
+        objectName: "input_scroller"
         anchors {
             left: leftPane.right
             right: clearButton.left
@@ -977,15 +976,19 @@ ActionItem {
 
         TextInput {
             id: editor
+            objectName: "text_input"
             // FocusScope will forward focus to this component
             focus: true
             anchors.verticalCenter: parent.verticalCenter
+            verticalAlignment: TextInput.AlignVCenter
+            width: flicker.width
+            height: flicker.height
             cursorDelegate: TextCursor {
                 handler: inputHandler
             }
             color: control.__styleInstance.color
-            selectedTextColor: Theme.palette.selected.foregroundText
-            selectionColor: Theme.palette.selected.foreground
+            selectedTextColor: control.__styleInstance.selectedTextColor
+            selectionColor: control.__styleInstance.selectionColor
             font.pixelSize: FontUtils.sizeToPixels("medium")
             passwordCharacter: "\u2022"
             // forward keys to the root element so it can be captured outside of it
@@ -993,8 +996,9 @@ ActionItem {
             Keys.forwardTo: [control, inputHandler]
 
             // overrides
-            selectByMouse: false
-            activeFocusOnPress: false
+            selectByMouse: true
+            activeFocusOnPress: true
+            onActiveFocusChanged: if (!activeFocus && inputHandler.popover) PopupUtils.close(inputHandler.popover)
 
             // input selection and navigation handling
             Ubuntu.Mouse.forwardTo: [inputHandler]
@@ -1004,7 +1008,6 @@ ActionItem {
                 main: control
                 input: editor
                 flickable: flicker
-                selectionModeTimeout: control.__styleInstance.selectionModeTimeout
                 /*
                   In x direction we use the Flickable x position as we can have overlays
                   which can shift the cursor caret. On y direction we only use the topMargin

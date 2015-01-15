@@ -1,11 +1,9 @@
 module Ubuntu.Components.Themes.Ambiance
 internal ActivityIndicatorStyle ActivityIndicatorStyle.qml
 internal ButtonStyle ButtonStyle.qml
-internal CheckBoxStyle CheckBoxStyle.qml
 internal DialogForegroundStyle DialogForegroundStyle.qml
 internal HeaderStyle HeaderStyle.qml
-internal HeaderButtonStyle HeaderButtonStyle.qml
-internal NewHeaderStyle NewHeaderStyle.qml
+internal PageHeadButton PageHeadButton.qml
 MainViewStyle 0.1 MainViewStyle.qml
 ListItemOptionSelector 0.1 ListItemOptionSelector.qml
 OptionSelectorStyle 0.1 OptionSelectorStyle.qml
@@ -14,7 +12,6 @@ internal ScrollbarStyle ScrollbarStyle.qml
 internal SelectionCursorStyle SelectionCursorStyle.qml
 internal SheetForegroundStyle SheetForegroundStyle.qml
 internal SliderStyle SliderStyle.qml
-internal SwitchStyle SwitchStyle.qml
 TabBarStyle 0.1 TabBarStyle.qml
 TextAreaStyle 0.1 TextAreaStyle.qml
 internal TextCursorStyle TextCursorStyle.qml
@@ -30,7 +27,6 @@ DialerHandStyle 0.1 DialerHandStyle.qml
 internal HighlightMagnifier HighlightMagnifier.qml
 
 #version 1.0
-
 MainViewStyle 1.0 MainViewStyle.qml
 ListItemOptionSelector 1.0 ListItemOptionSelector.qml
 OptionSelectorStyle 1.0 OptionSelectorStyle.qml
@@ -46,6 +42,19 @@ DialerHandStyle 1.0 DialerHandStyle.qml
 
 #version 1.1
 ComboButtonStyle 1.1 ComboButtonStyle.qml
+PullToRefreshStyle 1.1 PullToRefreshStyle.qml
+PageHeadStyle 1.1 PageHeadStyle.qml
+Palette 1.1 Palette.qml
+ButtonStyle 1.1 ButtonStyle.qml
+SliderStyle 1.1 SliderStyle.qml
+SwitchStyle 1.1 SwitchStyle.qml
+CheckBoxStyle 1.1 CheckBoxStyle.qml
 
 internal TextSelectionStartCursorStyle TextSelectionStartCursorStyle.qml
 internal TextSelectionEndCursorStyle TextSelectionEndCursorStyle.qml
+internal OverflowPanel OverflowPanel.qml
+internal HeadDividerStyle HeadDividerStyle.qml
+
+#version 1.2
+ListItemPanel 1.2 ListItemPanel.qml
+ListItemStyle 1.2 ListItemStyle.qml

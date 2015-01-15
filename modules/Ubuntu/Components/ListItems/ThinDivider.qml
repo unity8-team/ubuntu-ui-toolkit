@@ -15,6 +15,7 @@
  */
 
 import QtQuick 2.0
+import Ubuntu.Components 1.0
 
 /*!
     \qmltype ThinDivider
@@ -25,7 +26,6 @@ import QtQuick 2.0
     ListItems will usually include this line at the bottom of the item
     to give a visually pleasing list of items. But a divider line can
     also be inserted manually using this component.
-    \b{This component is under heavy development.}
 
     Examples:
     \qml
@@ -44,11 +44,21 @@ import QtQuick 2.0
         }
     \endqml
 */
-Image {
+Rectangle {
     anchors {
         left: (parent) ? parent.left : null
         right: (parent) ? parent.right : null
     }
     height: (visible) ? units.dp(2) : 0
-    source: "artwork/ListItemDividerHorizontal.png"
+    // a private property to catch theme background color change
+    // use private property instead of embedding it into a QtObject to avoid further
+    // performance decrease
+    property bool __lightBackground: ColorUtils.luminance(Theme.palette.normal.background) > 0.85
+    // use a gradient of 4 steps instead of instantiating two Rectangles for performance reasons
+    gradient: Gradient {
+        GradientStop { position: 0.0; color: __lightBackground ? Qt.rgba(0, 0, 0, 0.1) : Qt.rgba(0, 0, 0, 0.4) }
+        GradientStop { position: 0.49; color: __lightBackground ? Qt.rgba(0, 0, 0, 0.1) : Qt.rgba(0, 0, 0, 0.4) }
+        GradientStop { position: 0.5; color: __lightBackground ? Qt.rgba(1, 1, 1, 0.4) : Qt.rgba(1, 1, 1, 0.1) }
+        GradientStop { position: 1.0; color: __lightBackground ? Qt.rgba(1, 1, 1, 0.4) : Qt.rgba(1, 1, 1, 0.1) }
+    }
 }

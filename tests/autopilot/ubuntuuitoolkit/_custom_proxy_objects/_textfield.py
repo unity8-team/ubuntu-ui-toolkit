@@ -14,7 +14,12 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-from autopilot import platform
+import logging
+
+from autopilot import (
+    logging as autopilot_logging,
+    platform
+)
 
 from ubuntuuitoolkit._custom_proxy_objects import (
     _common,
@@ -22,13 +27,17 @@ from ubuntuuitoolkit._custom_proxy_objects import (
 )
 
 
+logger = logging.getLogger(__name__)
+
+
 class TextField(_common.UbuntuUIToolkitCustomProxyObjectBase):
-    """TextField Autopilot emulator."""
+    """TextField Autopilot custom proxy object."""
 
     def __init__(self, *args):
         super(TextField, self).__init__(*args)
         self.keyboard = _common.get_keyboard()
 
+    @autopilot_logging.log_action(logger.info)
     def write(self, text, clear=True):
         """Write into the text field.
 
@@ -47,6 +56,7 @@ class TextField(_common.UbuntuUIToolkitCustomProxyObjectBase):
                     self.keyboard.press_and_release('End')
             self.keyboard.type(text)
 
+    @autopilot_logging.log_action(logger.info)
     def clear(self):
         """Clear the text field."""
         if not self.is_empty():
@@ -60,6 +70,7 @@ class TextField(_common.UbuntuUIToolkitCustomProxyObjectBase):
         """Return True if the text field is empty. False otherwise."""
         return self.text == ''
 
+    @autopilot_logging.log_action(logger.debug)
     def _click_clear_button(self):
         clear_button = self.select_single(
             'AbstractButton', objectName='clear_button')
@@ -67,27 +78,46 @@ class TextField(_common.UbuntuUIToolkitCustomProxyObjectBase):
             self.pointing_device.click_object(self)
         self.pointing_device.click_object(clear_button)
 
+    @autopilot_logging.log_action(logger.debug)
     def _clear_with_keys(self):
         if platform.model() == 'Desktop':
             self._select_all()
+            self.keyboard.press_and_release('BackSpace')
         else:
             # Touch tap currently doesn't have a press_duration parameter, so
-            # we can't show the popover. Reported as bug http://pad.lv/1268782
-            # --elopio - 2014-01-13
-            self.keyboard.press_and_release('End')
-        while not self.is_empty():
-            # We delete with backspace because the on-screen keyboard has that
-            # key.
-            self.keyboard.press_and_release('BackSpace')
+            # we can't select all the text.
+            # Reported as bug http://pad.lv/1268782 --elopio - 2014-01-13
+            self._go_to_end()
+            while self.cursorPosition != 0:
+                self._delete_one_character()
+        if not self.is_empty():
+            raise _common.ToolkitException('Failed to clear the text field.')
 
+    @autopilot_logging.log_action(logger.debug)
     def _select_all(self):
         if not self._is_all_text_selected():
-            self.pointing_device.click_object(self, press_duration=1)
+            # right click is needed
+            self.pointing_device.click_object(self, button=3)
             root = self.get_root_instance()
             main_view = root.select_single(_mainview.MainView)
-            popover = main_view.get_action_selection_popover(
-                'text_input_popover')
-            popover.click_button_by_text('Select All')
+            popover = main_view.get_text_input_context_menu(
+                'text_input_contextmenu')
+            popover.click_option_by_text('Select All')
 
     def _is_all_text_selected(self):
         return self.text == self.selectedText
+
+    @autopilot_logging.log_action(logger.debug)
+    def _go_to_end(self):
+        # XXX Here we are cheating because the on-screen keyboard doesn't have
+        # an END key. --elopio - 2014-08-20
+        self.keyboard.press_and_release('End')
+
+    @autopilot_logging.log_action(logger.debug)
+    def _delete_one_character(self):
+        original_text = self.text
+        # We delete with backspace because the on-screen keyboard has
+        # that key.
+        self.keyboard.press_and_release('BackSpace')
+        if len(self.text) != len(original_text) - 1:
+            raise _common.ToolkitException('Failed to delete one character.')

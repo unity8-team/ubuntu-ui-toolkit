@@ -18,7 +18,6 @@ import QtQuick 2.0
 import QtTest 1.0
 import Ubuntu.Components 1.1
 import Ubuntu.Test 1.0
-import Ubuntu.Unity.Action 1.1 as UnityActions
 
 MainView {
     width: 400
@@ -41,7 +40,7 @@ MainView {
                 enabled: true
                 name: 'selector'
                 text: 'Selector'
-                parameterType: UnityActions.Action.Integer
+                parameterType: Action.Integer
             }
         }
 
@@ -114,15 +113,18 @@ MainView {
              compare(selector.text, newText, "set/get");
          }
 
-         function test_selectedIndex() {
+         function test_0_selectedIndex() {
             compare(selector.selectedIndex, 0, "selectedIndex is 0 by default");
          }
 
          function test_model() {
+             selector.delegate = null;
              selector.model = undefined;
              var newValues = ["value0","value1","value2","value3"];
              selector.model = newValues;
              compare(selector.model, newValues, "set/get");
+             selector.model = customModel;
+             selector.delegate = selectorDelegate;
          }
 
          function test_custom_model_delegate() {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 Canonical Ltd.
+ * Copyright 2012, 2014 Canonical Ltd.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,9 +19,9 @@ import QtTest 1.0
 import Ubuntu.Components 1.1
 
 /*!
-    \qmlabstract UbuntuTestCase
-    \inqmlmodule Ubuntu.Test 0.1
-    \ingroup ubuntu
+    \qmltype UbuntuTestCase
+    \inqmlmodule Ubuntu.Test 1.0
+    \ingroup ubuntu-test
     \brief The UbuntuTestCase class expands the default TestCase class.
 
     \b{This component is under heavy development.}
@@ -29,42 +29,45 @@ import Ubuntu.Components 1.1
     This class extends the default QML TestCase class which is available in QtTest 1.0.
 */
 TestCase {
-	TestUtil {
-		id:util
-	}
+    TestUtil {
+        id:util
+    }
 
-	/*!
-		Find a child from the item based on the objectName.
-	*/
-	function findChild(obj,objectName) {
-		var childs = new Array(0);
-		childs.push(obj)
-		while (childs.length > 0) {
-			if (childs[0].objectName == objectName) {
-				return childs[0]
-			}
-			for (var i in childs[0].children) {
-				childs.push(childs[0].children[i])
-			}
-			childs.splice(0, 1);
-		}
-		return null;
-	}
+    /*!
+        Find a child from the item based on the objectName.
+    */
+    function findChild(obj,objectName) {
+        var childs = new Array(0);
+        childs.push(obj)
+        while (childs.length > 0) {
+            if (childs[0].objectName == objectName) {
+                return childs[0]
+            }
+            for (var i in childs[0].children) {
+                childs.push(childs[0].children[i])
+            }
+            childs.splice(0, 1);
+        }
+        return null;
+    }
 
-	function findInvisibleChild(obj,objectName) {
-		var childs = new Array(0);
-		childs.push(obj)
-		while (childs.length > 0) {
-			if (childs[0].objectName == objectName) {
-				return childs[0]
-			}
-			for (var i in childs[0].data) {
-				childs.push(childs[0].data[i])
-			}
-			childs.splice(0, 1);
-		}
-		return null;
-	}
+    /*!
+      Find a non-visual child such as QtObject based on objectName.
+      */
+    function findInvisibleChild(obj,objectName) {
+        var childs = new Array(0);
+        childs.push(obj)
+        while (childs.length > 0) {
+            if (childs[0].objectName == objectName) {
+                return childs[0]
+            }
+            for (var i in childs[0].data) {
+                childs.push(childs[0].data[i])
+            }
+            childs.splice(0, 1);
+        }
+        return null;
+    }
 
     /*!
       Finds a visible child of an \a item having a given \a property with a given
@@ -86,34 +89,47 @@ TestCase {
         return null;
     }
 
+    /*!
+      Returns the center point of the \a item.
+      */
+    function centerOf(item) {
+        if (!item) {
+            return undefined;
+        }
 
+        var center = Qt.point(item.width / 2, item.height / 2);
+        return center;
+    }
 
-	/*!
-		Move Mouse from x,y to distance of dx, dy divided to steps with a stepdelay (ms).
-	*/
-	function mouseMoveSlowly(item,x,y,dx,dy,steps,stepdelay) {
-		mouseMove(item,x,y);
-		var step_dx = dx/steps;
-		var step_dy = dy/steps;
+    /*!
+        Move Mouse from x,y to distance of dx, dy divided to steps with a stepdelay (ms).
+    */
+    function mouseMoveSlowly(item,x,y,dx,dy,steps,stepdelay) {
+        mouseMove(item, x, y);
+        var abs_dx = Math.abs(dx)
+        var abs_dy = Math.abs(dy)
+        var step_dx = dx / steps;
+        var step_dy = dy /steps;
 
-		var ix = 0;
-		var iy = 0;
-		for (var step=0; step<steps; step++) {
-			if (ix<dx) {
-				ix += step_dx;
-			}
-			if (iy<dx) {
-				iy += step_dy;
-			}
-			mouseMove(item,x + ix,y + iy,stepdelay);
-		}
-	}
+        var ix = 0;
+        var iy = 0;
+
+        for (var step=0; step < steps; step++) {
+            if (ix < abs_dx) {
+                ix += step_dx;
+            }
+            if (iy < abs_dy) {
+                iy += step_dy;
+            }
+            mouseMove(item, x + ix, y + iy, stepdelay);
+        }
+    }
 
     /*!
       \qmlmethod UbuntuTestCase::flick(item, x, y, dx, dy, pressTimeout = -1, steps = -1, button = Qt.LeftButton, modifiers = Qt.NoModifiers, delay = -1)
 
       The function produces a flick event when executed on Flickables. When used
-      on other components it provides the same functionality as \l mouseDrag()
+      on other components it provides the same functionality as \c mouseDrag()
       function. The optional \a pressTimeout parameter can be used to introduce
       a small delay between the mouse press and the first mouse move. Setting a
       negative or zero value will disable the timeout.
@@ -147,12 +163,9 @@ TestCase {
         if (pressTimeout !== undefined && pressTimeout > 0) {
             wait(pressTimeout);
         }
-        mouseMove(item, x, y, button, modifiers, delay);
-        for (var i = 1; i <= steps; i++) {
-            // mouse moves are all processed immediately, without delay in between events
-            mouseMove(item, x + i * ddx, y + i * ddy, -1, button);
-        }
-        mouseRelease(item, x + dx, y + dy, button, modifiers, delay);
+        // mouse moves are all processed immediately, without delay in between events
+        mouseMoveSlowly(item, x, y, dx, dy, steps, delay);
+        mouseRelease(item, x + dx, y + dy, button, modifiers);
         // empty event buffer
         wait(200);
     }
@@ -169,8 +182,6 @@ TestCase {
         system of \a item into window co-ordinates and then delivered.
         If \a item is obscured by another item, or a child of \a item occupies
         that position, then the event will be delivered to the other item instead.
-
-        \sa mouseRelease(), mouseClick(), mouseDoubleClick(), mouseMove(), mouseDrag(), mouseWheel()
       */
     function mouseLongPress(item, x, y, button, modifiers, delay) {
         mousePress(item, x, y, button, modifiers, delay);
@@ -180,35 +191,43 @@ TestCase {
     }
 
     /*!
-		Keeps executing a given parameter-less function until it returns the given
-		expected result or the timemout is reached (in which case a test failure
-		is generated)
-	*/
+        Keeps executing a given parameter-less function until it returns the given
+        expected result or the timemout is reached (in which case a test failure
+        is generated)
+    */
 
-	function tryCompareFunction(func, expectedResult, timeout) {
-		var timeSpent = 0
-		var success = false
-		var actualResult
-		if (timeout == undefined) {
+    function tryCompareFunction(func, expectedResult, timeout) {
+        var timeSpent = 0
+        var success = false
+        var actualResult
+        if (timeout == undefined) {
                     timeout = 5000;
                 }
-		while (timeSpent < timeout && !success) {
-			actualResult = func()
-			success = qtest_compareInternal(actualResult, expectedResult)
-			if (success === false) {
-				wait(50)
-				timeSpent += 50
-			}
-		}
+        while (timeSpent < timeout && !success) {
+            actualResult = func()
+            success = qtest_compareInternal(actualResult, expectedResult)
+            if (success === false) {
+                wait(50)
+                timeSpent += 50
+            }
+        }
 
-		var act = qtest_results.stringify(actualResult)
-		var exp = qtest_results.stringify(expectedResult)
-		if (!qtest_results.compare(success,
-				"function returned unexpected result",
-				act, exp,
-				util.callerFile(), util.callerLine())) {
-			throw new Error("QtQuickTest::fail")
-		}
-	}
-} 
+        var act = qtest_results.stringify(actualResult)
+        var exp = qtest_results.stringify(expectedResult)
+        if (!qtest_results.compare(success,
+                "function returned unexpected result",
+                act, exp,
+                util.callerFile(), util.callerLine())) {
+            throw new Error("QtQuickTest::fail")
+        }
+    }
 
+    /*!
+        Convenience function to allow typing a full string instead of single characters
+    */
+    function typeString(string) {
+        for (var i = 0; i < string.length; i++) {
+            keyClick(string[i]);
+        }
+    }
+}

@@ -92,31 +92,16 @@ private:
 private Q_SLOTS:
     void onImagePropertiesChanged();
     void onOpenglContextDestroyed();
+    void providerDestroyed(QObject* object=0);
 
 private:
-    enum DirtyFlags {
-        NotDirty           = 0,
-        DirtyColor     = (1 << 0),
-        DirtyGradientColor = (1 << 1),
-        DirtyRadius        = (1 << 2),
-        DirtyBorder        = (1 << 3),
-        DirtyImage         = (1 << 4),
-        DirtyStretched     = (1 << 5),
-        DirtyHAlignment    = (1 << 6),
-        DirtyVAlignment    = (1 << 7),
-        DirtyGridUnit      = (1 << 8),
-        DirtyGeometry      = (1 << 9),
-        DirtyAll           = (DirtyColor | DirtyGradientColor | DirtyRadius | DirtyBorder
-                              | DirtyImage | DirtyStretched | DirtyHAlignment | DirtyVAlignment
-                              | DirtyGridUnit | DirtyGeometry)
-    };
-
     struct TextureHandles {
         TextureHandles(): high(0), low(0) {}
         QSGTexture* high;
         QSGTexture* low;
     };
 
+    QSGTextureProvider* provider_;
     QColor color_;
     QColor gradientColor_;
     bool gradientColorSet_;
@@ -130,7 +115,6 @@ private:
     VAlignment vAlignment_;
     float gridUnit_;
     QRectF geometry_;
-    QFlags<DirtyFlags> dirtyFlags_;
     static QHash<QOpenGLContext*, TextureHandles> textures_;
 
     Q_DISABLE_COPY(ShapeItem)
@@ -144,6 +128,7 @@ public:
     ShapeTexturedMaterial();
     virtual QSGMaterialType* type() const;
     virtual QSGMaterialShader* createShader() const;
+    virtual int compare(const QSGMaterial* other) const;
     QSGTextureProvider* imageTextureProvider() const;
     void setImage(QQuickItem* image);
     QSGTexture* shapeTexture() const { return shapeTexture_; }
@@ -183,6 +168,7 @@ public:
     ShapeColoredMaterial();
     virtual QSGMaterialType* type() const;
     virtual QSGMaterialShader* createShader() const;
+    virtual int compare(const QSGMaterial* other) const;
     const QVector4D& color() const { return color_; }
     void setColor(const QColor& color);
     const QVector4D& gradientColor() const { return gradientColor_; }

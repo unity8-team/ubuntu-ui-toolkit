@@ -57,7 +57,6 @@ import Ubuntu.Components 1.1
             }
         }
     \endqml
-    \b{This component is under heavy development.}
 */
 Empty {
     id: listItem
@@ -76,7 +75,6 @@ Empty {
     property variant icon: iconSource != "" ? iconSource : undefined
 
     /*!
-      \preliminary
       The location of the icon to show in the list item if iconSource failed to load (optional).
       \qmlproperty url fallbackIconSource
      */
@@ -92,7 +90,7 @@ Empty {
       \note The complete list of icons available in Ubuntu is not published yet.
             For now please refer to the folders where the icon themes are installed:
             \list
-              \li Ubuntu Touch: \l file:/usr/share/icons/ubuntu-mobile
+              \li Ubuntu Touch: \l file:/usr/share/icons/suru
               \li Ubuntu Desktop: \l file:/usr/share/icons/ubuntu-mono-dark
             \endlist
             These 2 separate icon themes will be merged soon.
@@ -100,13 +98,11 @@ Empty {
     property alias fallbackIconName: iconHelper.fallbackIconName
 
     /*!
-      \preliminary
       The text that is shown in the list item as a label.
       \qmlproperty string text
      */
 
     /*!
-      \preliminary
       Show or hide the progression symbol.
      */
     property bool progression: false
@@ -140,7 +136,6 @@ Empty {
     property real __rightIconMargin
 
     /*!
-      \preliminary
       An optional control that is displayed inside the list item.
       The width of the control must be specified in order to determine
       the layout of the list item.
@@ -150,7 +145,6 @@ Empty {
     property alias control: controlContainer.control
 
     /*!
-      \preliminary
       Show or hide the frame around the icon
       \qmlproperty bool iconFrame
      */
@@ -197,7 +191,7 @@ Empty {
         id: iconHelper
 
         width: height
-        height: Math.min(units.gu(5), parent.height - units.gu(1))
+        height: Math.min(units.gu(5), listItem.height - units.gu(1))
         anchors {
             left: parent.left
             leftMargin: listItem.__contentsMargins
@@ -278,22 +272,8 @@ Empty {
 
         Connections {
             target: listItem.__mouseArea
-
-            onClicked: {
-                if (control && __mouseArea.mouseX < progressionHelper.x) {
-                    if (control.enabled && control.hasOwnProperty("clicked")) control.clicked();
-                } else {
-                    listItem.clicked();
-                }
-            }
-
-            onPressAndHold: {
-                if (control && control.enabled && __mouseArea.mouseX < progressionHelper.x && control.hasOwnProperty("pressAndHold")) {
-                    control.pressAndHold();
-                } else {
-                    listItem.pressAndHold();
-                }
-            }
+            onClicked: listItem.clicked()
+            onPressAndHold: listItem.pressAndHold()
         }
     }
 

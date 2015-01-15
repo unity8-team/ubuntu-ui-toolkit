@@ -15,6 +15,7 @@
  */
 
 import QtQuick 2.0
+import Ubuntu.Components 1.1
 
 // FIXME : move the API into Ubuntu.Components.Style
 Item {
@@ -43,19 +44,29 @@ Item {
       */
     property Item caret: caretItem
 
+    /*!
+      The width of the cursor.
+      */
+    property int cursorWidth: units.dp(2)
+
     // style body
     Component {
         id: delegate
         Rectangle {
-            width: units.dp(1)
-            color: Theme.palette.selected.foreground
-            visible: blinkTimer.timerShowCursor
+            objectName: "text_cursor_style_" + styledItem.positionProperty
+            width: cursorWidth
+            // FIXME: Extend the palette and use palette values here
+            color: UbuntuColors.blue
+            visible: blinkTimer.timerShowCursor || !blinkTimer.running
             Timer {
                 id: blinkTimer
                 interval: cursorStyle.cursorVisibleTimeout
                 running: (cursorStyle.cursorVisibleTimeout > 0) &&
                          (cursorStyle.cursorHiddenTimeout > 0) &&
-                         styledItem.visible
+                         styledItem.visible &&
+                         !styledItem.readOnly &&
+                         !styledItem.contextMenuVisible &&
+                         styledItem.positionProperty === "cursorPosition"
                 repeat: true
                 property bool timerShowCursor: true
                 onTriggered: {
@@ -70,12 +81,16 @@ Item {
     // caretItem
     Image {
         id: caretItem
-        source: "artwork/teardrop-left.png"
+        source: "artwork/caret_noshadow.png"
+        objectName: "text_cursor_style_caret_" + styledItem.positionProperty
         anchors {
-            top: parent.bottom
+            top: styledItem.positionProperty === "selectionStart" ? undefined : parent.bottom
+            bottom: styledItem.positionProperty === "selectionStart" ? parent.top : undefined
             horizontalCenter: parent.horizontalCenter
-            topMargin: -units.gu(0.5)
-            horizontalCenterOffset: LayoutMirroring.enabled ? -units.gu(0.7) : units.gu(0.7)
+            horizontalCenterOffset: styledItem.positionProperty === "cursorPosition"
+            ? 0
+            : (LayoutMirroring.enabled ? -1 : 1) * (implicitWidth / 2 - cursorWidth)
         }
+        rotation: styledItem.positionProperty === "selectionStart" ? 180 : 0
     }
 }

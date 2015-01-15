@@ -14,6 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+pragma Singleton
 import QtQuick 2.0
 import QtQuick.Window 2.0
 import Ubuntu.Components 1.1
@@ -116,6 +117,11 @@ Object {
             "date": caller[property],
             "pickerMode": mode,
             "callerProperty": property
+        }
+
+        // hide OSK if eventually open
+        if (Qt.inputMethod.visible) {
+            Qt.inputMethod.hide();
         }
 
         if (!internal.isPhone) {

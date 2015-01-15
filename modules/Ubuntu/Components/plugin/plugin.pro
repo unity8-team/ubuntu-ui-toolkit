@@ -1,11 +1,11 @@
 unix {
     CONFIG += link_pkgconfig
-    PKGCONFIG += gio-2.0 thumbnailer dbus-1 libnih-dbus
+    PKGCONFIG += gio-2.0 dbus-1 libnih-dbus
 }
 
 TEMPLATE = lib
 TARGET = ../UbuntuComponents
-QT += core-private qml qml-private quick quick-private dbus
+QT += core-private qml qml-private quick quick-private gui-private dbus svg
 
 equals(QT_MAJOR_VERSION, 5):lessThan(QT_MINOR_VERSION, 2) {
     QT += v8-private
@@ -50,9 +50,6 @@ HEADERS += plugin.h \
     alarmmanager_p.h \
     ucalarmmodel.h \
     unitythemeiconprovider.h \
-    thumbnailgenerator.h \
-    alarmrequest_p.h \
-    alarmrequest_p_p.h \
     adapters/alarmsadapter_p.h \
     ucstatesaver.h \
     sortbehavior.h \
@@ -63,7 +60,19 @@ HEADERS += plugin.h \
     ucurihandler.h \
     ucinversemouse.h \
     ucmouse.h \
-    unixsignalhandler_p.h
+    unixsignalhandler_p.h \
+    ucstyleditembase.h \
+    ucstyleditembase_p.h \
+    ucaction.h \
+    ucactioncontext.h \
+    ucactionmanager.h \
+    adapters/actionsproxy_p.h \
+    uclistitem.h \
+    uclistitem_p.h \
+    uclistitemactions.h \
+    uclistitemactions_p.h \
+    propertychange_p.h \
+    uclistitemstyle.h
 
 SOURCES += plugin.cpp \
     uctheme.cpp \
@@ -87,8 +96,6 @@ SOURCES += plugin.cpp \
     alarmmanager_p.cpp \
     ucalarmmodel.cpp \
     unitythemeiconprovider.cpp \
-    thumbnailgenerator.cpp \
-    alarmrequest_p.cpp \
     ucstatesaver.cpp \
     sortbehavior.cpp \
     filterbehavior.cpp \
@@ -96,7 +103,18 @@ SOURCES += plugin.cpp \
     statesaverbackend_p.cpp \
     ucurihandler.cpp \
     ucmousefilters.cpp \
-    unixsignalhandler_p.cpp
+    unixsignalhandler_p.cpp \
+    ucstyleditembase.cpp \
+    ucaction.cpp \
+    ucactioncontext.cpp \
+    ucactionmanager.cpp \
+    adapters/actionsproxy_p.cpp \
+    uclistitem.cpp \
+    uclistitemactions.cpp \
+    uclistitemactionsattached.cpp \
+    uclistitemattached.cpp \
+    propertychange_p.cpp \
+    uclistitemstyle.cpp
 
 # adapters
 SOURCES += adapters/alarmsadapter_organizer.cpp

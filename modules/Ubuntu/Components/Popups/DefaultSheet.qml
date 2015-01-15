@@ -19,6 +19,7 @@ import Ubuntu.Components 1.1
 
 /*!
     \qmltype DefaultSheet
+    \deprecated
     \inherits SheetBase
     \inqmlmodule Ubuntu.Components.Popups 1.0
     \ingroup ubuntu-popups
@@ -58,31 +59,30 @@ import Ubuntu.Components 1.1
             }
         }
     \endqml
+
+    \b{Sheets are deprecated. Consider using \l Dialog, \l Popover or \l PageStack instead.}
 */
 SheetBase {
     id: sheet
 
     /*!
-      \preliminary
       If set, a "done" button is visible in the top right of the sheet's header, if unset
       a "cancel" button is available in the top left of the sheet's header.
     */
     property bool doneButton: false
 
     /*!
-      \preliminary
       This handler is called when the close button is clicked.
      */
     signal closeClicked
 
     /*!
-      \preliminary
       This handler is called when the done button is clicked.
      */
     signal doneClicked
 
     __leftButton: Button {
-        text: i18n.dtr("ubuntu-sdk", "close")
+        text: i18n.dtr("ubuntu-ui-toolkit", "Close")
         visible: !doneButton
         /*! \internal */
         onClicked: {
@@ -92,7 +92,7 @@ SheetBase {
     }
 
     __rightButton: Button {
-        text: i18n.dtr("ubuntu-sdk", "done")
+        text: i18n.dtr("ubuntu-ui-toolkit", "Done")
         color: UbuntuColors.orange
         visible: doneButton
         /*! \internal */

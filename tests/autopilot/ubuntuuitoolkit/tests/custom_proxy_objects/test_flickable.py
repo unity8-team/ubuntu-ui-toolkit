@@ -14,60 +14,26 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+try:
+    from unittest import mock
+except ImportError:
+    import mock
 
 import testtools
-
 import ubuntuuitoolkit
 from ubuntuuitoolkit import tests
-from ubuntuuitoolkit._custom_proxy_objects import _common
 
 
 class FlickableTestCase(testtools.TestCase):
-
-    def test_get_unity_top_container(self):
-        """Test that we can get the top cointainer in Unity."""
-        # This tests bug http://pad.lv/1314390
-        # On Unity, the top container is not the first child as it is in all
-        # the apps that have a MainView. This makes the first implementation of
-        # _get_top_container fail. Instead of going from the top looking for
-        # a container, we should start from the flickable until we find the
-        # top-most container.
-        # FIXME we are faking the QML tree because we have no way to launch
-        # the app with a tree like the one in Unity8. kalikiana has a branch
-        # with an alternate launcher that will let us clean this test.
-        # --elopio - 2014-05-15.
-        RootClass = type('obj', (object,), {'id': 'root'})
-        mock_root_instance = RootClass()
-        # We consider a container is an object with a globalRect.
-        MockNonContainerClass = type('obj', (object,), {})
-        mock_non_container = MockNonContainerClass()
-        MockContainerClass = type(
-            'obj', (object,), {'id': 'container', 'globalRect': 'dummy'})
-        mock_container = MockContainerClass()
-        mock_container.get_parent = lambda: mock_root_instance
-
-        # The root instance has two children. This exposes the bug.
-        mock_root_instance.get_children = lambda: [
-            mock_non_container, mock_container]
-
-        dummy_state = {'id': '10'}
-        flickable = ubuntuuitoolkit.QQuickFlickable(
-            dummy_state, '/dummy'.encode(), 'dummy')
-
-        flickable.get_root_instance = lambda: mock_root_instance
-        # The top container of the flickable is its immediate parent.
-        flickable.get_parent = lambda: mock_container
-
-        top_container = flickable._get_top_container()
-        self.assertEqual(top_container, mock_container)
 
     def test_is_flickable_with_flicking_property_must_return_true(self):
         """is_flickable returns True if flickable property exists."""
         dummy_id = (0, 0)
         dummy_flicking = (0, 'dummy')
         state_with_flicking = {'id': dummy_id, 'flicking': dummy_flicking}
-        element = _common.UbuntuUIToolkitCustomProxyObjectBase(
+        element = ubuntuuitoolkit.UbuntuUIToolkitCustomProxyObjectBase(
             state_with_flicking, '/dummy'.encode(), 'dummy')
+
         with element.no_automatic_refreshing():
             self.assertTrue(element.is_flickable())
 
@@ -75,8 +41,9 @@ class FlickableTestCase(testtools.TestCase):
         """is_flickable returns False if flickable property doesn't exist."""
         dummy_id = (0, 0)
         state_without_flicking = {'id': dummy_id}
-        element = _common.UbuntuUIToolkitCustomProxyObjectBase(
+        element = ubuntuuitoolkit.UbuntuUIToolkitCustomProxyObjectBase(
             state_without_flicking, '/dummy'.encode(), 'dummy')
+
         with element.no_automatic_refreshing():
             self.assertFalse(element.is_flickable())
 
@@ -124,7 +91,7 @@ MainView {
         self.assertEqual(element.is_flickable(), self.is_flickable)
 
 
-class SwipeIntoViewTestCase(tests.QMLStringAppTestCase):
+class SwipeFlickableTestCase(tests.QMLStringAppTestCase):
 
     test_qml = ("""
 import QtQuick 2.0
@@ -175,12 +142,14 @@ MainView {
 """)
 
     def setUp(self):
-        super(SwipeIntoViewTestCase, self).setUp()
+        super(SwipeFlickableTestCase, self).setUp()
+        self.flickable = self.main_view.select_single(
+            ubuntuuitoolkit.QQuickFlickable, objectName='flickable')
         self.label = self.main_view.select_single(
             'Label', objectName='clickedLabel')
         self.assertEqual(self.label.text, 'No element clicked.')
 
-    def test_swipe_to_bottom(self):
+    def test_swipe_into_view_bottom_element(self):
         self.main_view.close_toolbar()
 
         button = self.main_view.select_single(objectName='bottomButton')
@@ -189,7 +158,7 @@ MainView {
         self.pointing_device.click_object(button)
         self.assertEqual(self.label.text, 'bottomButton')
 
-    def test_swipe_to_top(self):
+    def test_swipe_into_view_top_element(self):
         self.main_view.close_toolbar()
         bottomButton = self.main_view.select_single(objectName='bottomButton')
         bottomButton.swipe_into_view()
@@ -199,3 +168,99 @@ MainView {
 
         self.pointing_device.click_object(topButton)
         self.assertEqual(self.label.text, 'topButton')
+
+    def test_swipe_to_top_must_leave_flickable_at_y_beginning(self):
+        self.flickable.swipe_to_bottom()
+        self.assertFalse(self.flickable.atYBeginning)
+
+        self.flickable.swipe_to_top()
+        self.assertTrue(self.flickable.atYBeginning)
+
+    def test_swipe_to_bottom_must_leave_flickable_at_y_end(self):
+        self.flickable.swipe_to_top()
+        self.assertFalse(self.flickable.atYEnd)
+
+        self.flickable.swipe_to_bottom()
+        self.assertTrue(self.flickable.atYEnd)
+
+    def test_swipe_to_show_more_above_with_containers(self):
+        """Swipe to show more above must receive containers as parameter."""
+        self.flickable.swipe_to_bottom()
+        self.assertTrue(self.flickable.atYEnd)
+
+        containers = self.flickable._get_containers()
+        self.flickable.swipe_to_show_more_above(containers)
+        self.assertFalse(self.flickable.atYEnd)
+
+    def test_swipe_to_show_more_above_without_arguments(self):
+        """Calling swipe to show more above must get containers by default."""
+        self.flickable.swipe_to_bottom()
+        self.assertTrue(self.flickable.atYEnd)
+
+        self.flickable.swipe_to_show_more_above()
+        self.assertFalse(self.flickable.atYEnd)
+
+    def test_swipe_to_show_more_below_with_containers(self):
+        """Swipe to show more below must receive containers as parameter."""
+        self.flickable.swipe_to_top()
+        self.assertTrue(self.flickable.atYBeginning)
+
+        containers = self.flickable._get_containers()
+        self.flickable.swipe_to_show_more_below(containers)
+        self.assertFalse(self.flickable.atYBeginning)
+
+    def test_swipe_to_show_more_below_without_arguments(self):
+        """Calling swipe to show more below must get containers by default."""
+        self.flickable.swipe_to_top()
+        self.assertTrue(self.flickable.atYBeginning)
+
+        self.flickable.swipe_to_show_more_below()
+        self.assertFalse(self.flickable.atYBeginning)
+
+    def test_failed_drag_must_raise_exception(self):
+        dummy_coordinates = (0, 0, 10, 10)
+        # Patch the pointing device so it does nothing and the swipe fails.
+        with mock.patch.object(self.flickable, 'pointing_device'):
+            error = self.assertRaises(
+                ubuntuuitoolkit.ToolkitException,
+                self.flickable._slow_drag,
+                *dummy_coordinates
+            )
+
+        self.assertEqual('Could not swipe in the flickable.', str(error))
+
+
+class UnityFlickableTestCase(tests.QMLStringAppTestCase):
+
+    test_qml = ("""
+import QtQuick 2.0
+import Ubuntu.Components 0.1
+
+MainView {
+    width: units.gu(48)
+    height: units.gu(60)
+
+    Flickable {
+        objectName: 'testFlickable'
+        width: 200; height: 200
+        contentWidth: image.width; contentHeight: image.height
+    }
+}
+""")
+
+    def get_command_line(self, command_line):
+        command_line.append('-engine')
+        return command_line
+
+    def test_get_unity_top_container(self):
+        """Test that we can get the top cointainer in Unity."""
+        # This tests bug http://pad.lv/1314390
+        # On Unity, the top container is not the first child as it is in all
+        # the apps that have a MainView. This makes the first implementation of
+        # _get_top_container fail. Instead of going from the top looking for
+        # a container, we should start from the flickable until we find the
+        # top-most container.
+        test_flickable = self.app.select_single(
+            ubuntuuitoolkit.QQuickFlickable, objectName='testFlickable')
+        top_container = test_flickable._get_top_container()
+        self.assertIsInstance(top_container, ubuntuuitoolkit.MainView)

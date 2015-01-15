@@ -69,19 +69,16 @@ import Ubuntu.Components 1.1
     \endqml
 
     See the documentation of the derived classes of Empty for more examples.
-    \b{This component is under heavy development.}
 */
 AbstractButton {
     id: emptyListItem
 
     /*!
-      \preliminary
       Specifies whether the list item is selected.
      */
     property bool selected: false
 
     /*!
-      \preliminary
       Highlight the list item when it is pressed.
       This is used to disable the highlighting of the full list item
       when custom highlighting needs to be implemented (for example in
@@ -90,34 +87,29 @@ AbstractButton {
     property bool highlightWhenPressed: true
 
     /*!
-      \preliminary
       Defines if this item can be removed or not.
      */
     property bool removable: false
 
     /*!
-      \preliminary
       Defines if the item needs confirmation before removing by swiping.
       \qmlproperty bool confirmRemoval
      */
     property alias confirmRemoval: confirmRemovalDialog.visible
 
     /*!
-      \preliminary
       \qmlproperty string swipingState
-      The current swiping state ("SwipingLeft", "SwipingRight", "")
+      The current swiping state ("SwipingRight" or "")
      */
     readonly property alias swipingState: backgroundIndicator.state
 
     /*!
-      \preliminary
       \qmlproperty bool waitingConfirmationForRemoval
       Defines if the item is waiting for the user interaction during the swipe to delete
      */
     readonly property alias waitingConfirmationForRemoval: confirmRemovalDialog.waitingForConfirmation
 
     /*!
-      \preliminary
       This handler is called when the item is removed from the list
      */
     signal itemRemoved
@@ -130,7 +122,6 @@ AbstractButton {
     property int __height: units.gu(6)
 
     /*!
-      \preliminary
       Set to show or hide the thin bottom divider line (drawn by the \l ThinDivider component).
       This line is shown by default except in cases where this item is the delegate of a ListView.
      */
@@ -150,14 +141,12 @@ AbstractButton {
     property alias __contents: body
 
     /*!
-      \preliminary
       \qmlproperty list<Item> backgroundIndicator
       Defines the item background item to be showed during the item swiping
      */
     property alias backgroundIndicator: backgroundIndicator.children
 
     /*!
-      \preliminary
       \qmlproperty ThinDivider divider
       Exposes our the bottom line divider.
      */
@@ -169,12 +158,12 @@ AbstractButton {
     property real __contentsMargins: units.gu(2)
 
     /*!
-      \preliminary
       Cancel item romoval
      */
     function cancelItemRemoval()
     {
         priv.resetDrag()
+        priv.removed = false
     }
 
     width: parent ? parent.width : units.gu(31)
@@ -228,7 +217,7 @@ AbstractButton {
             __mouseArea.drag.target = body
             held = true
             __mouseArea.drag.maximumX = parent.width
-            __mouseArea.drag.minimumX = (parent.width * -1)
+            __mouseArea.drag.minimumX = 0
             backgroundIndicator.visible = true
         }
 
@@ -287,6 +276,23 @@ AbstractButton {
         }
     }
 
+    Rectangle {
+        id: highlight
+
+        z: -1
+        visible: !priv.removed && emptyListItem.swipingState === ""
+                 ? emptyListItem.selected
+                   || (emptyListItem.highlightWhenPressed && emptyListItem.pressed)
+                 : false
+        anchors {
+            left: parent.left
+            right: parent.right
+            top: parent.top
+        }
+        height: emptyListItem.height - bottomDividerLine.height
+        color: Theme.palette.selected.background
+    }
+
     ThinDivider {
         id: bottomDividerLine
         anchors.bottom: parent.bottom
@@ -334,10 +340,8 @@ AbstractButton {
             onXChanged: {
                 if (x > 0) {
                     backgroundIndicator.state = "SwipingRight"
-                } else if (x === 0) {
-                    backgroundIndicator.state = ""
                 } else {
-                    backgroundIndicator.state = "SwipingLeft"
+                    backgroundIndicator.state = ""
                 }
             }
         }
@@ -390,7 +394,7 @@ AbstractButton {
                         width: units.gu(5)
                     }
                     Label {
-                        text: i18n.dtr('ubuntu-ui-toolkit', 'Delete')
+                        text: i18n.dtr('ubuntu-ui-toolkit', "Delete")
                         verticalAlignment: Text.AlignVCenter
                         anchors {
                             verticalCenter: parent.verticalCenter
@@ -426,24 +430,6 @@ AbstractButton {
                     PropertyChanges {
                         target: confirmRemovalDialog
                         x: body.x - confirmRemovalDialog.width - units.gu(2)
-                    }
-                },
-                State {
-                    name: "SwipingLeft"
-                    AnchorChanges {
-                        target: backgroundIndicator
-                        anchors.left: body.right
-                        anchors.right: parent.right
-                    }
-
-                    PropertyChanges {
-                        target: backgroundIndicator
-                        opacity: 1.0
-                    }
-
-                    PropertyChanges {
-                        target: confirmRemovalDialog
-                        x: units.gu(2)
                     }
                 }
             ]

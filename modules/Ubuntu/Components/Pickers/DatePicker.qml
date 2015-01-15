@@ -302,6 +302,7 @@ StyledItem {
 
     implicitWidth: units.gu(36)
     implicitHeight: units.gu(20)
+    activeFocusOnPress: true
 
     /*! \internal */
     onMinimumChanged: {
@@ -523,7 +524,8 @@ StyledItem {
         function updatePickers() {
             if (completed) {
                 // check mode flags first
-                var modes = datePicker.mode.split(/\W/g);
+                // FIXME: The js split(/\W/g) terminates the process on armhf with Qt 5.3 (v4 js) (https://bugreports.qt-project.org/browse/QTBUG-39255)
+                var modes = datePicker.mode.match(/\w+/g);
 
                 showYearPicker = showMonthPicker = showDayPicker =
                 showHoursPicker = showMinutesPicker = showSecondsPicker = false;
@@ -556,20 +558,20 @@ StyledItem {
 
                 // filter unaccepted date picking mode
                 if (!showMonthPicker && showYearPicker && showDayPicker) {
-                    console.error("Invalid DatePicker mode: " + datePicker.mode);
+                    console.warn("Invalid DatePicker mode: " + datePicker.mode);
                     return;
                 }
 
                 // filter unaccepted time picking mode
                 if (showHoursPicker && showSecondsPicker && !showMinutesPicker) {
-                    console.error("Invalid DatePicker mode: " + datePicker.mode);
+                    console.warn("Invalid DatePicker mode: " + datePicker.mode);
                     return;
                 }
 
                 // date and time picking not allowed at the same time
                 if ((showYearPicker || showMonthPicker || showDayPicker) &&
                         (showHoursPicker || showMinutesPicker || showSecondsPicker)) {
-                    console.error("Date and Time picking not allowed at the same time.");
+                    console.warn("Date and Time picking not allowed at the same time.");
                     return;
                 }
 
@@ -607,7 +609,8 @@ StyledItem {
             completed = false;
 
             // use short format to exclude any extra characters
-            var format = datePicker.locale.dateFormat(Locale.ShortFormat).split(/\W/g);
+            // FIXME: The js split(/\W/g) terminates the process on armhf with Qt 5.3 (v4 js) (https://bugreports.qt-project.org/browse/QTBUG-39255)
+            var format = datePicker.locale.dateFormat(Locale.ShortFormat).match(/\w+/g);
             // loop through the format to decide the position of the tumbler
             var formatIndex = 0;
             for (var i in format) {

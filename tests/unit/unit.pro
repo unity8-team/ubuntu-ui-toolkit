@@ -18,11 +18,10 @@ SUBDIRS += tst_units \
     tst_scaling_image_provider \
     tst_qquick_image_extension \
     tst_performance \
-    tst_ubuntu_shape \
     tst_mainview \
-    tst_page \
     tst_i18n \
     tst_arguments \
     tst_argument \
     tst_alarms \
-    tst_theme
+    tst_theme \
+    tst_quickutils

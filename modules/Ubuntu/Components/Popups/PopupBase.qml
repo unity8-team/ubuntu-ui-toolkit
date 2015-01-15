@@ -55,27 +55,37 @@ OrientationHelper {
     // copy value of automaticOrientation from root object (typically a MainView)
     automaticOrientation: stateWrapper.rootItem && stateWrapper.rootItem.automaticOrientation ?
                           stateWrapper.rootItem.automaticOrientation : false
+    anchorToKeyboard: true
 
     LayoutMirroring.enabled: Qt.application.layoutDirection == Qt.RightToLeft
     LayoutMirroring.childrenInherit: true
 
     /*!
-      \preliminary
       Make the popup visible. Reparent to the background area object first if needed.
       Only use this function if you handle memory management. Otherwise use
       PopupUtils.open() to do it automatically.
     */
     function show() {
-        if (!dismissArea)
-            dismissArea = stateWrapper.rootItem
+
+        if ((typeof popupBase["reparentToRootItem"]) === "boolean") {
+            // So the property exists. Let's use it then.
+            if (reparentToRootItem) {
+                parent = stateWrapper.rootItem;
+            }
+        } else {
+            // The property does not exist. Default is to reparent
+            parent = stateWrapper.rootItem;
+        }
+
+        if (!dismissArea) {
+            dismissArea = parent
+        }
 
         // Without setting the parent, mapFromItem() breaks in internalPopupUtils.
-        parent = stateWrapper.rootItem;
         stateWrapper.state = 'opened';
     }
 
     /*!
-      \preliminary
       Hide the popup.
       Only use this function if you handle memory management. Otherwise use
       PopupUtils.close() to do it automatically.
@@ -162,11 +172,40 @@ OrientationHelper {
     onVisibleChanged: stateWrapper.state = (visible) ? 'opened' : 'closed'
     /*! \internal */
     onParentChanged: stateWrapper.rootItem = QuickUtils.rootItem(popupBase)
-    Component.onCompleted: stateWrapper.rootItem = QuickUtils.rootItem(popupBase);
+    Component.onCompleted: {
+        stateWrapper.saveActiveFocus();
+        stateWrapper.rootItem = QuickUtils.rootItem(popupBase);
+    }
 
     Item {
         id: stateWrapper
         property Item rootItem: QuickUtils.rootItem(popupBase)
+
+        property bool windowIsValid: typeof window != "undefined"
+        property Item prevFocus
+
+        function saveActiveFocus() {
+            // 'window' context property is exposed to QML after component completion
+            // before rendering is complete, therefore a simple 'if (window)' check is
+            // not enough.
+            if (windowIsValid) {
+                prevFocus = window.activeFocusItem;
+                windowIsValidChanged.disconnect(saveActiveFocus);
+            } else {
+                // connect the function so we can save the original focus item
+                windowIsValidChanged.connect(saveActiveFocus);
+            }
+        }
+
+        function restoreActiveFocus() {
+            if (prevFocus) {
+                if (prevFocus.hasOwnProperty("requestFocus")) {
+                    prevFocus.requestFocus(Qt.PopupFocusReason);
+                } else {
+                    prevFocus.forceActiveFocus(Qt.PopupFocusReason);
+                }
+            }
+        }
 
         states: [
             State {
@@ -210,6 +249,9 @@ OrientationHelper {
                     ScriptAction {
                         script: {
                             popupBase.visible = false;
+                            if (eventGrabber.enabled) {
+                                stateWrapper.restoreActiveFocus();
+                            }
                         }
                     }
                 }

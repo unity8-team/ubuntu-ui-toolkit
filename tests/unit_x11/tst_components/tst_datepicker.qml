@@ -59,7 +59,11 @@ Item {
         function getPickerLabel(picker, name) {
             var pickerItem = findChild(picker, name);
             var pickerCurrent = findChild(pickerItem, "Picker_ViewLoader");
-            return pickerCurrent.item.currentItem.children[2];
+            // note: find Label, Picker's label uses medium font size. The lookup must be changed
+            // if the fontSize is changed!
+            var pickerLabel = findChildWithProperty(pickerCurrent.item.currentItem, "fontSize", "medium");
+            verify(pickerLabel, ("Label of %1 not accessible").arg(name));
+            return pickerLabel;
         }
         function getPickerModel(picker, name) {
             var pickerItem = findInvisibleChild(picker, name);
@@ -115,6 +119,7 @@ Item {
         }
 
         function test_1_changeModeYD() {
+            ignoreWarning('Invalid DatePicker mode: Years|Days')
             var newMode = "Years|Days";
             var pickerCount = 2 + 1; // +1 is the Repeater
             picker.mode = newMode;
@@ -179,6 +184,7 @@ Item {
         }
 
         function test_1_changeModeHS() {
+            ignoreWarning('Invalid DatePicker mode: Hours|Seconds')
             var newMode = "Hours|Seconds";
             var pickerCount = 2 + 1; // +1 is the Repeater
             picker.mode = newMode;
@@ -216,6 +222,7 @@ Item {
         }
 
         function test_1_changeModeYMDHMS() {
+            ignoreWarning('Date and Time picking not allowed at the same time.')
             var newMode = "Years|Months|Days|Hours|Minutes|Seconds";
             var pickerCount = 6 + 1; // +1 is the Repeater
             picker.mode = newMode;
@@ -226,6 +233,7 @@ Item {
         }
 
         function test_1_changeModeYH() {
+            ignoreWarning('Date and Time picking not allowed at the same time.')
             var newMode = "Years|Hours";
             var pickerCount = 2 + 1; // +1 is the Repeater
             picker.mode = newMode;
@@ -236,6 +244,7 @@ Item {
         }
 
         function test_1_changeModeUnhandled() {
+            ignoreWarning('Unhandled mode flag: Whatever. Mode will not be set!')
             var newMode = "Years|Whatever";
             var pickerCount = 2 + 1; // +1 is the Repeater
             picker.mode = newMode;
@@ -318,7 +327,7 @@ Item {
             picker.mode = "Years|Months|Days";
             waitPickerMoving();
 
-            var yearLabel = getPickerLabel(picker, "PickerRow_YearPicker");
+            var yearLabel = getPickerLabel(picker, "PickerRow_YearPicker", date.getFullYear());
             var monthLabel = getPickerLabel(picker, "PickerRow_MonthPicker");
             var monthModel = getPickerModel(picker, "PickerRow_MonthPicker");
             var dayLabel = getPickerLabel(picker, "PickerRow_DayPicker");

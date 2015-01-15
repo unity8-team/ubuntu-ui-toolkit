@@ -16,6 +16,7 @@
 
 import logging
 
+import autopilot.exceptions
 from autopilot import logging as autopilot_logging
 
 from ubuntuuitoolkit._custom_proxy_objects import _common
@@ -40,6 +41,16 @@ def _get_visible_container_bottom(containers):
 
 class Scrollable(_common.UbuntuUIToolkitCustomProxyObjectBase):
 
+    @autopilot_logging.log_action(logger.info)
+    def is_child_visible(self, child):
+        """Determine if the child is visible.
+
+        A child is visible if no scrolling is needed to reveal it.
+
+        """
+        containers = self._get_containers()
+        return self._is_child_visible(child, containers)
+
     def _get_containers(self):
         """Return a list with the containers to take into account when swiping.
 
@@ -50,23 +61,6 @@ class Scrollable(_common.UbuntuUIToolkitCustomProxyObjectBase):
         """
         containers = [self._get_top_container(), self]
         return containers
-
-    def _get_top_container(self):
-        """Return the top-most container with a globalRect."""
-        root = self.get_root_instance()
-        parent = self.get_parent()
-        top_container = None
-        while parent.id != root.id:
-            if hasattr(parent, 'globalRect'):
-                top_container = parent
-
-            parent = parent.get_parent()
-
-        if top_container is None:
-            raise _common.ToolkitException(
-                "Couldn't find the top-most container.")
-        else:
-            return top_container
 
     def _is_child_visible(self, child, containers):
         """Check if the center of the child is visible.
@@ -83,14 +77,19 @@ class Scrollable(_common.UbuntuUIToolkitCustomProxyObjectBase):
     def _slow_drag(self, start_x, stop_x, start_y, stop_y):
         # If we drag too fast, we end up scrolling more than what we
         # should, sometimes missing the  element we are looking for.
+        original_content_y = self.contentY
+
         # I found that when the flickDeceleration is 1500, the rate should be
         # 5 and that when it's 100, the rate should be 1. With those two points
-        # we can get that the following equation.
+        # we can get the following equation.
         # XXX The deceleration might not be linear with respect to the rate,
         # but this works for the two types of scrollables we have for now.
         # --elopio - 2014-05-08
         rate = (self.flickDeceleration + 250) / 350
         self.pointing_device.drag(start_x, start_y, stop_x, stop_y, rate=rate)
+
+        if self.contentY == original_content_y:
+            raise _common.ToolkitException('Could not swipe in the flickable.')
 
 
 class QQuickFlickable(Scrollable):
@@ -111,21 +110,16 @@ class QQuickFlickable(Scrollable):
 
     @autopilot_logging.log_action(logger.info)
     def _swipe_non_visible_child_into_view(self, child, containers):
-        original_content_y = self.contentY
         while not self._is_child_visible(child, containers):
             # Check the direction of the swipe based on the position of the
             # child relative to the immediate flickable container.
             if child.globalRect.y < self.globalRect.y:
-                self._swipe_to_show_more_above(containers)
+                self.swipe_to_show_more_above(containers)
             else:
-                self._swipe_to_show_more_below(containers)
-
-            if self.contentY == original_content_y:
-                raise _common.ToolkitException(
-                    "Couldn't swipe in the flickable.")
+                self.swipe_to_show_more_below(containers)
 
     @autopilot_logging.log_action(logger.info)
-    def _swipe_to_show_more_above(self, containers):
+    def swipe_to_show_more_above(self, containers=None):
         if self.atYBeginning:
             raise _common.ToolkitException(
                 "Can't swipe more, we are already at the top of the "
@@ -134,7 +128,7 @@ class QQuickFlickable(Scrollable):
             self._swipe_to_show_more('above', containers)
 
     @autopilot_logging.log_action(logger.info)
-    def _swipe_to_show_more_below(self, containers):
+    def swipe_to_show_more_below(self, containers=None):
         if self.atYEnd:
             raise _common.ToolkitException(
                 "Can't swipe more, we are already at the bottom of the "
@@ -142,7 +136,9 @@ class QQuickFlickable(Scrollable):
         else:
             self._swipe_to_show_more('below', containers)
 
-    def _swipe_to_show_more(self, direction, containers):
+    def _swipe_to_show_more(self, direction, containers=None):
+        if containers is None:
+            containers = self._get_containers()
         start_x = stop_x = self.globalRect.x + (self.globalRect.width // 2)
         # Start and stop just a little under the top and a little over the
         # bottom.
@@ -166,8 +162,74 @@ class QQuickFlickable(Scrollable):
         self.moving.wait_for(False)
 
     @autopilot_logging.log_action(logger.info)
-    def _scroll_to_top(self):
+    def swipe_to_top(self):
         if not self.atYBeginning:
             containers = self._get_containers()
             while not self.atYBeginning:
-                self._swipe_to_show_more_above(containers)
+                self.swipe_to_show_more_above(containers)
+
+    @autopilot_logging.log_action(logger.info)
+    def swipe_to_bottom(self):
+        if not self.atYEnd:
+            containers = self._get_containers()
+            while not self.atYEnd:
+                self.swipe_to_show_more_below(containers)
+
+    @autopilot_logging.log_action(logger.info)
+    def pull_to_refresh(self):
+        """Pulls the flickable down and triggers a refresh on it.
+
+        :raises ubuntuuitoolkit.ToolkitException: If the flickable has no pull
+            to release functionality.
+
+        """
+        try:
+            pull_to_refresh = self.select_single(PullToRefresh)
+        except autopilot.exceptions.StateNotFoundError:
+            raise _common.ToolkitException(
+                'The flickable has no pull to refresh functionality.')
+        self.swipe_to_top()
+        self._swipe_to_middle()
+        pull_to_refresh.wait_for_refresh()
+
+    @autopilot_logging.log_action(logger.info)
+    def _swipe_to_middle(self):
+        start_x = stop_x = self.globalRect.x + (self.globalRect.width // 2)
+        # Start just a little under the top.
+        containers = self._get_containers()
+        top = _get_visible_container_top(containers) + 5
+        bottom = _get_visible_container_bottom(containers)
+
+        start_y = top
+        stop_y = (self.globalRect.y + bottom) // 2
+        self._slow_drag(start_x, stop_x, start_y, stop_y)
+        self.dragging.wait_for(False)
+        self.moving.wait_for(False)
+
+    @autopilot_logging.log_action(logger.info)
+    def _cancel_pull_to_refresh(self):
+        """Swipe down the list and then swipe it up to cancel the refresh."""
+        # This method is kept private because it's not for the test writers to
+        # call. It's to test pull to refresh. --elopio - 2014-05-22
+        self.swipe_to_top()
+        start_x = stop_x = self.globalRect.x + (self.globalRect.width // 2)
+        # Start just a little under the top.
+        containers = self._get_containers()
+        top = _get_visible_container_top(containers) + 5
+        bottom = _get_visible_container_bottom(containers)
+
+        start_y = top
+        stop_y = (self.globalRect.y + bottom) // 2
+        self.pointing_device.move(start_x, start_y)
+        self.pointing_device.press()
+        self.pointing_device.move(stop_x, stop_y)
+        self.pointing_device.move(start_x, start_y)
+        self.pointing_device.release()
+
+
+class PullToRefresh(_common.UbuntuUIToolkitCustomProxyObjectBase):
+    """Autopilot helper for the PullToRefresh component."""
+
+    def wait_for_refresh(self):
+        activity_indicator = self.select_single('ActivityIndicator')
+        activity_indicator.running.wait_for(False)

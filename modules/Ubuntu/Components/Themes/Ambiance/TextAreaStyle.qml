@@ -22,11 +22,12 @@ import Ubuntu.Components 1.1
 Item {
     id: visuals
     // style properties
-    property url iconSource: "artwork/clear.svg"
     // FIXME: needs type checking in themes to define the proper type to be used
     // if color type is used, alpha value gets lost
 
     property color color: (styledItem.focus || styledItem.highlighted) ? Theme.palette.selected.fieldText : Theme.palette.normal.fieldText
+    property color selectedTextColor: Theme.palette.selected.foregroundText
+    property color selectionColor: Theme.palette.selected.foreground
     /*!
       Background fill color
       */
@@ -40,18 +41,13 @@ Item {
     property real overlaySpacing: frameSpacing / 2
 
     /*!
-      Property holding the timeout in milliseconds the component enters into selection mode.
-      */
-    property int selectionModeTimeout: 300
-
-    /*!
       The following properties define the name of the style components declaring
       the styles for the main and the selection cursors. All cursors must defive
       from TextCursorStyle.
       */
     property string mainCursorStyle: "TextCursorStyle.qml"
-    property string selectionStartCursorStyle: "TextSelectionStartCursorStyle.qml"
-    property string selectionEndCursorStyle: "TextSelectionEndCursorStyle.qml"
+    property string selectionStartCursorStyle: "TextCursorStyle.qml"
+    property string selectionEndCursorStyle: "TextCursorStyle.qml"
 
     // style body
     anchors.fill: parent
@@ -67,6 +63,7 @@ Item {
         onErrorChanged: (error) ? visuals.errorColor : visuals.backgroundColor;
         color: visuals.backgroundColor;
         anchors.fill: parent
+        visible: !styledItem.readOnly
     }
 
     Loader {

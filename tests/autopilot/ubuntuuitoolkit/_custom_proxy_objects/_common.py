@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 
 
 class ToolkitException(Exception):
-    """Exception raised when there is an error with the emulator."""
+    """Exception raised when there is an error with the custom proxy object."""
 
 
 def get_pointing_device():
@@ -59,17 +59,17 @@ def check_autopilot_version():
     """Check that the Autopilot installed version matches the one required.
 
     :raise ToolkitException: If the installed Autopilot version does't
-        match the required by the emulators.
+        match the required by the custom proxy objects.
 
     """
     installed_version = version.LooseVersion(autopilot.version)
     if installed_version < version.LooseVersion('1.4'):
         raise ToolkitException(
-            'The emulators need Autopilot 1.4 or higher.')
+            'The custom proxy objects require Autopilot 1.4 or higher.')
 
 
 class UbuntuUIToolkitCustomProxyObjectBase(dbus.CustomEmulatorBase):
-    """A base class for all the Ubuntu UI Toolkit emulators."""
+    """A base class for all the Ubuntu UI Toolkit custom proxy objects."""
 
     def __init__(self, *args):
         check_autopilot_version()
@@ -111,3 +111,19 @@ class UbuntuUIToolkitCustomProxyObjectBase(dbus.CustomEmulatorBase):
         raise ToolkitException(
             "The element is not contained in a Flickable so it can't be "
             "swiped into view.")
+
+    def _get_top_container(self):
+        """Return the top-most container with a globalRect."""
+        root = self.get_root_instance()
+        parent = self.get_parent()
+        top_container = None
+        while parent.id != root.id:
+            if hasattr(parent, 'globalRect'):
+                top_container = parent
+
+            parent = parent.get_parent()
+
+        if top_container is None:
+            raise ToolkitException('Could not find the top-most container.')
+        else:
+            return top_container
