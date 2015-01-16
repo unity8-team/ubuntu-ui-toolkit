@@ -257,7 +257,11 @@ class QQuickListViewReorderingTestCase(QQuickListViewDraggingBaseTestCase):
         ('both items visible, to bottom, first non visible', {
             'from_index': 0, 'to_index': 7}),
         ('to item not visible, to middle', {'from_index': 0, 'to_index': 15}),
-        ('to item not visible, to bottom', {'from_index': 0, 'to_index': 24})
+        ('to item not visible, to bottom', {'from_index': 0, 'to_index': 24}),
+
+        # from bottom to top
+#        ('both items not visible, to top', {'from_index': 7, 'to_index': 6}),
+#        ('both items not visible, to top', {'from_index': 10, 'to_index': 8}),
     ]
 
     def _find_item(self, index):
