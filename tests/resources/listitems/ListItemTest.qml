@@ -87,15 +87,24 @@ MainView {
         }
     ]
 
+    LayoutMirroring.childrenInherit: true
+
     Column {
         anchors {
             left: parent.left
             right: parent.right
         }
 
-        Button {
-            text: "Selectable " + (selectable ? "OFF" : "ON")
-            onClicked: selectable = !selectable
+        Row {
+            width: parent.width
+            Button {
+                text: "Selectable " + (selectable ? "OFF" : "ON")
+                onClicked: selectable = !selectable
+            }
+            Button {
+                text: LayoutMirroring.enabled ? "RTL" : "LTR"
+                onClicked: main.LayoutMirroring.enabled = !main.LayoutMirroring.enabled
+            }
         }
 
         ListItem {
