@@ -1118,5 +1118,30 @@ Item {
                 verify(index >= 0, "Index " + listView.ViewItems.selectedIndexes[i] + " is not expected to be selected!");
             }
         }
+
+        function test_mirroring_layout() {
+            main.LayoutMirroring.enabled = true;
+            main.LayoutMirroring.childrenInherit = true;
+            waitForRendering(listView, 500);
+            var listItem = findChild(listView, "listItem0");
+            verify(listItem, "Cannot access test item");
+
+            // flick trailing side, which should have the leading panel
+            movingSpy.target = listItem;
+            flick(listItem, centerOf(listItem).x, centerOf(listItem).y, -units.gu(10), 0);
+            movingSpy.wait();
+            // check if the panel snapped in is the leading panel
+            var leading = panelItem(listItem, true);
+            var trailing = panelItem(listItem, false);
+            compare(leading.visible, true, "Leading panel not visible");
+            compare(trailing.visible, false, "Trailing panel should not be visible");
+
+            // test specific cleanup
+            movingSpy.clear();
+            mouseClick(listItem.contentItem, 0, 0);
+            movingSpy.wait();
+            main.LayoutMirroring.enabled = false;
+            waitForRendering(listView, 500);
+        }
     }
 }

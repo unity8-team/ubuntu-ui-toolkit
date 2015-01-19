@@ -53,7 +53,6 @@ Item {
       Specifies whether the panel is used to visualize leading or trailing actions.
       */
     readonly property bool leading: ListItem.panelStatus == ListItem.Leading
-    readonly property real swipedOffset: leading ? width + x : ListItem.item.width - x;
     readonly property bool swiping: ListItem.item.highlighted && ListItem.item.contentMoving
 
     anchors {
@@ -93,10 +92,10 @@ Item {
     property bool snapIn: false
     onXChanged: {
         if (prevX < x && (snapChangerLimit <= x)) {
-            snapIn = leading;
+            snapIn = LayoutMirroring.enabled ? !leading : leading;
             snapChangerLimit = x - threshold;
         } else if (prevX > x && (x < snapChangerLimit)) {
-            snapIn = !leading;
+            snapIn = LayoutMirroring.enabled ? leading : !leading;
             snapChangerLimit = x + threshold;
         }
         prevX = x;
@@ -112,6 +111,13 @@ Item {
             return;
         }
         // snap in if the offset is bigger than the overshoot and the direction of the drag is to reveal the panel
+        var leadingOffset = width + x;
+        var trailingOffset = ListItem.item.width - x;
+        if (LayoutMirroring.enabled) {
+            // swap values
+            [leadingOffset, trailingOffset] = [trailingOffset, leadingOffset];
+        }
+        var swipedOffset = leading ? leadingOffset : trailingOffset
         var snapPos = (swipedOffset > units.gu(2) && snapIn) ? panel.width : 0.0;
         ListItem.snapToPosition(snapPos);
     }

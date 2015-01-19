@@ -762,6 +762,10 @@ void UCListItemPrivate::clampAndMoveX(qreal &x, qreal dx)
     qreal min = (trailingPanelItem) ? -trailingPanelItem->width() - overshoot: 0;
     // max cannot be bigger than 0 or the leading's width in case we have leading panel
     qreal max = (leadingPanelItem) ? leadingPanelItem->width() + overshoot: 0;
+    if (effectiveLayoutMirror) {
+        min = -min;
+        max = -max;
+    }
     x = CLAMP(x, min, max);
 }
 
@@ -1304,20 +1308,22 @@ void UCListItem::mouseMoveEvent(QMouseEvent *event)
             d->setSwiped(true);
             d->contentItem->setX(x);
             // decide which panel is visible by checking the contentItem's X coordinates
+            // taking into account the layout mirroring setting
+            bool mirror = d->effectiveLayoutMirror;
             if (d->contentItem->x() > 0) {
                 if (d->leadingPanel) {
-                    d->leadingPanel->panel()->setVisible(true);
+                    d->leadingPanel->panel()->setVisible(!mirror);
                 }
                 if (d->trailingPanel) {
-                    d->trailingPanel->panel()->setVisible(false);
+                    d->trailingPanel->panel()->setVisible(mirror);
                 }
             } else if (d->contentItem->x() < 0) {
                 // trailing revealed
                 if (d->leadingPanel) {
-                    d->leadingPanel->panel()->setVisible(false);
+                    d->leadingPanel->panel()->setVisible(mirror);
                 }
                 if (d->trailingPanel) {
-                    d->trailingPanel->panel()->setVisible(true);
+                    d->trailingPanel->panel()->setVisible(!mirror);
                 }
             }
         }

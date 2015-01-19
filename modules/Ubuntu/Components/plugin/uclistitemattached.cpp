@@ -183,6 +183,7 @@ void UCListItemAttached::snapToPosition(qreal position)
         listItem->_q_rebound();
     } else {
         if (listItem->animator) {
+            position *= listItem->effectiveLayoutMirror ? -1 : 1;
             listItem->animator->snap(position);
         } else {
             listItem->contentItem->setX(position);
