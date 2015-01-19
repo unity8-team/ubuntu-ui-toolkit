@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013-2014 Canonical Ltd.
+ * Copyright (C) 2013-2015 Canonical Ltd.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,7 +15,7 @@
  */
 
 import QtQuick 2.0
-import Ubuntu.Components 1.1
+import Ubuntu.Components 1.2
 
 MainView {
     id: mainView
@@ -29,6 +29,73 @@ MainView {
         Component.onCompleted: stack.push(tabs)
         Tabs {
             id: tabs
+            Tab {
+                title: "Lock & hide"
+                page: Page {
+                    id: lockPage
+                    head.locked: lockedSwitch.checked
+                    flickable: lockFlickable
+                    Flickable {
+                        id: lockFlickable
+                        anchors.fill: parent
+                        contentHeight: topColumn.height
+
+                        Column {
+                            id: topColumn
+                            anchors {
+                                left: parent.left
+                                right: parent.right
+                                top: parent.top
+                            }
+                            height: childrenRect.height
+
+                            ListItem {
+                                Label {
+                                    anchors {
+                                        left: parent.left
+                                        leftMargin: units.gu(2)
+                                        verticalCenter: parent.verticalCenter
+                                    }
+                                    text: lockedSwitch.checked ? "Unlock header" :
+                                                                 "Lock header"
+                                }
+                                onClicked: lockedSwitch.checked = !lockedSwitch.checked
+                                Switch {
+                                    id: lockedSwitch
+                                    anchors {
+                                        right: parent.right
+                                        rightMargin: units.gu(2)
+                                        verticalCenter: parent.verticalCenter
+                                    }
+                                }
+                            }
+                            // filler so I can scroll
+                            ListItem { }
+                            ListItem { }
+                            ListItem { }
+                            ListItem {
+                                Button {
+                                    anchors.centerIn: parent
+                                    text: "Hide header"
+                                    enabled: lockPage.head.visible
+                                }
+                            }
+                            ListItem {
+                                Button {
+                                    anchors.centerIn: parent
+                                    text: "Show header"
+                                    enabled: !lockPage.head.visible
+                                }
+                            }
+                            Repeater {
+                                model: 6
+                                delegate: ListItem { }
+                            }
+                        }
+                    }
+                }
+            }
+
             Tab {
                 title: "Colors"
                 page: Page {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Canonical Ltd.
+ * Copyright 2014-2015 Canonical Ltd.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -200,6 +200,21 @@ Object {
     PageHeadSections {
         id: headSections
     }
+
+    /*!
+      A locked header does not show/hide automatically when the user interacts
+      with the flickable of the page.
+      FIXME: Add from U.C. 1.2 only?
+     */
+    property bool locked: false
+
+    /*!
+      True if the header is currently visible. When the header becomes (in)visible
+      because of user interaction, the value of this property is updated at the end
+      of the header animation.
+      FIXME: Add from U.C. 1.2 only?
+     */
+    property bool visible: true
 
     /*!
       The color of the text and icons.
