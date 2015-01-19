@@ -30,7 +30,12 @@ Styles.ListItemStyle {
             period: 0.5
         }
         duration: UbuntuAnimation.BriskDuration
-        alwaysRunToEnd: true
     }
 
+    // the selection/multiselection panel
+    dragHandlerDelegate: ListItemDragHandler {}
+    selectionDelegate: ListItemSelect{}
+    dragRepositionAnimation: UbuntuNumberAnimation {
+        property: "y"
+    }
 }

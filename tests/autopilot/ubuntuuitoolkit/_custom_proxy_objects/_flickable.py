@@ -142,7 +142,7 @@ class QQuickFlickable(Scrollable):
         start_x = stop_x = self.globalRect.x + (self.globalRect.width // 2)
         # Start and stop just a little under the top and a little over the
         # bottom.
-        top = _get_visible_container_top(containers) + 5
+        top = _get_visible_container_top(containers) + 75 # TODO hack!
         bottom = _get_visible_container_bottom(containers) - 5
 
         if direction == 'below':
