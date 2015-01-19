@@ -78,6 +78,7 @@ MainView {
                                     anchors.centerIn: parent
                                     text: "Hide header"
                                     enabled: lockPage.head.visible
+                                    onClicked: lockPage.head.visible = false
                                 }
                             }
                             ListItem {
@@ -85,6 +86,7 @@ MainView {
                                     anchors.centerIn: parent
                                     text: "Show header"
                                     enabled: !lockPage.head.visible
+                                    onClicked: lockPage.head.visible = true
                                 }
                             }
                             Repeater {
