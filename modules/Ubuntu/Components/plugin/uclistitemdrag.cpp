@@ -7,7 +7,6 @@
 #include "quickutils.h"
 #include <QtQml/QQmlInfo>
 #include <QtQml/QQmlContext>
-//#include <QtGui/QGuiApplication>
 #include <QtQuick/private/qquickflickable_p.h>
 #include <QtQuick/private/qquickanimation_p.h>
 
@@ -27,46 +26,48 @@ UCDragHandler::~UCDragHandler()
 }
 
 // listen for attached property's draggable change signal to activate dragging mode on the list item
-void UCDragHandler::initialize()
+void UCDragHandler::initialize(bool animated)
 {
-    if (!listItem->parentAttached) {
+    UCListItemPrivate *pListItem = UCListItemPrivate::get(listItem);
+    if (!pListItem->parentAttached) {
         return;
     }
-    connect(listItem->parentAttached, &UCViewItemsAttached::dragModeChanged,
-            this, &UCDragHandler::setupDragMode);
-    if (listItem->isDraggable()) {
-        setupDragMode();
+    connect(pListItem->parentAttached, SIGNAL(dragModeChanged()),
+            this, SLOT(setupDragMode()));
+    if (pListItem->isDraggable()) {
+        setupDragMode(animated);
         // is the current one the dragged source?
-        UCViewItemsAttachedPrivate *pAttached = UCViewItemsAttachedPrivate::get(listItem->parentAttached);
-        if (listItem->index() == pAttached->dragFromIndex) {
+        UCViewItemsAttachedPrivate *pAttached = UCViewItemsAttachedPrivate::get(pListItem->parentAttached);
+        if (pListItem->index() == pAttached->dragFromIndex) {
             setDragging(true);
             if (pAttached->dragTempItem) {
-                UCListItemPrivate *pListItem = UCListItemPrivate::get(pAttached->dragTempItem);
+                pListItem = UCListItemPrivate::get(pAttached->dragTempItem);
                 if (!pListItem->dragHandler->originalItem) {
                     // this is the one that has been dragged by the temp item, so update
-                    pListItem->dragHandler->originalItem = listItem->item();
+                    pListItem->dragHandler->originalItem = listItem;
                 }
             }
         }
     }
 }
 
-void UCDragHandler::setupDragMode()
+void UCDragHandler::setupDragMode(bool animated)
 {
+    UCListItemPrivate *pListItem = UCListItemPrivate::get(listItem);
     // make sure the ListItem is snapped out
-    bool draggable = listItem->isDraggable();
+    bool draggable = pListItem->isDraggable();
     if (draggable) {
-        listItem->promptRebound();
+        pListItem->promptRebound();
         // animate panel only in case is called due to a signal emit
-        listItem->initStyleItem();
-        if (!panel && listItem->styleItem && listItem->styleItem->m_dragHandlerDelegate) {
-            bool animate = (senderSignalIndex() >= 0);
-            setupPanel(listItem->styleItem->m_dragHandlerDelegate, animate);
+        pListItem->initStyleItem();
+        if (!panel && pListItem->styleItem && pListItem->styleItem->m_dragHandlerDelegate) {
+            bool animate = animated || (senderSignalIndex() >= 0);
+            setupPanel(pListItem->styleItem->m_dragHandlerDelegate, animate);
         }
     }
 
     // update visuals
-    listItem->update();
+    pListItem->update();
 }
 
 void UCDragHandler::repositionDraggedItem()
@@ -82,25 +83,26 @@ void UCDragHandler::repositionDraggedItem()
         UCListItemPrivate::get(originalItem)->dragHandler->setDragging(false);
     }
     // hide and delete item
-    listItem->item()->setVisible(false);
-    listItem->item()->deleteLater();
+    listItem->setVisible(false);
+    listItem->deleteLater();
 }
 
 // this method should only be called for the temporary ListItem used in dragging!
 void UCDragHandler::startDragging(UCListItem *item)
 {
-    UCListItem *fakeItem = listItem->item();
+    UCListItem *fakeItem = listItem;
     originalItem = item;
     // set this item as fake
     isFakeItem = true;
     UCListItemPrivate::get(originalItem)->dragHandler->setDragging(true);
     // initialize style and turn panels on
-    listItem->initStyleItem();
-    if (listItem->isSelectable()) {
-        listItem->selectionHandler->setupSelection();
+    UCListItemPrivate *pListItem = UCListItemPrivate::get(listItem);
+    pListItem->initStyleItem();
+    if (pListItem->isSelectable()) {
+        pListItem->selectionHandler->setupSelection();
     }
-    if (listItem->isDraggable()) {
-        listItem->dragHandler->setupDragMode();
+    if (pListItem->isDraggable()) {
+        pListItem->dragHandler->setupDragMode();
     }
     fakeItem->setX(item->x());
     fakeItem->setY(item->y());
@@ -141,7 +143,7 @@ void UCDragHandler::startDragging(UCListItem *item)
 void UCDragHandler::drop()
 {
     if (repositionAnimation) {
-        repositionAnimation->setFrom(listItem->item()->y());
+        repositionAnimation->setFrom(listItem->y());
         repositionAnimation->start();
     } else {
         repositionDraggedItem();
@@ -164,12 +166,12 @@ void UCDragHandler::setDragging(bool value)
     dragging = value;
     if (!isFakeItem) {
         if (dragging) {
-            visibleProperty = new PropertyChange(listItem->item(), "visible");
+            visibleProperty = new PropertyChange(listItem, "visible");
             PropertyChange::setValue(visibleProperty, false);
         } else {
             delete visibleProperty;
             visibleProperty = 0;
         }
     }
-    Q_EMIT listItem->item()->draggingChanged();
+    Q_EMIT listItem->draggingChanged();
 }
