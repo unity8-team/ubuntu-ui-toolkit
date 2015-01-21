@@ -13,7 +13,7 @@
 UCDragHandler::UCDragHandler(UCListItem *listItem)
     : UCHandlerBase(listItem)
     , dragging(false)
-    , isFakeItem(false)
+    , isDraggedItem(false)
     , visibleProperty(0)
     , repositionAnimation(0)
 {
@@ -90,35 +90,38 @@ void UCDragHandler::repositionDraggedItem()
 // this method should only be called for the temporary ListItem used in dragging!
 void UCDragHandler::startDragging(UCListItem *item)
 {
-    UCListItem *fakeItem = listItem;
     originalItem = item;
-    // set this item as fake
-    isFakeItem = true;
+    // set this item as the dragged one
+    isDraggedItem = true;
     UCListItemPrivate::get(originalItem)->dragHandler->setDragging(true);
     // initialize style and turn panels on
     UCListItemPrivate *pListItem = UCListItemPrivate::get(listItem);
     pListItem->initStyleItem();
     if (pListItem->isSelectable()) {
-        pListItem->selectionHandler->setupSelection();
+        if (!pListItem->selectionHandler) {
+            pListItem->_q_initializeSelectionHandler();
+        } else {
+            pListItem->selectionHandler->setupSelection(false);
+        }
     }
     if (pListItem->isDraggable()) {
-        pListItem->dragHandler->setupDragMode();
+        pListItem->dragHandler->setupDragMode(false);
     }
-    fakeItem->setX(item->x());
-    fakeItem->setY(item->y());
-    fakeItem->setZ(2);
-    fakeItem->setWidth(item->width());
-    fakeItem->setHeight(item->height());
+    listItem->setX(item->x());
+    listItem->setY(item->y());
+    listItem->setZ(2);
+    listItem->setWidth(item->width());
+    listItem->setHeight(item->height());
     QColor color = item->color();
     if (color.alphaF() == 0.0) {
         color = QuickUtils::instance().rootItem(item)->property("backgroundColor").value<QColor>();
     }
-    fakeItem->setColor(color);
-    fakeItem->setObjectName("DraggedListItem");
+    listItem->setColor(color);
+    listItem->setObjectName("DraggedListItem");
     setDragging(true);
 
     // if we have animation, connect to it
-    repositionAnimation = UCListItemPrivate::get(fakeItem)->styleItem->m_dragRepositionAnimation;
+    repositionAnimation = pListItem->styleItem->m_dragRepositionAnimation;
     if (repositionAnimation) {
         // complete any previous animation
         repositionAnimation->complete();
@@ -135,7 +138,7 @@ void UCDragHandler::startDragging(UCListItem *item)
             repositionAnimation->setProperties(properties);
         }
         repositionAnimation->setTo(originalItem->y());
-        repositionAnimation->setTargetObject(fakeItem);
+        repositionAnimation->setTargetObject(listItem);
 
     }
 }
@@ -153,7 +156,7 @@ void UCDragHandler::drop()
 void UCDragHandler::update(UCListItem *newItem)
 {
     // update only if the original one disappeared
-    if (repositionAnimation && repositionAnimation->isRunning() && repositionAnimation->target() == this && isFakeItem) {
+    if (repositionAnimation && repositionAnimation->isRunning() && repositionAnimation->target() == this && isDraggedItem) {
         repositionAnimation->setTo(newItem->y());
     }
 }
@@ -164,7 +167,7 @@ void UCDragHandler::setDragging(bool value)
         return;
     }
     dragging = value;
-    if (!isFakeItem) {
+    if (!isDraggedItem) {
         if (dragging) {
             visibleProperty = new PropertyChange(listItem, "visible");
             PropertyChange::setValue(visibleProperty, false);

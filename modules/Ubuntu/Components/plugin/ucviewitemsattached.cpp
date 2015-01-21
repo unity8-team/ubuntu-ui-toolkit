@@ -602,6 +602,7 @@ void UCViewItemsAttached::startDragging(QQuickMouseEvent *event)
     bool start = true;
     d->dragMinimum = -1;
     d->dragMaximum = -1;
+    // call handler if implemented
     if (d->isDraggingStartedConnected()) {
         UCDragEvent event(UCDragEvent::None, index, -1, -1, -1);
         Q_EMIT draggingStarted(&event);

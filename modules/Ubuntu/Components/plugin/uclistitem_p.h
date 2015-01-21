@@ -380,7 +380,7 @@ public Q_SLOTS:
 
 protected:
     bool dragging:1;
-    bool isFakeItem:1;
+    bool isDraggedItem:1;
     QPointer<UCListItem> originalItem;
     PropertyChange *visibleProperty;
     QQuickPropertyAnimation *repositionAnimation;
