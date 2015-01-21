@@ -1196,6 +1196,10 @@ void UCListItem::mousePressEvent(QMouseEvent *event)
 {
     UCStyledItemBase::mousePressEvent(event);
     Q_D(UCListItem);
+    // make sure we have the animator created
+    if (!d->animator) {
+        d->animator = new UCListItemSnapAnimator(this);
+    }
     if (d->parentAttached && d->parentAttached->isMoving()) {
         // while moving, we cannot select any items
         return;
@@ -1270,10 +1274,6 @@ void UCListItem::mouseMoveEvent(QMouseEvent *event)
         if ((mouseX < (pressedX - threshold)) || (mouseX > (pressedX + threshold))) {
             // the press went out of the threshold area, enable move, if the direction allows it
             d->lastPos = event->localPos();
-            // create the animator
-            if (!d->animator) {
-                d->animator = new UCListItemSnapAnimator(this);
-            }
             // tries to connect both panels so we do no longer need to take care which
             // got connected ad which not; this may fail in case of shared ListItemActions,
             // as then the panel is shared between the list items, and the panel might be
