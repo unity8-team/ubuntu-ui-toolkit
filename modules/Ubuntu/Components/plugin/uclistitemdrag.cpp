@@ -75,7 +75,7 @@ void UCDragHandler::repositionDraggedItem()
                 this, &UCDragHandler::repositionDraggedItem);
     }
 
-    // TODO: somehow get the original if visible again!
+    // get the original if visible again!
     if (originalItem) {
         UCListItemPrivate::get(originalItem)->dragHandler->setDragging(false);
     }
@@ -87,15 +87,14 @@ void UCDragHandler::repositionDraggedItem()
 // this method should only be called for the temporary ListItem used in dragging!
 void UCDragHandler::startDragging(UCListItem *item)
 {
-    // set object name for testing purposes
-    listItem->setObjectName("DraggedListItem");
     // set this item as the dragged one
     isDraggedItem = true;
     originalItem = item;
+    // set object name for testing purposes
+    listItem->setObjectName("DraggedListItem");
     UCListItemPrivate::get(originalItem)->dragHandler->setDragging(true);
     // initialize style and turn panels on
-    listItem->setX(item->x());
-    listItem->setY(item->y());
+    listItem->setPosition(item->position());
     listItem->setZ(2);
     listItem->setVisible(true);
 
