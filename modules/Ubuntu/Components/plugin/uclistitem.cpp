@@ -936,7 +936,7 @@ void UCListItemPrivate::clampAndMoveX(qreal &x, qreal dx)
  *    }
  * }
  * \endqml
- * The indexes selected are stored in \l ViewItems::selectedIndexes attached property,
+ * The indexes selected are stored in \l ViewItems::selectedIndices attached property,
  * attached the same way as the \l ViewItems::selectMode property is. This is a
  * read/write property, meaning that initial selected item indexes can be set up.
  * The list contains the indexes added in the order of selection, not sorted in
@@ -950,15 +950,15 @@ void UCListItemPrivate::clampAndMoveX(qreal &x, qreal dx)
  *
  * \section3 Dragging mode
  * The dragging mode is only supported on ListView, as it requires a model supported
- * view to be used. The drag mode can be activated using the \l ListItem::dragMode
+ * view to be used. The drag mode can be activated using the \l ViewItems::dragMode
  * attached property that is attached to the ListView. The items will show a panel
  * as defined in the \l ListItemStyle::dragHandlerDelegate, and dragging will be
  * possible only through that panel. Pressing or clicking anywhere else on the ListItem
  * will invoke the item's action assigned to the touched area.
  *
  * The most important thing to remember when implementing dragging on a ListItem is to
- * implement the \l ListItem::draggingUpdated signal, and to move the model data whenever
- * desired. \l ListItem::draggingStarted signal implementation is only required if there
+ * implement the \l ViewItems::draggingUpdated signal, and to move the model data whenever
+ * desired. \l ViewItems::draggingStarted signal implementation is only required if there
  * are preconditions to be applied prior to initiate the dragging.
  *
  * ListItem does not provide animations when the ListView's model is updated. In order
@@ -982,9 +982,10 @@ void UCListItemPrivate::clampAndMoveX(qreal &x, qreal dx)
  *             text: modelData
  *         }
  *         color: draggable ? "lightblue" : "lightgray"
- *         onPressAndHold: ListView.view.ListItem.dragMode = !ListView.view.ListItem.dragMode
+ *         onPressAndHold: ListView.view.ViewItems.dragMode =
+ *             !ListView.view.ViewItems.dragMode
  *     }
- *     ListItem.draggingUpdated: {
+ *     ViewItems.draggingUpdated: {
  *         model.move(event.from, event.to, 1);
  *     }
  *     moveDisplaced: Transition {
@@ -995,7 +996,7 @@ void UCListItemPrivate::clampAndMoveX(qreal &x, qreal dx)
  * }
  * \endqml
  *
- * \sa ListItem::dragMode, ListItem::draggingStarted, ListItem::draggingUpdated
+ * \sa ViewItems::dragMode, ViewItems::draggingStarted, ViewItems::draggingUpdated
  */
 
 /*!
@@ -1649,7 +1650,6 @@ void UCListItemPrivate::_q_initializeDragHandler()
     }
     Q_EMIT q->draggableChanged();
 }
-
 
 /*!
  * 

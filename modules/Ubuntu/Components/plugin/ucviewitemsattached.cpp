@@ -490,8 +490,8 @@ bool UCViewItemsAttachedPrivate::isItemSelected(UCListItem *item)
  *        // content
  *    }
  *
- *    ListItem.dragMode: true
- *    ListItem.onDraggingUpdated: {
+ *    ViewItems.dragMode: true
+ *    ViewItems.onDraggingUpdated: {
  *        if (event.direction == ListItemDrag.None) {
  *            // this is the last event, so drop the item
  *            model.move(event.from, event.to, 1);
@@ -504,7 +504,7 @@ bool UCViewItemsAttachedPrivate::isItemSelected(UCListItem *item)
  * }
  * \endqml
  *
- * \note Do not forget to set \b{event.attached} to false in \l draggingUpdated,
+ * \note Do not forget to set \b{event.attached} to false in \c draggingUpdated,
  * otherwise the system will not know whether the move has been performed or not,
  * and selected indexes will not be synchronized properly.
  */
