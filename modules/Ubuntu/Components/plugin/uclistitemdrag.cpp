@@ -65,9 +65,6 @@ void UCDragHandler::setupDragMode(bool animated)
             setupPanel(pListItem->styleItem->m_dragHandlerDelegate, animate);
         }
     }
-
-    // update visuals
-    pListItem->update();
 }
 
 void UCDragHandler::repositionDraggedItem()
