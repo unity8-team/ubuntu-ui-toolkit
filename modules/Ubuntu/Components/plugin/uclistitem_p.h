@@ -382,9 +382,9 @@ public Q_SLOTS:
 protected:
     bool dragging:1;
     bool isDraggedItem:1;
+    QPointF targetPosition;
     QPointer<UCListItem> originalItem;
     PropertyChange *visibleProperty;
-    QQuickPropertyAnimation *repositionAnimation;
 };
 
 #endif // UCVIEWITEM_P_H

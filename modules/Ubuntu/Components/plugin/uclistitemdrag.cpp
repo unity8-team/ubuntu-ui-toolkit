@@ -15,7 +15,6 @@ UCDragHandler::UCDragHandler(UCListItem *listItem)
     , dragging(false)
     , isDraggedItem(false)
     , visibleProperty(0)
-    , repositionAnimation(0)
 {
 }
 
@@ -90,6 +89,7 @@ void UCDragHandler::startDragging(UCListItem *item)
     // set this item as the dragged one
     isDraggedItem = true;
     originalItem = item;
+    targetPosition = item->position();
     // set object name for testing purposes
     listItem->setObjectName("DraggedListItem");
     UCListItemPrivate::get(originalItem)->dragHandler->setDragging(true);
@@ -97,9 +97,11 @@ void UCDragHandler::startDragging(UCListItem *item)
     listItem->setPosition(item->position());
     listItem->setZ(2);
     listItem->setVisible(true);
+}
 
-    // if we have animation, connect to it
-    repositionAnimation = UCListItemPrivate::get(listItem)->styleItem->m_dragRepositionAnimation;
+void UCDragHandler::drop()
+{
+    QQuickPropertyAnimation *repositionAnimation = UCListItemPrivate::get(listItem)->styleItem->m_dragRepositionAnimation;
     if (repositionAnimation) {
         // complete any previous animation
         repositionAnimation->complete();
@@ -115,15 +117,9 @@ void UCDragHandler::startDragging(UCListItem *item)
             }
             repositionAnimation->setProperties(properties);
         }
-        repositionAnimation->setTo(originalItem->y());
-        repositionAnimation->setTargetObject(listItem);
-    }
-}
-
-void UCDragHandler::drop()
-{
-    if (repositionAnimation) {
         repositionAnimation->setFrom(listItem->y());
+        repositionAnimation->setTo(targetPosition.y());
+        repositionAnimation->setTargetObject(listItem);
         repositionAnimation->start();
     } else {
         repositionDraggedItem();
@@ -133,8 +129,8 @@ void UCDragHandler::drop()
 void UCDragHandler::update(UCListItem *newItem)
 {
     // update only if the original one disappeared
-    if (repositionAnimation && repositionAnimation->isRunning() && repositionAnimation->target() == this && isDraggedItem) {
-        repositionAnimation->setTo(newItem->y());
+    if (isDraggedItem && newItem) {
+        targetPosition = newItem->position();
     }
 }
 
