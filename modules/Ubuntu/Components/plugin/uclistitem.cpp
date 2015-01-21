@@ -430,9 +430,6 @@ void UCListItemPrivate::init()
 
     // watch grid unit size change and set implicit size
     QObject::connect(&UCUnits::instance(), SIGNAL(gridUnitChanged()), q, SLOT(_q_updateSize()));
-
-    // create drag handler
-    dragHandler = new UCDragHandler(q);
 }
 
 // inspired from IS_SIGNAL_CONNECTED(q, UCListItem, pressAndHold, ())
@@ -1080,17 +1077,18 @@ void UCListItem::componentComplete()
         update();
     }
 
-    d->dragHandler->initialize(false);
-
     if (d->parentAttached) {
         // keep selectable in sync
         connect(d->parentAttached, SIGNAL(selectModeChanged()),
                 this, SLOT(_q_initializeSelectionHandler()));
         // also draggable
-        connect(d->parentAttached, &UCViewItemsAttached::dragModeChanged,
-                this, &UCListItem::draggableChanged);
+        connect(d->parentAttached, SIGNAL(dragModeChanged()),
+                this, SLOT(_q_initializeDragHandler()));
         if (d->parentAttached->selectMode()) {
            d->_q_initializeSelectionHandler();
+        }
+        if (d->parentAttached->dragMode()) {
+            d->_q_initializeDragHandler();
         }
         // connect selectedIndicesChanged
         connect(d->parentAttached, SIGNAL(selectedIndicesChanged()),
@@ -1628,7 +1626,7 @@ void UCListItem::resetHighlightColor()
  */
 bool UCListItemPrivate::dragging()
 {
-    return dragHandler->isDragging();
+    return dragHandler ? dragHandler->isDragging() : false;
 }
 
 /*!
@@ -1642,6 +1640,17 @@ bool UCListItemPrivate::isDraggable()
     UCViewItemsAttachedPrivate *attached = UCViewItemsAttachedPrivate::get(parentAttached);
     return attached ? attached->draggable : false;
 }
+
+void UCListItemPrivate::_q_initializeDragHandler()
+{
+    Q_Q(UCListItem);
+    if (!dragHandler) {
+        dragHandler = new UCDragHandler(q);
+        dragHandler->initialize(q->senderSignalIndex() >= 0);
+    }
+    Q_EMIT q->draggableChanged();
+}
+
 
 /*!
  * 

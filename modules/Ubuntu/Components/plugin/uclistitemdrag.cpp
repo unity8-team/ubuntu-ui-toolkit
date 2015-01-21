@@ -90,38 +90,20 @@ void UCDragHandler::repositionDraggedItem()
 // this method should only be called for the temporary ListItem used in dragging!
 void UCDragHandler::startDragging(UCListItem *item)
 {
-    originalItem = item;
+    // set object name for testing purposes
+    listItem->setObjectName("DraggedListItem");
     // set this item as the dragged one
     isDraggedItem = true;
+    originalItem = item;
     UCListItemPrivate::get(originalItem)->dragHandler->setDragging(true);
     // initialize style and turn panels on
-    UCListItemPrivate *pListItem = UCListItemPrivate::get(listItem);
-    pListItem->initStyleItem();
-    if (pListItem->isSelectable()) {
-        if (!pListItem->selectionHandler) {
-            pListItem->_q_initializeSelectionHandler();
-        } else {
-            pListItem->selectionHandler->setupSelection(false);
-        }
-    }
-    if (pListItem->isDraggable()) {
-        pListItem->dragHandler->setupDragMode(false);
-    }
     listItem->setX(item->x());
     listItem->setY(item->y());
     listItem->setZ(2);
-    listItem->setWidth(item->width());
-    listItem->setHeight(item->height());
-    QColor color = item->color();
-    if (color.alphaF() == 0.0) {
-        color = QuickUtils::instance().rootItem(item)->property("backgroundColor").value<QColor>();
-    }
-    listItem->setColor(color);
-    listItem->setObjectName("DraggedListItem");
-    setDragging(true);
+    listItem->setVisible(true);
 
     // if we have animation, connect to it
-    repositionAnimation = pListItem->styleItem->m_dragRepositionAnimation;
+    repositionAnimation = UCListItemPrivate::get(listItem)->styleItem->m_dragRepositionAnimation;
     if (repositionAnimation) {
         // complete any previous animation
         repositionAnimation->complete();
@@ -129,7 +111,7 @@ void UCDragHandler::startDragging(UCListItem *item)
         connect(repositionAnimation, &QQuickPropertyAnimation::stopped,
                 this, &UCDragHandler::repositionDraggedItem,
                 Qt::DirectConnection);
-        // make sure we have the 'y' proeprty animated
+        // make sure we have the 'y' property animated
         if (repositionAnimation->property() != ("y")) {
             QString properties = repositionAnimation->properties();
             if (properties.contains("y")) {
@@ -139,7 +121,6 @@ void UCDragHandler::startDragging(UCListItem *item)
         }
         repositionAnimation->setTo(originalItem->y());
         repositionAnimation->setTargetObject(listItem);
-
     }
 }
 

@@ -800,8 +800,18 @@ void UCViewItemsAttachedPrivate::createDraggedItem(UCListItem *dragItem)
         return;
     }
     // use dragItem's context to get access to the ListView's model roles
-    dragTempItem = static_cast<UCListItem*>(delegate->create(qmlContext(dragItem)));
-    dragTempItem->setParentItem(listView->contentItem());
+    // use two-step component creation to invoke panel creation from itemChanged()
+    // and componentCompleted() of ListItem
+    // use dragged item's context as parent context so we get all model roles and
+    // context properties of that item
+    QQmlContext *context = new QQmlContext(qmlContext(dragItem), listView);
+    dragTempItem = static_cast<UCListItem*>(delegate->beginCreate(context));
+    if (dragTempItem) {
+        QQml_setParent_noEvent(dragTempItem, listView->contentItem());
+        dragTempItem->setParentItem(listView->contentItem());
+        delegate->completeCreate();
+    }
+    // prepare temporary item for dragging
     UCListItemPrivate::get(dragTempItem)->dragHandler->startDragging(dragItem);
 }
 

@@ -126,6 +126,7 @@ public:
     QQuickItem *styleInstance() const;
     bool dragging();
     bool isDraggable();
+    void _q_initializeDragHandler();
     bool isSelected();
     void setSelected(bool value);
     bool isSelectable();
