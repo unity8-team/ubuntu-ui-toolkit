@@ -1112,7 +1112,7 @@ Item {
                 }
             }
 
-            listView.ViewItems.selectedIndexes = data.selected;
+            listView.ViewItems.selectedIndices = data.selected;
             listView.ViewItems.draggingUpdated.connect(updateHandler);
             listView.ViewItems.dragMode = true;
             waitForRendering(findChild(listView, "listItem0"));
@@ -1126,10 +1126,10 @@ Item {
 
             // NOTE: the selected indexes order is arbitrar and cannot be predicted by the test
             // therefore we check the selected indexes presence in the expected list.
-            compare(listView.ViewItems.selectedIndexes.length, data.expected.length, "The selected indexes and expected list size differs");
-            for (var i = 0; i < listView.ViewItems.selectedIndexes.length; i++) {
-                var index = data.expected.indexOf(listView.ViewItems.selectedIndexes[i]);
-                verify(index >= 0, "Index " + listView.ViewItems.selectedIndexes[i] + " is not expected to be selected!");
+            compare(listView.ViewItems.selectedIndices.length, data.expected.length, "The selected indexes and expected list size differs");
+            for (var i = 0; i < listView.ViewItems.selectedIndices.length; i++) {
+                var index = data.expected.indexOf(listView.ViewItems.selectedIndices[i]);
+                verify(index >= 0, "Index " + listView.ViewItems.selectedIndices[i] + " is not expected to be selected!");
             }
         }
     }

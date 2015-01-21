@@ -74,17 +74,17 @@ void UCDragHandler::repositionDraggedItem()
                 this, &UCDragHandler::repositionDraggedItem);
     }
 
-    // get the original if visible again!
-    if (originalItem) {
-        UCListItemPrivate::get(originalItem)->dragHandler->setDragging(false);
-    }
-    // hide and delete item
+    // hide temporary item
+    setDragging(false);
     listItem->setVisible(false);
     listItem->deleteLater();
+    // show original item
+    delete visibleProperty;
+    visibleProperty = 0;
 }
 
 // this method should only be called for the temporary ListItem used in dragging!
-void UCDragHandler::startDragging(UCListItem *item)
+void UCDragHandler::prepareDragging(UCListItem *item)
 {
     // set this item as the dragged one
     isDraggedItem = true;
@@ -92,13 +92,17 @@ void UCDragHandler::startDragging(UCListItem *item)
     targetPosition = item->position();
     // set object name for testing purposes
     listItem->setObjectName("DraggedListItem");
-    UCListItemPrivate::get(originalItem)->dragHandler->setDragging(true);
-    // initialize style and turn panels on
+    // hide original item
+    visibleProperty = new PropertyChange(originalItem, "visible");
+    PropertyChange::setValue(visibleProperty, false);
+    // position temporary item and show it
     listItem->setPosition(item->position());
     listItem->setZ(2);
+    setDragging(true);
     listItem->setVisible(true);
 }
 
+// execute drop animation
 void UCDragHandler::drop()
 {
     QQuickPropertyAnimation *repositionAnimation = UCListItemPrivate::get(listItem)->styleItem->m_dragRepositionAnimation;
@@ -126,28 +130,26 @@ void UCDragHandler::drop()
     }
 }
 
+// update dragged item with the new target item
 void UCDragHandler::update(UCListItem *newItem)
 {
-    // update only if the original one disappeared
     if (isDraggedItem && newItem) {
         targetPosition = newItem->position();
+        // update only if the new item differs from the original
+        if (originalItem != newItem) {
+            delete visibleProperty;
+            visibleProperty = new PropertyChange(originalItem, "visible");
+            PropertyChange::setValue(visibleProperty, false);
+        }
     }
 }
 
+// set dragging flag, should only be set on the dragged item
 void UCDragHandler::setDragging(bool value)
 {
     if (dragging == value) {
         return;
     }
     dragging = value;
-    if (!isDraggedItem) {
-        if (dragging) {
-            visibleProperty = new PropertyChange(listItem, "visible");
-            PropertyChange::setValue(visibleProperty, false);
-        } else {
-            delete visibleProperty;
-            visibleProperty = 0;
-        }
-    }
     Q_EMIT listItem->draggingChanged();
 }

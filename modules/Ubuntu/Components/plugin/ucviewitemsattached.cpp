@@ -617,6 +617,8 @@ void UCViewItemsAttached::startDragging(QQuickMouseEvent *event)
     }
 }
 
+// stops dragging, performs drop event (event.direction = ListItemDrag.None)
+// and clears temporary item
 void UCViewItemsAttached::stopDragging(QQuickMouseEvent *event)
 {
     Q_UNUSED(event);
@@ -629,7 +631,7 @@ void UCViewItemsAttached::stopDragging(QQuickMouseEvent *event)
             Q_EMIT draggingUpdated(&dragEvent);
             d->updateDraggedItem();
             if (dragEvent.m_accept) {
-                d->updateSelectedIndexes(d->dragFromIndex, d->dragToIndex);
+                d->updateSelectedIndices(d->dragFromIndex, d->dragToIndex);
             }
         }
         // unlock flickables
@@ -639,6 +641,7 @@ void UCViewItemsAttached::stopDragging(QQuickMouseEvent *event)
     }
 }
 
+// update dragging when mouse move event is received
 void UCViewItemsAttached::updateDragging(QQuickMouseEvent *event)
 {
     Q_UNUSED(event);
@@ -705,7 +708,7 @@ void UCViewItemsAttached::updateDragging(QQuickMouseEvent *event)
                 Q_EMIT draggingUpdated(&event);
                 update = event.m_accept;
                 if (update) {
-                    d->updateSelectedIndexes(d->dragFromIndex, d->dragToIndex);
+                    d->updateSelectedIndices(d->dragFromIndex, d->dragToIndex);
                 }
             }
             if (update) {
@@ -717,6 +720,7 @@ void UCViewItemsAttached::updateDragging(QQuickMouseEvent *event)
     }
 }
 
+// timer event to handle scrolling
 void UCViewItemsAttached::timerEvent(QTimerEvent *event)
 {
     Q_D(UCViewItemsAttached);
@@ -734,6 +738,7 @@ void UCViewItemsAttached::timerEvent(QTimerEvent *event)
     }
 }
 
+// returns true when the draggingStarted signal handler is implemented or a function is connected to it
 bool UCViewItemsAttachedPrivate::isDraggingStartedConnected()
 {
     Q_Q(UCViewItemsAttached);
@@ -742,6 +747,7 @@ bool UCViewItemsAttachedPrivate::isDraggingStartedConnected()
     return QObjectPrivate::get(q)->isSignalConnected(signalIdx);
 }
 
+// returns true when the draggingUpdated signal handler is implemented or a function is connected to it
 bool UCViewItemsAttachedPrivate::isDraggingUpdatedConnected()
 {
     Q_Q(UCViewItemsAttached);
@@ -750,6 +756,7 @@ bool UCViewItemsAttachedPrivate::isDraggingUpdatedConnected()
     return QObjectPrivate::get(q)->isSignalConnected(signalIdx);
 }
 
+// returns the mapped mouse position of the dragged item's dragHandler to the ListView
 QPointF UCViewItemsAttachedPrivate::mapDragAreaPos()
 {
     QPointF pos(dragHandlerArea->mouseX(), dragHandlerArea->mouseY() + listView->contentY());
@@ -757,7 +764,7 @@ QPointF UCViewItemsAttachedPrivate::mapDragAreaPos()
     return pos;
 }
 
-
+// calls ListView.indexAt() invokable
 int UCViewItemsAttachedPrivate::indexAt(qreal x, qreal y)
 {
     if (!listView) {
@@ -772,6 +779,7 @@ int UCViewItemsAttachedPrivate::indexAt(qreal x, qreal y)
     return result;
 }
 
+// calls ListView.itemAt() invokable
 UCListItem *UCViewItemsAttachedPrivate::itemAt(qreal x, qreal y)
 {
     if (!listView) {
@@ -786,7 +794,7 @@ UCListItem *UCViewItemsAttachedPrivate::itemAt(qreal x, qreal y)
     return static_cast<UCListItem*>(result);
 }
 
-
+// creates a temporary ListItem from the ListView's delegate which will be dragged
 void UCViewItemsAttachedPrivate::createDraggedItem(UCListItem *dragItem)
 {
     if (dragTempItem || !dragItem) {
@@ -809,9 +817,10 @@ void UCViewItemsAttachedPrivate::createDraggedItem(UCListItem *dragItem)
         delegate->completeCreate();
     }
     // prepare temporary item for dragging
-    UCListItemPrivate::get(dragTempItem)->dragHandler->startDragging(dragItem);
+    UCListItemPrivate::get(dragTempItem)->dragHandler->prepareDragging(dragItem);
 }
 
+// update dragged item
 void UCViewItemsAttachedPrivate::updateDraggedItem()
 {
     if (abs(dragFromIndex - dragToIndex) > 0) {
@@ -820,7 +829,8 @@ void UCViewItemsAttachedPrivate::updateDraggedItem()
     }
 }
 
-void UCViewItemsAttachedPrivate::updateSelectedIndexes(int fromIndex, int toIndex)
+// updates selectedIndices list after a successful drag update
+void UCViewItemsAttachedPrivate::updateSelectedIndices(int fromIndex, int toIndex)
 {
     if (selectedList.count() == listView->property("count").toInt()) {
         // all the items are selected, leave
@@ -837,6 +847,7 @@ void UCViewItemsAttachedPrivate::updateSelectedIndexes(int fromIndex, int toInde
     // direction is -1 (forwards) or 1 (backwards)
     int direction = (fromIndex < toIndex) ? -1 : 1;
     int i = (direction < 0) ? fromIndex + 1 : fromIndex - 1;
+    // loop through the selectedIndices and fix all indexes
     while (1) {
         if (((direction < 0) && (i > toIndex)) ||
             ((direction > 0) && (i < toIndex))) {

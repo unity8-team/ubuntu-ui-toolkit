@@ -185,7 +185,7 @@ public:
     UCListItem *itemAt(qreal x, qreal y);
     void createDraggedItem(UCListItem *dragItem);
     void updateDraggedItem();
-    void updateSelectedIndexes(int fromIndex, int toIndex);
+    void updateSelectedIndices(int fromIndex, int toIndex);
 
     UCViewItemsAttached *q_ptr;
     QQuickFlickable *listView;
@@ -368,7 +368,7 @@ public:
         return item == panel;
     }
 
-    void startDragging(UCListItem *item);
+    void prepareDragging(UCListItem *item);
     void drop();
     void update(UCListItem *newItem);
 
