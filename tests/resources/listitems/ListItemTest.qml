@@ -21,7 +21,8 @@ import Ubuntu.Components.Styles 1.2
 MainView {
     id: main
     width: units.gu(50)
-    height: units.gu(100)
+    height: units.gu(105)
+    useDeprecatedToolbar: false
 
     property bool override: false
 
@@ -30,7 +31,10 @@ MainView {
         id: stock
         iconName: "starred"
         text: "Staaaar"
-        onTriggered: print(iconName, "triggered", value)
+        onTriggered: {
+            print(iconName, "triggered", value)
+            view.ViewItems.selectedIndices = [0, 2, 9];
+        }
     }
 
     ListItemActions {
@@ -65,6 +69,7 @@ MainView {
         ]
     }
 
+    property bool selectable: false
     property list<Action> leadingArray: [
         Action {
             iconName: "delete"
@@ -82,10 +87,24 @@ MainView {
         }
     ]
 
+    LayoutMirroring.childrenInherit: true
+
     Column {
         anchors {
             left: parent.left
             right: parent.right
+        }
+
+        Row {
+            width: parent.width
+            Button {
+                text: "Selectable " + (selectable ? "OFF" : "ON")
+                onClicked: selectable = !selectable
+            }
+            Button {
+                text: LayoutMirroring.enabled ? "RTL" : "LTR"
+                onClicked: main.LayoutMirroring.enabled = !main.LayoutMirroring.enabled
+            }
         }
 
         ListItem {
@@ -96,16 +115,21 @@ MainView {
                 print("click")
                 main.override = !main.override
             }
+            onPressAndHold: print("pressAndHold", objectName)
             Label {
                 anchors.fill: parent
                 text: units.gridUnit + "PX/unit"
             }
+            Button {
+                text: "Press me"
+                anchors.centerIn: parent
+            }
+
             leadingActions: ListItemActions {
                 objectName: "InlineLeading"
                 actions: [stock]
                 delegate: Column {
                     width: height + units.gu(2)
-                    anchors.verticalCenter: parent.verticalCenter
                     Icon {
                         width: units.gu(3)
                         height: width
@@ -149,16 +173,24 @@ MainView {
             clip: true
             width: parent.width
             height: units.gu(20)
-            model: 10
+            model: 100
             pressDelay: 0
+            ViewItems.selectMode: main.selectable
+            ViewItems.selectedIndices: [9,3,4,1]
+            ViewItems.onSelectedIndicesChanged: print("LISTVIEW INDEXES=", ViewItems.selectedIndices)
             delegate: ListItem {
                 objectName: "ListItem" + index
                 id: listItem
                 onClicked: print(" clicked")
+                onPressAndHold: print("pressAndHold")
                 leadingActions: leading
                 trailingActions: leadingActions
                 Label {
                     text: modelData + " item"
+                }
+                Button {
+                    text: "Pressme..."
+                    anchors.centerIn: parent
                 }
 
                 states: State {
@@ -181,17 +213,19 @@ MainView {
                 id: trailing
                 actions: leading.actions
             }
+            ViewItems.selectMode: main.selectable
+            ViewItems.onSelectedIndicesChanged: print("INDEXES=", ViewItems.selectedIndices)
 
             Column {
                 id: column
                 width: flicker.width
                 property alias count: repeater.count
+                ViewItems.selectMode: true
                 Repeater {
                     id: repeater
                     model: 10
                     ListItem {
                         objectName: "InFlickable"+index
-                        color: "red"
                         highlightColor: "lime"
                         divider.colorFrom: UbuntuColors.green
                         swipeOvershoot: units.gu(10)
@@ -210,6 +244,23 @@ MainView {
                     }
                 }
             }
+        }
+        ListItem {
+            Label {
+                text: "Switch makes this item to highlight"
+            }
+            Switch {
+                id: toggle
+                anchors.right: parent.right
+            }
+            Component.onCompleted: clicked.connect(toggle.clicked)
+        }
+        ListItem {
+            Label {
+                text: "No action, no trailing/leading actions, no active component"
+            }
+            onClicked: print("clicked")
+            onPressAndHold: print("longPressed")
         }
     }
 }

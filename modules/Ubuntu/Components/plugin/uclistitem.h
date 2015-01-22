@@ -23,9 +23,10 @@
 class UCListItemContent;
 class UCListItemDivider;
 class UCListItemActions;
+class UCAction;
 class UCListItemAttached;
-class QQuickPropertyAnimation;
 class UCListItemPrivate;
+class UCListItemAttached;
 class UCListItem : public UCStyledItemBase
 {
     Q_OBJECT
@@ -38,6 +39,11 @@ class UCListItem : public UCStyledItemBase
     Q_PRIVATE_PROPERTY(UCListItem::d_func(), bool contentMoving READ contentMoving NOTIFY contentMovingChanged)
     Q_PROPERTY(QColor color READ color WRITE setColor NOTIFY colorChanged)
     Q_PROPERTY(QColor highlightColor READ highlightColor WRITE setHighlightColor RESET resetHighlightColor NOTIFY highlightColorChanged)
+    Q_PRIVATE_PROPERTY(UCListItem::d_func(), bool dragging READ dragging NOTIFY draggingChanged)
+    Q_PRIVATE_PROPERTY(UCListItem::d_func(), bool draggable READ isDraggable NOTIFY draggableChanged)
+    Q_PRIVATE_PROPERTY(UCListItem::d_func(), bool selected READ isSelected WRITE setSelected NOTIFY selectedChanged)
+    Q_PRIVATE_PROPERTY(UCListItem::d_func(), bool selectable READ isSelectable NOTIFY selectableChanged)
+    Q_PRIVATE_PROPERTY(UCListItem::d_func(), UCAction *action READ action WRITE setAction NOTIFY actionChanged DESIGNABLE false)
     Q_PRIVATE_PROPERTY(UCListItem::d_func(), QQmlListProperty<QObject> listItemData READ data DESIGNABLE false)
     Q_PRIVATE_PROPERTY(UCListItem::d_func(), QQmlListProperty<QQuickItem> listItemChildren READ children NOTIFY listItemChildrenChanged DESIGNABLE false)
     // FIXME move these to StyledItemBase with subtheming
@@ -78,6 +84,7 @@ protected:
     void mouseMoveEvent(QMouseEvent *event);
     bool childMouseEventFilter(QQuickItem *child, QEvent *event);
     bool eventFilter(QObject *, QEvent *);
+    void timerEvent(QTimerEvent *event);
 
 Q_SIGNALS:
     void leadingActionsChanged();
@@ -87,9 +94,15 @@ Q_SIGNALS:
     void contentMovingChanged();
     void colorChanged();
     void highlightColorChanged();
+    void draggingChanged();
+    void draggableChanged();
+    void selectedChanged();
+    void selectableChanged();
+    void actionChanged();
     void listItemChildrenChanged();
 
     void clicked();
+    void pressAndHold();
 
     void styleChanged();
     void __styleInstanceChanged();
@@ -105,8 +118,9 @@ private:
     Q_PRIVATE_SLOT(d_func(), void _q_rebound())
     Q_PRIVATE_SLOT(d_func(), void _q_updateSize())
     Q_PRIVATE_SLOT(d_func(), void _q_updateIndex())
+    Q_PRIVATE_SLOT(d_func(), void _q_initializeSelectionHandler())
+    Q_PRIVATE_SLOT(d_func(), void _q_initializeDragHandler())
 };
-
 QML_DECLARE_TYPEINFO(UCListItem, QML_HAS_ATTACHED_PROPERTIES)
 
 class UCAction;
@@ -120,8 +134,9 @@ class UCListItemAttached : public QObject
     Q_PROPERTY(UCListItem *item READ item NOTIFY itemChanged)
     Q_PROPERTY(int index READ index NOTIFY indexChanged)
     Q_PROPERTY(UCListItem::PanelStatus panelStatus READ panelStatus NOTIFY panelStatusChanged)
+    Q_PROPERTY(bool animate READ animate NOTIFY animateChanged)
 public:
-    UCListItemAttached(QObject *parent = 0);
+    explicit UCListItemAttached(QObject *parent = 0);
     ~UCListItemAttached();
     void setList(UCListItem *list, bool leading, bool visualizeActions);
     void connectToAttached(UCListItemAttached *parentAttached);
@@ -131,6 +146,7 @@ public:
     UCListItem *item();
     int index();
     UCListItem::PanelStatus panelStatus();
+    bool animate() const;
 
 public Q_SLOTS:
     void snapToPosition(qreal position);
@@ -141,6 +157,7 @@ Q_SIGNALS:
     void itemChanged();
     void indexChanged();
     void panelStatusChanged();
+    void animateChanged();
 
 private:
     Q_DECLARE_PRIVATE(UCListItemAttached)
@@ -150,11 +167,15 @@ private Q_SLOTS:
     void updateVisibleActions();
 };
 
-
+class UCDragEvent;
+class QQuickMouseEvent;
 class UCViewItemsAttachedPrivate;
 class UCViewItemsAttached : public QObject
 {
     Q_OBJECT
+    Q_PROPERTY(bool selectMode READ selectMode WRITE setSelectMode NOTIFY selectModeChanged)
+    Q_PROPERTY(QList<int> selectedIndices READ selectedIndices WRITE setSelectedIndices NOTIFY selectedIndicesChanged)
+    Q_PROPERTY(bool dragMode READ dragMode WRITE setDragMode NOTIFY dragModeChanged)
 public:
     explicit UCViewItemsAttached(QObject *owner);
     ~UCViewItemsAttached();
@@ -166,12 +187,84 @@ public:
     bool isMoving();
     bool isBoundTo(UCListItem *item);
 
+    // getter/setter
+    bool selectMode() const;
+    void setSelectMode(bool value);
+    QList<int> selectedIndices() const;
+    void setSelectedIndices(const QList<int> &list);
+    bool dragMode() const;
+    void setDragMode(bool value);
+
+protected:
+    void timerEvent(QTimerEvent *event);
+
 private Q_SLOTS:
     void unbindItem();
+    void completed();
+    // drag handling
+    void startDragging(QQuickMouseEvent *event);
+    void stopDragging(QQuickMouseEvent *event);
+    void updateDragging(QQuickMouseEvent *event);
+
+Q_SIGNALS:
+    void selectModeChanged();
+    void selectedIndicesChanged();
+    void dragModeChanged();
+
+    void draggingStarted(UCDragEvent *event);
+    void draggingUpdated(UCDragEvent *event);
+
 private:
     Q_DECLARE_PRIVATE(UCViewItemsAttached)
     QScopedPointer<UCViewItemsAttachedPrivate> d_ptr;
 };
 QML_DECLARE_TYPEINFO(UCViewItemsAttached, QML_HAS_ATTACHED_PROPERTIES)
+
+class UCDragEvent : public QObject
+{
+    Q_OBJECT
+    Q_PROPERTY(Direction direction READ direction)
+    Q_PROPERTY(int from READ from)
+    Q_PROPERTY(int to READ to)
+    Q_PROPERTY(int minimumIndex MEMBER m_minimum)
+    Q_PROPERTY(int maximumIndex MEMBER m_maximum)
+    Q_PROPERTY(bool accept MEMBER m_accept)
+    Q_ENUMS(Direction)
+public:
+    enum Direction {
+        None        = 0x00,
+        Upwards     = 0x01,
+        Downwards   = 0x02
+    };
+    Q_DECLARE_FLAGS(Directions, Direction)
+
+    explicit UCDragEvent(Direction direction, int from, int to, int min, int max)
+        : QObject(0), m_direction(direction), m_from(from), m_to(to), m_minimum(min), m_maximum(max), m_accept(true)
+    {}
+    int from() const
+    {
+        return m_from;
+    }
+    int to() const
+    {
+        return m_to;
+    }
+    Direction direction() const
+    {
+        return m_direction;
+    }
+
+private:
+    Direction m_direction;
+    int m_from;
+    int m_to;
+    int m_minimum;
+    int m_maximum;
+    bool m_accept;
+
+    friend class UCViewItemsAttached;
+    friend class UCViewItemsAttachedPrivate;
+};
+Q_DECLARE_OPERATORS_FOR_FLAGS(UCDragEvent::Directions)
 
 #endif // UCLISTITEM_H

@@ -20,6 +20,7 @@
 #include "uclistitem.h"
 #include "ucstyleditembase_p.h"
 #include <QtCore/QPointer>
+#include <QtCore/QBasicTimer>
 #include <QtQuick/private/qquickrectangle_p.h>
 
 #define MIN(x, y)           ((x < y) ? x : y)
@@ -30,6 +31,7 @@
 #define IMPLICIT_LISTITEM_HEIGHT_GU     7
 #define DIVIDER_THICKNESS_DP            2
 #define DEFAULT_SWIPE_THRESHOLD_GU      1.5
+#define DRAG_SCROLL_TIMEOUT             15
 
 class QQuickFlickable;
 class QQuickPropertyAnimation;
@@ -38,6 +40,8 @@ class UCListItemDivider;
 class UCListItemActions;
 class UCListItemSnapAnimator;
 class UCListItemStyle;
+class UCSelectionHandler;
+class UCDragHandler;
 class UCActionPanel;
 class UCListItemPrivate : public UCStyledItemBasePrivate
 {
@@ -52,8 +56,13 @@ public:
         Q_ASSERT(that);
         return that->d_func();
     }
+    inline UCListItem *item()
+    {
+        return q_func();
+    }
 
     bool isClickedConnected();
+    bool isPressAndHoldConnected();
     void _q_updateThemedData();
     void _q_rebound();
     void promptRebound();
@@ -76,9 +85,9 @@ public:
     bool ready:1;
     bool customColor:1;
     bool customOvershoot:1;
-    bool flicked:1;
     qreal xAxisMoveThresholdGU;
     qreal overshoot;
+    QBasicTimer pressAndHoldTimer;
     QPointF lastPos;
     QPointF pressedPos;
     QColor color;
@@ -93,6 +102,9 @@ public:
     UCActionPanel *leadingPanel;
     UCActionPanel *trailingPanel;
     UCListItemSnapAnimator *animator;
+    UCAction *defaultAction;
+    UCSelectionHandler *selectionHandler;
+    UCDragHandler *dragHandler;
 
     // FIXME move these to StyledItemBase togehther with subtheming.
     QQmlComponent *styleComponent;
@@ -112,22 +124,33 @@ public:
     void resetStyle();
     void initStyleItem();
     QQuickItem *styleInstance() const;
+    bool dragging();
+    bool isDraggable();
+    void _q_initializeDragHandler();
+    bool isSelected();
+    void setSelected(bool value);
+    bool isSelectable();
+    void _q_initializeSelectionHandler();
+    UCAction *action() const;
+    void setAction(UCAction *action);
 };
 
 class UCListItemAttachedPrivate : public QObjectPrivate
 {
     Q_DECLARE_PUBLIC(UCListItemAttached)
 public:
-    UCListItemAttachedPrivate() : QObjectPrivate(), panel(0), listItem(0) {}
+    UCListItemAttachedPrivate() : QObjectPrivate(), panel(0), listItem(0), animate(true) {}
 
     static UCListItemAttachedPrivate* get(UCListItemAttached *that)
     {
         return that->d_func();
     }
+    void setAnimate(bool value);
 
     UCActionPanel *panel;
     UCListItem *listItem;
     QList<UCAction*> visibleActions;
+    bool animate:1;
 };
 
 class PropertyChange;
@@ -138,17 +161,54 @@ public:
     UCViewItemsAttachedPrivate(UCViewItemsAttached *qq);
     ~UCViewItemsAttachedPrivate();
 
+    static UCViewItemsAttachedPrivate *get(UCViewItemsAttached *item)
+    {
+        return item ? item->d_func() : 0;
+    }
+
     void clearFlickablesList();
     void buildFlickablesList();
     void clearChangesList();
     void buildChangesList(const QVariant &newValue);
+    bool addSelectedItem(UCListItem *item);
+    bool removeSelectedItem(UCListItem *item);
+    bool isItemSelected(UCListItem *item);
+
+    // dragging mode functions
+    void enterDragMode();
+    void leaveDragMode();
+    bool isDraggingStartedConnected();
+    bool isDraggingUpdatedConnected();
+
+    QPointF mapDragAreaPos();
+    int indexAt(qreal x, qreal y);
+    UCListItem *itemAt(qreal x, qreal y);
+    void createDraggedItem(UCListItem *dragItem);
+    void updateDraggedItem();
+    void updateSelectedIndices(int fromIndex, int toIndex);
 
     UCViewItemsAttached *q_ptr;
-    bool globalDisabled;
+    QQuickFlickable *listView;
+    bool ready:1;
+    bool globalDisabled:1;
+    bool selectable:1;
+    bool draggable:1;
+    QSet<int> selectedList;
     QList< QPointer<QQuickFlickable> > flickables;
     QList< PropertyChange* > changes;
     QPointer<UCListItem> boundItem;
     QPointer<UCListItem> disablerItem;
+
+    // drag handling
+    QBasicTimer dragScrollTimer;
+    QQuickMouseArea *dragHandlerArea;
+    QPointer<UCListItem> dragTempItem;
+    qreal dragLastY;
+    UCDragEvent::Direction dragDirection;
+    int dragFromIndex;
+    int dragToIndex;
+    int dragMinimum;
+    int dragMaximum;
 };
 
 class UCActionPanel : public QObject
@@ -260,6 +320,71 @@ public Q_SLOTS:
 private:
     bool active;
     UCListItem *item;
+};
+
+class UCHandlerBase : public QObject
+{
+    Q_OBJECT
+public:
+
+    explicit UCHandlerBase(UCListItem *owner = 0);
+    virtual void initialize(bool animated) = 0;
+
+protected:
+    UCListItem *listItem;
+    QQuickItem *panel;
+
+    void setupPanel(QQmlComponent *component, bool animate);
+};
+
+class UCSelectionHandler : public UCHandlerBase
+{
+    Q_OBJECT
+public:
+    explicit UCSelectionHandler(UCListItem *owner = 0);
+
+    void initialize(bool animated);
+
+public Q_SLOTS:
+    void setupSelection(bool animated = true);
+};
+
+class UCDragHandler : public UCHandlerBase
+{
+    Q_OBJECT
+public:
+    explicit UCDragHandler(UCListItem *listItem);
+    ~UCDragHandler();
+
+    void initialize(bool animated);
+    bool isDragging()
+    {
+        return dragging;
+    }
+    void setDragging(bool value);
+
+    bool isPanel(QQuickItem *item)
+    {
+        return item == panel;
+    }
+
+    void prepareDragging(UCListItem *item);
+    void drop();
+    void update(UCListItem *newItem);
+
+Q_SIGNALS:
+    void draggingChanged();
+
+public Q_SLOTS:
+    void setupDragMode(bool animated = true);
+    void repositionDraggedItem();
+
+protected:
+    bool dragging:1;
+    bool isDraggedItem:1;
+    QPointF targetPosition;
+    QPointer<UCListItem> originalItem;
+    PropertyChange *visibleProperty;
 };
 
 #endif // UCVIEWITEM_P_H

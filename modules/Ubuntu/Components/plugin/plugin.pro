@@ -120,7 +120,9 @@ SOURCES += plugin.cpp \
     uclistitemattached.cpp \
     ucactionpanel_p.cpp \
     adapters\dbuspropertywatcher_p.cpp \
-    ucserviceproperties.cpp
+    ucserviceproperties.cpp \
+    uclistitemselect.cpp \
+    uclistitemdrag.cpp
 
 # adapters
 SOURCES += adapters/alarmsadapter_organizer.cpp

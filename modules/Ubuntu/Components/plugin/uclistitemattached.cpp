@@ -21,6 +21,16 @@
 #include "ucunits.h"
 #include "ucaction.h"
 
+void UCListItemAttachedPrivate::setAnimate(bool value)
+{
+    if (animate == value) {
+        return;
+    }
+    animate = value;
+    Q_Q(UCListItemAttached);
+    Q_EMIT q->animateChanged();
+}
+
 UCListItemAttached::UCListItemAttached(QObject *parent)
     : QObject(*(new UCListItemAttachedPrivate()), parent)
 {
@@ -173,9 +183,21 @@ void UCListItemAttached::snapToPosition(qreal position)
         listItem->_q_rebound();
     } else {
         if (listItem->animator) {
+            position *= listItem->effectiveLayoutMirror ? -1 : 1;
             listItem->animator->snap(position);
         } else {
             listItem->contentItem->setX(position);
         }
     }
+}
+
+/*!
+ * \qmlattachedproperty bool ListItem::animate
+ * The property specifies whether the ListItem expects to animate the transitions within
+ * the panel or not. Valid for selection and drag mode handlers.
+ */
+bool UCListItemAttached::animate() const
+{
+    Q_D(const UCListItemAttached);
+    return d->animate;
 }
