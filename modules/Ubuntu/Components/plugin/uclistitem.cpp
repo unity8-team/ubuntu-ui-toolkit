@@ -1625,7 +1625,7 @@ void UCListItem::setColor(const QColor &color)
  * }
  * \endqml
  *
- * \sa action, leadingActions, trailingActions, highlightPolicy
+ * \sa action, leadingActions, trailingActions
  */
 QColor UCListItem::highlightColor() const
 {
