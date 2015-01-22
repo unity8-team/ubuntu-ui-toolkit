@@ -54,7 +54,7 @@ QColor getPaletteColor(const char *profile, const char *color)
  */
 UCHandlerBase::UCHandlerBase(UCListItem *owner)
     : QObject(owner)
-    , listItem(UCListItemPrivate::get(owner))
+    , listItem(owner)
     , panel(0)
 {
 }
@@ -64,22 +64,20 @@ void UCHandlerBase::setupPanel(QQmlComponent *component, bool animate)
     if (panel || !component) {
         return;
     }
-    Q_UNUSED(animate)
-    UCListItem *item = listItem->item();
     if (component->isError()) {
-        qmlInfo(item) << component->errorString();
+        qmlInfo(listItem) << component->errorString();
     } else {
         // create a new context so we can expose context properties
-        QQmlContext *context = new QQmlContext(qmlContext(item), item);
+        QQmlContext *context = new QQmlContext(qmlContext(listItem), listItem);
         panel = qobject_cast<QQuickItem*>(component->beginCreate(context));
         if (panel) {
-            QQml_setParent_noEvent(panel, item);
-            panel->setParentItem(item);
+            QQml_setParent_noEvent(panel, listItem);
+            panel->setParentItem(listItem);
             // attach ListItem attached properties
             UCListItemAttached *attached = static_cast<UCListItemAttached*>(
                         qmlAttachedPropertiesObject<UCListItem>(panel));
             if (attached) {
-                attached->setList(item, false, false);
+                attached->setList(listItem, false, false);
                 UCListItemAttachedPrivate::get(attached)->setAnimate(animate);
             }
             // complete component creation
@@ -432,15 +430,6 @@ void UCListItemPrivate::init()
 
     // watch grid unit size change and set implicit size
     QObject::connect(&UCUnits::instance(), SIGNAL(gridUnitChanged()), q, SLOT(_q_updateSize()));
-    _q_updateSize();
-
-    // create the animator
-    animator = new UCListItemSnapAnimator(q);
-
-    // create selection handler
-    selectionHandler = new UCSelectionHandler(q);
-    // create drag handler
-    dragHandler = new UCDragHandler(q);
 }
 
 // inspired from IS_SIGNAL_CONNECTED(q, UCListItem, pressAndHold, ())
@@ -480,14 +469,15 @@ void UCListItemPrivate::_q_rebound()
 {
     setHighlighted(false);
     // initiate rebinding only if there were actions tugged
-    Q_Q(UCListItem);
     if (!UCActionPanel::isConnected(leadingPanel) &&
         !UCActionPanel::isConnected(trailingPanel)) {
         return;
     }
     setSwiped(false);
     // rebound to zero
-    animator->snap(0);
+    if (animator) {
+        animator->snap(0);
+    }
 }
 
 void UCListItemPrivate::_q_updateIndex()
@@ -554,7 +544,8 @@ void UCListItemPrivate::resetStyle()
         delete implicitStyleComponent;
         Q_Q(UCListItem);
         implicitStyleComponent = UCTheme::instance().createStyleComponent("ListItemStyle.qml", q);
-        implicitStyleComponent->setObjectName("ThemeStyle");
+        // set the objectnane for testing in tst_listitems.qml
+        implicitStyleComponent->setObjectName("ListItemThemeStyle");
         // re-create style instance if it was created using the implicit style
         if (reloadStyle) {
             initStyleItem();
@@ -949,7 +940,7 @@ void UCListItemPrivate::clampAndMoveX(qreal &x, qreal dx)
  *    }
  * }
  * \endqml
- * The indexes selected are stored in \l ViewItems::selectedIndexes attached property,
+ * The indexes selected are stored in \l ViewItems::selectedIndices attached property,
  * attached the same way as the \l ViewItems::selectMode property is. This is a
  * read/write property, meaning that initial selected item indexes can be set up.
  * The list contains the indexes added in the order of selection, not sorted in
@@ -963,15 +954,15 @@ void UCListItemPrivate::clampAndMoveX(qreal &x, qreal dx)
  *
  * \section3 Dragging mode
  * The dragging mode is only supported on ListView, as it requires a model supported
- * view to be used. The drag mode can be activated using the \l ListItem::dragMode
+ * view to be used. The drag mode can be activated using the \l ViewItems::dragMode
  * attached property that is attached to the ListView. The items will show a panel
  * as defined in the \l ListItemStyle::dragHandlerDelegate, and dragging will be
  * possible only through that panel. Pressing or clicking anywhere else on the ListItem
  * will invoke the item's action assigned to the touched area.
  *
  * The most important thing to remember when implementing dragging on a ListItem is to
- * implement the \l ListItem::draggingUpdated signal, and to move the model data whenever
- * desired. \l ListItem::draggingStarted signal implementation is only required if there
+ * implement the \l ViewItems::draggingUpdated signal, and to move the model data whenever
+ * desired. \l ViewItems::draggingStarted signal implementation is only required if there
  * are preconditions to be applied prior to initiate the dragging.
  *
  * ListItem does not provide animations when the ListView's model is updated. In order
@@ -995,9 +986,10 @@ void UCListItemPrivate::clampAndMoveX(qreal &x, qreal dx)
  *             text: modelData
  *         }
  *         color: draggable ? "lightblue" : "lightgray"
- *         onPressAndHold: ListView.view.ListItem.dragMode = !ListView.view.ListItem.dragMode
+ *         onPressAndHold: ListView.view.ViewItems.dragMode =
+ *             !ListView.view.ViewItems.dragMode
  *     }
- *     ListItem.draggingUpdated: {
+ *     ViewItems.draggingUpdated: {
  *         model.move(event.from, event.to, 1);
  *     }
  *     moveDisplaced: Transition {
@@ -1008,7 +1000,7 @@ void UCListItemPrivate::clampAndMoveX(qreal &x, qreal dx)
  * }
  * \endqml
  *
- * \sa ListItem::dragMode, ListItem::draggingStarted, ListItem::draggingUpdated
+ * \sa ViewItems::dragMode, ViewItems::draggingStarted, ViewItems::draggingUpdated
  */
 
 /*!
@@ -1089,18 +1081,22 @@ void UCListItem::componentComplete()
         update();
     }
 
-    d->selectionHandler->initialize();
-    d->dragHandler->initialize();
-
     if (d->parentAttached) {
         // keep selectable in sync
-        connect(d->parentAttached, &UCViewItemsAttached::selectModeChanged,
-                this, &UCListItem::selectableChanged);
+        connect(d->parentAttached, SIGNAL(selectModeChanged()),
+                this, SLOT(_q_initializeSelectionHandler()));
         // also draggable
-        connect(d->parentAttached, &UCViewItemsAttached::dragModeChanged,
-                this, &UCListItem::draggableChanged);
-        // get the selected state from the attached object
-        d->setSelected(UCViewItemsAttachedPrivate::get(d->parentAttached)->isItemSelected(this));
+        connect(d->parentAttached, SIGNAL(dragModeChanged()),
+                this, SLOT(_q_initializeDragHandler()));
+        if (d->parentAttached->selectMode()) {
+           d->_q_initializeSelectionHandler();
+        }
+        if (d->parentAttached->dragMode()) {
+            d->_q_initializeDragHandler();
+        }
+        // connect selectedIndicesChanged
+        connect(d->parentAttached, SIGNAL(selectedIndicesChanged()),
+                this, SIGNAL(selectedChanged()));
     }
 }
 
@@ -1138,10 +1134,9 @@ void UCListItem::itemChange(ItemChange change, const ItemChangeData &data)
 
         if (parentAttachee) {
             QObject::connect(parentAttachee, SIGNAL(widthChanged()), this, SLOT(_q_updateSize()), Qt::DirectConnection);
+            // update size
+            d->_q_updateSize();
         }
-
-        // update size
-        d->_q_updateSize();
     }
 }
 
@@ -1205,6 +1200,10 @@ void UCListItem::mousePressEvent(QMouseEvent *event)
 {
     UCStyledItemBase::mousePressEvent(event);
     Q_D(UCListItem);
+    // make sure we have the animator created
+    if (!d->animator) {
+        d->animator = new UCListItemSnapAnimator(this);
+    }
     if (d->parentAttached && d->parentAttached->isMoving()) {
         // while moving, we cannot select any items
         return;
@@ -1609,12 +1608,12 @@ QColor UCListItem::highlightColor() const
 void UCListItem::setHighlightColor(const QColor &color)
 {
     Q_D(UCListItem);
+    // mark it as custom even if the value is the same as the previous one
+    d->customColor = true;
     if (d->highlightColor == color) {
         return;
     }
     d->highlightColor = color;
-    // no more theme change watch
-    d->customColor = true;
     update();
     Q_EMIT highlightColorChanged();
 }
@@ -1633,7 +1632,7 @@ void UCListItem::resetHighlightColor()
  */
 bool UCListItemPrivate::dragging()
 {
-    return dragHandler->isDragging();
+    return dragHandler ? dragHandler->isDragging() : false;
 }
 
 /*!
@@ -1648,6 +1647,16 @@ bool UCListItemPrivate::isDraggable()
     return attached ? attached->draggable : false;
 }
 
+void UCListItemPrivate::_q_initializeDragHandler()
+{
+    Q_Q(UCListItem);
+    if (!dragHandler) {
+        dragHandler = new UCDragHandler(q);
+        dragHandler->initialize(q->senderSignalIndex() >= 0);
+    }
+    Q_EMIT q->draggableChanged();
+}
+
 /*!
  * 
  * \qmlproperty bool ListItem::selected
@@ -1656,13 +1665,19 @@ bool UCListItemPrivate::isDraggable()
  *
  * \sa ListItem::selectable, ViewItems::selectMode
  */
-bool UCListItemPrivate::isSelected() const
+bool UCListItemPrivate::isSelected()
 {
-    return selectionHandler->isSelected();
+    Q_Q(UCListItem);
+    return UCViewItemsAttachedPrivate::get(parentAttached)->isItemSelected(q);
 }
 void UCListItemPrivate::setSelected(bool value)
 {
-    selectionHandler->setSelected(value);
+    Q_Q(UCListItem);
+    if (value) {
+        UCViewItemsAttachedPrivate::get(parentAttached)->addSelectedItem(q);
+    } else {
+        UCViewItemsAttachedPrivate::get(parentAttached)->removeSelectedItem(q);
+    }
 }
 
 /*!
@@ -1675,6 +1690,16 @@ bool UCListItemPrivate::isSelectable()
 {
     UCViewItemsAttachedPrivate *attached = UCViewItemsAttachedPrivate::get(parentAttached);
     return attached ? attached->selectable : false;
+}
+
+void UCListItemPrivate::_q_initializeSelectionHandler()
+{
+    Q_Q(UCListItem);
+    if (!selectionHandler) {
+        selectionHandler = new UCSelectionHandler(q);
+        selectionHandler->initialize(q->senderSignalIndex() >= 0);
+    }
+    Q_EMIT q->selectableChanged();
 }
 
 /*!
@@ -1744,12 +1769,13 @@ qreal UCListItemPrivate::swipeOvershoot() const
 }
 void UCListItemPrivate::setSwipeOvershoot(qreal overshoot)
 {
+    // mark any positive value as custom even if it is the same as the previous one
+    customOvershoot = (overshoot >= 0.0);
     // same value should be guarded only if the style hasn't been loaded yet
     // swipeOvershoot can be set to 0 prior the style is loaded.
     if (this->overshoot == overshoot && styleItem) {
         return;
     }
-    customOvershoot = (overshoot >= 0.0);
     if (!customOvershoot) {
         resetSwipeOvershoot();
         return;

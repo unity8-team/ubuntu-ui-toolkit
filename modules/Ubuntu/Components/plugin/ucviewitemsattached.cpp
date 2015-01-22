@@ -100,12 +100,9 @@ void UCViewItemsAttachedPrivate::buildFlickablesList()
 void UCViewItemsAttachedPrivate::clearChangesList()
 {
     // clear property change objects
-    Q_Q(UCViewItemsAttached);
-    Q_FOREACH(PropertyChange *change, changes) {
-        // deleting PropertyChange will restore the saved property
-        // to its original binding/value
-        delete change;
-    }
+    // deleting PropertyChange will restore the saved property
+    // to its original binding/value
+    qDeleteAll(changes);
     changes.clear();
 }
 
@@ -272,54 +269,60 @@ void UCViewItemsAttached::completed()
  * side hanving the content item pushed towards trailing side and dimmed. The checkbox
  * will reflect and drive the \l ListItem::selected state. Defaults to \c false.
  */
-bool UCViewItemsAttachedPrivate::selectMode() const
+bool UCViewItemsAttached::selectMode() const
 {
-    return selectable;
+    Q_D(const UCViewItemsAttached);
+    return d->selectable;
 }
-void UCViewItemsAttachedPrivate::setSelectMode(bool value)
+void UCViewItemsAttached::setSelectMode(bool value)
 {
-    if (selectable == value) {
+    Q_D(UCViewItemsAttached);
+    if (d->selectable == value) {
         return;
     }
-    selectable = value;
-    Q_Q(UCViewItemsAttached);
-    Q_EMIT q->selectModeChanged();
+    d->selectable = value;
+    Q_EMIT selectModeChanged();
 }
 
 /*!
- * \qmlattachedproperty list<int> ViewItems::selectedIndexes
+ * \qmlattachedproperty list<int> ViewItems::selectedIndices
  * The property contains the indexes of the ListItems marked as selected. The
  * indexes are model indexes when used in ListView, and child indexes in other
  * components. The property being writable, initial selection configuration
  * can be provided for a view, and provides ability to save the selection state.
  */
-QList<int> UCViewItemsAttachedPrivate::selectedIndexes() const
+QList<int> UCViewItemsAttached::selectedIndices() const
 {
-    return selectedList.toList();
+    Q_D(const UCViewItemsAttached);
+    return d->selectedList.toList();
 }
-void UCViewItemsAttachedPrivate::setSelectedIndexes(const QList<int> &list)
+void UCViewItemsAttached::setSelectedIndices(const QList<int> &list)
 {
-    if (selectedList.toList() == list) {
+    Q_D(UCViewItemsAttached);
+    if (d->selectedList.toList() == list) {
         return;
     }
-    selectedList = QSet<int>::fromList(list);
-    Q_Q(UCViewItemsAttached);
-    Q_EMIT q->selectedIndexesChanged();
+    d->selectedList = QSet<int>::fromList(list);
+    Q_EMIT selectedIndicesChanged();
 }
 
-void UCViewItemsAttachedPrivate::addSelectedItem(UCListItem *item)
+bool UCViewItemsAttachedPrivate::addSelectedItem(UCListItem *item)
 {
     int index = UCListItemPrivate::get(item)->index();
     if (!selectedList.contains(index)) {
         selectedList.insert(index);
-        Q_EMIT q_ptr->selectedIndexesChanged();
+        Q_EMIT q_ptr->selectedIndicesChanged();
+        return true;
     }
+    return false;
 }
-void UCViewItemsAttachedPrivate::removeSelectedItem(UCListItem *item)
+bool UCViewItemsAttachedPrivate::removeSelectedItem(UCListItem *item)
 {
     if (selectedList.remove(UCListItemPrivate::get(item)->index()) > 0) {
-        Q_EMIT q_ptr->selectedIndexesChanged();
+        Q_EMIT q_ptr->selectedIndicesChanged();
+        return true;
     }
+    return false;
 }
 
 bool UCViewItemsAttachedPrivate::isItemSelected(UCListItem *item)
@@ -487,8 +490,8 @@ bool UCViewItemsAttachedPrivate::isItemSelected(UCListItem *item)
  *        // content
  *    }
  *
- *    ListItem.dragMode: true
- *    ListItem.onDraggingUpdated: {
+ *    ViewItems.dragMode: true
+ *    ViewItems.onDraggingUpdated: {
  *        if (event.direction == ListItemDrag.None) {
  *            // this is the last event, so drop the item
  *            model.move(event.from, event.to, 1);
@@ -501,40 +504,45 @@ bool UCViewItemsAttachedPrivate::isItemSelected(UCListItem *item)
  * }
  * \endqml
  *
- * \note Do not forget to set \b{event.attached} to false in \l draggingUpdated,
+ * \note Do not forget to set \b{event.attached} to false in \c draggingUpdated,
  * otherwise the system will not know whether the move has been performed or not,
  * and selected indexes will not be synchronized properly.
  */
-bool UCViewItemsAttachedPrivate::dragMode() const
+bool UCViewItemsAttached::dragMode() const
 {
-    return draggable;
+    Q_D(const UCViewItemsAttached);
+    return d->draggable;
 }
-void UCViewItemsAttachedPrivate::setDragMode(bool value)
+void UCViewItemsAttached::setDragMode(bool value)
 {
-    if (draggable == value) {
+    Q_D(UCViewItemsAttached);
+    if (d->draggable == value) {
         return;
     }
-    Q_Q(UCViewItemsAttached);
     if (value) {
         /*
          * The dragging works only if the ListItem is used inside a ListView, and the
          * model used is a list, a ListModel or a derivate of QAbstractItemModel. Do
          * not enable dragging if these conditions are not fulfilled.
          */
-        if (!listView) {
-            qmlInfo(q->parent()) << UbuntuI18n::instance().tr("dragging mode requires ListView");
+        if (!d->listView) {
+            qmlInfo(parent()) << UbuntuI18n::instance().tr("dragging mode requires ListView");
+            return;
+        }
+        QVariant modelValue = d->listView->property("model");
+        if (!modelValue.isValid()) {
             return;
         }
     }
-    draggable = value;
-    if (draggable) {
+    d->draggable = value;
+    if (d->draggable) {
         // enter drag mode
-        enterDragMode();
+        d->enterDragMode();
     } else {
         // exit drag mode
-        leaveDragMode();
+        d->leaveDragMode();
     }
-    Q_EMIT q->dragModeChanged();
+    Q_EMIT dragModeChanged();
 }
 
 // enters dragging mode, creates a MouseArea over the right side of the item
@@ -591,6 +599,7 @@ void UCViewItemsAttached::startDragging(QQuickMouseEvent *event)
     bool start = true;
     d->dragMinimum = -1;
     d->dragMaximum = -1;
+    // call handler if implemented
     if (d->isDraggingStartedConnected()) {
         UCDragEvent event(UCDragEvent::None, index, -1, -1, -1);
         Q_EMIT draggingStarted(&event);
@@ -608,6 +617,8 @@ void UCViewItemsAttached::startDragging(QQuickMouseEvent *event)
     }
 }
 
+// stops dragging, performs drop event (event.direction = ListItemDrag.None)
+// and clears temporary item
 void UCViewItemsAttached::stopDragging(QQuickMouseEvent *event)
 {
     Q_UNUSED(event);
@@ -620,7 +631,7 @@ void UCViewItemsAttached::stopDragging(QQuickMouseEvent *event)
             Q_EMIT draggingUpdated(&dragEvent);
             d->updateDraggedItem();
             if (dragEvent.m_accept) {
-                d->updateSelectedIndexes(d->dragFromIndex, d->dragToIndex);
+                d->updateSelectedIndices(d->dragFromIndex, d->dragToIndex);
             }
         }
         // unlock flickables
@@ -630,6 +641,7 @@ void UCViewItemsAttached::stopDragging(QQuickMouseEvent *event)
     }
 }
 
+// update dragging when mouse move event is received
 void UCViewItemsAttached::updateDragging(QQuickMouseEvent *event)
 {
     Q_UNUSED(event);
@@ -696,7 +708,7 @@ void UCViewItemsAttached::updateDragging(QQuickMouseEvent *event)
                 Q_EMIT draggingUpdated(&event);
                 update = event.m_accept;
                 if (update) {
-                    d->updateSelectedIndexes(d->dragFromIndex, d->dragToIndex);
+                    d->updateSelectedIndices(d->dragFromIndex, d->dragToIndex);
                 }
             }
             if (update) {
@@ -708,6 +720,7 @@ void UCViewItemsAttached::updateDragging(QQuickMouseEvent *event)
     }
 }
 
+// timer event to handle scrolling
 void UCViewItemsAttached::timerEvent(QTimerEvent *event)
 {
     Q_D(UCViewItemsAttached);
@@ -725,6 +738,7 @@ void UCViewItemsAttached::timerEvent(QTimerEvent *event)
     }
 }
 
+// returns true when the draggingStarted signal handler is implemented or a function is connected to it
 bool UCViewItemsAttachedPrivate::isDraggingStartedConnected()
 {
     Q_Q(UCViewItemsAttached);
@@ -733,6 +747,7 @@ bool UCViewItemsAttachedPrivate::isDraggingStartedConnected()
     return QObjectPrivate::get(q)->isSignalConnected(signalIdx);
 }
 
+// returns true when the draggingUpdated signal handler is implemented or a function is connected to it
 bool UCViewItemsAttachedPrivate::isDraggingUpdatedConnected()
 {
     Q_Q(UCViewItemsAttached);
@@ -741,6 +756,7 @@ bool UCViewItemsAttachedPrivate::isDraggingUpdatedConnected()
     return QObjectPrivate::get(q)->isSignalConnected(signalIdx);
 }
 
+// returns the mapped mouse position of the dragged item's dragHandler to the ListView
 QPointF UCViewItemsAttachedPrivate::mapDragAreaPos()
 {
     QPointF pos(dragHandlerArea->mouseX(), dragHandlerArea->mouseY() + listView->contentY());
@@ -748,7 +764,7 @@ QPointF UCViewItemsAttachedPrivate::mapDragAreaPos()
     return pos;
 }
 
-
+// calls ListView.indexAt() invokable
 int UCViewItemsAttachedPrivate::indexAt(qreal x, qreal y)
 {
     if (!listView) {
@@ -763,6 +779,7 @@ int UCViewItemsAttachedPrivate::indexAt(qreal x, qreal y)
     return result;
 }
 
+// calls ListView.itemAt() invokable
 UCListItem *UCViewItemsAttachedPrivate::itemAt(qreal x, qreal y)
 {
     if (!listView) {
@@ -777,7 +794,7 @@ UCListItem *UCViewItemsAttachedPrivate::itemAt(qreal x, qreal y)
     return static_cast<UCListItem*>(result);
 }
 
-
+// creates a temporary ListItem from the ListView's delegate which will be dragged
 void UCViewItemsAttachedPrivate::createDraggedItem(UCListItem *dragItem)
 {
     if (dragTempItem || !dragItem) {
@@ -788,11 +805,22 @@ void UCViewItemsAttachedPrivate::createDraggedItem(UCListItem *dragItem)
         return;
     }
     // use dragItem's context to get access to the ListView's model roles
-    dragTempItem = static_cast<UCListItem*>(delegate->create(qmlContext(dragItem)));
-    dragTempItem->setParentItem(listView->contentItem());
-    UCListItemPrivate::get(dragTempItem)->dragHandler->startDragging(dragItem);
+    // use two-step component creation to invoke panel creation from itemChanged()
+    // and componentCompleted() of ListItem
+    // use dragged item's context as parent context so we get all model roles and
+    // context properties of that item
+    QQmlContext *context = new QQmlContext(qmlContext(dragItem), listView);
+    dragTempItem = static_cast<UCListItem*>(delegate->beginCreate(context));
+    if (dragTempItem) {
+        QQml_setParent_noEvent(dragTempItem, listView->contentItem());
+        dragTempItem->setParentItem(listView->contentItem());
+        delegate->completeCreate();
+    }
+    // prepare temporary item for dragging
+    UCListItemPrivate::get(dragTempItem)->dragHandler->prepareDragging(dragItem);
 }
 
+// update dragged item
 void UCViewItemsAttachedPrivate::updateDraggedItem()
 {
     if (abs(dragFromIndex - dragToIndex) > 0) {
@@ -801,7 +829,8 @@ void UCViewItemsAttachedPrivate::updateDraggedItem()
     }
 }
 
-void UCViewItemsAttachedPrivate::updateSelectedIndexes(int fromIndex, int toIndex)
+// updates selectedIndices list after a successful drag update
+void UCViewItemsAttachedPrivate::updateSelectedIndices(int fromIndex, int toIndex)
 {
     if (selectedList.count() == listView->property("count").toInt()) {
         // all the items are selected, leave
@@ -813,11 +842,12 @@ void UCViewItemsAttachedPrivate::updateSelectedIndexes(int fromIndex, int toInde
     bool isFromSelected = selectedList.contains(fromIndex);
     if (isFromSelected) {
         selectedList.remove(fromIndex);
-        Q_EMIT q->selectedIndexesChanged();
+        Q_EMIT q->selectedIndicesChanged();
     }
     // direction is -1 (forwards) or 1 (backwards)
     int direction = (fromIndex < toIndex) ? -1 : 1;
     int i = (direction < 0) ? fromIndex + 1 : fromIndex - 1;
+    // loop through the selectedIndices and fix all indexes
     while (1) {
         if (((direction < 0) && (i > toIndex)) ||
             ((direction > 0) && (i < toIndex))) {
@@ -827,12 +857,12 @@ void UCViewItemsAttachedPrivate::updateSelectedIndexes(int fromIndex, int toInde
         if (selectedList.contains(i)) {
             selectedList.remove(i);
             selectedList.insert(i + direction);
-            Q_EMIT q->selectedIndexesChanged();
+            Q_EMIT q->selectedIndicesChanged();
         }
         i -= direction;
     }
     if (isFromSelected) {
         selectedList.insert(toIndex);
-        Q_EMIT q->selectedIndexesChanged();
+        Q_EMIT q->selectedIndicesChanged();
     }
 }

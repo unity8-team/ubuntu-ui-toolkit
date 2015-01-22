@@ -50,9 +50,9 @@ MainView {
         UbuntuListView {
             anchors.fill: parent
             ViewItems.selectMode: ViewItems.dragMode
-            ViewItems.selectedIndexes: [14,15,16]
+            ViewItems.selectedIndices: [14,15,16]
             contentItem.objectName: "ListViewContent"
-            ViewItems.onSelectedIndexesChanged: print("selected:", ViewItems.selectedIndexes)
+            ViewItems.onSelectedIndicesChanged: print("selected:", ViewItems.selectedIndices)
 
             ViewItems.onDraggingStarted: {
                 if (!restrictOnStart) {
