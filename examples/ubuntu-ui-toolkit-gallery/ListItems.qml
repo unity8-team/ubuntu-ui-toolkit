@@ -16,69 +16,9 @@
 
 import QtQuick 2.0
 import Ubuntu.Components 1.2 as Toolkit
-import Ubuntu.Components.ListItems 0.1 as ListItem
 
 Template {
     objectName: "listItemsTemplate"
-
-    Toolkit.ListItemActions {
-        id: leading
-        actions: Toolkit.Action {
-            iconName: "delete"
-            objectName: "delete_action"
-            onTriggered: listItem.deleteAt(value)
-        }
-    }
-    Toolkit.ListItemActions {
-        id: trailing
-        actions: [
-            Toolkit.Action {
-                iconName: "edit"
-            },
-            Toolkit.Action {
-                iconName: "contact"
-            },
-            Toolkit.Action {
-                iconName: "email"
-            }
-        ]
-    }
-    ListItemsSection {
-        id: listItem
-        title: i18n.tr("ListItem")
-        className: "ListItem"
-        newListItem: true
-        clip: true
-        model: ListModel {
-            id: listModel
-            function refill() {
-                clear();
-                for (var i = 0; i < 4; i++) {
-                    append({data: "List item at index #"+i})
-                }
-            }
-            Component.onCompleted: refill()
-        }
-        delegate: Toolkit.ListItem {
-            leadingActions: leading
-            trailingActions: trailing
-            objectName: "list_item" + index
-
-            Toolkit.Label {
-                anchors {
-                    top: parent.top
-                    bottom: parent.bottom
-                }
-                verticalAlignment: Text.AlignVCenter
-                text: "Plain ListItem #" + modelData
-            }
-        }
-        Toolkit.Button {
-            text: i18n.tr("Reset")
-            anchors.right: parent.right
-            onClicked: listItem.model.refill()
-        }
-    }
 
     ListItemsSection {
         title: i18n.tr("Standard")
