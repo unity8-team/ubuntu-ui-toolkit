@@ -22,7 +22,7 @@ import QtQuick.Layouts 1.1
   \inqmlmodule Ubuntu.Components 1.2
   \ingroup unstable-ubuntu-listitems
   \since Ubuntu.Components 1.2
-  \brief Standard ListItem layout for vertical flowing lists.
+  \brief Standard ListItem layout for vertical or horizontal flowing lists.
 
   The component is a GridLayout providing positioning of the different containers
   either horizontally or vertically, where the container can be one of the
@@ -37,7 +37,7 @@ import QtQuick.Layouts 1.1
   Item in any context, especially that ListItem does not provide vertical direction.
 
   \qml
-  import QtQuick 2.2
+  import QtQuick 2.3
   import QtQuick.Layouts 1.1
   import Ubuntu.Components 1.2
 

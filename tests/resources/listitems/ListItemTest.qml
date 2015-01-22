@@ -173,7 +173,7 @@ MainView {
             clip: true
             width: parent.width
             height: units.gu(36)
-            model: 10
+            model: 100
             pressDelay: 0
             ViewItems.selectMode: main.selectable
             ViewItems.selectedIndices: [9,3,4,1]
@@ -192,7 +192,6 @@ MainView {
                     text: "Pressme..."
                     anchors.centerIn: parent
                 }
-                highlightPolicy: ListItem.PermanentHighlight
 
                 states: State {
                     name: "override"
@@ -207,7 +206,7 @@ MainView {
         Flickable {
             id: flicker
             width: parent.width
-            height: units.gu(36)
+            height: units.gu(21)
             clip: true
             contentHeight: column.childrenRect.height
             ListItemActions {

@@ -1598,34 +1598,6 @@ void UCListItem::setColor(const QColor &color)
  * \qmlproperty color ListItem::highlightColor
  * Configures the color when highlighted. Defaults to the theme palette's background
  * color. If changed, it can be reset by assigning undefined as value.
- *
- * An item is highlighted when selected, or when pressed and it has \l leadingActions
- * or \l trailingActions set, when there is a valid default \l action attached
- * to it or if the ListItem has an active component child, such as a \l Button,
- * a \l Switch, or in general, if an active (enabled and visible) \c MouseArea
- * is added as a child component. Connecting a slot to \l clicked or \l pressAndHold
- * also makes highlight active.
- *
- * \note Adding an active component does not mean the component will be activated
- * when the ListItem will be tapped/clicked outside of the component area. If
- * such a behavior is needed, this must be done explicitly.
- * \qml
- * import QtQuick 2.3
- * import Ubuntu.Components 1.2
- *
- * ListItem {
- *     Label {
- *         text: "This is a label"
- *     }
- *     Switch {
- *         id: toggle
- *         anchors.right: parent.right
- *     }
- *     Component.onCompleted: clicked.connect(toggle.clicked)
- * }
- * \endqml
- *
- * \sa action, leadingActions, trailingActions
  */
 QColor UCListItem::highlightColor() const
 {
