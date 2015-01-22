@@ -195,7 +195,7 @@ Item {
                 left: parent.left
                 right: parent.right
             }
-            fontSize: "medium"
+            fontSize: (preset === "summary") ? "small" : "medium"
             horizontalAlignment: (preset === "summary") ? Text.AlignRight : Text.AlignLeft
             visible: text !== ""
             elide: (preset === "caption") ? Text.ElideRight : Text.ElideNone

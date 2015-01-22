@@ -77,11 +77,11 @@ MainView {
             ViewItems.onDraggingUpdated: {
                 if (main.liveDrag || event.direction == ListItemDrag.None) {
                     // last drag, or live drag, drop it
-//                    print("MOVE", event.from, event.to)
+                    print("MOVE", event.from, event.to)
                     model.move(event.from, event.to, 1);
                 } else {
                     event.accept = false;
-//                    print("SKIP", event.to);
+                    print("SKIP", event.to);
                 }
             }
 
@@ -119,12 +119,15 @@ MainView {
                     actions: trailingActionList
                 }
 
-                Rectangle {
-                    anchors.fill: parent
-                    color: "#69aa69"
-                }
-                Label {
-                    text: label + ", now @ index " + index
+                ListItemLayout {
+                    Captions {
+                        title.text: "Caption for " + label
+                    }
+                    Captions {
+                        preset: "summary"
+                        title.text: "index"
+                        subtitle.text: "@"+index
+                    }
                 }
 
                 onPressAndHold: {
