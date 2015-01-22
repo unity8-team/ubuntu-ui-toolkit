@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Canonical Ltd.
+ * Copyright 2015 Canonical Ltd.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,13 +14,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import QtQuick 2.2
+import QtQuick 2.3
 import QtQuick.Layouts 1.1
 
 /*!
   \qmltype ListItemLayout
   \inqmlmodule Ubuntu.Components 1.2
   \ingroup unstable-ubuntu-listitems
+  \since Ubuntu.Components 1.2
   \brief Standard ListItem layout for vertical flowing lists.
 
   The component is a GridLayout providing positioning of the different containers

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Canonical Ltd.
+ * Copyright 2015 Canonical Ltd.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,15 +14,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import QtQuick 2.2
+import QtQuick 2.3
 import QtQuick.Layouts 1.1
 
 /*!
   \qmltype Captions
   \inqmlmodule Ubuntu.Components 1.2
   \ingroup unstable-ubuntu-listitems
+  \since Ubuntu.Components 1.2
   \brief Container providing presets for a twin-label colun that can be used in
-  \l ListItemLayout.
+  \l ListItemLayout or RowLayout, ColumnLayout and GridLayout.
 
   The labels are placed in a column and can be accessed through \l title and
   \l subtitle properties. The default spacing between the labels is driven by the
@@ -37,7 +38,7 @@ import QtQuick.Layouts 1.1
   Properties of the labels can be altered by overriding the properties of individual
   labels.
   \qml
-  import QtQuick 2.2
+  import QtQuick 2.3
   import Ubuntu.Components 1.2
 
   ListItem {
@@ -75,7 +76,7 @@ import QtQuick.Layouts 1.1
   visible property may destroy the handling. To preserve visibility control use
   \c PropertyChanges and states when altering \c visible property.
   \qml
-  import QtQuick 2.2
+  import QtQuick 2.3
   import QtQuick.Layouts 1.1
   import Ubuntu.Components 1.2
 

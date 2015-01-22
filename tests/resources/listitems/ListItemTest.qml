@@ -16,6 +16,7 @@
 
 import QtQuick 2.2
 import Ubuntu.Components 1.2
+import Ubuntu.Components.Styles 1.2
 
 MainView {
     id: main
@@ -32,7 +33,7 @@ MainView {
         text: "Staaaar"
         onTriggered: {
             print(iconName, "triggered", value)
-            view.ListItem.selectedIndexes = [1, 2, 9];
+            view.ViewItems.selectedIndices = [0, 2, 9];
         }
     }
 
@@ -86,15 +87,24 @@ MainView {
         }
     ]
 
+    LayoutMirroring.childrenInherit: true
+
     Column {
         anchors {
             left: parent.left
             right: parent.right
         }
 
-        Button {
-            text: "Selectable " + (selectable ? "OFF" : "ON")
-            onClicked: selectable = !selectable
+        Row {
+            width: parent.width
+            Button {
+                text: "Selectable " + (selectable ? "OFF" : "ON")
+                onClicked: selectable = !selectable
+            }
+            Button {
+                text: LayoutMirroring.enabled ? "RTL" : "LTR"
+                onClicked: main.LayoutMirroring.enabled = !main.LayoutMirroring.enabled
+            }
         }
 
         ListItem {
@@ -124,7 +134,7 @@ MainView {
                         width: units.gu(3)
                         height: width
                         name: action.iconName
-                        color: "blue"
+                        color: pressed ? "blue" : "pink"
                         anchors.horizontalCenter: parent.horizontalCenter
                     }
                     Label {
@@ -146,13 +156,16 @@ MainView {
 
         ListItem {
             Label {
+                id: label2
                 anchors.fill: parent
-                text: "Another standalone ListItem"
+                text: "Another standalone ListItem\nStarted with custom style, reset to theme style on first click"
             }
             leadingActions: testItem.leadingActions
             trailingActions: ListItemActions {
                 actions: leading.actions
             }
+            style: ListItemStyle {}
+            onClicked: { style = undefined; label2.text = "Another standalone ListItem" }
         }
 
         ListView {
@@ -162,14 +175,16 @@ MainView {
             height: units.gu(36)
             model: 10
             pressDelay: 0
-            ListItem.selectable: main.selectable
-            ListItem.selectedIndexes: [9,3,4,1]
-            ListItem.onSelectedIndexesChanged: print("LISTVIEW INDEXES=", ListItem.selectedIndexes)
+            ViewItems.selectMode: main.selectable
+            ViewItems.selectedIndices: [9,3,4,1]
+            ViewItems.onSelectedIndicesChanged: print("LISTVIEW INDEXES=", ViewItems.selectedIndices)
             delegate: ListItem {
                 objectName: "ListItem" + index
                 id: listItem
                 onClicked: print(" clicked")
+                onPressAndHold: print("pressAndHold")
                 leadingActions: leading
+                trailingActions: leadingActions
                 Label {
                     text: modelData + " item"
                 }
@@ -199,14 +214,14 @@ MainView {
                 id: trailing
                 actions: leading.actions
             }
-            ListItem.selectable: main.selectable
-            ListItem.onSelectedIndexesChanged: print("INDEXES=", ListItem.selectedIndexes)
+            ViewItems.selectMode: main.selectable
+            ViewItems.onSelectedIndicesChanged: print("INDEXES=", ViewItems.selectedIndices)
 
             Column {
                 id: column
-                width: view.width
+                width: flicker.width
                 property alias count: repeater.count
-
+                ViewItems.selectMode: true
                 Repeater {
                     id: repeater
                     model: 10
