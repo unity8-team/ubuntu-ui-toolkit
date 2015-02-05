@@ -1,7 +1,11 @@
-ubuntu-ui-toolkit-gles (1.1.1298+15.04.20150205.1~rtm-0ubuntu1) UNRELEASED; urgency=medium
+ubuntu-ui-toolkit-gles (1.1.1298+15.04.20150205.1~rtm-0ubuntu1) 14.09; urgency=medium
 
+  [ Zoltán Balogh ]
   * Sync with  1.1.1298+15.04.20150205.1~rtm-0ubuntu1
- -- Zoltán Balogh <zoltan@bakter.hu>  Wed, 04 Feb 2015 16:08:47 +0200
+  [ Ubuntu daily release ]
+  * New rebuild forced
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Thu, 05 Feb 2015 13:37:33 +0000
 
 ubuntu-ui-toolkit-gles (1.1.1376+15.04.20150111-0ubuntu1) vivid; urgency=medium
 
