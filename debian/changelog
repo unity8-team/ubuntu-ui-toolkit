@@ -1,7 +1,8 @@
-ubuntu-ui-toolkit-gles (1.1.1298+15.04.20150205.1~rtm-0ubuntu1) UNRELEASED; urgency=medium
+ubuntu-ui-toolkit-gles (1.1.1403+15.04.20150206-0ubuntu1) vivid; urgency=medium
 
-  * Sync with  1.1.1298+15.04.20150205.1~rtm-0ubuntu1
- -- Zoltán Balogh <zoltan@bakter.hu>  Wed, 04 Feb 2015 16:08:47 +0200
+  * Sync with 1.1.1403+15.04.20150206-0ubuntu1
+
+ -- Timo Jyrinki <timo-jyrinki@ubuntu.com>  Mon, 09 Feb 2015 09:14:34 +0200
 
 ubuntu-ui-toolkit-gles (1.1.1376+15.04.20150111-0ubuntu1) vivid; urgency=medium
 
