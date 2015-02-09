@@ -49,6 +49,8 @@ Build-Depends: debhelper (>= 9.0.0),
                libgl1-mesa-dri,
                locales,
                suru-icon-theme,
+               uuid-runtime,
+               python3-sphinx,
 Standards-Version: 3.9.4
 X-Auto-Uploader: no-rewrite-version
 Homepage: https://launchpad.net/ubuntu-ui-toolkit
