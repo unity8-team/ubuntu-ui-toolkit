@@ -1,8 +1,9 @@
-ubuntu-ui-toolkit-gles (1.1.1403+15.04.20150206-0ubuntu1) UNRELEASED; urgency=medium
+ubuntu-ui-toolkit-gles (1.1.1403+15.04.20150206-0ubuntu1) vivid; urgency=medium
 
+  [ Timo Jyrinki ]
   * Sync with 1.1.1403+15.04.20150206-0ubuntu1
 
- -- Timo Jyrinki <timo-jyrinki@ubuntu.com>  Mon, 09 Feb 2015 09:14:34 +0200
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Mon, 09 Feb 2015 08:11:27 +0000
 
 ubuntu-ui-toolkit-gles (1.1.1376+15.04.20150111-0ubuntu1) vivid; urgency=medium
 
