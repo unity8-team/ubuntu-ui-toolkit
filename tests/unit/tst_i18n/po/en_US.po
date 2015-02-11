@@ -15,3 +15,6 @@ msgstr "Greets"
 
 msgid "Count the kilometres"
 msgstr "Count the clicks"
+
+msgid "Count the kittens"
+msgstr "Contar los gatitos"

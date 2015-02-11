@@ -151,10 +151,18 @@ private Q_SLOTS:
         QQuickItem* button(testItem(page, "button"));
         QVERIFY(button);
         QCOMPARE(button->property("text").toString(), QString("Count the clicks"));
-
+        // Only tagged, not actually translated
+        QQuickItem* button2(testItem(page, "button2"));
+        QVERIFY(button2);
+        QCOMPARE(button2->property("text").toString(), QString("Count the kittens"));
+ 
         // Translate in C++
         QCOMPARE(i18n->dtr(i18n->domain(), QString("Welcome")), QString("Greets"));
         QCOMPARE(i18n->tr(QString("Count the kilometres")), QString("Count the clicks"));
+        // Only tagged, not actually translated
+        QCOMPARE(i18n->tag(QString("Count the kittens")), QString("Count the kittens"));
+        // Sanity-check that the test strings would otherwise work and not no-op by accident
+        QCOMPARE(i18n->tr(QString("Count the kittens")), QString("Contar los gatitos"));
     }
 };
 

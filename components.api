@@ -1058,6 +1058,9 @@ plugins.qmltypes
     Parameter { name: "singular"; type: "string" }
     Parameter { name: "plural"; type: "string" }
     Parameter { name: "n"; type: "int" }
+    Method {
+    name: "tag"
+    Parameter { name: "text"; type: "string" }
     prototype: "QObject"
     name: "Haptics"
     exports: ["Haptics -1.-1"]

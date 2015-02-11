@@ -50,7 +50,7 @@ xgettext \
     --keyword=tr:1,2 \
     --keyword=dtr:2 \
     --keyword=dtr:2,3 \
-    --package-name $DOMAIN \
+    --keyword=tag \
     --package-name $DOMAIN \
     --copyright-holder "Canonical Ltd"
 
