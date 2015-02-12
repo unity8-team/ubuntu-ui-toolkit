@@ -1,3 +1,10 @@
+ubuntu-ui-toolkit (1.1.1298+15.04.20150212~rtm-0ubuntu1) 14.09; urgency=medium
+
+  [ Christian Dywan ]
+  * Implement i18n.tag function and unit tests (LP: #1417031)
+
+ -- Ubuntu daily release <ps-jenkins@lists.canonical.com>  Thu, 12 Feb 2015 18:47:08 +0000
+
 ubuntu-ui-toolkit (1.1.1298+15.04.20150209~rtm-0ubuntu1) 14.09; urgency=medium
 
   [ Zsombor Egri ]
