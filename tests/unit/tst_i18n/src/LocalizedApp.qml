@@ -31,5 +31,12 @@ MainView {
             text: i18n.tr('Count the kilometres')
             width: units.gu(15)
         }
+        Button {
+            id: button2
+            objectName: 'button2'
+            anchors.top: button.bottom
+            text: i18n.tag('Count the kittens')
+            width: units.gu(15)
+        }
     }
 }
