@@ -1,3 +1,12 @@
+ubuntu-ui-toolkit-gles (1.1.1403+15.04.20150206-0ubuntu2) vivid; urgency=medium
+
+  * Rebuild against Qt 5.4.0.
+  * Add more direct -gles packages to build dependencies to guide apt
+  * Clean up redundant build dependencies
+  * Force tests to run to finish because of a known binding loop bug
+
+ -- Timo Jyrinki <timo-jyrinki@ubuntu.com>  Mon, 09 Feb 2015 10:47:43 +0200
+
 ubuntu-ui-toolkit-gles (1.1.1403+15.04.20150206-0ubuntu1) vivid; urgency=medium
 
   [ Timo Jyrinki ]
