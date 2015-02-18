@@ -1,8 +1,9 @@
-ubuntu-ui-toolkit-gles (1.1.1298+15.04.20150218.1~rtm-0ubuntu1) UNRELEASED; urgency=medium
+ubuntu-ui-toolkit-gles (1.1.1298+15.04.20150218.1~rtm-0ubuntu1) 14.09; urgency=medium
 
+  [ Zoltán Balogh ]
   * 1.1.1298+15.04.20150218.1~rtm-0ubuntu1 
 
- -- Zoltán Balogh <zoltan@bakter.hu>  Tue, 17 Feb 2015 07:06:40 +0200
+ -- CI Train Bot <ci-train-bot@canonical.com>  Wed, 18 Feb 2015 17:37:00 +0000
 
 ubuntu-ui-toolkit-gles (1.1.1298+15.04.20150218~rtm-0ubuntu1) UNRELEASED; urgency=medium
 
