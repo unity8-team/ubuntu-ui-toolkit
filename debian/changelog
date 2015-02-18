@@ -1,3 +1,11 @@
+ubuntu-ui-toolkit (1.1.1298+15.04.20150218.1~rtm-0ubuntu1) 14.09; urgency=medium
+
+  [ Niklas Wenzel ]
+  * ActionSelectionPopover: Handle the 'visible' property of actions
+    properly (LP: #1395118)
+
+ -- CI Train Bot <ci-train-bot@canonical.com>  Wed, 18 Feb 2015 16:59:43 +0000
+
 ubuntu-ui-toolkit (1.1.1298+15.04.20150212~rtm-0ubuntu1) 14.09; urgency=medium
 
   [ Christian Dywan ]
