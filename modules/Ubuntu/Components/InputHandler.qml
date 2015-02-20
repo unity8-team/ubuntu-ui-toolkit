@@ -358,8 +358,11 @@ MultiPointTouchArea {
         }
     }
 
-    // touch and mous handling
+    // touch and mouse handling
     function handlePressed(event, touch) {
+        // Commit any text currently in pre-edit so that cursor repositioning
+        // can include the pre-edit text
+        Qt.inputMethod.commit();
         if (touch) {
             // we do not have longTap or double tap, therefore we need to generate those
             event.touch();
