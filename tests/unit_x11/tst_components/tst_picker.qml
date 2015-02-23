@@ -219,7 +219,7 @@ Item {
             tryCompare(spy, "count", 1);
         }
 
-        function test_5_clickMovesSelection_Long() {
+/*        function test_5_clickMovesSelection_Long() {
             spy.clear();
             spy.signalName = "onSelectedIndexChanged";
             linearLong.circular = true;
@@ -232,7 +232,7 @@ Item {
             waitPickerScrolling();
             tryCompare(spy, "count", 2);
         }
-
+*/
         function test_6_pickerCircularChange() {
             var expectedList = picker.circular ? "Picker_WrapAround" : "Picker_Linear";
             verify(findChild(picker, expectedList) !== undefined, "Picker must use " + expectedList);
