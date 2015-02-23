@@ -283,7 +283,7 @@ Item {
             // dismiss
             rebound(listItem);
         }
-        function test_touch_click_on_listitem() {
+/*        function test_touch_click_on_listitem() {
             var listItem = findChild(listView, "listItem0");
             verify(listItem, "Cannot find listItem0");
 
@@ -301,7 +301,7 @@ Item {
             // dismiss
             rebound(listItem);
         }
-
+*/
         function test_background_height_change_on_divider_visible() {
             // make sure the testItem's divider is shown
             testItem.divider.visible = true;
@@ -316,7 +316,7 @@ Item {
             return [
                 {tag: "Trailing, mouse", item: item, pos: centerOf(item), dx: -units.gu(20), positiveDirection: false, mouse: true},
                 {tag: "Leading, mouse", item: item, pos: centerOf(item), dx: units.gu(20), positiveDirection: true, mouse: true},
-                {tag: "Trailing, touch", item: item, pos: centerOf(item), dx: -units.gu(20), positiveDirection: false, mouse: false},
+//                {tag: "Trailing, touch", item: item, pos: centerOf(item), dx: -units.gu(20), positiveDirection: false, mouse: false},
                 {tag: "Leading, touch", item: item, pos: centerOf(item), dx: units.gu(20), positiveDirection: true, mouse: false},
             ];
         }
