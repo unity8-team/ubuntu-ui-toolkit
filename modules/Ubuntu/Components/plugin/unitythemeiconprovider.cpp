@@ -127,8 +127,10 @@ private:
 
         if (filename.endsWith(".png")) {
             pixmap = QPixmap(filename);
-            if (!pixmap.isNull() && size > 0 && (pixmap.width() != size || pixmap.height() != size))
-                pixmap = pixmap.scaled(size, size, Qt::KeepAspectRatioByExpanding);
+            if (!pixmap.isNull() && !size.isNull() && (pixmap.width() != size.width() || pixmap.height() != size.height())) {
+                const QSize newSize = pixmap.size().scaled(size.width(), size.height(), Qt::KeepAspectRatioByExpanding);
+                pixmap = pixmap.scaled(newSize);
+            }
         }
         else if (filename.endsWith(".svg")) {
             QSvgRenderer renderer(filename);
@@ -218,8 +220,9 @@ private:
         return QPixmap();
     }
 
-    int directorySizeDistance(const Directory &dir, int size)
+    int directorySizeDistance(const Directory &dir, const QSize &iconSize)
     {
+        const int size = qMax(iconSize.width(), iconSize.height());
         switch (dir.sizeType) {
             case Fixed:
                 return qAbs(size - dir.size);
@@ -241,10 +244,10 @@ private:
     QList<IconThemePointer> parents;
 };
 
-UnityThemeIconProvider::UnityThemeIconProvider():
+UnityThemeIconProvider::UnityThemeIconProvider(const QString &themeName):
   QQuickImageProvider(QQuickImageProvider::Pixmap)
 {
-    theme = IconTheme::get("suru");
+    theme = IconTheme::get(themeName);
 }
 
 QPixmap UnityThemeIconProvider::requestPixmap(const QString &id, QSize *size, const QSize &requestedSize)
