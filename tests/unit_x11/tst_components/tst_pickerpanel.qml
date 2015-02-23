@@ -62,7 +62,7 @@ Item {
             waitForRendering(testSuite);
         }
 
-        function test_0_clickOndefaultMode() {
+/*        function test_0_clickOndefaultMode() {
             mouseClick(defaultMode, units.gu(1), units.gu(1));
             verify(defaultMode.panel !== null, "the picker is not opened");
             verify(defaultMode.panel.picker !== null, "the DatePicker is not defined");
@@ -244,6 +244,6 @@ Item {
             closeSpy.target = modeSet.panel;
             mouseClick(testSuite, units.gu(1), units.gu(1));
             closeSpy.wait();
-        }
+        }*/
     }
 }
