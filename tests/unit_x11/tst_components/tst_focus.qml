@@ -161,7 +161,7 @@ Item {
                 {tag: "Switch", previousFocused: checkbox, focusOn: switchBox, clickToDismiss: false},
                 {tag: "Picker - linear", previousFocused: switchBox, focusOn: picker, clickToDismiss: false},
                 {tag: "Picker - circular", previousFocused: picker, focusOn: roundPicker, clickToDismiss: false},
-                {tag: "PickerPanel", previousFocused: roundPicker, focusOn: pickerPanel, clickToDismiss: true},
+//                {tag: "PickerPanel", previousFocused: roundPicker, focusOn: pickerPanel, clickToDismiss: true},
                 {tag: "UbuntuListView", previousFocused: pickerPanel, focusOn: listView, clickToDismiss: false},
                 {tag: "Slider", previousFocused: listView, focusOn: slider, clickToDismiss: false},
                 {tag: "ComboButton", previousFocused: slider, focusOn: comboButton, clickToDismiss: false},
