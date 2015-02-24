@@ -38,13 +38,68 @@ Template {
             height: units.gu(20)
             width: parent.width
 
-            model: [ i18n.tr("Basic"), i18n.tr("Colored divider"), i18n.tr("No divider") ]
+            ViewItems.dragMode: true
+            ViewItems.onDraggingUpdated: model.move(event.from, event.to, 1)
+
+            property var strings: [ i18n.tag("Little red riding hood"), i18n.tag("Grandmother"), i18n.tag("Bad wolf") ]
+            model: ListModel {
+                ListElement { label: "Little red riding hood" }
+                ListElement { label: "Grandmother" }
+                ListElement { label: "Bad wolf" }
+            }
             delegate: ListItemWithLabel {
-                text: modelData
+                text: i18n.tr(label)
+                color: label.indexOf("red") != -1 ? UbuntuColors.red : Qt.rgba(0.0, 0.0, 0.0, 0.0)
+            }
+        }
+    }
+
+    TemplateSection {
+        className: "ListItem"
+        // no spacing between the list items in the Column
+        spacing: 0
+        Item {
+            // compensate for the spacing of 0 by adding this
+            // Item inbetween the title and the list items.
+            height: units.gu(3)
+            width: parent.width
+        }
+
+        // clip the action delegates while swiping left/right
+        clip: true
+
+        UbuntuListView {
+            height: units.gu(25)
+            width: parent.width
+
+            ViewItems.dragMode: true
+            ViewItems.onDraggingUpdated: {
+                if (event.status == ListItemDrag.Started) {
+                    if (model.get(event.from).label == "Immutable")
+                        event.accept = false;
+                    return;
+                }
+                if (model.get(event.to).label == "Immutable") {
+                    event.accept = false;
+                    return;
+                }
+                model.move(event.from, event.to, 1);
+            }
+
+            property var strings: [ i18n.tag("Basic"), i18n.tag("Colored divider"), i18n.tag("Immutable"), i18n.tag("No divider") ]
+            model: ListModel {
+                ListElement { label: "Basic" }
+                ListElement { label: "Colored divider" }
+                ListElement { label: "Immutable" }
+                ListElement { label: "No divider" }
+            }
+            delegate: ListItemWithLabel {
+                text: i18n.tr(label)
+                color: dragMode ? "lightblue" : "lightgray"
                 divider {
-                    colorFrom: modelData == i18n.tr("Colored divider") ? UbuntuColors.red : Qt.rgba(0.0, 0.0, 0.0, 0.0)
-                    colorTo: modelData == i18n.tr("Colored divider") ? UbuntuColors.green : Qt.rgba(0.0, 0.0, 0.0, 0.0)
-                    visible: modelData != i18n.tr("No divider")
+                    colorFrom: label == "Colored divider" ? UbuntuColors.red : Qt.rgba(0.0, 0.0, 0.0, 0.0)
+                    colorTo: label == "Colored divider" ? UbuntuColors.green : Qt.rgba(0.0, 0.0, 0.0, 0.0)
+                    visible: label != "No divider"
                 }
             }
         }
@@ -63,16 +118,6 @@ Template {
 
         // clip the action delegates while swiping left/right
         clip: true
-
-       ListItemWithLabel {
-            color: UbuntuColors.blue
-            text: i18n.tr("Colored")
-        }
-        ListItemWithLabel {
-            text: i18n.tr("Highlight color")
-            highlightColor: UbuntuColors.orange
-            // no highlight without clicked() or leading/trailing actions
-        }
 
         ListItemActions {
             id: exampleLeadingActions
