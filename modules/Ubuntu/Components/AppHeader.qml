@@ -63,9 +63,18 @@ StyledItem {
     // XXX: Currently the header is hidden when there is no title/contents/tabs.
     //  Some apps may make use of this to hide the header, but it is now a hack for
     //  backwards compatibility that should be replaced by a 'hidden' header mode.
-    visible: title || contents || tabsModel || (pageStack && pageStack.depth > 1)
+//    visible: title || contents || tabsModel || (pageStack && pageStack.depth > 1)
+    visible: header.y + header.height > 0
     onVisibleChanged: {
-        internal.checkFlickableMargins();
+        print("header.visible = "+header.visible)
+        print("header.config = "+header.config)
+        if (header.config && header.config.hasOwnProperty("visible")) {
+            print("hmz")
+            print("header.config.visible = "+header.config.visible)
+            header.config.visible = header.visible;
+        }
+
+//        internal.checkFlickableMargins();
     }
 
     /*!
@@ -166,6 +175,7 @@ StyledItem {
 
     /*!
       Configuration of the header.
+      This is set by MainView.
      */
     property PageHeadConfiguration config: null
 
@@ -238,13 +248,15 @@ StyledItem {
             if (flickable && !flickable.interactive) header.show();
         }
 
+        // FIXME TIM: checkFlickableMargins() needs to depend on whether the header is locked.
+
         /*
           Check the topMargin of the flickable and set it if needed to avoid
           contents becoming unavailable behind the header.
          */
         function checkFlickableMargins() {
             if (header.flickable) {
-                var headerHeight = header.visible ? header.height : 0
+                var headerHeight = header.height //header.visible ? header.height : 0
                 if (flickable.topMargin !== headerHeight) {
                     var previousHeaderHeight = flickable.topMargin;
                     flickable.topMargin = headerHeight;

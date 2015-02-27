@@ -216,6 +216,8 @@ Object {
      */
     property bool visible: true
 
+    onVisibleChanged: print("page.head.visible = "+visible)
+    onLockedChanged: print("page.head.locked = "+locked)
     /*!
       The color of the text and icons.
      */
