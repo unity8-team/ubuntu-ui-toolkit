@@ -29,6 +29,10 @@ PageTreeNode {
     property alias backgroundColor: background.backgroundColor
     property alias footerColor: background.footerColor
 
+    // RTL support
+    LayoutMirroring.enabled: Qt.application.layoutDirection == Qt.RightToLeft
+    LayoutMirroring.childrenInherit: true
+
     // FIXME: Make sure that the theming is only in the background, and the style
     //  should not occlude contents of the MainView. When making changes here, make
     //  sure that bug https://bugs.launchpad.net/manhattan/+bug/1124076 does not come back.
