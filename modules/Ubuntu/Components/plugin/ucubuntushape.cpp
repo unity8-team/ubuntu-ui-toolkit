@@ -291,8 +291,7 @@ UCUbuntuShape::UCUbuntuShape(QQuickItem* parent)
     QObject::connect(&UCUnits::instance(), SIGNAL(gridUnitChanged()), this,
                      SLOT(_q_gridUnitChanged()));
     const float gridUnit = UCUnits::instance().gridUnit();
-    setImplicitWidth(implicitWidthGU * gridUnit);
-    setImplicitHeight(implicitHeightGU * gridUnit);
+    setImplicitSize(implicitWidthGU * gridUnit, implicitHeightGU * gridUnit);
     update();
 }
 
@@ -976,8 +975,7 @@ void UCUbuntuShape::_q_openglContextDestroyed()
 void UCUbuntuShape::_q_gridUnitChanged()
 {
     const float gridUnit = UCUnits::instance().gridUnit();
-    setImplicitWidth(implicitWidthGU * gridUnit);
-    setImplicitHeight(implicitHeightGU * gridUnit);
+    setImplicitSize(implicitWidthGU * gridUnit, implicitHeightGU * gridUnit);
     update();
 }
 
