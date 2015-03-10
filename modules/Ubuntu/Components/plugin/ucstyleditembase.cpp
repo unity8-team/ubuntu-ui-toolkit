@@ -42,6 +42,9 @@ void UCStyledItemBasePrivate::init()
         // every styleSet will be using the default styleSet
         styleSet = &UCStyleSet::defaultSet();
         QObject::connect(styleSet, &UCStyleSet::nameChanged, q, &UCStyledItemBase::styleSetChanged);
+    } else {
+        QObject::connect(&UCStyleSet::defaultSet(), &UCStyleSet::nameChanged,
+                         q, &UCStyledItemBase::styleSetChanged);
     }
 }
 
@@ -59,7 +62,7 @@ bool UCStyledItemBasePrivate::isParentFocusable()
     if (!activeFocusOnPress) {
         return false;
     }
-    QQuickItem *pl = q->parentItem();
+    QQuickItem *pl = parentItem;
     while (pl) {
         UCStyledItemBase *scope = qobject_cast<UCStyledItemBase*>(pl);
         if (scope) {
@@ -186,7 +189,7 @@ void UCStyledItemBase::setActiveFocusOnPress(bool value)
  * should use. By default it is set to the closest StyledItem's styleset if any,
  * or to the system default styleset.
  */
-UCStyleSet * UCStyledItemBase::styleSet() const
+UCStyleSet *UCStyledItemBase::styleSet() const
 {
     Q_D(const UCStyledItemBase);
     if (d->subthemingEnabled) {
@@ -233,11 +236,10 @@ void UCStyledItemBase::setStyleSet(UCStyleSet *styleSet)
     } else {
         d->styleSet = styleSet;
         if (!styleSet) {
-            d->connectParents(0);
-        } else {
+            // redo the parent chanin
             d->disconnectTillItem(0);
+            d->connectParents(0);
         }
-
     }
 
     // connect to the new set
@@ -288,7 +290,10 @@ bool UCStyledItemBasePrivate::setParentStyled(UCStyledItemBase *styledItem)
         return false;
     }
     parentStyledItem = styledItem;
-    return true;
+    if (styleSet) {
+        Q_EMIT styleSet->parentChanged();
+    }
+    return (styleSet == NULL);
 }
 
 // disconnect parent stack till item is reached; all the stack if item == 0
@@ -334,6 +339,11 @@ void UCStyledItemBasePrivate::_q_ascendantChanged(QQuickItem *ascendant)
 // syncs the ascendant StyledItem's style
 void UCStyledItemBasePrivate::_q_parentStyleChanged()
 {
+    // do not trigger styleSetChanged() on this item if we have a
+    // custom one
+    if (styleSet) {
+        return;
+    }
     Q_Q(UCStyledItemBase);
     UCStyledItemBase *styledItem = static_cast<UCStyledItemBase*>(q->sender());
     if (!styledItem) {
@@ -341,18 +351,6 @@ void UCStyledItemBasePrivate::_q_parentStyleChanged()
     }
     setParentStyled(styledItem);
     Q_EMIT q->styleSetChanged();
-}
-
-// connect to the default styleSet, as at this phase the properties are not yet evaluated
-// so an eventual custom styleset is not yet evaluated
-void UCStyledItemBase::classBegin()
-{
-    QQuickItem::classBegin();
-    Q_D(UCStyledItemBase);
-    if (d->subthemingEnabled) {
-        connect(&UCStyleSet::defaultSet(), &UCStyleSet::nameChanged,
-                this, &UCStyledItemBase::styleSetChanged);
-    }
 }
 
 // grab pressed state and focus if it can be
@@ -389,7 +387,7 @@ void UCStyledItemBase::itemChange(ItemChange change, const ItemChangeData &data)
     if (change == ItemParentHasChanged && d->subthemingEnabled) {
         if (!data.item) {
             d->disconnectTillItem(0);
-        } else if (!d->styleSet && d->connectParents(0)) {
+        } else if (d->connectParents(0)) {
             Q_EMIT styleSetChanged();
         }
     }
