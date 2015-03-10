@@ -29,12 +29,15 @@
 
 #include "ucthemesettings.h"
 
+class UCPaletteChanges;
 class UCStyleSet : public QObject, public QQmlParserStatus
 {
     Q_OBJECT
     Q_INTERFACES(QQmlParserStatus)
     Q_PROPERTY(QString name READ name WRITE setName RESET resetName NOTIFY nameChanged)
     Q_PROPERTY(QObject* palette READ palette WRITE setPalette NOTIFY paletteChanged)
+    Q_PROPERTY(QQmlListProperty<UCPaletteChanges> paletteChanges READ paletteChanges)
+    Q_CLASSINFO("DefaultProperty", "paletteChanges")
 public:
     explicit UCStyleSet(QObject *parent = 0);
     static UCStyleSet &defaultSet()
@@ -49,6 +52,7 @@ public:
     void resetName();
     QObject* palette();
     void setPalette(QObject *palette);
+    QQmlListProperty<UCPaletteChanges> paletteChanges();
 
     Q_INVOKABLE QQmlComponent* createStyleComponent(const QString& styleName, QObject* parent);
     static void registerToContext(QQmlContext* context);
@@ -78,6 +82,7 @@ private:
 
     QString m_name;
     QPointer<QObject> m_palette; // the palette might be from the default style if the theme doesn't define palette
+    QList<UCPaletteChanges*> m_paletteChanges;
     QQmlEngine *m_engine;
     QList<QUrl> m_themePaths;
     UCThemeSettings m_themeSettings;

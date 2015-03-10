@@ -277,6 +277,16 @@ void UCStyleSet::setPalette(QObject *palette)
     Q_EMIT paletteChanged();
 }
 
+/*!
+ * \qmlproperty list<PaletteChanges> StyleSet::paletteChanges
+ * \default
+ * List of PaletteChanges to be applied on each styleset.
+ */
+QQmlListProperty<UCPaletteChanges> UCStyleSet::paletteChanges()
+{
+    return QQmlListProperty<UCPaletteChanges>(this, m_paletteChanges);
+}
+
 QUrl UCStyleSet::styleUrl(const QString& styleName)
 {
     Q_FOREACH (const QUrl& themePath, m_themePaths) {

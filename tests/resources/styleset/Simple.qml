@@ -28,6 +28,7 @@ Item {
         anchors.fill: parent
         Label {
             text: "Hallo"
+        }
         Button {
             text: "Theme change"
             onClicked: Theme.name = "Ubuntu.Components.Themes.SuruDark"
@@ -42,9 +43,19 @@ Item {
             objectName: "SuruDarkStyled"
             width: parent.width
             height: units.gu(10)
+            styleSet: StyleSet {
+                name: "Ubuntu.Components.Themes.SuruDark"
+                // override normal.foregroundText
+                PaletteChanges {
+                    values: "normal"
+                    foregroundText: UbuntuColors.blue
+                    normal.overlayText: "blue"
+                }
+            }
+
             TextField {
                 objectName: "InnerText"
-                property string styleName: Theme.name
+                property string styleName: styleSet.name
                 onStyleNameChanged: print(objectName, styleName)
             }
         }
