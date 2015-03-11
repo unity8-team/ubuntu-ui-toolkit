@@ -24,7 +24,7 @@ MainView {
     width: units.gu(40)
     height: units.gu(71)
 
-    Component.onCompleted: Theme.name = "AppTheme"
+    Component.onCompleted: styleSet.name = "AppTheme"
 
     Label {
         id: testLabel
@@ -38,14 +38,15 @@ MainView {
             compare(main.backgroundColor, "#a21e1c", "Theme not loaded?");
             compare(testLabel.color, "#add8e6", "Label color not from application theme.");
         }
+
         function test_ambiance()
         {
-            Theme.name = "Ubuntu.Components.Themes.Ambiance";
+            main.styleSet.name = "Ubuntu.Components.Themes.Ambiance";
         }
 
         function test_reset()
         {
-            Theme.name = undefined;
+            main.styleSet.name = undefined;
         }
     }
 }

@@ -29,8 +29,6 @@
     \inqmlmodule Ubuntu.Components 1.1
     \ingroup theming
     \brief The Theme class provides facilities to interact with the current theme.
-    \note \B {This class is deprecated. Use StyleSet with StyledItem for styling your
-    components.}
 
     A global instance is exposed as the \b Theme context property.
 
@@ -72,24 +70,32 @@ UCDeprecatedTheme::UCDeprecatedTheme(QObject *parent)
             this, &UCDeprecatedTheme::paletteChanged);
 }
 
+void UCDeprecatedTheme::showDeprecatedNote(const char *note)
+{
+    QByteArray suppressNote = qgetenv("SUPPRESS_DEPRECATED_NOTE");
+    if (suppressNote.isEmpty() || suppressNote != "yes") {
+        qmlInfo(this) << note;
+    }
+}
+
 /*!
     \qmlproperty string Theme::name
 
     The name of the current theme.
 */
-QString UCDeprecatedTheme::name() const
+QString UCDeprecatedTheme::name()
 {
-//    qmlInfo(this) << "Theme.name is deprecated. Use StyleSet instead.";
+    showDeprecatedNote("Theme.name is deprecated. Use StyleSet instead.");
     return UCStyleSet::defaultSet().name();
 }
 void UCDeprecatedTheme::setName(const QString& name)
 {
-//    qmlInfo(this) << "Theme.name is deprecated. Use StyleSet instead.";
+    showDeprecatedNote("Theme.name is deprecated. Use StyleSet instead.");
     UCStyleSet::defaultSet().setName(name);
 }
 void UCDeprecatedTheme::resetName()
 {
-//    qmlInfo(this) << "Theme.name is deprecated. Use StyleSet instead.";
+    showDeprecatedNote("Theme.name is deprecated. Use StyleSet instead.");
     UCStyleSet::defaultSet().resetName();
 }
 
@@ -100,7 +106,7 @@ void UCDeprecatedTheme::resetName()
 */
 QObject* UCDeprecatedTheme::palette()
 {
-//    qmlInfo(this) << "Theme.palette is deprecated. Use StyleSet instead.";
+    showDeprecatedNote("Theme.palette is deprecated. Use StyleSet instead.");
     return UCStyleSet::defaultSet().palette();
 }
 
@@ -111,7 +117,7 @@ QObject* UCDeprecatedTheme::palette()
 */
 QQmlComponent* UCDeprecatedTheme::createStyleComponent(const QString& styleName, QObject* parent)
 {
-//    qmlInfo(this) << "Theme.createStyleComponent is deprecated. Use StyleSet instead.";
+    showDeprecatedNote("Theme.createStyleComponent() is deprecated. Use StyleSet instead.");
     return UCStyleSet::defaultSet().createStyleComponent(styleName, parent);
 }
 
