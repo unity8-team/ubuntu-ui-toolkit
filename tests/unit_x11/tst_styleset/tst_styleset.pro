@@ -16,5 +16,16 @@ OTHER_FILES += \
     ParentChanges.qml \
     TestMain.qml \
     TestStyleChange.qml \
-    DifferentStylesets.qml
+    DifferentStylesets.qml \
+    WrongPaletteChangesDeclaration.qml \
+    MorePaletteChangesInStyleSet.qml \
+    InvalidPaletteChanges1.qml \
+    InvalidPaletteChanges2.qml \
+    InvalidPaletteChanges3.qml \
+    InvalidPaletteChanges4.qml \
+    InvalidPaletteChanges5.qml \
+    InvalidPaletteChanges6.qml \
+    SameNamedPaletteChanges.qml \
+    ChangePaletteValueWhenParentChanges.qml \
+    ChangeDefaultPaletteInChildren.qml
 

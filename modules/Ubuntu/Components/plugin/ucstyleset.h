@@ -38,7 +38,7 @@ class UCStyleSet : public QObject, public QQmlParserStatus
     Q_PROPERTY(UCStyleSet *parentStyleSet READ parentSet NOTIFY parentStyleSetChanged)
     Q_PROPERTY(QString name READ name WRITE setName RESET resetName NOTIFY nameChanged)
     Q_PROPERTY(QObject* palette READ palette NOTIFY paletteChanged)
-    Q_PROPERTY(QQmlListProperty<UCPaletteChanges> paletteChanges READ paletteChanges)
+    Q_PROPERTY(UCPaletteChanges *paletteChanges READ paletteChanges WRITE setPaletteChanges NOTIFY paletteChangesChanged)
     Q_CLASSINFO("DefaultProperty", "paletteChanges")
 public:
     explicit UCStyleSet(QObject *parent = 0);
@@ -54,7 +54,8 @@ public:
     void setName(const QString& name);
     void resetName();
     QObject* palette();
-    QQmlListProperty<UCPaletteChanges> paletteChanges();
+    UCPaletteChanges *paletteChanges() const;
+    void setPaletteChanges(UCPaletteChanges *changes);
 
     Q_INVOKABLE QQmlComponent* createStyleComponent(const QString& styleName, QObject* parent);
     static void registerToContext(QQmlContext* context);
@@ -66,6 +67,7 @@ Q_SIGNALS:
     void parentStyleSetChanged();
     void nameChanged();
     void paletteChanged();
+    void paletteChangesChanged();
 
 protected:
     void classBegin();
@@ -88,7 +90,7 @@ private:
 
     QString m_name;
     QPointer<QObject> m_palette; // the palette might be from the default style if the theme doesn't define palette
-    QList<UCPaletteChanges*> m_paletteChanges;
+    QPointer<UCPaletteChanges> m_paletteChanges;
     QQmlEngine *m_engine;
     QList<QUrl> m_themePaths;
     UCThemeSettings m_themeSettings;

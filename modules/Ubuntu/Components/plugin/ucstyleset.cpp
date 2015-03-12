@@ -23,6 +23,7 @@
 #include "i18n.h"
 #include "ucfontutils.h"
 #include "ucstyleditembase_p.h"
+#include "ucpalettechanges.h"
 
 #include <QtQml/qqml.h>
 #include <QtQml/qqmlinfo.h>
@@ -304,13 +305,26 @@ QObject* UCStyleSet::palette()
 }
 
 /*!
- * \qmlproperty list<PaletteChanges> StyleSet::paletteChanges
- * \default
- * List of PaletteChanges to be applied on each styleset.
+ * \qmlproperty PaletteChanges StyleSet::paletteChanges
+ * The property holds the PaletteChanges component applied on the styleset. When
+ * set, the palette values will be applied on the style palette value sets.
+ * Defaults to null.
  */
-QQmlListProperty<UCPaletteChanges> UCStyleSet::paletteChanges()
+UCPaletteChanges *UCStyleSet::paletteChanges() const
 {
-    return QQmlListProperty<UCPaletteChanges>(this, m_paletteChanges);
+    return m_paletteChanges;
+}
+void UCStyleSet::setPaletteChanges(UCPaletteChanges *changes)
+{
+    if (m_paletteChanges == changes) {
+        return;
+    }
+    if (m_paletteChanges && changes && changes->parent() == this) {
+        qmlInfo(this) << UbuntuI18n::instance().tr("StyleSet can have only one PaletteChanges set.");
+    } else {
+        m_paletteChanges = changes;
+        Q_EMIT paletteChangesChanged();
+    }
 }
 
 QUrl UCStyleSet::styleUrl(const QString& styleName)

@@ -89,11 +89,11 @@ void UCPaletteChanges::applyProperty(QObject *paletteSet, const QString &propert
 
     // check if palette has the given property
     if (!paletteSet) {
-        qmlInfo(this) << UbuntuI18n::instance().tr("Palette has no property %1").arg(propertyName);
+        qmlInfo(this) << UbuntuI18n::instance().tr("Palette has no property called '%1'.").arg(propertyName);
         return;
     }
     if (paletteSet->metaObject()->indexOfProperty(qmlUnit->stringAt(binding->propertyNameIndex).toUtf8()) < 0) {
-        qmlInfo(this) << UbuntuI18n::instance().tr("PaletteValue has no property %1").arg(propertyName);
+        qmlInfo(this) << UbuntuI18n::instance().tr("Palette has no property called '%1'.").arg(propertyName);
         return;
     }
 
@@ -120,7 +120,7 @@ void UCPaletteChanges::applyProperty(QObject *paletteSet, const QString &propert
         break;
     }
     default:
-        qmlInfo(this) << UbuntuI18n::instance().tr("Only color values and bindings are accepted.");
+        qmlInfo(this) << UbuntuI18n::instance().tr("Not a valid color value.");
         break;
     }
 }
@@ -164,7 +164,6 @@ void UCPaletteChanges::applyProperty(QObject *paletteSet, const QString &propert
  */
 UCPaletteChanges::UCPaletteChanges(QObject *parent)
     : QObject(parent)
-    , m_invertValues(false)
     , m_decoded(false)
 {
 }
@@ -176,11 +175,15 @@ UCPaletteChanges::~UCPaletteChanges()
 
 void UCPaletteChanges::classBegin()
 {
-    connect(styleSet(), &UCStyleSet::paletteChanged, this, &UCPaletteChanges::_q_applyPaletteChanges);
+    if (!qobject_cast<UCStyleSet*>(parent())) {
+        qmlInfo(this) << UbuntuI18n::instance().tr("PaletteChanges can be instantiated in StyleSet components.");
+    } else {
+        connect(styleSet(), &UCStyleSet::paletteChanged, this, &UCPaletteChanges::_q_applyPaletteChanges);
+    }
 }
 void UCPaletteChanges::componentComplete()
 {
-    if (palette()) {
+    if (palette() && m_decoded) {
         _q_applyPaletteChanges();
     }
 }
@@ -191,7 +194,8 @@ UCStyleSet *UCPaletteChanges::styleSet()
 }
 QObject *UCPaletteChanges::palette()
 {
-    return styleSet()->palette();
+    UCStyleSet *set = styleSet();
+    return set ? set->palette() : NULL;
 }
 
 QObject *UCPaletteChanges::valueSet(const QString &name)
@@ -242,6 +246,8 @@ void UCPaletteChanges::_q_applyPaletteChanges()
         }
 
         // create a binding object from the expression using the palette context
+        // override context to use this context
+        context = qmlContext(this);
         QQmlContextData *cdata = QQmlContextData::get(context);
         QQmlBinding *newBinding = 0;
         if (e.id != QQmlBinding::Invalid) {

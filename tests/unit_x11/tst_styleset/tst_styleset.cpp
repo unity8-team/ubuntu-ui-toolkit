@@ -494,6 +494,89 @@ private Q_SLOTS:
         QCOMPARE(UCStyledItemBasePrivate::get(main)->getStyleSet()->name(),
                  UCStyledItemBasePrivate::get(test)->getStyleSet()->name());
     }
+
+    // PaletteChanges tests
+
+    void test_palettechanges_api_data()
+    {
+        QTest::addColumn<QString>("test");
+        QTest::addColumn<int>("line");
+        QTest::addColumn<int>("column");
+        QTest::addColumn<QString>("warning");
+
+        QTest::newRow("Wrong PalettChanges ownership")
+                << "WrongPaletteChangesDeclaration.qml" << 24 << 5
+                << "QML PaletteChanges: PaletteChanges can be instantiated in StyleSet components.";
+        QTest::newRow("More PalettChanges in StyleSet")
+                << "MorePaletteChangesInStyleSet.qml" << 22 << 15
+                << "QML StyleSet: StyleSet can have only one PaletteChanges set.";
+        QTest::newRow("Invalid Palette property")
+                << "InvalidPaletteChanges1.qml" << 23 << 9
+                << "QML PaletteChanges: Palette has no property called 'invalid'.";
+        QTest::newRow("Invalid PaletteValues property")
+                << "InvalidPaletteChanges2.qml" << 23 << 9
+                << "QML PaletteChanges: Palette has no property called 'normal.invalid'.";
+        QTest::newRow("Invalid property type - int.")
+                << "InvalidPaletteChanges3.qml" << 23 << 9
+                << "QML PaletteChanges: Not a valid color value.";
+        QTest::newRow("Invalid property type - real.")
+                << "InvalidPaletteChanges4.qml" << 23 << 9
+                << "QML PaletteChanges: Not a valid color value.";
+        QTest::newRow("Invalid property type - bool.")
+                << "InvalidPaletteChanges5.qml" << 23 << 9
+                << "QML PaletteChanges: Not a valid color value.";
+        QTest::newRow("Invalid property binding result.")
+                << "InvalidPaletteChanges6.qml" << 25 << 32
+                << "Unable to assign int to QColor";
+    }
+    void test_palettechanges_api()
+    {
+        QFETCH(QString, test);
+        QFETCH(int, line);
+        QFETCH(int, column);
+        QFETCH(QString, warning);
+
+        ThemeTestCase::ignoreWarning(test, line, column, warning);
+        QScopedPointer<ThemeTestCase> view(new ThemeTestCase(test));
+    }
+
+    void test_no_change_in_other_suru_dark()
+    {
+        QScopedPointer<ThemeTestCase> view(new ThemeTestCase("SameNamedPaletteChanges.qml"));
+        UCStyleSet *firstTheme = view->findItem<UCStyleSet*>("firstTheme");
+        UCStyleSet *secondTheme = view->findItem<UCStyleSet*>("secondTheme");
+        QVERIFY(firstTheme->getPaletteColor("normal", "background") != secondTheme->getPaletteColor("normal", "background"));
+    }
+
+    void test_keep_palette_value_when_theme_changes()
+    {
+        QScopedPointer<ThemeTestCase> view(new ThemeTestCase("ChangePaletteValueWhenParentChanges.qml"));
+        UCStyleSet *firstTheme = view->findItem<UCStyleSet*>("firstTheme");
+
+        QCOMPARE(firstTheme->getPaletteColor("normal", "background"), QColor("blue"));
+        // change the theme
+        view->setGlobalTheme("Ubuntu.Components.Themes.SuruDark");
+        QTest::waitForEvents();
+        QCOMPARE(firstTheme->getPaletteColor("normal", "background"), QColor("blue"));
+    }
+
+    void test_change_default_palette_in_children_kept_after_child_deletion()
+    {
+        QScopedPointer<ThemeTestCase> view(new ThemeTestCase("ChangeDefaultPaletteInChildren.qml"));
+        QQuickItem *loader = view->findItem<QQuickItem*>("loader");
+        UCStyledItemBase *main = qobject_cast<UCStyledItemBase*>(view->rootObject());
+        UCStyleSet *mainSet = UCStyledItemBasePrivate::get(main)->getStyleSet();
+        QQuickItem *item = loader->property("item").value<QQuickItem*>();
+        QVERIFY(item);
+
+        QCOMPARE(mainSet->getPaletteColor("normal", "background"), QColor("blue"));
+        // unload component
+        QSignalSpy itemSpy(item, SIGNAL(destroyed()));
+        loader->setProperty("sourceComponent", QVariant());
+        itemSpy.wait();
+        // palette stays!
+        QCOMPARE(mainSet->getPaletteColor("normal", "background"), QColor("blue"));
+    }
 };
 
 QTEST_MAIN(tst_UCStyleSet)
