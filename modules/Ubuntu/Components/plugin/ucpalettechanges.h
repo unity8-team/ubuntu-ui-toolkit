@@ -26,19 +26,66 @@
 #include <private/qv4engine_p.h>
 #include <private/qpodvector_p.h>
 #undef foreach
+#include <QtQml/private/qqmlcompiler_p.h>
 
-class UCPaletteChanges : public QObject
+class UCPaletteChangesParser;
+
+class UCStyleSet;
+class PropertyChange;
+class UCPaletteChanges : public QObject, public QQmlParserStatus
 {
     Q_OBJECT
-    Q_PROPERTY(QString values MEMBER m_values NOTIFY valuesChanged)
+    Q_INTERFACES(QQmlParserStatus)
+    Q_PROPERTY(QString invertValues MEMBER m_invertValues NOTIFY invertValuesChanged)
 public:
     explicit UCPaletteChanges(QObject *parent = 0);
+    ~UCPaletteChanges();
+
+    UCStyleSet *styleSet();
+    QObject *palette();
+    QObject *valueSet(const QString &name);
+
+    void applyProperty(QObject *valueSet, const QString &propertyPrefix, const QV4::CompiledData::Unit *qmlUnit, const QV4::CompiledData::Binding *binding);
 
 Q_SIGNALS:
-    void valuesChanged();
+    void invertValuesChanged();
+
+private Q_SLOTS:
+    void _q_applyPaletteChanges();
+
+protected:
+    void classBegin();
+    void componentComplete();
 
 private:
-    QString m_values;
+
+    class Expression {
+    public:
+        Expression(const QString &name, QQmlBinding::Identifier id, const QString& expr,
+                         const QUrl &url, int line, int column)
+            : name(name), id(id), expression(expr), url(url), line(line), column(column) {}
+        QString name;
+        QQmlBinding::Identifier id;
+        QString expression;
+        QUrl url;
+        int line;
+        int column;
+    };
+
+    void saveAndSetProperty(const QString &property, const QVariant &value);
+    void saveAndSetProperty(const QString &property, QQmlBinding *binding);
+    void restorePaletteValues();
+
+    QString m_invertValues;
+    bool m_decoded:1;
+    bool m_isExplicit:1;
+    QList< QPair<QString, QString> > m_values;
+    QList<Expression> m_expressions;
+    QList<PropertyChange*> m_restoreList;
+    // from parser
+    QQmlRefPointer<QQmlCompiledData> m_cdata;
+
+    friend class UCPaletteChangesParser;
 };
 
 class UCPaletteChangesParser : public QQmlCustomParser
@@ -51,7 +98,6 @@ public:
 
 private:
     void verifyProperty(const QV4::CompiledData::Unit *qmlUnit, const QV4::CompiledData::Binding *binding);
-    void applyProperty(const QV4::CompiledData::Unit *qmlUnit, const QV4::CompiledData::Binding *binding, int outterElementIndex);
 };
 
 #endif // UCPALETTECHANGES_H

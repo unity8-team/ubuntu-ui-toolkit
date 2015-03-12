@@ -18,44 +18,33 @@
 
 #include "ucpalettechanges.h"
 #include "i18n.h"
+#include "ucstyleset.h"
+#include "propertychange_p.h"
 
-#include <QtQml/private/qqmlcompiler_p.h>
-
-UCPaletteChanges::UCPaletteChanges(QObject *parent)
-    : QObject(parent)
-    , m_values("")
-{
-}
-
+#include <QtQml/QQmlInfo>
+#include <QtQml/QQmlProperty>
 
 void UCPaletteChangesParser::verifyBindings(const QV4::CompiledData::Unit *qmlUnit, const QList<const QV4::CompiledData::Binding *> &bindings)
 {
-    Q_UNUSED(qmlUnit);
-    Q_UNUSED(bindings);
     Q_FOREACH(const QV4::CompiledData::Binding *binding, bindings) {
-//        QString propName = qmlUnit->stringAt(binding->propertyNameIndex);
-//        if (!propName.isEmpty()) {
-//            error(binding, "ERROR");
-//            return;
-//        }
-//        qDebug() << propName;
         verifyProperty(qmlUnit, binding);
     }
 }
 
 void UCPaletteChangesParser::applyBindings(QObject *obj, QQmlCompiledData *cdata, const QList<const QV4::CompiledData::Binding *> &bindings)
 {
-    Q_UNUSED(obj);
-    Q_UNUSED(cdata);
-    Q_UNUSED(bindings);
-//    UCPaletteChanges *paletteChanges = static_cast<UCPaletteChanges*>(obj);
-    const QV4::CompiledData::Unit *qmlUnit = cdata->compilationUnit->data;
-    Q_FOREACH(const QV4::CompiledData::Binding *binding, bindings) {
-        if (binding->type != QV4::CompiledData::Binding::Type_Object) {
-            qDebug() << "PROP" << qmlUnit->stringAt(binding->propertyNameIndex);
-            continue;
-        }
+    UCPaletteChanges *changes = static_cast<UCPaletteChanges*>(obj);
+    if (!changes->palette()) {
+        qmlInfo(changes->styleSet()) << UbuntuI18n::instance().tr("StyleSet does not define a palette.");
+        return;
     }
+
+    Q_FOREACH(const QV4::CompiledData::Binding *binding, bindings) {
+        changes->applyProperty(NULL, QString(), cdata->compilationUnit->data, binding);
+    }
+
+    changes->m_cdata = cdata;
+    changes->m_decoded = true;
 }
 
 void UCPaletteChangesParser::verifyProperty(const QV4::CompiledData::Unit *qmlUnit, const QV4::CompiledData::Binding *binding)
@@ -66,7 +55,7 @@ void UCPaletteChangesParser::verifyProperty(const QV4::CompiledData::Unit *qmlUn
     }
 
     if (binding->type == QV4::CompiledData::Binding::Type_GroupProperty
-        || binding->type == QV4::CompiledData::Binding::Type_AttachedProperty) {
+            || binding->type == QV4::CompiledData::Binding::Type_AttachedProperty) {
         const QV4::CompiledData::Object *subObj = qmlUnit->objectAt(binding->value.objectIndex);
         const QV4::CompiledData::Binding *subBinding = subObj->bindingTable();
         for (quint32 i = 0; i < subObj->nBindings; ++i, ++subBinding) {
@@ -75,9 +64,202 @@ void UCPaletteChangesParser::verifyProperty(const QV4::CompiledData::Unit *qmlUn
     }
 }
 
-void UCPaletteChangesParser::applyProperty(const QV4::CompiledData::Unit *qmlUnit, const QV4::CompiledData::Binding *binding, int outterElementIndex)
+void UCPaletteChanges::applyProperty(QObject *paletteSet, const QString &propertyPrefix, const QV4::CompiledData::Unit *qmlUnit, const QV4::CompiledData::Binding *binding)
 {
-    Q_UNUSED(qmlUnit);
-    Q_UNUSED(binding);
-    Q_UNUSED(outterElementIndex);
+    QString propertyName = propertyPrefix + qmlUnit->stringAt(binding->propertyNameIndex);
+
+    if (binding->type == QV4::CompiledData::Binding::Type_GroupProperty
+            || binding->type == QV4::CompiledData::Binding::Type_AttachedProperty) {
+
+        // check if the palette has this value set
+        int propIndex = palette()->metaObject()->indexOfProperty(propertyName.toUtf8());
+        if (propIndex < 0) {
+            qmlInfo(this) << UbuntuI18n::instance().tr("Palette has no valueset %1").arg(propertyName);
+            return;
+        }
+
+        QString pre = propertyName + QLatin1Char('.');
+        const QV4::CompiledData::Object *subObj = qmlUnit->objectAt(binding->value.objectIndex);
+        const QV4::CompiledData::Binding *subBinding = subObj->bindingTable();
+        for (quint32 i = 0; i < subObj->nBindings; ++i, ++subBinding) {
+            applyProperty(valueSet(propertyName), pre, qmlUnit, subBinding);
+        }
+        return;
+    }
+
+    // check if palette has the given property
+    if (!paletteSet) {
+        qmlInfo(this) << UbuntuI18n::instance().tr("Palette has no property %1").arg(propertyName);
+        return;
+    }
+    if (paletteSet->metaObject()->indexOfProperty(qmlUnit->stringAt(binding->propertyNameIndex).toUtf8()) < 0) {
+        qmlInfo(this) << UbuntuI18n::instance().tr("PaletteValue has no property %1").arg(propertyName);
+        return;
+    }
+
+    switch (binding->type) {
+    case QV4::CompiledData::Binding::Type_Script:
+    {
+        QString expression = binding->valueAsScriptString(qmlUnit);
+        QUrl url = QUrl();
+        int line = -1;
+        int column = -1;
+
+        QQmlData *ddata = QQmlData::get(this);
+        if (ddata && ddata->outerContext && !ddata->outerContext->url.isEmpty()) {
+            url = ddata->outerContext->url;
+            line = ddata->lineNumber;
+            column = ddata->columnNumber;
+        }
+        m_expressions << Expression(propertyName, binding->value.compiledScriptIndex, expression, url, line, column);
+        break;
+    }
+    case QV4::CompiledData::Binding::Type_String:
+    {
+        m_values << qMakePair(propertyName, binding->valueAsString(qmlUnit));
+        break;
+    }
+    default:
+        qmlInfo(this) << UbuntuI18n::instance().tr("Only color values and bindings are accepted.");
+        break;
+    }
+}
+
+
+/******************************************************************************
+ * PaletteChanges
+ */
+/*!
+ * \qmltype PaletteChanges
+ * \instantiates UCPaletteChanges
+ * \inqmlmodule Ubuntu.Components 1.3
+ * \since Ubuntu.Components 1.3
+ * \ingroup theming
+ * \brief The component is used to apply changes on a StyleSet individual palette
+ * values.
+ *
+ * The component can be declared only inside a StyleSet.
+ */
+
+/*!
+ * \qmlproperty string PaletteChanges::invertValues
+ * The property specifies the palette values to be inverted between \c normal and
+ * \c selected PaletteValue instances. Defaults to an empty string. Palette values
+ * to be inverted must be specified with comas.
+ * \qml
+ * StyleSet {
+ *     PaletteChanges {
+ *         invertValues: "foregroundText, overlayText"
+ *     }
+ * }
+ * \endqml
+ * In vase all values must be inverted, use '*'.
+ * \qml
+ * StyleSet {
+ *     PaletteChanges {
+ *         invertValues: "*"
+ *     }
+ * }
+ * \endqml
+ */
+UCPaletteChanges::UCPaletteChanges(QObject *parent)
+    : QObject(parent)
+    , m_invertValues(false)
+    , m_decoded(false)
+{
+}
+
+UCPaletteChanges::~UCPaletteChanges()
+{
+    restorePaletteValues();
+}
+
+void UCPaletteChanges::classBegin()
+{
+    connect(styleSet(), &UCStyleSet::paletteChanged, this, &UCPaletteChanges::_q_applyPaletteChanges);
+}
+void UCPaletteChanges::componentComplete()
+{
+    if (palette()) {
+        _q_applyPaletteChanges();
+    }
+}
+
+UCStyleSet *UCPaletteChanges::styleSet()
+{
+    return qobject_cast<UCStyleSet*>(parent());
+}
+QObject *UCPaletteChanges::palette()
+{
+    return styleSet()->palette();
+}
+
+QObject *UCPaletteChanges::valueSet(const QString &name)
+{
+    QObject *stylePalette = palette();
+    return stylePalette ? stylePalette->property(name.toLocal8Bit()).value<QObject*>() : NULL;
+}
+
+void UCPaletteChanges::saveAndSetProperty(const QString &property, const QVariant &value)
+{
+    PropertyChange *change = new PropertyChange(palette(), property.toUtf8(), PropertyChange::BindingBackup);
+    m_restoreList << change;
+    change->setValue(value);
+}
+
+void UCPaletteChanges::saveAndSetProperty(const QString &property, QQmlBinding *binding)
+{
+    PropertyChange *change = new PropertyChange(palette(), property.toUtf8(), PropertyChange::BindingBackup);
+    binding->setTarget(change->property());
+    m_restoreList << change;
+    change->setValue(binding);
+}
+
+void UCPaletteChanges::restorePaletteValues()
+{
+    qDeleteAll(m_restoreList);
+    m_restoreList.clear();
+}
+
+void UCPaletteChanges::_q_applyPaletteChanges()
+{
+    // restore previous values prior to apply changes
+    restorePaletteValues();
+
+    // apply values first
+    QObject *object = palette();
+    QQmlContext *context = qmlContext(object);
+    for (int i = 0; i < m_values.count(); i++) {
+        saveAndSetProperty(m_values[i].first, m_values[i].second);
+    }
+
+    // then apply expressions/bindings
+    for (int ii = 0; ii < m_expressions.count(); ii++) {
+        Expression e = m_expressions[ii];
+        QQmlProperty prop(object, e.name, context);
+        if (!prop.isValid()) {
+            continue;
+        }
+
+        // create a binding object from the expression using the palette context
+        QQmlContextData *cdata = QQmlContextData::get(context);
+        QQmlBinding *newBinding = 0;
+        if (e.id != QQmlBinding::Invalid) {
+            QV4::Scope scope(QQmlEnginePrivate::getV4Engine(qmlEngine(this)));
+            QV4::ScopedValue function(scope, QV4::QmlBindingWrapper::createQmlCallableForFunction(cdata, object, m_cdata->compilationUnit->runtimeFunctions[e.id]));
+            newBinding = new QQmlBinding(function, object, cdata);
+        }
+        if (!newBinding) {
+            newBinding = new QQmlBinding(e.expression, object, cdata, e.url.toString(), e.line, e.column);
+        }
+
+        if (m_isExplicit) {
+            // in this case, we don't want to assign a binding, per se,
+            // so we evaluate the expression and assign the result.
+            saveAndSetProperty(e.name, newBinding->evaluate());
+            newBinding->destroy();
+        } else {
+            saveAndSetProperty(e.name, newBinding);
+        }
+    }
 }

@@ -21,18 +21,30 @@
 #include <QtCore/QObject>
 #include <QtQml/QQmlProperty>
 
+class QQmlAbstractBinding;
 class PropertyChange
 {
 public:
-    PropertyChange(QObject *item, const char *property, bool autoBackup = false);
+    enum BackupType {
+        ValueBackup,
+        BindingBackup,
+    };
+
+    PropertyChange(QObject *item, const char *property, BackupType type = ValueBackup);
     ~PropertyChange();
 
+    void setValue(const QVariant &value);
+    void setValue(QQmlAbstractBinding *binding);
+    void restore();
+    QQmlProperty property() const;
     static void setValue(PropertyChange* change, const QVariant &value);
     static void restore(PropertyChange* change);
 private:
     bool backedUp;
+    BackupType type;
     QQmlProperty qmlProperty;
     QVariant backupValue;
+    QQmlAbstractBinding *backupBinding;
 
     void backup();
 };
