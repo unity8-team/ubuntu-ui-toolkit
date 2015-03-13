@@ -18,10 +18,21 @@ import QtQuick 2.4
 import Ubuntu.Components 1.3
 
 StyledItem {
-    id: item
-    styleSet: StyleSet {
-        PaletteChanges{
-            normal.invalid: 1
+    objectName: "main"
+    width: units.gu(40)
+    height: units.gu(71)
+
+    theme: ThemeSettings{ objectName: "top" }
+
+    ThemeSettings {
+        objectName: "testSet"
+        name: "Ubuntu.Components.Themes.SuruDark"
+    }
+
+    Item {
+        anchors.fill: parent
+        StyledItem {
+            objectName: "testItem"
         }
     }
 }

@@ -18,19 +18,10 @@ import QtQuick 2.4
 import Ubuntu.Components 1.3
 
 StyledItem {
-    Loader {
-        objectName: "loader"
-        anchors.fill: parent
-        sourceComponent: dynamicItem
-    }
+    id: item
+    theme: ThemeSettings {}
 
-    Component {
-        id: dynamicItem
-        StyledItem {
-            styleSet.paletteChanges: PaletteChanges {
-                normal.background: "blue"
-            }
-        }
+    PaletteChanges{
+        objectName: "testChange"
     }
 }
-

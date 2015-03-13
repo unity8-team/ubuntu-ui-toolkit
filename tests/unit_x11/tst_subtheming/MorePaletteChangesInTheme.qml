@@ -17,14 +17,12 @@
 import QtQuick 2.4
 import Ubuntu.Components 1.3
 
-Item {
+StyledItem {
     id: item
-    property StyleSet styleSet: StyleSet {}
-    property Component style
-
-    property string styleDocument
-    onStyleDocumentChanged: style = styleSet.createStyleComponent(styleDocument, item)
-
-    property string themeName
-    onThemeNameChanged: styleSet.name = themeName;
+    theme: ThemeSettings {
+        PaletteChanges{
+        }
+        PaletteChanges{
+        }
+    }
 }

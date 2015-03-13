@@ -30,7 +30,7 @@
 
 class UCPaletteChangesParser;
 
-class UCStyleSet;
+class UCTheme;
 class PropertyChange;
 class UCPaletteChanges : public QObject, public QQmlParserStatus
 {
@@ -41,7 +41,7 @@ public:
     explicit UCPaletteChanges(QObject *parent = 0);
     ~UCPaletteChanges();
 
-    UCStyleSet *styleSet();
+    UCTheme *theme();
     QObject *palette();
     QObject *valueSet(const QString &name);
 

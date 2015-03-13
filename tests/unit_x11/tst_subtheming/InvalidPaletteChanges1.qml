@@ -17,16 +17,11 @@
 import QtQuick 2.4
 import Ubuntu.Components 1.3
 
-// the style of the root object will be changed
 StyledItem {
-    StyledItem {
-        styleSet: StyleSet {
-            objectName: "firstTheme"
-            name: parentStyleSet.name
-            PaletteChanges{
-                normal.background: "blue"
-            }
+    id: item
+    theme: ThemeSettings {
+        PaletteChanges{
+            invalid: 1
         }
     }
 }
-

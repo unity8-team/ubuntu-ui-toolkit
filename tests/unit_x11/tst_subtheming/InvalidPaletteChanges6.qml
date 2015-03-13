@@ -19,9 +19,10 @@ import Ubuntu.Components 1.3
 
 StyledItem {
     id: item
-    styleSet: StyleSet {
+    property int value: 10
+    theme: ThemeSettings {
         PaletteChanges{
-            invalid: 1
+            normal.background: value
         }
     }
 }

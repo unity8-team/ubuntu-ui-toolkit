@@ -31,15 +31,15 @@ Item {
         }
         Button {
             text: "Theme change"
-            onClicked: styleSet.name = "Ubuntu.Components.Themes.SuruDark"
+            onClicked: theme.name = "Ubuntu.Components.Themes.SuruDark"
         }
 
         TextField {
             objectName: "OuterText"
-            property string styleName: styleSet.name
+            property string styleName: theme.name
             onStyleNameChanged: print(objectName, styleName)
             Connections {
-                target: styleSet
+                target: theme
                 onPaletteChanged: {
                     print("TextField:", styleSet.name)
                     print("normal.foregroundText", styleSet.palette.normal.foregroundText)
@@ -53,15 +53,12 @@ Item {
             objectName: "SuruDarkStyled"
             width: parent.width
             height: units.gu(10)
-            styleSet: StyleSet {
+            theme: ThemeSettings {
                 name: "Ubuntu.Components.Themes.SuruDark"
                 // override normal.foregroundText
                 PaletteChanges {
-//                    values: "normal"
-//                    crap.whatever: 10
                     normal.foregroundText: UbuntuColors.blue
                     normal.overlayText: "blue"
-//                    normal.field: "lime"
                     selected.foregroundText: Qt.rgba(0, 0, 1, 1)
                     selected.overlayText: normal.overlayText
                     selected.foreground: Qt.rgba(UbuntuColors.blue.r, UbuntuColors.blue.g, UbuntuColors.blue.b, 0.2)
@@ -70,7 +67,7 @@ Item {
 
             TextField {
                 objectName: "InnerText"
-                property string styleName: styleSet.name
+                property string styleName: theme.name
                 onStyleNameChanged: print(objectName, styleName)
             }
         }

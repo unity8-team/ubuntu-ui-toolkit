@@ -1,6 +1,6 @@
 include(../test-include.pri)
 QT += core-private qml-private quick-private gui-private
-SOURCES += tst_styleset.cpp
+SOURCES += tst_subtheming.cpp
 
 OTHER_FILES += \
     TestStyle.qml \
@@ -16,9 +16,9 @@ OTHER_FILES += \
     ParentChanges.qml \
     TestMain.qml \
     TestStyleChange.qml \
-    DifferentStylesets.qml \
+    DifferentThemes.qml \
     WrongPaletteChangesDeclaration.qml \
-    MorePaletteChangesInStyleSet.qml \
+    MorePaletteChangesInTheme.qml \
     InvalidPaletteChanges1.qml \
     InvalidPaletteChanges2.qml \
     InvalidPaletteChanges3.qml \
@@ -27,5 +27,5 @@ OTHER_FILES += \
     InvalidPaletteChanges6.qml \
     SameNamedPaletteChanges.qml \
     ChangePaletteValueWhenParentChanges.qml \
-    ChangeDefaultPaletteInChildren.qml
+    ChangeDefaultPaletteInChildren.qml \
 

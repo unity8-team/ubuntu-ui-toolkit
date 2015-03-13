@@ -17,12 +17,22 @@
 import QtQuick 2.4
 import Ubuntu.Components 1.3
 
-StyledItem {
-    id: item
-    property int value: 10
-    styleSet: StyleSet {
-        PaletteChanges{
-            normal.background: value
+Item {
+    StyledItem {
+        theme: ThemeSettings {
+            objectName: "firstTheme"
+            name: "Ubuntu.Components.Themes.SuruDark"
+            PaletteChanges{
+                normal.background: UbuntuColors.red
+            }
         }
     }
+    StyledItem {
+        theme: ThemeSettings {
+            objectName: "secondTheme"
+            name: "Ubuntu.Components.Themes.SuruDark"
+        }
+    }
+
 }
+

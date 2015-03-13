@@ -13,33 +13,24 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 import QtQuick 2.4
 import Ubuntu.Components 1.3
 
 StyledItem {
-    id: main
+    objectName: "main"
     width: units.gu(40)
     height: units.gu(71)
-    objectName: "mainStyled"
 
-    styleSet.name: "Ubuntu.Components.Themes.SuruGradient"
+    theme: ThemeSettings{ objectName: "top" }
 
-    Column {
+    Item {
         anchors.fill: parent
         StyledItem {
-            objectName: "firstLevelStyled"
-            width: parent.width
-            height: units.gu(20)
-            styleSet: StyleSet {
-                name: parentStyleSet ? parentStyleSet.name : undefined
-            }
-
-            Item {
-                anchors.fill: parent
-                StyledItem {
-                    objectName: "secondLevelStyled"
-                    anchors.fill: parent
-                }
+            objectName: "testItem"
+            theme: ThemeSettings {
+                objectName: "testSet"
+                name: "Ubuntu.Components.Themes.SuruDark"
             }
         }
     }

@@ -22,7 +22,7 @@
 #include <QtGui/QScreen>
 
 #include "plugin.h"
-#include "ucstyleset.h"
+#include "uctheme.h"
 #include "ucdeprecatedtheme.h"
 #include "ucpalettechanges.h"
 
@@ -193,7 +193,7 @@ void UbuntuComponentsPlugin::registerTypes(const char *uri)
     qmlRegisterType<UCUbuntuShapeOverlay>(uri, 1, 2, "UbuntuShapeOverlay");
 
     // register 1.3 API
-    qmlRegisterType<UCStyleSet>(uri, 1, 3, "StyleSet");
+    qmlRegisterType<UCTheme>(uri, 1, 3, "ThemeSettings");
     qmlRegisterType<UCStyledItemBase, 2>(uri, 1, 3, "StyledItemBase");
     qmlRegisterCustomType<UCPaletteChanges>(uri, 1, 3, "PaletteChanges", new UCPaletteChangesParser);
 }
@@ -214,8 +214,8 @@ void UbuntuComponentsPlugin::initializeEngine(QQmlEngine *engine, const char *ur
     // that can be accessed from any object
     context->setContextProperty("QuickUtils", &QuickUtils::instance());
 
-    // register styleSet context property
-    UCStyleSet::registerToContext(context);
+    // register theme context property
+    UCTheme::registerToContext(context);
 
     UCDeprecatedTheme::instance().registerToContext(context);
 

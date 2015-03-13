@@ -17,22 +17,14 @@
 import QtQuick 2.4
 import Ubuntu.Components 1.3
 
-StyledItem {
-    objectName: "main"
-    width: units.gu(40)
-    height: units.gu(71)
+Item {
+    id: item
+    property ThemeSettings theme: ThemeSettings {}
+    property Component style
 
-    styleSet: StyleSet{ objectName: "top" }
+    property string styleDocument
+    onStyleDocumentChanged: style = theme.createStyleComponent(styleDocument, item)
 
-    StyleSet {
-        objectName: "testSet"
-        name: "Ubuntu.Components.Themes.SuruDark"
-    }
-
-    Item {
-        anchors.fill: parent
-        StyledItem {
-            objectName: "testItem"
-        }
-    }
+    property string themeName
+    onThemeNameChanged: theme.name = themeName;
 }

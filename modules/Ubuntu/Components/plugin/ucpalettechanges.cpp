@@ -18,7 +18,7 @@
 
 #include "ucpalettechanges.h"
 #include "i18n.h"
-#include "ucstyleset.h"
+#include "uctheme.h"
 #include "propertychange_p.h"
 
 #include <QtQml/QQmlInfo>
@@ -35,7 +35,7 @@ void UCPaletteChangesParser::applyBindings(QObject *obj, QQmlCompiledData *cdata
 {
     UCPaletteChanges *changes = static_cast<UCPaletteChanges*>(obj);
     if (!changes->palette()) {
-        qmlInfo(changes->styleSet()) << UbuntuI18n::instance().tr("StyleSet does not define a palette.");
+        qmlInfo(changes->theme()) << UbuntuI18n::instance().tr("ThemeSettings does not define a palette.");
         return;
     }
 
@@ -135,10 +135,10 @@ void UCPaletteChanges::applyProperty(QObject *paletteSet, const QString &propert
  * \inqmlmodule Ubuntu.Components 1.3
  * \since Ubuntu.Components 1.3
  * \ingroup theming
- * \brief The component is used to apply changes on a StyleSet individual palette
- * values.
+ * \brief The component is used to apply changes on a ThemeSettings individual
+ * palette values.
  *
- * The component can be declared only inside a StyleSet.
+ * The component can be declared only inside a ThemeSettings.
  */
 
 /*!
@@ -147,7 +147,7 @@ void UCPaletteChanges::applyProperty(QObject *paletteSet, const QString &propert
  * \c selected PaletteValue instances. Defaults to an empty string. Palette values
  * to be inverted must be specified with comas.
  * \qml
- * StyleSet {
+ * ThemeSettings {
  *     PaletteChanges {
  *         invertValues: "foregroundText, overlayText"
  *     }
@@ -155,7 +155,7 @@ void UCPaletteChanges::applyProperty(QObject *paletteSet, const QString &propert
  * \endqml
  * In vase all values must be inverted, use '*'.
  * \qml
- * StyleSet {
+ * ThemeSettings {
  *     PaletteChanges {
  *         invertValues: "*"
  *     }
@@ -175,10 +175,10 @@ UCPaletteChanges::~UCPaletteChanges()
 
 void UCPaletteChanges::classBegin()
 {
-    if (!qobject_cast<UCStyleSet*>(parent())) {
-        qmlInfo(this) << UbuntuI18n::instance().tr("PaletteChanges can be instantiated in StyleSet components.");
+    if (!qobject_cast<UCTheme*>(parent())) {
+        qmlInfo(this) << UbuntuI18n::instance().tr("PaletteChanges can only be declared in ThemeSettings components.");
     } else {
-        connect(styleSet(), &UCStyleSet::paletteChanged, this, &UCPaletteChanges::_q_applyPaletteChanges);
+        connect(theme(), &UCTheme::paletteChanged, this, &UCPaletteChanges::_q_applyPaletteChanges);
     }
 }
 void UCPaletteChanges::componentComplete()
@@ -188,13 +188,13 @@ void UCPaletteChanges::componentComplete()
     }
 }
 
-UCStyleSet *UCPaletteChanges::styleSet()
+UCTheme *UCPaletteChanges::theme()
 {
-    return qobject_cast<UCStyleSet*>(parent());
+    return qobject_cast<UCTheme*>(parent());
 }
 QObject *UCPaletteChanges::palette()
 {
-    UCStyleSet *set = styleSet();
+    UCTheme *set = theme();
     return set ? set->palette() : NULL;
 }
 

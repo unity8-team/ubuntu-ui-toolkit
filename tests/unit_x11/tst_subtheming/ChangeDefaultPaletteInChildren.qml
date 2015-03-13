@@ -18,20 +18,19 @@ import QtQuick 2.4
 import Ubuntu.Components 1.3
 
 StyledItem {
-    objectName: "main"
-    width: units.gu(40)
-    height: units.gu(71)
-
-    styleSet: StyleSet{ objectName: "top" }
-
-    Item {
+    Loader {
+        objectName: "loader"
         anchors.fill: parent
+        sourceComponent: dynamicItem
+    }
+
+    Component {
+        id: dynamicItem
         StyledItem {
-            objectName: "testItem"
-            styleSet: StyleSet {
-                objectName: "testSet"
-                name: "Ubuntu.Components.Themes.SuruDark"
+            theme.paletteChanges: PaletteChanges {
+                normal.background: "blue"
             }
         }
     }
 }
+

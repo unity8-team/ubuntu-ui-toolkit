@@ -17,8 +17,8 @@
  *          Florian Boucault <florian.boucault@canonical.com>
  */
 
-#ifndef UCSTYLESET_H
-#define UCSTYLESET_H
+#ifndef UCTHEME_H
+#define UCTHEME_H
 
 #include <QtCore/QObject>
 #include <QtCore/QPointer>
@@ -27,29 +27,29 @@
 #include <QtQml/QQmlComponent>
 #include <QtQml/QQmlParserStatus>
 
-#include "ucthemesettings.h"
+#include "ucdefaulttheme.h"
 
 class UCPaletteChanges;
 class UCStyledItemBase;
-class UCStyleSet : public QObject, public QQmlParserStatus
+class UCTheme : public QObject, public QQmlParserStatus
 {
     Q_OBJECT
     Q_INTERFACES(QQmlParserStatus)
-    Q_PROPERTY(UCStyleSet *parentStyleSet READ parentSet NOTIFY parentStyleSetChanged)
+    Q_PROPERTY(UCTheme *parentTheme READ parentTheme NOTIFY parentThemeChanged)
     Q_PROPERTY(QString name READ name WRITE setName RESET resetName NOTIFY nameChanged)
     Q_PROPERTY(QObject* palette READ palette NOTIFY paletteChanged)
     Q_PROPERTY(UCPaletteChanges *paletteChanges READ paletteChanges WRITE setPaletteChanges NOTIFY paletteChangesChanged)
     Q_CLASSINFO("DefaultProperty", "paletteChanges")
 public:
-    explicit UCStyleSet(QObject *parent = 0);
-    static UCStyleSet &defaultSet()
+    explicit UCTheme(QObject *parent = 0);
+    static UCTheme &defaultTheme()
     {
-        static UCStyleSet instance(true);
+        static UCTheme instance(true);
         return instance;
     }
 
     // getter/setters
-    UCStyleSet *parentSet();
+    UCTheme *parentTheme();
     QString name() const;
     void setName(const QString& name);
     void resetName();
@@ -64,7 +64,7 @@ public:
     QColor getPaletteColor(const char *profile, const char *color);
 
 Q_SIGNALS:
-    void parentStyleSetChanged();
+    void parentThemeChanged();
     void nameChanged();
     void paletteChanged();
     void paletteChangesChanged();
@@ -81,11 +81,10 @@ private Q_SLOTS:
     void onThemeNameChanged();
     void updateThemePaths();
     QUrl styleUrl(const QString& styleName);
-    QString parentThemeName(const QString& themeName);
     void loadPalette(bool notify = true);
 
 private:
-    UCStyleSet(bool defaultStyle);
+    UCTheme(bool defaultStyle, QObject *parent = 0);
     void init();
 
     QString m_name;
@@ -93,7 +92,7 @@ private:
     QPointer<UCPaletteChanges> m_paletteChanges;
     QQmlEngine *m_engine;
     QList<QUrl> m_themePaths;
-    UCThemeSettings m_themeSettings;
+    UCDefaultTheme m_defaultTheme;
     bool m_defaultStyle:1;
     bool m_completed:1;
 
@@ -102,4 +101,4 @@ private:
 
 QUrl pathFromThemeName(QString themeName);
 
-#endif // UCSTYLESET_H
+#endif // UCTHEME_H
