@@ -19,9 +19,9 @@ import Ubuntu.Components 1.3
 
 StyledItem {
     id: item
-    theme: ThemeSettings {
-        PaletteChanges{
-            normal.background: true
-        }
+    theme: ThemeSettings {}
+
+    PaletteSettings{
+        objectName: "testChange"
     }
 }

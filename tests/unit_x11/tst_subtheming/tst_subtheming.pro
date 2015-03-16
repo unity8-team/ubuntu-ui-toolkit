@@ -16,17 +16,17 @@ OTHER_FILES += \
     TestMain.qml \
     TestStyleChange.qml \
     DifferentThemes.qml \
-    WrongPaletteChangesDeclaration.qml \
-    MorePaletteChangesInTheme.qml \
-    InvalidPaletteChanges1.qml \
-    InvalidPaletteChanges2.qml \
-    InvalidPaletteChanges3.qml \
-    InvalidPaletteChanges4.qml \
-    InvalidPaletteChanges5.qml \
-    InvalidPaletteChanges6.qml \
-    SameNamedPaletteChanges.qml \
     ChangePaletteValueWhenParentChanges.qml \
     ChangeDefaultPaletteInChildren.qml \
-    ExplicitPaletteChanges.qml \
-    ImplicitPaletteChanges.qml
+    ImplicitPaletteSettings.qml \
+    ExplicitPaletteSettings.qml \
+    InvalidPaletteSettings1.qml \
+    InvalidPaletteSettings2.qml \
+    InvalidPaletteSettings3.qml \
+    InvalidPaletteSettings4.qml \
+    InvalidPaletteSettings5.qml \
+    InvalidPaletteSettings6.qml \
+    MorePaletteSettingsInTheme.qml \
+    SameNamedPaletteSettings.qml \
+    WrongPaletteSettingsDeclaration.qml
 

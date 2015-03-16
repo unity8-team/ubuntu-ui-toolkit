@@ -29,7 +29,7 @@
 
 #include "ucdefaulttheme.h"
 
-class UCPaletteChanges;
+class UCPaletteSettings;
 class UCStyledItemBase;
 class UCTheme : public QObject, public QQmlParserStatus
 {
@@ -38,8 +38,8 @@ class UCTheme : public QObject, public QQmlParserStatus
     Q_PROPERTY(UCTheme *parentTheme READ parentTheme NOTIFY parentThemeChanged)
     Q_PROPERTY(QString name READ name WRITE setName RESET resetName NOTIFY nameChanged)
     Q_PROPERTY(QObject* palette READ palette NOTIFY paletteChanged)
-    Q_PROPERTY(UCPaletteChanges *paletteChanges READ paletteChanges WRITE setPaletteChanges NOTIFY paletteChangesChanged)
-    Q_CLASSINFO("DefaultProperty", "paletteChanges")
+    Q_PROPERTY(UCPaletteSettings *paletteSettings READ paletteSettings WRITE setPaletteSettings NOTIFY paletteSettingsChanged)
+    Q_CLASSINFO("DefaultProperty", "paletteSettings")
 public:
     explicit UCTheme(QObject *parent = 0);
     static UCTheme &defaultTheme()
@@ -54,8 +54,8 @@ public:
     void setName(const QString& name);
     void resetName();
     QObject* palette();
-    UCPaletteChanges *paletteChanges() const;
-    void setPaletteChanges(UCPaletteChanges *changes);
+    UCPaletteSettings *paletteSettings() const;
+    void setPaletteSettings(UCPaletteSettings *paletteSettings);
 
     Q_INVOKABLE QQmlComponent* createStyleComponent(const QString& styleName, QObject* parent);
     static void registerToContext(QQmlContext* context);
@@ -67,7 +67,7 @@ Q_SIGNALS:
     void parentThemeChanged();
     void nameChanged();
     void paletteChanged();
-    void paletteChangesChanged();
+    void paletteSettingsChanged();
 
 protected:
     void classBegin();
@@ -89,7 +89,7 @@ private:
 
     QString m_name;
     QPointer<QObject> m_palette; // the palette might be from the default style if the theme doesn't define palette
-    QPointer<UCPaletteChanges> m_paletteChanges;
+    QPointer<UCPaletteSettings> m_paletteSettings;
     QQmlEngine *m_engine;
     QList<QUrl> m_themePaths;
     UCDefaultTheme m_defaultTheme;

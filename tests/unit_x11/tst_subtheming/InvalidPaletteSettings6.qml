@@ -19,10 +19,10 @@ import Ubuntu.Components 1.3
 
 StyledItem {
     id: item
+    property int value: 10
     theme: ThemeSettings {
-        PaletteChanges{
-        }
-        PaletteChanges{
+        PaletteSettings{
+            normal.background: value
         }
     }
 }

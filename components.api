@@ -1016,9 +1016,9 @@ plugins.qmltypes
     prototype: "QObject"
     exports: ["Ubuntu 1.2"]
     name: "CaptionsStyle"
-    name: "UCPaletteChanges"
+    name: "UCPaletteSettings"
     prototype: "QObject"
-    exports: ["PaletteChanges 1.3"]
+    exports: ["PaletteSettings 1.3"]
     Property { name: "explicit"; type: "bool" }
     name: "UCQQuickImageExtension"
     prototype: "QQuickImageBase"
@@ -1069,7 +1069,7 @@ plugins.qmltypes
     Property { name: "parentTheme"; type: "UCTheme"; isReadonly: true; isPointer: true }
     Property { name: "name"; type: "string" }
     Property { name: "palette"; type: "QObject"; isReadonly: true; isPointer: true }
-    Property { name: "paletteChanges"; type: "UCPaletteChanges"; isPointer: true }
+    Property { name: "paletteSettings"; type: "UCPaletteSettings"; isPointer: true }
     Method {
     name: "createStyleComponent"
     Parameter { name: "styleName"; type: "string" }

@@ -27,7 +27,7 @@ StyledItem {
     Component {
         id: dynamicItem
         StyledItem {
-            theme.paletteChanges: PaletteChanges {
+            theme.paletteSettings: PaletteSettings {
                 normal.background: "blue"
             }
         }

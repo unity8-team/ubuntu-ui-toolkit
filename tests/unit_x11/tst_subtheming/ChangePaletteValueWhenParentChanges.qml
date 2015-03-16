@@ -23,7 +23,7 @@ StyledItem {
         theme: ThemeSettings {
             objectName: "firstTheme"
             name: parentTheme.name
-            PaletteChanges{
+            PaletteSettings{
                 normal.background: "blue"
             }
         }

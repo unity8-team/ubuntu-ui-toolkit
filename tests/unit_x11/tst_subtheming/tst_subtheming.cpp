@@ -23,7 +23,7 @@
 #include "uctheme.h"
 #include "uctestcase.h"
 #include "ucstyleditembase_p.h"
-#include "ucpalettechanges.h"
+#include "ucpalettesettings.h"
 
 class ThemeTestCase : public UbuntuTestCase
 {
@@ -491,9 +491,9 @@ private Q_SLOTS:
                  UCStyledItemBasePrivate::get(test)->getTheme()->name());
     }
 
-    // PaletteChanges tests
+    // PaletteSettings tests
 
-    void test_palettechanges_api_data()
+    void test_palettesettings_api_data()
     {
         QTest::addColumn<QString>("test");
         QTest::addColumn<int>("line");
@@ -501,31 +501,31 @@ private Q_SLOTS:
         QTest::addColumn<QString>("warning");
 
         QTest::newRow("Wrong PalettChanges ownership")
-                << "WrongPaletteChangesDeclaration.qml" << 24 << 5
-                << "QML PaletteChanges: PaletteChanges can only be declared in ThemeSettings components.";
+                << "WrongPaletteSettingsDeclaration.qml" << 24 << 5
+                << "QML PaletteSettings: PaletteSettings can only be declared in ThemeSettings components.";
         QTest::newRow("More PalettChanges in ThemeSettings")
-                << "MorePaletteChangesInTheme.qml" << 22 << 12
-                << "QML ThemeSettings: ThemeSettings can have only one PaletteChanges set.";
+                << "MorePaletteSettingsInTheme.qml" << 22 << 12
+                << "QML ThemeSettings: ThemeSettings can have only one PaletteSettings set.";
         QTest::newRow("Invalid Palette property")
-                << "InvalidPaletteChanges1.qml" << 23 << 9
-                << "QML PaletteChanges: Palette has no property called 'invalid'.";
+                << "InvalidPaletteSettings1.qml" << 23 << 9
+                << "QML PaletteSettings: Palette has no property called 'invalid'.";
         QTest::newRow("Invalid PaletteValues property")
-                << "InvalidPaletteChanges2.qml" << 23 << 9
-                << "QML PaletteChanges: Palette has no property called 'normal.invalid'.";
+                << "InvalidPaletteSettings2.qml" << 23 << 9
+                << "QML PaletteSettings: Palette has no property called 'normal.invalid'.";
         QTest::newRow("Invalid property type - int.")
-                << "InvalidPaletteChanges3.qml" << 23 << 9
-                << "QML PaletteChanges: Not a valid color value.";
+                << "InvalidPaletteSettings3.qml" << 23 << 9
+                << "QML PaletteSettings: Not a valid color value.";
         QTest::newRow("Invalid property type - real.")
-                << "InvalidPaletteChanges4.qml" << 23 << 9
-                << "QML PaletteChanges: Not a valid color value.";
+                << "InvalidPaletteSettings4.qml" << 23 << 9
+                << "QML PaletteSettings: Not a valid color value.";
         QTest::newRow("Invalid property type - bool.")
-                << "InvalidPaletteChanges5.qml" << 23 << 9
-                << "QML PaletteChanges: Not a valid color value.";
+                << "InvalidPaletteSettings5.qml" << 23 << 9
+                << "QML PaletteSettings: Not a valid color value.";
         QTest::newRow("Invalid property binding result.")
-                << "InvalidPaletteChanges6.qml" << 25 << 32
+                << "InvalidPaletteSettings6.qml" << 25 << 32
                 << "Unable to assign int to QColor";
     }
-    void test_palettechanges_api()
+    void test_palettesettings_api()
     {
         QFETCH(QString, test);
         QFETCH(int, line);
@@ -538,7 +538,7 @@ private Q_SLOTS:
 
     void test_no_change_in_other_suru_dark()
     {
-        QScopedPointer<ThemeTestCase> view(new ThemeTestCase("SameNamedPaletteChanges.qml"));
+        QScopedPointer<ThemeTestCase> view(new ThemeTestCase("SameNamedPaletteSettings.qml"));
         UCTheme *firstTheme = view->findItem<UCTheme*>("firstTheme");
         UCTheme *secondTheme = view->findItem<UCTheme*>("secondTheme");
         QVERIFY(firstTheme->getPaletteColor("normal", "background") != secondTheme->getPaletteColor("normal", "background"));
@@ -574,16 +574,16 @@ private Q_SLOTS:
         QCOMPARE(mainSet->getPaletteColor("normal", "background"), QColor("blue"));
     }
 
-    void test_explicit_palettechanges_data()
+    void test_explicit_palettesettings_data()
     {
         QTest::addColumn<QString>("test");
         QTest::addColumn<QColor>("color");
         QTest::addColumn<QColor>("expected");
 
-        QTest::newRow("explicit: false") << "ImplicitPaletteChanges.qml" << QColor("blue") << QColor("blue");
-        QTest::newRow("explicit: true")  << "ExplicitPaletteChanges.qml" << QColor("blue") << QColor("red");
+        QTest::newRow("explicit: false") << "ImplicitPaletteSettings.qml" << QColor("blue") << QColor("blue");
+        QTest::newRow("explicit: true")  << "ExplicitPaletteSettings.qml" << QColor("blue") << QColor("red");
     }
-    void test_explicit_palettechanges()
+    void test_explicit_palettesettings()
     {
         QFETCH(QString, test);
         QFETCH(QColor, color);

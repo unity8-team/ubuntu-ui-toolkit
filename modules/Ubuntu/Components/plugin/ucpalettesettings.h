@@ -16,8 +16,8 @@
  * Author: Zsombor Egri <zsombor.egri@canonical.com>
  */
 
-#ifndef UCPALETTECHANGES_H
-#define UCPALETTECHANGES_H
+#ifndef UCPALETTESETTINGS_H
+#define UCPALETTESETTINGS_H
 
 #include <QtCore/QObject>
 
@@ -28,16 +28,16 @@
 #undef foreach
 #include <QtQml/private/qqmlcompiler_p.h>
 
-class UCPaletteChangesParser;
+class UCPaletteSettingsParser;
 
 class UCTheme;
-class UCPaletteChanges : public QObject, public QQmlParserStatus
+class UCPaletteSettings : public QObject, public QQmlParserStatus
 {
     Q_OBJECT
     Q_INTERFACES(QQmlParserStatus)
     Q_PROPERTY(bool explicit MEMBER m_explicit NOTIFY explicitChanged FINAL)
 public:
-    explicit UCPaletteChanges(QObject *parent = 0);
+    explicit UCPaletteSettings(QObject *parent = 0);
 
     UCTheme *theme();
     QObject *palette();
@@ -49,7 +49,7 @@ Q_SIGNALS:
     void explicitChanged();
 
 private Q_SLOTS:
-    void _q_applyPaletteChanges();
+    void _q_applyPaletteSettings();
 
 protected:
     void classBegin();
@@ -77,13 +77,13 @@ private:
     // from parser
     QQmlRefPointer<QQmlCompiledData> m_cdata;
 
-    friend class UCPaletteChangesParser;
+    friend class UCPaletteSettingsParser;
 };
 
-class UCPaletteChangesParser : public QQmlCustomParser
+class UCPaletteSettingsParser : public QQmlCustomParser
 {
 public:
-    UCPaletteChangesParser() : QQmlCustomParser(QQmlCustomParser::AcceptsSignalHandlers) {}
+    UCPaletteSettingsParser() : QQmlCustomParser(QQmlCustomParser::AcceptsSignalHandlers) {}
 
     virtual void verifyBindings(const QV4::CompiledData::Unit *qmlUnit, const QList<const QV4::CompiledData::Binding *> &bindings);
     virtual void applyBindings(QObject *obj, QQmlCompiledData *cdata, const QList<const QV4::CompiledData::Binding *> &bindings);
@@ -92,4 +92,4 @@ private:
     void verifyProperty(const QV4::CompiledData::Unit *qmlUnit, const QV4::CompiledData::Binding *binding);
 };
 
-#endif // UCPALETTECHANGES_H
+#endif // UCPALETTESETTINGS_H

@@ -20,7 +20,7 @@ import Ubuntu.Components 1.3
 StyledItem {
     id: item
     theme: ThemeSettings {
-        PaletteChanges{
+        PaletteSettings{
             normal.background: 1.2
         }
     }

@@ -24,7 +24,7 @@
 #include "plugin.h"
 #include "uctheme.h"
 #include "ucdeprecatedtheme.h"
-#include "ucpalettechanges.h"
+#include "ucpalettesettings.h"
 
 #include <QtQml/QQmlContext>
 #include "i18n.h"
@@ -195,7 +195,7 @@ void UbuntuComponentsPlugin::registerTypes(const char *uri)
     // register 1.3 API
     qmlRegisterType<UCTheme>(uri, 1, 3, "ThemeSettings");
     qmlRegisterType<UCStyledItemBase, 2>(uri, 1, 3, "StyledItemBase");
-    qmlRegisterCustomType<UCPaletteChanges>(uri, 1, 3, "PaletteChanges", new UCPaletteChangesParser);
+    qmlRegisterCustomType<UCPaletteSettings>(uri, 1, 3, "PaletteSettings", new UCPaletteSettingsParser);
 }
 
 void UbuntuComponentsPlugin::initializeEngine(QQmlEngine *engine, const char *uri)

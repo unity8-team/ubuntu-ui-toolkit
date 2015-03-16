@@ -18,17 +18,11 @@ import QtQuick 2.4
 import Ubuntu.Components 1.3
 
 StyledItem {
-    id: main
-    width: units.gu(40)
-    height: units.gu(71)
-
-    property color color: "red"
-
+    id: item
     theme: ThemeSettings {
-        objectName: "testSet"
-        PaletteChanges {
-            explicit: false
-            normal.background: main.color
+        PaletteSettings{
+        }
+        PaletteSettings{
         }
     }
 }

@@ -16,7 +16,7 @@
  * Author: Zsombor Egri <zsombor.egri@canonical.com>
  */
 
-#include "ucpalettechanges.h"
+#include "ucpalettesettings.h"
 #include "i18n.h"
 #include "uctheme.h"
 #include "propertychange_p.h"
@@ -24,16 +24,16 @@
 #include <QtQml/QQmlInfo>
 #include <QtQml/QQmlProperty>
 
-void UCPaletteChangesParser::verifyBindings(const QV4::CompiledData::Unit *qmlUnit, const QList<const QV4::CompiledData::Binding *> &bindings)
+void UCPaletteSettingsParser::verifyBindings(const QV4::CompiledData::Unit *qmlUnit, const QList<const QV4::CompiledData::Binding *> &bindings)
 {
     Q_FOREACH(const QV4::CompiledData::Binding *binding, bindings) {
         verifyProperty(qmlUnit, binding);
     }
 }
 
-void UCPaletteChangesParser::applyBindings(QObject *obj, QQmlCompiledData *cdata, const QList<const QV4::CompiledData::Binding *> &bindings)
+void UCPaletteSettingsParser::applyBindings(QObject *obj, QQmlCompiledData *cdata, const QList<const QV4::CompiledData::Binding *> &bindings)
 {
-    UCPaletteChanges *changes = static_cast<UCPaletteChanges*>(obj);
+    UCPaletteSettings *changes = static_cast<UCPaletteSettings*>(obj);
     if (!changes->palette()) {
         qmlInfo(changes->theme()) << UbuntuI18n::instance().tr("ThemeSettings does not define a palette.");
         return;
@@ -47,10 +47,10 @@ void UCPaletteChangesParser::applyBindings(QObject *obj, QQmlCompiledData *cdata
     changes->m_decoded = true;
 }
 
-void UCPaletteChangesParser::verifyProperty(const QV4::CompiledData::Unit *qmlUnit, const QV4::CompiledData::Binding *binding)
+void UCPaletteSettingsParser::verifyProperty(const QV4::CompiledData::Unit *qmlUnit, const QV4::CompiledData::Binding *binding)
 {
     if (binding->type == QV4::CompiledData::Binding::Type_Object) {
-        error(qmlUnit->objectAt(binding->value.objectIndex), UbuntuI18n::instance().tr("PaletteChanges does not support creating state-specific objects."));
+        error(qmlUnit->objectAt(binding->value.objectIndex), UbuntuI18n::instance().tr("PaletteSettings does not support creating state-specific objects."));
         return;
     }
 
@@ -64,7 +64,7 @@ void UCPaletteChangesParser::verifyProperty(const QV4::CompiledData::Unit *qmlUn
     }
 }
 
-void UCPaletteChanges::applyProperty(QObject *paletteSet, const QString &propertyPrefix, const QV4::CompiledData::Unit *qmlUnit, const QV4::CompiledData::Binding *binding)
+void UCPaletteSettings::applyProperty(QObject *paletteSet, const QString &propertyPrefix, const QV4::CompiledData::Unit *qmlUnit, const QV4::CompiledData::Binding *binding)
 {
     QString propertyName = propertyPrefix + qmlUnit->stringAt(binding->propertyNameIndex);
 
@@ -127,80 +127,62 @@ void UCPaletteChanges::applyProperty(QObject *paletteSet, const QString &propert
 
 
 /******************************************************************************
- * PaletteChanges
+ * PaletteSettings
  */
 /*!
- * \qmltype PaletteChanges
- * \instantiates UCPaletteChanges
+ * \qmltype PaletteSettings
+ * \instantiates UCPaletteSettings
  * \inqmlmodule Ubuntu.Components 1.3
  * \since Ubuntu.Components 1.3
  * \ingroup theming
  * \brief The component is used to apply changes on a ThemeSettings individual
  * palette values.
  *
- * The component can be declared only inside a ThemeSettings.
+ * The component provides the ability to configure different palette values of a
+ * theme. It can only contain palette value
+ * The component can be declared only inside a ThemeSettings, and there can be only
+ * one PaletteSettings instance declared per ThemeSettings component.
  */
 
-/*!
- * \qmlproperty string PaletteChanges::invertValues
- * The property specifies the palette values to be inverted between \c normal and
- * \c selected PaletteValue instances. Defaults to an empty string. Palette values
- * to be inverted must be specified with comas.
- * \qml
- * ThemeSettings {
- *     PaletteChanges {
- *         invertValues: "foregroundText, overlayText"
- *     }
- * }
- * \endqml
- * In vase all values must be inverted, use '*'.
- * \qml
- * ThemeSettings {
- *     PaletteChanges {
- *         invertValues: "*"
- *     }
- * }
- * \endqml
- */
-UCPaletteChanges::UCPaletteChanges(QObject *parent)
+UCPaletteSettings::UCPaletteSettings(QObject *parent)
     : QObject(parent)
     , m_decoded(false)
     , m_explicit(false)
 {
 }
 
-void UCPaletteChanges::classBegin()
+void UCPaletteSettings::classBegin()
 {
     if (!qobject_cast<UCTheme*>(parent())) {
-        qmlInfo(this) << UbuntuI18n::instance().tr("PaletteChanges can only be declared in ThemeSettings components.");
+        qmlInfo(this) << UbuntuI18n::instance().tr("PaletteSettings can only be declared in ThemeSettings components.");
     } else {
-        connect(theme(), &UCTheme::paletteChanged, this, &UCPaletteChanges::_q_applyPaletteChanges);
+        connect(theme(), &UCTheme::paletteChanged, this, &UCPaletteSettings::_q_applyPaletteSettings);
     }
 }
-void UCPaletteChanges::componentComplete()
+void UCPaletteSettings::componentComplete()
 {
     if (palette() && m_decoded) {
-        _q_applyPaletteChanges();
+        _q_applyPaletteSettings();
     }
 }
 
-UCTheme *UCPaletteChanges::theme()
+UCTheme *UCPaletteSettings::theme()
 {
     return qobject_cast<UCTheme*>(parent());
 }
-QObject *UCPaletteChanges::palette()
+QObject *UCPaletteSettings::palette()
 {
     UCTheme *set = theme();
     return set ? set->palette() : NULL;
 }
 
-QObject *UCPaletteChanges::valueSet(const QString &name)
+QObject *UCPaletteSettings::valueSet(const QString &name)
 {
     QObject *stylePalette = palette();
     return stylePalette ? stylePalette->property(name.toLocal8Bit()).value<QObject*>() : NULL;
 }
 
-void UCPaletteChanges::_q_applyPaletteChanges()
+void UCPaletteSettings::_q_applyPaletteSettings()
 {
     // first, apply the value changes
     QObject *object = palette();

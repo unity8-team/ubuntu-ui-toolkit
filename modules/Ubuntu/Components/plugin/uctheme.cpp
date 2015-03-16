@@ -23,7 +23,7 @@
 #include "i18n.h"
 #include "ucfontutils.h"
 #include "ucstyleditembase_p.h"
-#include "ucpalettechanges.h"
+#include "ucpalettesettings.h"
 
 #include <QtQml/qqml.h>
 #include <QtQml/qqmlinfo.h>
@@ -320,25 +320,25 @@ QObject* UCTheme::palette()
 }
 
 /*!
- * \qmlproperty PaletteChanges ThemeSettings::paletteChanges
- * The property holds the PaletteChanges component applied on the theme. When
+ * \qmlproperty PaletteSettings ThemeSettings::paletteSettings
+ * The property holds the PaletteSettings component applied on the theme. When
  * set, the palette values will be applied on the style palette value sets.
  * Defaults to null.
  */
-UCPaletteChanges *UCTheme::paletteChanges() const
+UCPaletteSettings *UCTheme::paletteSettings() const
 {
-    return m_paletteChanges;
+    return m_paletteSettings;
 }
-void UCTheme::setPaletteChanges(UCPaletteChanges *changes)
+void UCTheme::setPaletteSettings(UCPaletteSettings *paletteSettings)
 {
-    if (m_paletteChanges == changes) {
+    if (m_paletteSettings == paletteSettings) {
         return;
     }
-    if (m_paletteChanges && changes && changes->parent() == this) {
-        qmlInfo(this) << UbuntuI18n::instance().tr("ThemeSettings can have only one PaletteChanges set.");
+    if (m_paletteSettings && paletteSettings && paletteSettings->parent() == this) {
+        qmlInfo(this) << UbuntuI18n::instance().tr("ThemeSettings can have only one PaletteSettings set.");
     } else {
-        m_paletteChanges = changes;
-        Q_EMIT paletteChangesChanged();
+        m_paletteSettings = paletteSettings;
+        Q_EMIT paletteSettingsChanged();
     }
 }
 

@@ -20,8 +20,8 @@ import Ubuntu.Components 1.3
 StyledItem {
     id: item
     theme: ThemeSettings {
-        PaletteChanges{
-            normal.invalid: 1
+        PaletteSettings{
+            invalid: 1
         }
     }
 }

@@ -81,7 +81,7 @@ HEADERS += plugin.h \
     ucnamespace.h \
     ucdeprecatedtheme.h \
     ucdefaulttheme.h \
-    ucpalettechanges.h
+    ucpalettesettings.h
 
 SOURCES += plugin.cpp \
     uctheme.cpp \
@@ -130,7 +130,7 @@ SOURCES += plugin.cpp \
     ucnamespace.cpp \
     ucdeprecatedtheme.cpp \
     ucdefaulttheme.cpp \
-    ucpalettechanges.cpp
+    ucpalettesettings.cpp
 
 # adapters
 SOURCES += adapters/alarmsadapter_organizer.cpp
