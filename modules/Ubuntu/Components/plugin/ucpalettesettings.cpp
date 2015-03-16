@@ -139,9 +139,77 @@ void UCPaletteSettings::applyProperty(QObject *paletteSet, const QString &proper
  * palette values.
  *
  * The component provides the ability to configure different palette values of a
- * theme. It can only contain palette value
+ * theme. It can only contain palette value properties.
+ * \qml
+ * import QtQuick 2.4
+ * import Ubuntu.Components 1.3
+ *
+ * StyledItem {
+ *     theme: ThemeSettings {
+ *         name: "Ubuntu.Components.Themes.Ambiance"
+ *         PaletteSettings {
+ *             normal.background: "#ABFFAB"
+ *             selected.base: Qt.rgba(1, 0.3, 0.8, 1)
+ *         }
+ *     }
+ * }
+ * \endqml
+ * This example creates a styled item with Ambiance theme having the \c normal.background
+ * and the \c selected.base palette values modified.
+ *
  * The component can be declared only inside a ThemeSettings, and there can be only
  * one PaletteSettings instance declared per ThemeSettings component.
+ *
+ * Palette settings are applied on component completion as well as when the palette
+ * property is changed. In the following example the palette values are set to
+ * the given values whenever the theme name is changed
+ * \qml
+ * import QtQuick 2.4
+ * import Ubuntu.Components 1.3
+ *
+ * StyledItem {
+ *     theme: ThemeSettings {
+ *         // bind to parent theme name to make sure the parent theme is always used
+ *         name: parentTheme ? parentTheme.name : undefined
+ *         PaletteSettings {
+ *             normal.background: "#ABFFAB"
+ *             selected.base: parentTheme ? parentTheme.palette.normal.base : "#00FFCC"
+ *         }
+ *     }
+ * }
+ * \endqml
+ */
+
+/*!
+ * \qmlproperty bool PaletteSettings::explicit
+ * The property drives the way the property bindings are evaluated. If explicit
+ * is set to true, any potential bindings will be interpreted as once-off assignments
+ * that occur when the settings are applied.
+ *
+ * In the following example, the addition of explicit prevents \c selected.base
+ * from being bound to \c parentTheme.palette.normal.base. Instead, it is assigned
+ * the value of \c parentTheme.palette.normal.base at the time the palette settings
+ * are applied - which is the time the theme palette is changed. This means that
+ * in case \c parentTheme.palette.normal.base is changed, the change will not be
+ * applied on the current theme palette.
+ * \qml
+ * import QtQuick 2.4
+ * import Ubuntu.Components 1.3
+ *
+ * StyledItem {
+ *     theme: ThemeSettings {
+ *         // bind to parent theme name to make sure the parent theme is always used
+ *         name: parentTheme ? parentTheme.name : undefined
+ *         PaletteSettings {
+ *             explicit: true
+ *             normal.background: "#ABFFAB"
+ *             selected.base: parentTheme ? parentTheme.palette.normal.base : "#00FFCC"
+ *         }
+ *     }
+ * }
+ * \endqml
+ *
+ * The property defaults to \c false.
  */
 
 UCPaletteSettings::UCPaletteSettings(QObject *parent)

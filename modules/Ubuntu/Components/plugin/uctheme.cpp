@@ -85,7 +85,7 @@
 
     When declared, the ThemeSettings's name points to the system defined theme. There
     can be cases when the parent defined style set is needed but with small modifications.
-    In these situations the \l parent property can be used to get the parent
+    In these situations the \l parentTheme property can be used to get the parent
     style set, and so the name can be bound to the parent's name.
     \qml
     import QtQuick 2.4
