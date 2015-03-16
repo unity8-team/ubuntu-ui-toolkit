@@ -25,26 +25,23 @@
  * The class is used to save properties and their bindings while the property is
  * altered temporarily.
  */
-PropertyChange::PropertyChange(QObject *item, const char *property, BackupType type)
+PropertyChange::PropertyChange(QObject *item, const char *property, bool autoBackup)
     : backedUp(false)
-    , type(type)
     , qmlProperty(item, property, qmlContext(item))
-    , backupBinding(0)
 {
+    if (autoBackup) {
+        backup();
+    }
 }
-
 PropertyChange::~PropertyChange()
 {
-    restore();
+    restore(this);
 }
 
 void PropertyChange::backup()
 {
     if (!backedUp) {
         backupValue = qmlProperty.read();
-        if (type == BindingBackup) {
-            backupBinding = QQmlPropertyPrivate::binding(qmlProperty);
-        }
         backedUp = true;
     }
 }
@@ -53,68 +50,31 @@ void PropertyChange::backup()
  * Sets a value to the property. Will back up the original values if it wasn't yet.
  * This function can be called many times, it will not destroy the backed up value/binding.
  */
-void PropertyChange::setValue(const QVariant &value)
-{
-    backup();
-    // write using QQmlPropertyPrivate so we can keep the bindings
-    QQmlPropertyPrivate::write(qmlProperty,
-                               value,
-                               QQmlPropertyPrivate::BypassInterceptor | QQmlPropertyPrivate::DontRemoveBinding);
-}
-// static obverload
 void PropertyChange::setValue(PropertyChange *change, const QVariant &value)
 {
     if (!change) {
         return;
     }
-    change->setValue(value);
-}
-
-// binding overload function
-void PropertyChange::setValue(QQmlAbstractBinding *binding)
-{
-    if (!binding) {
-        return;
-    }
-    backup();
-
-    QQmlAbstractBinding *old = QQmlPropertyPrivate::setBinding(qmlProperty, binding);
-    if (old && old != binding && old != backupBinding) {
-        old->destroy();
-    }
+    change->backup();
+    // write using QQmlPropertyPrivate so we can keep the bindings
+    QQmlPropertyPrivate::write(change->qmlProperty,
+                               value,
+                               QQmlPropertyPrivate::BypassInterceptor | QQmlPropertyPrivate::DontRemoveBinding);
 }
 
 /*
  * Restore backed up value or binding.
  */
-void PropertyChange::restore()
-{
-    if (backedUp) {
-        // write using QQmlPropertyPrivate to keep the bindings
-        QQmlPropertyPrivate::write(qmlProperty,
-                                   backupValue,
-                                   QQmlPropertyPrivate::BypassInterceptor | QQmlPropertyPrivate::DontRemoveBinding);
-        if (backupBinding) {
-            QQmlAbstractBinding *old = QQmlPropertyPrivate::setBinding(qmlProperty, backupBinding);
-            if (old && old != backupBinding) {
-                old->destroy();
-            }
-        }
-        backedUp = false;
-    }
-}
-// static overload
 void PropertyChange::restore(PropertyChange *change)
 {
     if (!change) {
         return;
     }
-    change->restore();
+    if (change->backedUp) {
+        // write using QQmlPropertyPrivate to keep the bindings
+        QQmlPropertyPrivate::write(change->qmlProperty,
+                                   change->backupValue,
+                                   QQmlPropertyPrivate::BypassInterceptor | QQmlPropertyPrivate::DontRemoveBinding);
+        change->backedUp = false;
+    }
 }
-
-// returns the qml property
-QQmlProperty PropertyChange::property() const
-{
-    return qmlProperty;
-}
-
