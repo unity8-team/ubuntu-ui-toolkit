@@ -28,8 +28,5 @@ OTHER_FILES += \
     ChangePaletteValueWhenParentChanges.qml \
     ChangeDefaultPaletteInChildren.qml \
     ExplicitPaletteChanges.qml \
-    ImplicitPaletteChanges.qml \
-    SwitchFewPaletteValues.qml \
-    SwitchOnePaletteValue.qml \
-    SwitchAllPaletteValues.qml
+    ImplicitPaletteChanges.qml
 

@@ -597,46 +597,6 @@ private Q_SLOTS:
         QColor paletteColor = theme->getPaletteColor("normal", "background");
         QCOMPARE(paletteColor, expected);
     }
-
-    void test_switch_values_palettechanges_data()
-    {
-        QTest::addColumn<QString>("test");
-        QTest::addColumn<QString>("properties");
-
-        QTest::newRow("Switch background") << "SwitchOnePaletteValue.qml" << "background";
-        QTest::newRow("Switch background, overlay")  << "SwitchFewPaletteValues.qml" << "background,overlay";
-        QTest::newRow("Switch all")  << "SwitchFewPaletteValues.qml" << "*";
-        // error detection
-    }
-    void test_switch_values_palettechanges()
-    {
-        QFETCH(QString, test);
-        QFETCH(QString, properties);
-        QStringList propertyList = properties.split(',', QString::SkipEmptyParts);
-
-        qputenv("UBUNTU_UI_TOOLKIT_THEMES_PATH", "");
-        qputenv("XDG_DATA_DIRS", "./themes");
-
-        QScopedPointer<ThemeTestCase> view(new ThemeTestCase(test));
-        UCTheme *theme = view->findItem<UCTheme*>("testSet");
-        UCTheme *mainTheme = UCStyledItemBasePrivate::get(qobject_cast<UCStyledItemBase*>(view->rootObject()))->getTheme();
-        if (properties == "*") {
-            // test all properties
-            propertyList.clear();
-            const QMetaObject *mo = theme->palette()->property("normal").value<QObject*>()->metaObject();
-            for (int i = mo->propertyOffset(); i < mo->propertyCount(); i++) {
-                propertyList << mo->property(i).name();
-            }
-        }
-
-        // compare mainTheme.normal with mainTheme.selected values
-        Q_FOREACH(const QString &property, propertyList) {
-            QColor mainColor = mainTheme->getPaletteColor("normal", property.toLocal8Bit());
-            QColor testColor = theme->getPaletteColor("selected", property.toLocal8Bit());
-            QVERIFY2(mainColor == testColor, (QString("%1 color value differs").arg(property)).toLocal8Bit());
-        }
-    }
-
 };
 
 QTEST_MAIN(tst_Subtheming)
