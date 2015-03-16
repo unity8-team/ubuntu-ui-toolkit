@@ -36,7 +36,8 @@ class UCPaletteChanges : public QObject, public QQmlParserStatus
 {
     Q_OBJECT
     Q_INTERFACES(QQmlParserStatus)
-    Q_PROPERTY(QString invertValues MEMBER m_invertValues NOTIFY invertValuesChanged)
+    Q_PROPERTY(QString switchColors MEMBER m_switchColors NOTIFY switchColorsChanged FINAL)
+    Q_PROPERTY(bool explicit MEMBER m_explicit NOTIFY explicitChanged FINAL)
 public:
     explicit UCPaletteChanges(QObject *parent = 0);
     ~UCPaletteChanges();
@@ -48,7 +49,8 @@ public:
     void applyProperty(QObject *valueSet, const QString &propertyPrefix, const QV4::CompiledData::Unit *qmlUnit, const QV4::CompiledData::Binding *binding);
 
 Q_SIGNALS:
-    void invertValuesChanged();
+    void switchColorsChanged();
+    void explicitChanged();
 
 private Q_SLOTS:
     void _q_applyPaletteChanges();
@@ -75,10 +77,11 @@ private:
     void saveAndSetProperty(const QString &property, const QVariant &value);
     void saveAndSetProperty(const QString &property, QQmlBinding *binding);
     void restorePaletteValues();
+    void switchPaletteValues();
 
-    QString m_invertValues;
+    QString m_switchColors;
     bool m_decoded:1;
-    bool m_isExplicit:1;
+    bool m_explicit:1;
     QList< QPair<QString, QString> > m_values;
     QList<Expression> m_expressions;
     QList<PropertyChange*> m_restoreList;

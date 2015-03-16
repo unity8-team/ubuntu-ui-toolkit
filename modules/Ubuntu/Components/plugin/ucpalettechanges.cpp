@@ -165,6 +165,7 @@ void UCPaletteChanges::applyProperty(QObject *paletteSet, const QString &propert
 UCPaletteChanges::UCPaletteChanges(QObject *parent)
     : QObject(parent)
     , m_decoded(false)
+    , m_explicit(false)
 {
 }
 
@@ -225,12 +226,30 @@ void UCPaletteChanges::restorePaletteValues()
     m_restoreList.clear();
 }
 
+void UCPaletteChanges::switchPaletteValues()
+{
+    QObject *themePalette = palette();
+    if (m_switchColors.isEmpty() || !themePalette) {
+        return;
+    }
+    if (m_switchColors == "*") {
+        // switch normal with selected, and return
+    }
+
+    // switch individual property values
+    QStringList properties;
+    properties = m_switchColors.split(',', QString::SkipEmptyParts);
+}
+
 void UCPaletteChanges::_q_applyPaletteChanges()
 {
     // restore previous values prior to apply changes
     restorePaletteValues();
 
-    // apply values first
+    // first apply the switch
+    switchPaletteValues();
+
+    // as next, apply the value changes
     QObject *object = palette();
     QQmlContext *context = qmlContext(object);
     for (int i = 0; i < m_values.count(); i++) {
@@ -259,7 +278,7 @@ void UCPaletteChanges::_q_applyPaletteChanges()
             newBinding = new QQmlBinding(e.expression, object, cdata, e.url.toString(), e.line, e.column);
         }
 
-        if (m_isExplicit) {
+        if (m_explicit) {
             // in this case, we don't want to assign a binding, per se,
             // so we evaluate the expression and assign the result.
             saveAndSetProperty(e.name, newBinding->evaluate());

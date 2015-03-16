@@ -1019,7 +1019,8 @@ plugins.qmltypes
     name: "UCPaletteChanges"
     prototype: "QObject"
     exports: ["PaletteChanges 1.3"]
-    Property { name: "invertValues"; type: "string" }
+    Property { name: "switchColors"; type: "string" }
+    Property { name: "explicit"; type: "bool" }
     name: "UCQQuickImageExtension"
     prototype: "QQuickImageBase"
     exports: ["QQuickImageBase 0.1", "QQuickImageBase 1.0"]
