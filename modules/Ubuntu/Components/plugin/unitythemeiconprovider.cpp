@@ -17,6 +17,7 @@
  */
 
 #include "unitythemeiconprovider.h"
+#include "ucunits.h"
 
 #include <QDir>
 #include <QFileInfo>
@@ -124,6 +125,7 @@ private:
     static QPixmap loadIcon(const QString &filename, const QSize &size)
     {
         QPixmap pixmap;
+        size *= UCUnits::instance().devicePixelRatio();
 
         const bool anyZero = size.width() <= 0 || size.height() <= 0;
         const Qt::AspectRatioMode scaleMode = anyZero ? Qt::KeepAspectRatioByExpanding : Qt::KeepAspectRatio;
@@ -256,7 +258,9 @@ UnityThemeIconProvider::UnityThemeIconProvider(const QString &themeName):
 
 QPixmap UnityThemeIconProvider::requestPixmap(const QString &id, QSize *size, const QSize &requestedSize)
 {
-    QPixmap pixmap = theme->findBestIcon(id.split(",", QString::SkipEmptyParts), requestedSize);
+    qDebug() << "Theme provider requested image" << id << requestedSize;
+    QSize iconSize = requestedSize;
+    QPixmap pixmap = theme->findBestIcon(id.split(",", QString::SkipEmptyParts), iconSize);
     *size = pixmap.size();
     return pixmap;
 }

@@ -23,6 +23,9 @@
 #include <QtCore/QHash>
 #include <QtCore/QUrl>
 
+#define ENV_GRID_UNIT_PX "GRID_UNIT_PX"
+#define DEFAULT_GRID_UNIT_PX 8
+
 class UCUnits : public QObject
 {
     Q_OBJECT
@@ -41,6 +44,7 @@ public:
 
     // getters
     float gridUnit();
+    float devicePixelRatio();
 
     // setters
     void setGridUnit(float gridUnit);
@@ -53,6 +57,7 @@ protected:
     float gridUnitSuffixFromFileName(const QString &fileName);
 
 private:
+    float m_devicePixelRatio;
     float m_gridUnit;
 };
 

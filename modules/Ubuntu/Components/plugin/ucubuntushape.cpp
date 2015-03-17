@@ -267,8 +267,8 @@ UCUbuntuShape::UCUbuntuShape(QQuickItem* parent)
     QObject::connect(&UCUnits::instance(), SIGNAL(gridUnitChanged()), this,
                      SLOT(_q_gridUnitChanged()));
     const float gridUnit = UCUnits::instance().gridUnit();
-    setImplicitWidth(implicitGridUnitWidth * gridUnit);
-    setImplicitHeight(implicitGridUnitHeight * gridUnit);
+    setImplicitWidth(gridUnit);
+    setImplicitHeight(gridUnit);
     update();
 }
 
@@ -888,8 +888,8 @@ void UCUbuntuShape::_q_openglContextDestroyed()
 void UCUbuntuShape::_q_gridUnitChanged()
 {
     const float gridUnit = UCUnits::instance().gridUnit();
-    setImplicitWidth(implicitGridUnitWidth * gridUnit);
-    setImplicitHeight(implicitGridUnitHeight * gridUnit);
+    setImplicitWidth(gridUnit);
+    setImplicitHeight(gridUnit);
     update();
 }
 
@@ -1064,7 +1064,7 @@ QSGNode* UCUbuntuShape::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData* d
     QSGTexture::Filtering shapeTextureFiltering;
     float radius = (m_radius == SmallRadius) ?
         shapeTextureData->smallRadius : shapeTextureData->mediumRadius;
-    const float scaleFactor = gridUnit / shapeTextureData->gridUnit;
+    const float scaleFactor = DEFAULT_GRID_UNIT_PX / shapeTextureData->gridUnit;
     shapeTextureFiltering = QSGTexture::Nearest;
     if (scaleFactor != 1.0f) {
         radius *= scaleFactor;

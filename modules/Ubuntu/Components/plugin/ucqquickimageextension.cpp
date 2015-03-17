@@ -67,11 +67,13 @@ void UCQQuickImageExtension::reloadSource()
     }
 
     QString resolved = UCUnits::instance().resolveResource(m_source);
+    qDebug() << "loading resolved image" << resolved << m_source;
 
     if (resolved.isEmpty()) {
         m_image->setSource(m_source);
         return;
     }
+
 
     int separatorPosition = resolved.indexOf("/");
     QString scaleFactor = resolved.left(separatorPosition);

@@ -17,6 +17,7 @@
  */
 
 #include "ucscalingimageprovider.h"
+#include "ucunits.h"
 
 #include <QtCore/QFile>
 #include <QtGui/QImageReader>
@@ -35,44 +36,46 @@
 UCScalingImageProvider::UCScalingImageProvider() : QQuickImageProvider(QQuickImageProvider::Image)
 {
 }
-
+#include <QDebug>
 QImage UCScalingImageProvider::requestImage(const QString &id, QSize *size, const QSize &requestedSize)
 {
     int separatorPosition = id.indexOf("/");
     float scaleFactor = id.left(separatorPosition).toFloat();
     QString path = id.mid(separatorPosition+1);
     QFile file(path);
+    QSize scaledRequestedSize = requestedSize * scaleFactor;
+
+    qDebug() << "ImageProvider requested image" << id << requestedSize << scaleFactor << scaledRequestedSize;
 
     if (file.open(QIODevice::ReadOnly)) {
         QImage image;
         QImageReader imageReader(&file);
         QSize realSize = imageReader.size();
-        QSize scaledSize = realSize;
         QSize constrainedSize;
 
-        if (!qFuzzyCompare(scaleFactor, (float)1.0)) {
-            scaledSize = realSize * scaleFactor;
-        }
-        if (requestedSize.isValid() && (requestedSize.width() < realSize.width() || requestedSize.height() < realSize.height())) {
-            if (requestedSize.width() > 0 && requestedSize.height() == 0 && scaledSize.width() > 0) {
-                constrainedSize.setWidth(requestedSize.width());
-                constrainedSize.setHeight(scaledSize.height() * requestedSize.width() / scaledSize.width());
-            } else if (requestedSize.height() > 0 && requestedSize.width() == 0 && scaledSize.height() > 0) {
-                constrainedSize.setHeight(requestedSize.height());
-                constrainedSize.setWidth(scaledSize.width() * requestedSize.height() / scaledSize.height());
+        qDebug() << "requestedSize" << requestedSize << "realSize" << realSize << "scaledRequestedSize" << scaledRequestedSize;
+        if (scaledRequestedSize.isValid() && (scaledRequestedSize.width() < realSize.width() || scaledRequestedSize.height() < realSize.height())) {
+            if (scaledRequestedSize.width() > 0 && scaledRequestedSize.height() == 0 && realSize.width() > 0) {
+                constrainedSize.setWidth(scaledRequestedSize.width());
+                constrainedSize.setHeight(realSize.height() * scaledRequestedSize.width() / realSize.width());
+            } else if (scaledRequestedSize.height() > 0 && scaledRequestedSize.width() == 0 && realSize.height() > 0) {
+                constrainedSize.setHeight(scaledRequestedSize.height());
+                constrainedSize.setWidth(realSize.width() * scaledRequestedSize.height() / realSize.height());
             } else {
-                constrainedSize = scaledSize.scaled(requestedSize, Qt::KeepAspectRatio);
+                constrainedSize = realSize.scaled(scaledRequestedSize, Qt::KeepAspectRatio);
             }
         }
 
         if (!constrainedSize.isEmpty()) {
             imageReader.setScaledSize(constrainedSize);
-        } else if (scaledSize != realSize) {
-            imageReader.setScaledSize(scaledSize);
+        } else if (scaledRequestedSize != realSize) {
+            imageReader.setScaledSize(scaledRequestedSize);
         }
 
         imageReader.read(&image);
-        *size = scaledSize;
+        image.setDevicePixelRatio(UCUnits::instance().devicePixelRatio());
+        *size = image.size();
+        qDebug() << "ImageProvider: returning" << *size;
         return image;
     } else {
         return QImage();

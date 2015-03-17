@@ -24,9 +24,7 @@
 #include <QtCore/QDir>
 #include <QtCore/QRegularExpression>
 #include <QtCore/qmath.h>
-
-#define ENV_GRID_UNIT_PX "GRID_UNIT_PX"
-#define DEFAULT_GRID_UNIT_PX 8
+#include <QtCore/QDebug>
 
 static float getenvFloat(const char* name, float defaultValue)
 {
@@ -66,6 +64,8 @@ UCUnits::UCUnits(QObject *parent) :
     QObject(parent)
 {
     m_gridUnit = getenvFloat(ENV_GRID_UNIT_PX, DEFAULT_GRID_UNIT_PX);
+    m_devicePixelRatio = m_gridUnit / DEFAULT_GRID_UNIT_PX;
+    qDebug() << "!123 loading devpixratio:" << m_devicePixelRatio << m_gridUnit;
 }
 
 /*!
@@ -75,11 +75,18 @@ UCUnits::UCUnits(QObject *parent) :
 */
 float UCUnits::gridUnit()
 {
-    return m_gridUnit;
+    qDebug() << "!123 asked for grid unit" << m_gridUnit / m_devicePixelRatio;
+    return m_gridUnit / m_devicePixelRatio;
+}
+
+float UCUnits::devicePixelRatio()
+{
+    return m_devicePixelRatio;
 }
 
 void UCUnits::setGridUnit(float gridUnit)
 {
+    qDebug() << "!123 setting grid unit" << gridUnit;
     m_gridUnit = gridUnit;
     Q_EMIT gridUnitChanged();
 }
@@ -91,7 +98,7 @@ void UCUnits::setGridUnit(float gridUnit)
 */
 float UCUnits::dp(float value)
 {
-    const float ratio = m_gridUnit / DEFAULT_GRID_UNIT_PX;
+    const float ratio = m_gridUnit / DEFAULT_GRID_UNIT_PX / m_devicePixelRatio;
     if (value <= 2.0) {
         // for values under 2dp, return only multiples of the value
         return qRound(value * qFloor(ratio));
@@ -107,7 +114,7 @@ float UCUnits::dp(float value)
 */
 float UCUnits::gu(float value)
 {
-    return qRound(value * m_gridUnit);
+    return qRound(value * m_gridUnit / m_devicePixelRatio);
 }
 
 QString UCUnits::resolveResource(const QUrl& url)
@@ -177,7 +184,7 @@ QString UCUnits::resolveResource(const QUrl& url)
 
     path = prefix + suffix;
     if (QFile::exists(path)) {
-        return QString("1") + "/" + path;
+        return QString::number(m_devicePixelRatio) + "/" + path;
     }
 
     return QString();
