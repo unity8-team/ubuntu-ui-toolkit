@@ -12,7 +12,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 #ifndef UCFONTUTILS_H
@@ -23,7 +22,15 @@
 class UCFontUtils : public QObject
 {
     Q_OBJECT
+
 public:
+    static const float fontUnits = 14.0f;
+    static const float xxSmallScale = 0.677f;
+    static const float xSmallScale = 0.804f;
+    static const float smallScale = 0.931f;
+    static const float mediumScale = 1.079f;
+    static const float largeScale = 1.291f;
+    static const float xLargeScale = 1.714f;
 
     static UCFontUtils& instance()
     {

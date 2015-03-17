@@ -83,9 +83,6 @@ Item
 Icon 1.1
 Icon10
     property url source
-Label 0.1 1.0
-Text
-    property string fontSize
 Base 0.1 1.0
 Empty
     property variant icon
@@ -925,6 +922,13 @@ plugins.qmltypes
     name: "UCInverseMouse"
     prototype: "UCMouse"
     exports: ["InverseMouse 0.1", "InverseMouse 1.0"]
+    name: "UCLabel"
+    prototype: "QQuickText"
+    exports: ["Label 0.1", "Label 1.0", "Label 1.2"]
+    name: "AdaptiveSize"
+    Property { name: "adaptiveSize"; revision: 1; type: "AdaptiveSize" }
+    Property { name: "fontSize"; type: "string" }
+    Signal { name: "adaptiveSizeChanged"; revision: 1 }
     name: "UCListItem"
     prototype: "UCStyledItemBase"
     exports: ["ListItem 1.2"]

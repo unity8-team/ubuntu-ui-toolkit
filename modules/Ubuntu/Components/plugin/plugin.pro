@@ -77,6 +77,7 @@ HEADERS += plugin.h \
     uclistitemstyle.h \
     ucserviceproperties.h \
     ucserviceproperties_p.h \
+    uclabel.h \
     privates/listitemdragarea.h \
     privates/listitemdraghandler.h \
     ucnamespace.h
@@ -124,6 +125,7 @@ SOURCES += plugin.cpp \
     uclistitemstyle.cpp \
     ucviewitemsattached.cpp \
     ucserviceproperties.cpp \
+    uclabel.cpp \
     privates/listitemdragarea.cpp \
     privates/listitemdraghandler.cpp \
     ucnamespace.cpp
