@@ -125,8 +125,6 @@ private:
     static QPixmap loadIcon(const QString &filename, const QSize &size)
     {
         QPixmap pixmap;
-        size *= UCUnits::instance().devicePixelRatio();
-
         const bool anyZero = size.width() <= 0 || size.height() <= 0;
         const Qt::AspectRatioMode scaleMode = anyZero ? Qt::KeepAspectRatioByExpanding : Qt::KeepAspectRatio;
 
