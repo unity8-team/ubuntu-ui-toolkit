@@ -64,7 +64,7 @@ UCUnits::UCUnits(QObject *parent) :
     QObject(parent)
 {
     m_gridUnit = getenvFloat(ENV_GRID_UNIT_PX, DEFAULT_GRID_UNIT_PX);
-    m_devicePixelRatio = m_gridUnit / (1.0 * DEFAULT_GRID_UNIT_PX);
+    m_devicePixelRatio = m_gridUnit / DEFAULT_GRID_UNIT_PX;
     qDebug() << "!123 loading devpixratio:" << m_devicePixelRatio << m_gridUnit;
 }
 
