@@ -18,11 +18,20 @@
 
 #include "ucapplication.h"
 
+#include <csignal>
 #include <QtCore/QCoreApplication>
 #include <QDebug>
 #include <QtQml/QQmlContext>
 #include <QtQml/QQmlEngine>
 #include <QtCore/QStandardPaths>
+
+namespace {
+    void shutdown(int sig)
+    {
+        Q_UNUSED(sig);
+        QCoreApplication::instance()->quit();
+    }
+}
 
 /*!
  * \qmltype UbuntuApplication
@@ -38,6 +47,12 @@ UCApplication::UCApplication(QObject* parent) : QObject(parent), m_context(0)
     // Make sure we receive application name changes from C++ modules
     connect(QCoreApplication::instance(), &QCoreApplication::applicationNameChanged,
             this, &UCApplication::applicationNameChanged);
+
+    // Catch some signals and gracefully quit
+    std::signal(SIGTERM, shutdown);
+    std::signal(SIGHUP, shutdown);
+    std::signal(SIGKILL, shutdown);
+    std::signal(SIGINT, shutdown);
 }
 
 void UCApplication::setContext(QQmlContext* context) {
