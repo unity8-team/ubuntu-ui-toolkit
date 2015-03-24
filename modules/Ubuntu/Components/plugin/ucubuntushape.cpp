@@ -266,9 +266,11 @@ UCUbuntuShape::UCUbuntuShape(QQuickItem* parent)
     setFlag(ItemHasContents);
     QObject::connect(&UCUnits::instance(), SIGNAL(gridUnitChanged()), this,
                      SLOT(_q_gridUnitChanged()));
-    const float gridUnit = UCUnits::instance().gridUnit();
-    setImplicitWidth(gridUnit);
-    setImplicitHeight(gridUnit);
+//    const float gridUnit = UCUnits::instance().gridUnit();
+//    setImplicitWidth(implicitGridUnitWidth * gridUnit * UCUnits::instance().devicePixelRatio());
+//    setImplicitHeight(implicitGridUnitHeight * gridUnit * UCUnits::instance().devicePixelRatio());
+    setImplicitWidth(width());
+    setImplicitHeight(height());
     update();
 }
 
@@ -888,8 +890,8 @@ void UCUbuntuShape::_q_openglContextDestroyed()
 void UCUbuntuShape::_q_gridUnitChanged()
 {
     const float gridUnit = UCUnits::instance().gridUnit();
-    setImplicitWidth(gridUnit);
-    setImplicitHeight(gridUnit);
+    setImplicitWidth(implicitGridUnitWidth * gridUnit * UCUnits::instance().devicePixelRatio());
+    setImplicitHeight(implicitGridUnitHeight * gridUnit * UCUnits::instance().devicePixelRatio());
     update();
 }
 
@@ -1064,7 +1066,8 @@ QSGNode* UCUbuntuShape::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData* d
     QSGTexture::Filtering shapeTextureFiltering;
     float radius = (m_radius == SmallRadius) ?
         shapeTextureData->smallRadius : shapeTextureData->mediumRadius;
-    const float scaleFactor = DEFAULT_GRID_UNIT_PX / shapeTextureData->gridUnit;
+    const float scaleFactor = 1;//UCUnits::instance().devicePixelRatio() * (gridUnit / shapeTextureData->gridUnit);
+    qDebug() << "shape scale factor is" << scaleFactor << gridUnit << shapeTextureData->gridUnit;
     shapeTextureFiltering = QSGTexture::Nearest;
     if (scaleFactor != 1.0f) {
         radius *= scaleFactor;
@@ -1174,6 +1177,9 @@ void UCUbuntuShape::updateGeometry(
     ShapeNode* shapeNode = static_cast<ShapeNode*>(node);
     ShapeNode::Vertex* v = reinterpret_cast<ShapeNode::Vertex*>(
         shapeNode->geometry()->vertexData());
+
+    setImplicitHeight(height);
+    setImplicitWidth(width);
 
     // Convert radius to normalized coordinates.
     const float rw = radius / width;
