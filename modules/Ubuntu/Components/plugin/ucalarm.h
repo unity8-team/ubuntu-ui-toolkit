@@ -37,7 +37,7 @@ class UCAlarm : public QObject
 
     Q_PROPERTY(int error READ error NOTIFY errorChanged)
     Q_PROPERTY(Status status READ status NOTIFY statusChanged)
-    Q_PROPERTY(QVariant cookie READ cookie NOTIFY cookieChanged REVISION 1)
+    Q_PROPERTY(QString identifier READ identifier NOTIFY identifierChanged REVISION 1)
 
     Q_ENUMS(Status Operation Error AlarmType DayOfWeek)
     Q_FLAGS(DaysOfWeek)
@@ -105,6 +105,7 @@ public: // getter/setter
     void setDaysOfWeek(DaysOfWeek days);
     QUrl sound() const;
     void setSound(const QUrl &sound);
+    QString identifier() const;
 
     int error() const;
     Status status() const;
@@ -122,7 +123,7 @@ Q_SIGNALS:
     void errorChanged();
     void statusChanged(Operation operation);
 
-    Q_REVISION(1) void cookieChanged();
+    Q_REVISION(1) void identifierChanged();
 
 public Q_SLOTS:
     void save();

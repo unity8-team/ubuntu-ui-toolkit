@@ -66,6 +66,7 @@ public:
     unsigned int changes;
     int error;
     UCAlarm::Status status;
+    QString alarmId;
 
     // utility functions
     static UCAlarm::DayOfWeek dayOfWeek(const QDateTime &dt);

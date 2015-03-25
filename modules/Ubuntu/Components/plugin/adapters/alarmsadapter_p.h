@@ -70,6 +70,8 @@ public:
         return event;
     }
     void setData(const QOrganizerTodo &data);
+    void updateAlarmUrl(const QString &id);
+    void extractAlarmIdFromUrl();
 
 protected:
     QOrganizerTodo event;

@@ -21,6 +21,7 @@
 #include "alarmmanager_p.h"
 #include "i18n.h"
 #include <QtQml/QQmlInfo>
+#include <QtCore/QUuid>
 
 UCAlarmPrivate::UCAlarmPrivate(UCAlarm *qq)
     : q_ptr(qq)
@@ -36,6 +37,8 @@ UCAlarmPrivate::~UCAlarmPrivate()
 
 void UCAlarmPrivate::setDefaults()
 {
+    alarmId = QUuid::createUuid().toString();
+    Q_EMIT q_ptr->identifierChanged();
     QDateTime date = AlarmUtils::normalizeDate(QDateTime::currentDateTime());
     setDate(date);
     setMessage(UbuntuI18n::instance().tr("Alarm"));
@@ -494,6 +497,18 @@ void UCAlarm::setSound(const QUrl &sound)
         d_ptr->changes |= AlarmManager::Sound;
         Q_EMIT soundChanged();
     }
+}
+
+/*!
+ * \qmlproperty string Alarm::identifier
+ * \readonly
+ * \since Ubuntu.Components 1.2
+ * The property specifies the unique identifier of the alarm. The identifier is
+ * set when created or when \l reset.
+ */
+QString UCAlarm::identifier() const
+{
+    return d_ptr->alarmId;
 }
 
 /*!
