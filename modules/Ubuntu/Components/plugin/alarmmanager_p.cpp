@@ -78,6 +78,11 @@ UCAlarm *AlarmManager::findAlarm(const QVariant &cookie) const
     return &alarm;
 }
 
+UCAlarm *AlarmManager::findAlarm(const QString &alarmId) const
+{
+    return d_ptr->findAlarm(alarmId);
+}
+
 bool AlarmManager::verifyChange(UCAlarm *alarm, Change change, const QVariant &newData)
 {
     return d_ptr->verifyChange(alarm, change, newData);

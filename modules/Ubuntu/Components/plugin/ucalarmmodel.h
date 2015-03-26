@@ -43,6 +43,7 @@ public:
 
     // invokables
     Q_INVOKABLE UCAlarm *get(int index);
+    Q_REVISION(1) Q_INVOKABLE UCAlarm *find(const QString &alarmId);
 
     // property getters
     int count() const;

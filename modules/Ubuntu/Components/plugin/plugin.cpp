@@ -180,6 +180,8 @@ void UbuntuComponentsPlugin::registerTypes(const char *uri)
     qmlRegisterType<UCServiceProperties, 1>(uri, 1, 1, "ServiceProperties");
 
     // register 1.2 only API
+    qmlRegisterType<UCAlarm, 1>(uri, 1, 2, "Alarm");
+    qmlRegisterType<UCAlarmModel, 1>(uri, 1, 2, "AlarmModel");
     qmlRegisterType<UCListItem>(uri, 1, 2, "ListItem");
     qmlRegisterType<UCListItemDivider>();
     qmlRegisterUncreatableType<UCSwipeEvent>(uri, 1, 2, "SwipeEvent", "This is an event object.");

@@ -91,6 +91,7 @@ public:
     ~UCAlarm();
 
     bool operator==(const UCAlarm &that) const;
+    static UCAlarm *makeCopy(UCAlarm *alarm, QObject *alarmParent = 0);
 
 public: // getter/setter
     bool enabled() const;

@@ -216,10 +216,24 @@ UCAlarm* UCAlarmModel::get(int index)
 {
     UCAlarm *alarm = AlarmManager::instance().alarmAt(index);
     if (alarm) {
-        UCAlarm *tempAlarm = new UCAlarm(this);
-        UCAlarmPrivate::get(tempAlarm)->copyAlarmData(*alarm);
-        alarm = tempAlarm;
-        QQmlEngine::setObjectOwnership(tempAlarm, QQmlEngine::JavaScriptOwnership);
+        alarm = UCAlarm::makeCopy(alarm, this);
+        QQmlEngine::setObjectOwnership(alarm, QQmlEngine::JavaScriptOwnership);
+    }
+    return alarm;
+}
+
+/*!
+ * \qmlmethod Alarm AlarmModel::find(string alarmId)
+ * \since Ubuntu.Components 1.2
+ * The function returns the alarm identified by the \c alarmId. The \c alarmId
+ * cannot be an empty string. Returns null on error.
+ */
+UCAlarm *UCAlarmModel::find(const QString &alarmId)
+{
+    UCAlarm *alarm = AlarmManager::instance().findAlarm(alarmId);
+    if (alarm) {
+        alarm = UCAlarm::makeCopy(alarm, this);
+        QQmlEngine::setObjectOwnership(alarm, QQmlEngine::JavaScriptOwnership);
     }
     return alarm;
 }

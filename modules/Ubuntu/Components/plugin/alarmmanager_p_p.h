@@ -47,6 +47,7 @@ public:
     virtual int alarmCount() = 0;
     virtual UCAlarm *getAlarmAt(int index) const = 0;
     virtual bool findAlarm(const UCAlarm &alarm, const QVariant &cookie) const = 0;
+    virtual UCAlarm *findAlarm(const QString &alarmId) const = 0;
 
     // function to verify whether the given alarm property has a given value set
     // used for testing purposes

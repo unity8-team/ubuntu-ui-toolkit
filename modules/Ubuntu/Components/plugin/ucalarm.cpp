@@ -331,6 +331,16 @@ bool UCAlarm::operator==(const UCAlarm &that) const
             daysOfWeek() == that.daysOfWeek();
 }
 
+// create a copy of the given alarm parented to the given alarmParent
+// we cannot use copy constructor for this as QML elements cannot have
+// copy constructors
+UCAlarm *UCAlarm::makeCopy(UCAlarm *alarm, QObject *alarmParent)
+{
+    UCAlarm *alarmCopy = new UCAlarm(alarmParent);
+    alarmCopy->d_ptr->copyAlarmData(*alarm);
+    return alarmCopy;
+}
+
 /*!
  * \qmlproperty bool Alarm::enabled
  * The property specifies whether the alarm is enabled or not. Disable dalarms

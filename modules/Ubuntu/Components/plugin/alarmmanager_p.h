@@ -100,6 +100,7 @@ public:
     int alarmCount();
     UCAlarm *alarmAt(int index);
     UCAlarm *findAlarm(const QVariant &cookie) const;
+    UCAlarm *findAlarm(const QString &alarmId) const;
 
     bool verifyChange(UCAlarm *alarm, Change change, const QVariant &newData);
     static UCAlarmPrivate *createAlarmData(UCAlarm *alarm);

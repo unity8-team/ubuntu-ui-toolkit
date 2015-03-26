@@ -715,6 +715,12 @@ bool AlarmsAdapter::findAlarm(const UCAlarm &alarm, const QVariant &cookie) cons
     return false;
 }
 
+UCAlarm *AlarmsAdapter::findAlarm(const QString &alarmId) const
+{
+    Q_ASSERT(!alarmId.isEmpty());
+    return const_cast<UCAlarm*>(alarmList.find(alarmId));
+}
+
 // returns a todo event from an ID, which can be an occurence
 QOrganizerTodo AlarmsAdapter::todoItem(const QOrganizerItemId &id)
 {

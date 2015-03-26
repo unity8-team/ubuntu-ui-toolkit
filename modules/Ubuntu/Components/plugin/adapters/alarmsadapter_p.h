@@ -142,6 +142,18 @@ public:
         UCAlarm *alarm = takeAt(index);
         delete alarm;
     }
+    // find an alarm from its ID
+    const UCAlarm *find(const QString &alarmId) const
+    {
+        QMapIterator< QPair<QDateTime, QOrganizerItemId>, UCAlarm* > i(data);
+        while (i.hasNext()) {
+            i.next();
+            if (i.value()->identifier() == alarmId) {
+                return i.value();
+            }
+        }
+        return NULL;
+    }
 
 protected:
     // removes alarm data at index and returns the alarm pointer
@@ -185,6 +197,7 @@ public:
     int alarmCount();
     UCAlarm *getAlarmAt(int index) const;
     bool findAlarm(const UCAlarm &alarm, const QVariant &cookie) const;
+    UCAlarm *findAlarm(const QString &alarmId) const;
     void adjustAlarmOccurrence(AlarmDataAdapter &alarm);
 
     void loadAlarms();
