@@ -47,10 +47,42 @@
 // special tags used as workaround for bug #1361702
 const char *tagAlarmService     = "x-canonical-alarm";
 const char *tagDisabledAlarm    = "x-canonical-disabled";
+const char *tagAlarmVersion     = "x-canonical-alarm-version";
 const char *tagAlarmId          = "x-canonical-alarm-id";
 const char *tagActivationUrl    = "x-canonical-activation-url";
 
+const char *currentAlarmsVersion= "1.1";
+
 QTORGANIZER_USE_NAMESPACE
+
+QString getEventDetail(const QOrganizerItem &item, const char *detailTag)
+{
+    QList<QOrganizerItemDetail> details = item.details(QOrganizerItemDetail::TypeExtendedDetail);
+    for (int i = 0; i < details.count(); i++) {
+        QOrganizerItemDetail detail = details[i];
+        if (detail.value(QOrganizerItemExtendedDetail::FieldName).toString() == QLatin1String(detailTag)) {
+            return detail.value(QOrganizerItemExtendedDetail::FieldData).toString();
+        }
+    }
+    return QString();
+}
+
+void setEventDetail(QOrganizerItem &item, const char *detailTag, const QString &data)
+{
+    // remove all previous identifiers from event
+    QList<QOrganizerItemDetail> details = item.details(QOrganizerItemDetail::TypeExtendedDetail);
+    for (int i = 0; i < details.count(); i++) {
+        QOrganizerItemDetail detail = details[i];
+        if (detail.value(QOrganizerItemExtendedDetail::FieldName).toString() == QLatin1String(detailTag)) {
+            item.removeDetail(&detail);
+        }
+    }
+    // save the new detail
+    QOrganizerItemExtendedDetail exData;
+    exData.setName(detailTag);
+    exData.setData(data);
+    item.saveDetail(&exData);
+}
 
 /*-----------------------------------------------------------------------------
  * Adaptation layer for Alarm Data.
@@ -178,65 +210,40 @@ bool AlarmDataAdapter::setSound(const QUrl &sound)
 // retrieve the identifier
 QString AlarmDataAdapter::identifier()
 {
-    QString alarmId;
-    QList<QOrganizerItemDetail> details = event.details(QOrganizerItemDetail::TypeExtendedDetail);
-    for (int i = 0; i < details.count(); i++) {
-        QOrganizerItemDetail detail = details[i];
-        if (detail.value(QOrganizerItemExtendedDetail::FieldName).toString() == QLatin1String(tagAlarmId)) {
-            alarmId = detail.value(QOrganizerItemExtendedDetail::FieldData).toString();
-            break;
-        }
-    }
+    QString alarmId = getEventDetail(event, tagAlarmId);
     return alarmId;
 }
 
 // creates a new identifier and sets it to the event
 void AlarmDataAdapter::resetIdentifier(const QString &savedId)
 {
-    // remove all previous identifiers from event
-    QList<QOrganizerItemDetail> details = event.details(QOrganizerItemDetail::TypeExtendedDetail);
-    for (int i = 0; i < details.count(); i++) {
-        QOrganizerItemDetail detail = details[i];
-        if (detail.value(QOrganizerItemExtendedDetail::FieldName).toString() == QLatin1String(tagAlarmId)) {
-            event.removeDetail(&detail);
-        }
-    }
-
     QString alarmId = savedId.isNull() ? QUuid::createUuid().toString() : savedId;
-
-    QOrganizerItemExtendedDetail exData;
-    exData.setName(tagAlarmId);
-    exData.setData(alarmId);
-    event.saveDetail(&exData);
-    updateActivationUrl(alarmId);
+    setEventDetail(event, tagAlarmId, alarmId);
     changes |= AlarmManager::Identifier;
-}
 
-// update activation URL
-void AlarmDataAdapter::updateActivationUrl(const QString &alarmId)
-{
-    // remove any previous activation URL
-    QList<QOrganizerItemDetail> details = event.details(QOrganizerItemDetail::TypeExtendedDetail);
-    for (int i = 0; i < details.count(); i++) {
-        QOrganizerItemDetail detail = details[i];
-        if (detail.value(QOrganizerItemExtendedDetail::FieldName).toString() == QLatin1String(tagActivationUrl)) {
-            event.removeDetail(&detail);
-        }
-    }
-
-    QUrl url;
-    url.setScheme("alarm");
-    url.setHost("open");
+    // update activation url as well
+    QUrl url("alarm://open");
     QUrlQuery query;
     query.addQueryItem("alarmId", alarmId);
     url.setQuery(query);
+    setEventDetail(event, tagActivationUrl, url.toString());
     qDebug() << url.toString();
-
-    QOrganizerItemExtendedDetail exData;
-    exData.setName(tagActivationUrl);
-    exData.setData(url.toString());
-    event.saveDetail(&exData);
 }
+
+// upgrade alarm data to the current version; returns true if upgare was needed
+bool AlarmDataAdapter::upgradeAlarmData()
+{
+    QString version = getEventDetail(event, tagAlarmVersion);
+    if (version == QStringLiteral("1.0")) {
+        // upgrade
+        resetIdentifier();
+        // finally upgare to the current version
+        setEventDetail(event, tagAlarmVersion, currentAlarmsVersion);
+        return true;
+    }
+    return false;
+}
+
 
 QVariant AlarmDataAdapter::cookie() const
 {
@@ -857,6 +864,11 @@ void AlarmsAdapter::completeFetchAlarms()
         UCAlarm alarm;
         AlarmDataAdapter *pAlarm = static_cast<AlarmDataAdapter*>(UCAlarmPrivate::get(&alarm));
         pAlarm->setData(event);
+        // check if we need to upgrade the event to the current version
+        if (pAlarm->upgradeAlarmData()) {
+            // use synchronous save so we omit async cignal replies
+            manager->saveItem(static_cast<QOrganizerItem*>(&pAlarm->data()));
+        }
         adjustAlarmOccurrence(*pAlarm);
         alarmList.insert(alarm);
     }

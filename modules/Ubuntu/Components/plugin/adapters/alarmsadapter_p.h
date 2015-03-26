@@ -63,8 +63,8 @@ public:
     void copyAlarmData(const UCAlarm &other);
 
 // adaptation specific data
-    void updateActivationUrl(const QString &alarmId);
     void adjustDowSettings(UCAlarm::AlarmType type, UCAlarm::DaysOfWeek days);
+    bool upgradeAlarmData();
     static QSet<Qt::DayOfWeek> daysToSet(int days);
     static UCAlarm::DaysOfWeek daysFromSet(const QSet<Qt::DayOfWeek> &set);
 
