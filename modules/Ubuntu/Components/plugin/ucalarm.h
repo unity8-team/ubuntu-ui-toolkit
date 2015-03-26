@@ -37,7 +37,7 @@ class UCAlarm : public QObject
 
     Q_PROPERTY(int error READ error NOTIFY errorChanged)
     Q_PROPERTY(Status status READ status NOTIFY statusChanged)
-    Q_PROPERTY(QString identifier READ identifier NOTIFY identifierChanged REVISION 1)
+    Q_PRIVATE_PROPERTY(d_ptr, QString identifier READ identifier NOTIFY identifierChanged REVISION 1)
 
     Q_ENUMS(Status Operation Error AlarmType DayOfWeek)
     Q_FLAGS(DaysOfWeek)
@@ -106,7 +106,6 @@ public: // getter/setter
     void setDaysOfWeek(DaysOfWeek days);
     QUrl sound() const;
     void setSound(const QUrl &sound);
-    QString identifier() const;
 
     int error() const;
     Status status() const;

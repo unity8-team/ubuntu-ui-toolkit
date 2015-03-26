@@ -21,7 +21,6 @@
 #include "alarmmanager_p.h"
 #include "i18n.h"
 #include <QtQml/QQmlInfo>
-#include <QtCore/QUuid>
 
 UCAlarmPrivate::UCAlarmPrivate(UCAlarm *qq)
     : q_ptr(qq)
@@ -37,13 +36,12 @@ UCAlarmPrivate::~UCAlarmPrivate()
 
 void UCAlarmPrivate::setDefaults()
 {
-    alarmId = QUuid::createUuid().toString();
-    Q_EMIT q_ptr->identifierChanged();
     QDateTime date = AlarmUtils::normalizeDate(QDateTime::currentDateTime());
     setDate(date);
     setMessage(UbuntuI18n::instance().tr("Alarm"));
     setType(UCAlarm::OneTime);
     setDaysOfWeek(UCAlarm::AutoDetect);
+    resetIdentifier();
 }
 
 void UCAlarmPrivate::_q_syncStatus(int operation, int status, int error) {
@@ -67,6 +65,8 @@ void UCAlarmPrivate::_q_syncStatus(int operation, int status, int error) {
                 Q_EMIT q->typeChanged();
             if (changes & AlarmManager::Days)
                 Q_EMIT q->daysOfWeekChanged();
+            if (changes & AlarmManager::Identifier)
+                Q_EMIT q->identifierChanged();
             changes = 0;
         }
 
@@ -495,7 +495,7 @@ void UCAlarm::setDaysOfWeek(UCAlarm::DaysOfWeek days)
  * The property holds the alarm's sound to be played when the alarm is triggered.
  * An empty url will mean to play the default sound.
  *
- * The defaul tvalue is an empty url.
+ * The default value is an empty url.
  */
 QUrl UCAlarm::sound() const
 {
@@ -516,10 +516,6 @@ void UCAlarm::setSound(const QUrl &sound)
  * The property specifies the unique identifier of the alarm. The identifier is
  * set when created or when \l reset.
  */
-QString UCAlarm::identifier() const
-{
-    return d_ptr->alarmId;
-}
 
 /*!
  * \qmlproperty Error Alarm::error

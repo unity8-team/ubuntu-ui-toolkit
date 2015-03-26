@@ -89,6 +89,7 @@ public:
         Sound       = 0x0008,
         Type        = 0x0010,
         Days        = 0x0020,
+        Identifier  = 0x0040,
         AllFields   = 0x00FF
     };
 

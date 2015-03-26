@@ -29,6 +29,8 @@
 #include <QtCore/QJsonDocument>
 #include <QtCore/QJsonObject>
 #include <QtCore/QJsonArray>
+#include <QtCore/QUuid>
+#include <QtCore/QUrlQuery>
 #include <QtCore/QDebug>
 
 #define ALARM_DATABASE          "%1/alarms.json"
@@ -43,9 +45,10 @@
 #define ALARM_COLLECTION        "Alarms"
 
 // special tags used as workaround for bug #1361702
-const char *tagAlarmService = "x-canonical-alarm";
-const char *tagDisabledAlarm = "x-canonical-disabled";
-const char *tagAlarmUrl = "x-canonical-activation-url";
+const char *tagAlarmService     = "x-canonical-alarm";
+const char *tagDisabledAlarm    = "x-canonical-disabled";
+const char *tagAlarmId          = "x-canonical-alarm-id";
+const char *tagActivationUrl    = "x-canonical-activation-url";
 
 QTORGANIZER_USE_NAMESPACE
 
@@ -172,6 +175,69 @@ bool AlarmDataAdapter::setSound(const QUrl &sound)
     return true;
 }
 
+// retrieve the identifier
+QString AlarmDataAdapter::identifier()
+{
+    QString alarmId;
+    QList<QOrganizerItemDetail> details = event.details(QOrganizerItemDetail::TypeExtendedDetail);
+    for (int i = 0; i < details.count(); i++) {
+        QOrganizerItemDetail detail = details[i];
+        if (detail.value(QOrganizerItemExtendedDetail::FieldName).toString() == QLatin1String(tagAlarmId)) {
+            alarmId = detail.value(QOrganizerItemExtendedDetail::FieldData).toString();
+            break;
+        }
+    }
+    return alarmId;
+}
+
+// creates a new identifier and sets it to the event
+void AlarmDataAdapter::resetIdentifier(const QString &savedId)
+{
+    // remove all previous identifiers from event
+    QList<QOrganizerItemDetail> details = event.details(QOrganizerItemDetail::TypeExtendedDetail);
+    for (int i = 0; i < details.count(); i++) {
+        QOrganizerItemDetail detail = details[i];
+        if (detail.value(QOrganizerItemExtendedDetail::FieldName).toString() == QLatin1String(tagAlarmId)) {
+            event.removeDetail(&detail);
+        }
+    }
+
+    QString alarmId = savedId.isNull() ? QUuid::createUuid().toString() : savedId;
+
+    QOrganizerItemExtendedDetail exData;
+    exData.setName(tagAlarmId);
+    exData.setData(alarmId);
+    event.saveDetail(&exData);
+    updateActivationUrl(alarmId);
+    changes |= AlarmManager::Identifier;
+}
+
+// update activation URL
+void AlarmDataAdapter::updateActivationUrl(const QString &alarmId)
+{
+    // remove any previous activation URL
+    QList<QOrganizerItemDetail> details = event.details(QOrganizerItemDetail::TypeExtendedDetail);
+    for (int i = 0; i < details.count(); i++) {
+        QOrganizerItemDetail detail = details[i];
+        if (detail.value(QOrganizerItemExtendedDetail::FieldName).toString() == QLatin1String(tagActivationUrl)) {
+            event.removeDetail(&detail);
+        }
+    }
+
+    QUrl url;
+    url.setScheme("alarm");
+    url.setHost("open");
+    QUrlQuery query;
+    query.addQueryItem("alarmId", alarmId);
+    url.setQuery(query);
+    qDebug() << url.toString();
+
+    QOrganizerItemExtendedDetail exData;
+    exData.setName(tagActivationUrl);
+    exData.setData(url.toString());
+    event.saveDetail(&exData);
+}
+
 QVariant AlarmDataAdapter::cookie() const
 {
     return QVariant::fromValue(event.id());
@@ -216,8 +282,10 @@ void AlarmDataAdapter::save()
         changes = AlarmManager::AllFields;
     }
 
-    // save appId+alarmId
-    updateAlarmUrl(QString());
+    // make sure the alarm has an identifier set
+    if (identifier().isEmpty()) {
+        resetIdentifier();
+    }
 
     QOrganizerItemSaveRequest *saveRequest = new QOrganizerItemSaveRequest(q_ptr);
     saveRequest->setItem(event);
@@ -244,38 +312,6 @@ void AlarmDataAdapter::cancel()
 void AlarmDataAdapter::reset()
 {
     setData(QOrganizerTodo());
-}
-
-// saves appId:///alarmId
-void AlarmDataAdapter::updateAlarmUrl(const QString &id)
-{
-    // make sure we don'thave more than one detail of tagAlarmUrl
-    QList<QOrganizerItemDetail> details = event.details(QOrganizerItemDetail::TypeExtendedDetail);
-    for (int i = 0; i < details.count(); i++) {
-        QOrganizerItemDetail detail = details[i];
-        if (detail.value(QOrganizerItemExtendedDetail::FieldName).toString() == QLatin1String(tagAlarmUrl)) {
-            event.removeDetail(&detail);
-        }
-    }
-    QOrganizerItemExtendedDetail exData;
-    exData.setName(tagAlarmUrl);
-    QString url = id.isEmpty() ? QString("alarm://alarm-id?=%1").arg(alarmId) : id;
-    exData.setData(url);
-    event.saveDetail(&exData);
-}
-
-// get alarmId from extended details
-void AlarmDataAdapter::extractAlarmIdFromUrl()
-{
-    QList<QOrganizerItemDetail> details = event.details(QOrganizerItemDetail::TypeExtendedDetail);
-    for (int i = 0; i < details.count(); i++) {
-        QOrganizerItemDetail detail = details[i];
-        if (detail.value(QOrganizerItemExtendedDetail::FieldName).toString() == QLatin1String(tagAlarmUrl)) {
-            QUrl url(detail.value(QOrganizerItemExtendedDetail::FieldData).toString());
-            alarmId = url.query();
-            break;
-        }
-    }
 }
 
 // starts an outstanding organizer operation
@@ -391,9 +427,6 @@ void AlarmDataAdapter::setData(const QOrganizerTodo &data)
     if (!event.tags().contains(tagAlarmService)) {
         event.addTag(tagAlarmService);
     }
-    // get alarm ID from exDetails
-    extractAlarmIdFromUrl();
-
     event.setCollectionId(AlarmsAdapter::get()->collection.id());
     event.setAllDay(false);
     QOrganizerRecurrenceRule rule = event.recurrenceRule();
@@ -523,16 +556,14 @@ void AlarmsAdapter::loadAlarms()
 
         // use UCAlarm to save store JSON data
         UCAlarm alarm;
+        AlarmDataAdapter *pAlarm = static_cast<AlarmDataAdapter*>(UCAlarmPrivate::get(&alarm));
         alarm.setMessage(object["message"].toString());
         alarm.setDate(QDateTime::fromString(object["date"].toString()));
         alarm.setSound(object["sound"].toString());
         alarm.setType(static_cast<UCAlarm::AlarmType>(object["type"].toInt()));
         alarm.setDaysOfWeek(static_cast<UCAlarm::DaysOfWeek>(object["days"].toInt()));
         alarm.setEnabled(object["enabled"].toBool());
-
-        AlarmDataAdapter *pAlarm = static_cast<AlarmDataAdapter*>(UCAlarmPrivate::get(&alarm));
-        // we can just create the alarmUrl
-        pAlarm->updateAlarmUrl(object["x-url"].toString());
+        pAlarm->resetIdentifier(object["identifier"].toString());
         // call checkAlarm to complete field checks (i.e. type vs daysOfWeek, kick date, etc)
         pAlarm->checkAlarm();
         QOrganizerTodo event = pAlarm->data();
@@ -559,6 +590,7 @@ void AlarmsAdapter::saveAlarms()
     for(int i = 0; i < alarmList.count(); i++) {
         // create an UCAlarm and set its event to ease conversions
         const UCAlarm *alarm = alarmList[i];
+        AlarmDataAdapter *pAlarm = static_cast<AlarmDataAdapter*>(UCAlarmPrivate::get(alarm));
         QJsonObject object;
         object["message"] = alarm->message();
         object["date"] = alarm->date().toString();
@@ -566,17 +598,7 @@ void AlarmsAdapter::saveAlarms()
         object["type"] = QJsonValue(alarm->type());
         object["days"] = QJsonValue(alarm->daysOfWeek());
         object["enabled"] = QJsonValue(alarm->enabled());
-
-        AlarmDataAdapter *pAlarm = static_cast<AlarmDataAdapter*>(UCAlarmPrivate::get(alarm));
-        QList<QOrganizerItemDetail> details = pAlarm->data().details(QOrganizerItemDetail::TypeExtendedDetail);
-        for (int i = 0; i < details.count(); i++) {
-            QOrganizerItemDetail detail = details[i];
-            if (detail.value(QOrganizerItemExtendedDetail::FieldName).toString() == QLatin1String(tagAlarmUrl)) {
-                QUrl url(detail.value(QOrganizerItemExtendedDetail::FieldData).toString());
-                object["x-url"] = QJsonValue(url.toString());
-            }
-        }
-
+        object["identifier"] = QJsonValue(pAlarm->identifier());
         data.append(object);
 
     }

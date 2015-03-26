@@ -51,6 +51,8 @@ public:
     virtual bool setDaysOfWeek(UCAlarm::DaysOfWeek days) = 0;
     virtual QUrl sound() const = 0;
     virtual bool setSound(const QUrl &sound) = 0;
+    virtual QString identifier() = 0;
+    virtual void resetIdentifier(const QString &savedId = QString()) = 0;
     virtual QVariant cookie() const = 0;
     virtual UCAlarm::Error checkAlarm() = 0;
 
@@ -66,7 +68,6 @@ public:
     unsigned int changes;
     int error;
     UCAlarm::Status status;
-    QString alarmId;
 
     // utility functions
     static UCAlarm::DayOfWeek dayOfWeek(const QDateTime &dt);

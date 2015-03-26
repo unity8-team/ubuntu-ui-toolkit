@@ -49,6 +49,8 @@ public:
     bool setDaysOfWeek(UCAlarm::DaysOfWeek days);
     QUrl sound() const;
     bool setSound(const QUrl &sound);
+    QString identifier();
+    void resetIdentifier(const QString &savedId = QString());
     QVariant cookie() const;
     UCAlarm::Error checkAlarm();
 
@@ -61,6 +63,7 @@ public:
     void copyAlarmData(const UCAlarm &other);
 
 // adaptation specific data
+    void updateActivationUrl(const QString &alarmId);
     void adjustDowSettings(UCAlarm::AlarmType type, UCAlarm::DaysOfWeek days);
     static QSet<Qt::DayOfWeek> daysToSet(int days);
     static UCAlarm::DaysOfWeek daysFromSet(const QSet<Qt::DayOfWeek> &set);
@@ -70,8 +73,6 @@ public:
         return event;
     }
     void setData(const QOrganizerTodo &data);
-    void updateAlarmUrl(const QString &id);
-    void extractAlarmIdFromUrl();
 
 protected:
     QOrganizerTodo event;
@@ -148,7 +149,7 @@ public:
         QMapIterator< QPair<QDateTime, QOrganizerItemId>, UCAlarm* > i(data);
         while (i.hasNext()) {
             i.next();
-            if (i.value()->identifier() == alarmId) {
+            if (UCAlarmPrivate::get(i.value())->identifier() == alarmId) {
                 return i.value();
             }
         }
