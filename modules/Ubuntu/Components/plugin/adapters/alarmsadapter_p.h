@@ -74,6 +74,9 @@ public:
     }
     void setData(const QOrganizerTodo &data);
 
+    void eventFromJson(const QJsonObject &object);
+    QJsonObject eventToJson();
+
 protected:
     QOrganizerTodo event;
     UCAlarm::AlarmType alarmType;

@@ -26,6 +26,8 @@ MainView {
     height: units.gu(71)
     objectName: "mainView"
 
+    applicationName: "com.canonical.alarmtest"
+
     AlarmModel{
         id: alarmModel
     }

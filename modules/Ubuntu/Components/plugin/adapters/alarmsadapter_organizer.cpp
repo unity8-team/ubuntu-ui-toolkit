@@ -75,6 +75,7 @@ void setEventDetail(QOrganizerItem &item, const char *detailTag, const QString &
         QOrganizerItemDetail detail = details[i];
         if (detail.value(QOrganizerItemExtendedDetail::FieldName).toString() == QLatin1String(detailTag)) {
             item.removeDetail(&detail);
+            break;
         }
     }
     // save the new detail
@@ -227,15 +228,14 @@ void AlarmDataAdapter::resetIdentifier(const QString &savedId)
     query.addQueryItem("alarmId", alarmId);
     url.setQuery(query);
     setEventDetail(event, tagActivationUrl, url.toString());
-    qDebug() << url.toString();
 }
 
 // upgrade alarm data to the current version; returns true if upgare was needed
 bool AlarmDataAdapter::upgradeAlarmData()
 {
     QString version = getEventDetail(event, tagAlarmVersion);
-    if (version == QStringLiteral("1.0")) {
-        // upgrade
+    if (version.isEmpty() || version == QStringLiteral("1.0")) {
+        // version 1.0, upgrade
         resetIdentifier();
         // finally upgare to the current version
         setEventDetail(event, tagAlarmVersion, currentAlarmsVersion);
@@ -455,6 +455,37 @@ void AlarmDataAdapter::setData(const QOrganizerTodo &data)
     }
 }
 
+void AlarmDataAdapter::eventFromJson(const QJsonObject &object)
+{
+    q_ptr->setMessage(object["message"].toString());
+    q_ptr->setDate(QDateTime::fromString(object["date"].toString()));
+    q_ptr->setSound(object["sound"].toString());
+    q_ptr->setType(static_cast<UCAlarm::AlarmType>(object["type"].toInt()));
+    q_ptr->setDaysOfWeek(static_cast<UCAlarm::DaysOfWeek>(object["days"].toInt()));
+    q_ptr->setEnabled(object["enabled"].toBool());
+    setEventDetail(event, tagAlarmId, object[tagAlarmId].toString());
+    setEventDetail(event, tagActivationUrl, object[tagActivationUrl].toString());
+    setEventDetail(event, tagAlarmVersion, object[tagAlarmVersion].toString());
+    // call checkAlarm to complete field checks (i.e. type vs daysOfWeek, kick date, etc)
+    checkAlarm();
+}
+
+QJsonObject AlarmDataAdapter::eventToJson()
+{
+    QJsonObject object;
+    object[tagAlarmVersion] = QJsonValue(currentAlarmsVersion);
+    object["message"] = message();
+    object["date"] = date().toString();
+    object["sound"] = sound().toString();
+    object["type"] = QJsonValue(type());
+    object["days"] = QJsonValue(daysOfWeek());
+    object["enabled"] = QJsonValue(enabled());
+    object[tagAlarmId] = QJsonValue(identifier());
+    object[tagActivationUrl] = QJsonValue(getEventDetail(event, tagActivationUrl));
+    return object;
+}
+
+
 /*-----------------------------------------------------------------------------
  * Adaptation layer for Alarms.
  */
@@ -555,6 +586,9 @@ void AlarmsAdapter::loadAlarms()
     if (!file.open(QFile::ReadOnly)) {
         return;
     }
+    // block the manager signals till we load the alarm data into memory
+    manager->blockSignals(true);
+
     QByteArray data = file.readAll();
     QJsonDocument document(QJsonDocument::fromJson(data));
     QJsonArray array = document.array();
@@ -564,19 +598,13 @@ void AlarmsAdapter::loadAlarms()
         // use UCAlarm to save store JSON data
         UCAlarm alarm;
         AlarmDataAdapter *pAlarm = static_cast<AlarmDataAdapter*>(UCAlarmPrivate::get(&alarm));
-        alarm.setMessage(object["message"].toString());
-        alarm.setDate(QDateTime::fromString(object["date"].toString()));
-        alarm.setSound(object["sound"].toString());
-        alarm.setType(static_cast<UCAlarm::AlarmType>(object["type"].toInt()));
-        alarm.setDaysOfWeek(static_cast<UCAlarm::DaysOfWeek>(object["days"].toInt()));
-        alarm.setEnabled(object["enabled"].toBool());
-        pAlarm->resetIdentifier(object["identifier"].toString());
-        // call checkAlarm to complete field checks (i.e. type vs daysOfWeek, kick date, etc)
-        pAlarm->checkAlarm();
+        pAlarm->eventFromJson(object);
         QOrganizerTodo event = pAlarm->data();
         manager->saveItem(&event);
     }
     file.close();
+    // unblock signals
+    manager->blockSignals(false);
 }
 
 // save fallback manager data only
@@ -598,14 +626,7 @@ void AlarmsAdapter::saveAlarms()
         // create an UCAlarm and set its event to ease conversions
         const UCAlarm *alarm = alarmList[i];
         AlarmDataAdapter *pAlarm = static_cast<AlarmDataAdapter*>(UCAlarmPrivate::get(alarm));
-        QJsonObject object;
-        object["message"] = alarm->message();
-        object["date"] = alarm->date().toString();
-        object["sound"] = alarm->sound().toString();
-        object["type"] = QJsonValue(alarm->type());
-        object["days"] = QJsonValue(alarm->daysOfWeek());
-        object["enabled"] = QJsonValue(alarm->enabled());
-        object["identifier"] = QJsonValue(pAlarm->identifier());
+        QJsonObject object = pAlarm->eventToJson();
         data.append(object);
 
     }
@@ -844,6 +865,12 @@ void AlarmsAdapter::completeFetchAlarms()
 
     QSet<QOrganizerItemId> parentId;
     QOrganizerTodo event;
+    bool upgraded = false;
+
+    // disable manager signals till we fetch the alarms so in case we must upgrade
+    // an alarm we won't get update signals
+    manager->blockSignals(true);
+
     Q_FOREACH(const QOrganizerItem &item, fetchRequest->items()) {
         // repeating alarms may be fetched as occurences, therefore check their parent event
         if (item.type() == QOrganizerItemType::TypeTodoOccurrence) {
@@ -866,12 +893,23 @@ void AlarmsAdapter::completeFetchAlarms()
         pAlarm->setData(event);
         // check if we need to upgrade the event to the current version
         if (pAlarm->upgradeAlarmData()) {
-            // use synchronous save so we omit async cignal replies
-            manager->saveItem(static_cast<QOrganizerItem*>(&pAlarm->data()));
+            // use synchronous save so we omit async signal replies
+            event = pAlarm->data();
+            manager->saveItem(&event);
+            saveAlarms();
+            upgraded = true;
         }
         adjustAlarmOccurrence(*pAlarm);
         alarmList.insert(alarm);
     }
+
+    // save upgrades
+    if (upgraded) {
+        saveAlarms();
+    }
+
+    // re-enable manager signals
+    manager->blockSignals(false);
 
     completed = true;
     Q_EMIT q_ptr->alarmsRefreshed();
