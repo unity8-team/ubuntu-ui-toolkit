@@ -192,6 +192,7 @@ void UbuntuComponentsPlugin::registerTypes(const char *uri)
 
     // register 1.3 API
     qmlRegisterType<UCListItem, 1>(uri, 1, 3, "ListItem");
+    qmlRegisterType<UCListItemExpansion>();
     qmlRegisterUncreatableType<UCViewItemsAttached, 1>(uri, 1, 3, "ViewItems", "Not instantiable");
 }
 

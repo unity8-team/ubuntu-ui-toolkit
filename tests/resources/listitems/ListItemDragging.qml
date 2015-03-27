@@ -15,7 +15,7 @@
  */
 
 import QtQuick 2.4
-import Ubuntu.Components 1.2
+import Ubuntu.Components 1.3
 import QtQuick.Layouts 1.1
 import Ubuntu.Components.ListItems 1.0
 import QtQml.Models 2.1
@@ -147,9 +147,13 @@ MainView {
                                 subtitle.text: "from index #" + index
                             }
                             Captions {
-                                captionStyle: Ubuntu.Summary
+                                captionStyle: Ubuntu.SummaryCaptionStyle
                                 title.text: "LTR"
                                 subtitle.text: "RTL"
+                                MouseArea {
+                                    anchors.fill: parent
+                                    onClicked: main.LayoutMirroring.enabled = !main.LayoutMirroring.enabled
+                                }
                             }
                         }
 
@@ -157,7 +161,7 @@ MainView {
                             print("entering/leaving draggable mode")
                             ListView.view.ViewItems.dragMode = !ListView.view.ViewItems.dragMode;
                         }
-                        onClicked: main.LayoutMirroring.enabled = !main.LayoutMirroring.enabled
+                        onClicked: expansion.expanded = !expansion.expanded
                     }
                 }
             }

@@ -207,7 +207,7 @@ UCListItemPrivate::UCListItemPrivate()
     , leadingActions(0)
     , trailingActions(0)
     , mainAction(0)
-    , expansionGroup(0)
+    , expansionGroup(new UCListItemExpansion)
     , styleComponent(0)
     , implicitStyleComponent(0)
     , styleItem(0)
@@ -225,6 +225,7 @@ void UCListItemPrivate::init()
     contentItem->setParentItem(q);
     contentItem->setClip(true);
     divider->init(q);
+    expansionGroup->setParent(q);
     // content will be redirected to the contentItem, therefore we must report
     // children changes as it would come from the main component
     QObject::connect(contentItem, &QQuickItem::childrenChanged,
