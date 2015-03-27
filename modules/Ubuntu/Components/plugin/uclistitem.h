@@ -248,20 +248,23 @@ private:
 class UCListItemExpansion : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(bool expanded MEMBER m_expanded WRITE setExpanded NOTIFY expandedChanged DESIGNABLE false FINAL)
+    Q_PROPERTY(bool expanded READ expanded WRITE setExpanded NOTIFY expandedChanged DESIGNABLE false FINAL)
     Q_PROPERTY(qreal height MEMBER m_height WRITE setHeight NOTIFY heightChanged FINAL)
 public:
     explicit UCListItemExpansion(QObject *parent= 0);
+    void init(UCListItem* item);
 
+    bool expanded();
     void setExpanded(bool expanded);
     void setHeight(qreal height);
+
 Q_SIGNALS:
     void expandedChanged();
     void heightChanged();
 
 private:
-    bool m_expanded:1;
     qreal m_height;
+    UCListItem *m_item;
 };
 
 #endif // UCLISTITEM_H

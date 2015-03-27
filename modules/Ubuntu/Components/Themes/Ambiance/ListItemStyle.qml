@@ -16,7 +16,7 @@
 
 import QtQuick 2.4
 import Ubuntu.Components.Styles 1.2 as Styles
-import Ubuntu.Components 1.2
+import Ubuntu.Components 1.3
 
 Styles.ListItemStyle {
 
@@ -410,4 +410,28 @@ Styles.ListItemStyle {
     function rebound() {
         snapAnimation.snapTo(0);
     }
+
+    // expansion handling
+
+    states: [
+        State {
+            name: "expanded"
+            when: styledItem.expansion.expanded
+            PropertyChanges {
+                target: styledItem
+                height: styledItem.expansion.height
+            }
+        }
+    ]
+    transitions: [
+        Transition {
+            from: ""
+            to: "expanded"
+            reversible: true
+            UbuntuNumberAnimation {
+                target: styledItem
+                property: "height"
+            }
+        }
+    ]
 }

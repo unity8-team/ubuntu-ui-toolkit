@@ -29,6 +29,7 @@
 #include <QtCore/QAbstractItemModel>
 #include <QtQml/private/qqmlobjectmodel_p.h>
 #include <QtQml/private/qqmldelegatemodel_p.h>
+#include <QtCore/QPointer>
 
 /*!
  * \qmltype ListItemDrag
@@ -621,15 +622,23 @@ void UCViewItemsAttachedPrivate::updateSelectedIndices(int fromIndex, int toInde
 QList<int> UCViewItemsAttached::expandedIndices() const
 {
     Q_D(const UCViewItemsAttached);
-    return d->expandedList.toList();
+    return d->expandedList.keys();
 }
 void UCViewItemsAttached::setExpandedIndices(const QList<int> &list)
 {
     Q_D(UCViewItemsAttached);
-    if (d->expandedList.toList() == list) {
-        return;
+    d->collapseAll();
+    // fill the hash with empty items, each item will add itself to the hash
+    if (list.size() > 0) {
+        if (d->expansionFlags & UCViewItemsAttached::Exclusive) {
+            // take the last item only
+            d->expandedList.insert(list.last(), QPointer<UCListItem>());
+        } else {
+            for (int i = 0; i < list.size(); i++) {
+                d->expandedList.insert(list[i], QPointer<UCListItem>());
+            }
+        }
     }
-    d->expandedList = QSet<int>::fromList(list);
     Q_EMIT expandedIndicesChanged();
 }
 
@@ -653,3 +662,28 @@ void UCViewItemsAttached::setExpansionFlags(int flags)
     Q_EMIT expansionFlagsChanged();
 }
 
+// insert item into the expanded indices list
+void UCViewItemsAttachedPrivate::expand(int index, UCListItem *item)
+{
+    expandedList.insert(index, QPointer<UCListItem>(item));
+    Q_Q(UCViewItemsAttached);
+    Q_EMIT q->expandedIndicesChanged();
+}
+
+void UCViewItemsAttachedPrivate::collapse(int index)
+{
+    QPointer<UCListItem> listItem = expandedList.take(index);
+    if (listItem) {
+        Q_EMIT UCListItemPrivate::get(listItem.data())->expansionGroup->expandedChanged();
+    }
+    Q_Q(UCViewItemsAttached);
+    Q_EMIT q->expandedIndicesChanged();
+}
+
+void UCViewItemsAttachedPrivate::collapseAll()
+{
+    QList<int> keys = expandedList.keys();
+    for (int i = 0; i < keys.count(); i++) {
+        collapse(keys[i]);
+    }
+}

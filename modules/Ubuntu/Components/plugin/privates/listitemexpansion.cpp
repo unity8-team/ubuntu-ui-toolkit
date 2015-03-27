@@ -17,21 +17,45 @@
 #include "uclistitem.h"
 #include "uclistitem_p.h"
 
-
 UCListItemExpansion::UCListItemExpansion(QObject *parent)
     : QObject(parent)
-    , m_expanded(false)
     , m_height(0)
+    , m_item(0)
 {
 }
 
+void UCListItemExpansion::init(UCListItem *item)
+{
+    setParent(item);
+    m_item = item;
+}
+
+bool UCListItemExpansion::expanded()
+{
+    UCListItemPrivate *listItem = UCListItemPrivate::get(m_item);
+    UCViewItemsAttachedPrivate *attached = UCViewItemsAttachedPrivate::get(listItem->parentAttached);
+    if (attached) {
+        return attached->expandedList.contains(listItem->index());
+    }
+    return false;
+}
 void UCListItemExpansion::setExpanded(bool expanded)
 {
-    if (m_expanded == expanded) {
+    if (expanded == this->expanded()) {
         return;
     }
-    m_expanded = expanded;
-    Q_EMIT expandedChanged();
+    // load style
+    UCListItemPrivate *listItem = UCListItemPrivate::get(m_item);
+    listItem->initStyleItem();
+
+    UCViewItemsAttachedPrivate *attached = UCViewItemsAttachedPrivate::get(listItem->parentAttached);
+    if (attached) {
+        if (attached->expansionFlags & UCViewItemsAttached::Exclusive) {
+            attached->collapseAll();
+        }
+        attached->expand(listItem->index(), m_item);
+    }
+    // no need to emit the signal as the attached property's expandedIndicesChanged will trigger it
 }
 
 void UCListItemExpansion::setHeight(qreal height)

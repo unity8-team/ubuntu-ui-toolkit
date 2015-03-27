@@ -225,7 +225,7 @@ void UCListItemPrivate::init()
     contentItem->setParentItem(q);
     contentItem->setClip(true);
     divider->init(q);
-    expansionGroup->setParent(q);
+    expansionGroup->init(q);
     // content will be redirected to the contentItem, therefore we must report
     // children changes as it would come from the main component
     QObject::connect(contentItem, &QQuickItem::childrenChanged,
@@ -1087,6 +1087,12 @@ void UCListItem::itemChange(ItemChange change, const ItemChangeData &data)
             d->ready = false;
             // about to be deleted or reparented, disable attached
             d->parentAttached = 0;
+        }
+
+        if (d->parentAttached) {
+            connect(d->parentAttached, &UCViewItemsAttached::expandedIndicesChanged,
+                    d->expansionGroup, &UCListItemExpansion::expandedChanged,
+                    Qt::UniqueConnection);
         }
 
         if (parentAttachee) {

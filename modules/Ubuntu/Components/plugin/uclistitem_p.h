@@ -144,6 +144,9 @@ public:
     void leaveDragMode();
     bool isDragUpdatedConnected();
     void updateSelectedIndices(int fromIndex, int toIndex);
+    void expand(int index, UCListItem *item);
+    void collapse(int index);
+    void collapseAll();
 
     QQuickFlickable *listView;
     ListItemDragArea *dragArea;
@@ -152,7 +155,7 @@ public:
     bool draggable:1;
     bool ready:1;
     QSet<int> selectedList;
-    QSet<int> expandedList;
+    QHash<int, QPointer<UCListItem> > expandedList;
     UCViewItemsAttached::ExpansionFlags expansionFlags;
     QList< QPointer<QQuickFlickable> > flickables;
     QList< PropertyChange* > changes;
