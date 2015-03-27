@@ -189,6 +189,10 @@ void UbuntuComponentsPlugin::registerTypes(const char *uri)
     qmlRegisterSingletonType<UCNamespace>(uri, 1, 2, "Ubuntu", registerUbuntuNamespace);
     qmlRegisterType<UCUbuntuShape, 1>(uri, 1, 2, "UbuntuShape");
     qmlRegisterType<UCUbuntuShapeOverlay>(uri, 1, 2, "UbuntuShapeOverlay");
+
+    // register 1.3 API
+    qmlRegisterType<UCListItem, 1>(uri, 1, 3, "ListItem");
+    qmlRegisterUncreatableType<UCViewItemsAttached, 1>(uri, 1, 3, "ViewItems", "Not instantiable");
 }
 
 void UbuntuComponentsPlugin::initializeEngine(QQmlEngine *engine, const char *uri)

@@ -90,6 +90,7 @@ public:
     UCListItemActions *leadingActions;
     UCListItemActions *trailingActions;
     UCAction *mainAction;
+    UCListItemExpansion *expansionGroup;
 
     // FIXME move these to StyledItemBase togehther with subtheming.
     QQmlComponent *styleComponent;
@@ -115,6 +116,7 @@ public:
     void setSelectMode(bool selectable);
     UCAction *action() const;
     void setAction(UCAction *action);
+    UCListItemExpansion *expansion() const;
 };
 
 class PropertyChange;
@@ -150,6 +152,8 @@ public:
     bool draggable:1;
     bool ready:1;
     QSet<int> selectedList;
+    QSet<int> expandedList;
+    UCViewItemsAttached::ExpansionFlags expansionFlags;
     QList< QPointer<QQuickFlickable> > flickables;
     QList< PropertyChange* > changes;
     QPointer<UCListItem> boundItem;

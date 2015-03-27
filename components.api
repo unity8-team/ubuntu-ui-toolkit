@@ -927,7 +927,7 @@ plugins.qmltypes
     exports: ["InverseMouse 0.1", "InverseMouse 1.0"]
     name: "UCListItem"
     prototype: "UCStyledItemBase"
-    exports: ["ListItem 1.2"]
+    exports: ["ListItem 1.2", "ListItem 1.3"]
     Property { name: "contentItem"; type: "QQuickItem"; isReadonly: true; isPointer: true }
     Property { name: "divider"; type: "UCListItemDivider"; isReadonly: true; isPointer: true }
     Property { name: "leadingActions"; type: "UCListItemActions"; isPointer: true }
@@ -945,6 +945,8 @@ plugins.qmltypes
     Property { name: "listItemChildren"; type: "QQuickItem"; isList: true; isReadonly: true }
     Property { name: "style"; type: "QQmlComponent"; isPointer: true }
     Property { name: "__styleInstance"; type: "QQuickItem"; isReadonly: true; isPointer: true }
+    Property {
+    name: "expansion"
     Signal { name: "clicked" }
     Signal { name: "pressAndHold" }
     Signal { name: "contentMovementStarted" }
@@ -1130,10 +1132,15 @@ plugins.qmltypes
     Parameter { name: "uris"; type: "QStringList" }
     name: "UCViewItemsAttached"
     prototype: "QObject"
-    exports: ["ViewItems 1.2"]
+    exports: ["ViewItems 1.2", "ViewItems 1.3"]
+    name: "ExpansionFlag"
     Property { name: "selectMode"; type: "bool" }
     Property { name: "selectedIndices"; type: "QList<int>" }
     Property { name: "dragMode"; type: "bool" }
+    Property { name: "expandedIndices"; revision: 1; type: "QList<int>" }
+    Property { name: "expansionFlags"; revision: 1; type: "int" }
+    Signal { name: "expandedIndicesChanged"; revision: 1 }
+    Signal { name: "expansionFlagsChanged"; revision: 1 }
     Signal {
     name: "dragUpdated"
     Parameter { name: "event"; type: "UCDragEvent"; isPointer: true }

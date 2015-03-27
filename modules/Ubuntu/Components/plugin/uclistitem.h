@@ -23,6 +23,7 @@
 class UCListItemContent;
 class UCListItemDivider;
 class UCListItemActions;
+class UCListItemExpansion;
 class UCAction;
 class UCListItemPrivate;
 class UCListItem : public UCStyledItemBase
@@ -46,6 +47,7 @@ class UCListItem : public UCStyledItemBase
     // FIXME move these to StyledItemBase with subtheming
     Q_PRIVATE_PROPERTY(UCListItem::d_func(), QQmlComponent *style READ style WRITE setStyle RESET resetStyle NOTIFY styleChanged)
     Q_PRIVATE_PROPERTY(UCListItem::d_func(), QQuickItem *__styleInstance READ styleInstance NOTIFY __styleInstanceChanged)
+    Q_PRIVATE_PROPERTY(UCListItem::d_func(), UCListItemExpansion *expansion READ expansion CONSTANT REVISION 1)
     Q_CLASSINFO("DefaultProperty", "listItemData")
 public:
     explicit UCListItem(QQuickItem *parent = 0);
@@ -148,7 +150,16 @@ class UCViewItemsAttached : public QObject
     Q_PROPERTY(bool selectMode READ selectMode WRITE setSelectMode NOTIFY selectModeChanged)
     Q_PROPERTY(QList<int> selectedIndices READ selectedIndices WRITE setSelectedIndices NOTIFY selectedIndicesChanged)
     Q_PROPERTY(bool dragMode READ dragMode WRITE setDragMode NOTIFY dragModeChanged)
+    Q_PROPERTY(QList<int> expandedIndices READ expandedIndices WRITE setExpandedIndices NOTIFY expandedIndicesChanged REVISION 1)
+    Q_PROPERTY(int expansionFlags READ expansionFlags WRITE setExpansionFlags NOTIFY expansionFlagsChanged REVISION 1)
+    Q_ENUMS(ExpansionFlag)
 public:
+    enum ExpansionFlag {
+        Exclusive           = 0x01,
+        DimCollapsedItems   = 0x02
+    };
+    Q_DECLARE_FLAGS(ExpansionFlags, ExpansionFlag)
+
     explicit UCViewItemsAttached(QObject *owner);
     ~UCViewItemsAttached();
 
@@ -166,6 +177,10 @@ public:
     void setSelectedIndices(const QList<int> &list);
     bool dragMode() const;
     void setDragMode(bool value);
+    QList<int> expandedIndices() const;
+    void setExpandedIndices(const QList<int> &list);
+    int expansionFlags() const;
+    void setExpansionFlags(int flags);
 
 private Q_SLOTS:
     void unbindItem();
@@ -175,12 +190,15 @@ Q_SIGNALS:
     void selectModeChanged();
     void selectedIndicesChanged();
     void dragModeChanged();
+    Q_REVISION(1) void expandedIndicesChanged();
+    Q_REVISION(1) void expansionFlagsChanged();
 
     void dragUpdated(UCDragEvent *event);
 
 private:
     Q_DECLARE_PRIVATE(UCViewItemsAttached)
 };
+Q_DECLARE_OPERATORS_FOR_FLAGS(UCViewItemsAttached::ExpansionFlags)
 QML_DECLARE_TYPEINFO(UCViewItemsAttached, QML_HAS_ATTACHED_PROPERTIES)
 
 class UCDragEvent : public QObject
@@ -225,6 +243,25 @@ private:
     bool m_accept;
 
     friend class ListItemDragArea;
+};
+
+class UCListItemExpansion : public QObject
+{
+    Q_OBJECT
+    Q_PROPERTY(bool expanded MEMBER m_expanded WRITE setExpanded NOTIFY expandedChanged DESIGNABLE false FINAL)
+    Q_PROPERTY(qreal height MEMBER m_height WRITE setHeight NOTIFY heightChanged FINAL)
+public:
+    explicit UCListItemExpansion(QObject *parent= 0);
+
+    void setExpanded(bool expanded);
+    void setHeight(qreal height);
+Q_SIGNALS:
+    void expandedChanged();
+    void heightChanged();
+
+private:
+    bool m_expanded:1;
+    qreal m_height;
 };
 
 #endif // UCLISTITEM_H

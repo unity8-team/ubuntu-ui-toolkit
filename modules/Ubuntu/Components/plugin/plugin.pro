@@ -126,7 +126,8 @@ SOURCES += plugin.cpp \
     ucserviceproperties.cpp \
     privates/listitemdragarea.cpp \
     privates/listitemdraghandler.cpp \
-    ucnamespace.cpp
+    ucnamespace.cpp \
+    privates/listitemexpansion.cpp
 
 # adapters
 SOURCES += adapters/alarmsadapter_organizer.cpp

@@ -207,6 +207,7 @@ UCListItemPrivate::UCListItemPrivate()
     , leadingActions(0)
     , trailingActions(0)
     , mainAction(0)
+    , expansionGroup(0)
     , styleComponent(0)
     , implicitStyleComponent(0)
     , styleItem(0)
@@ -1618,6 +1619,18 @@ void UCListItemPrivate::setAction(UCAction *action)
         mainAction->setProperty("parameterType", UCAction::Integer);
     }
     Q_EMIT q->actionChanged();
+}
+
+/*!
+ * \qmlgroupproperty ::ListItem::expansion
+ * \qmlproperty bool ListItem::expansion::expanded
+ * \qmlproperty real ListItem::expansion::height
+ * \since Ubuntu.Components 1.3
+ * The group drefines the expansion state of the ListItem.
+ */
+UCListItemExpansion *UCListItemPrivate::expansion() const
+{
+    return expansionGroup;
 }
 
 /*!

@@ -108,6 +108,7 @@ UCViewItemsAttachedPrivate::UCViewItemsAttachedPrivate()
     , selectable(false)
     , draggable(false)
     , ready(false)
+    , expansionFlags(UCViewItemsAttached::Exclusive)
 {
 }
 
@@ -611,3 +612,44 @@ void UCViewItemsAttachedPrivate::updateSelectedIndices(int fromIndex, int toInde
         Q_EMIT q->selectedIndicesChanged();
     }
 }
+
+/*!
+ * \qmlatachedproperty list<int> ViewItems::expandedIndices
+ * \since Ubuntu.Components 1.3
+ * The property holds the indexes of the expanded ListItems within a flickable.
+ */
+QList<int> UCViewItemsAttached::expandedIndices() const
+{
+    Q_D(const UCViewItemsAttached);
+    return d->expandedList.toList();
+}
+void UCViewItemsAttached::setExpandedIndices(const QList<int> &list)
+{
+    Q_D(UCViewItemsAttached);
+    if (d->expandedList.toList() == list) {
+        return;
+    }
+    d->expandedList = QSet<int>::fromList(list);
+    Q_EMIT expandedIndicesChanged();
+}
+
+/*!
+ * \qmlattachedproperties ExpansionFlags ViewItems::expansionFlags
+ * \since Ubuntu.Components 1.3
+ * Flags driving the expansion behavior.
+ */
+int UCViewItemsAttached::expansionFlags() const
+{
+    Q_D(const UCViewItemsAttached);
+    return (int)d->expansionFlags;
+}
+void UCViewItemsAttached::setExpansionFlags(int flags)
+{
+    Q_D(UCViewItemsAttached);
+    if (d->expansionFlags == flags) {
+        return;
+    }
+    d->expansionFlags = (UCViewItemsAttached::ExpansionFlags)flags;
+    Q_EMIT expansionFlagsChanged();
+}
+
