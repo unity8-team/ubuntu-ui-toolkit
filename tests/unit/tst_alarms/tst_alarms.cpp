@@ -103,6 +103,15 @@ private:
         return false;
     }
 
+    QString createOneTime(const QString &message)
+    {
+        UCAlarm alarm(QDateTime::currentDateTime(), UCAlarm::AutoDetect, "test_" + message);
+        alarm.setSound(QUrl("file:///usr/share/sounds/ubuntu/ringtones/Bliss.ogg"));
+        alarm.save();
+        waitForInsert();
+        return UCAlarmPrivate::get(&alarm)->identifier();
+    }
+
 private Q_SLOTS:
 
     void initTestCase()
@@ -582,6 +591,34 @@ private Q_SLOTS:
 
         // check the tags
         QVERIFY(AlarmManager::instance().verifyChange(&alarm, AlarmManager::Enabled, enabled));
+    }
+
+    void test_alarm_identifier()
+    {
+        UCAlarm alarm;
+        QVERIFY(!UCAlarmPrivate::get(&alarm)->identifier().isEmpty());
+    }
+
+    void test_alarm_identifier_differs_on_reset()
+    {
+        UCAlarm alarm;
+        QString id = UCAlarmPrivate::get(&alarm)->identifier();
+        alarm.reset();
+        QVERIFY(!UCAlarmPrivate::get(&alarm)->identifier().isEmpty());
+        QVERIFY(UCAlarmPrivate::get(&alarm)->identifier() != id);
+    }
+
+    void test_find_alarm_by_id()
+    {
+        QStringList ids;
+        for (int i = 0; i < 5; i++) {
+            ids << createOneTime(QString("find_alarm_by_id_%1").arg(i));
+        }
+
+        UCAlarmModel model;
+        for (int i = 0; i < ids.count(); i++) {
+            QVERIFY(model.find(ids[i]));
+        }
     }
 };
 
