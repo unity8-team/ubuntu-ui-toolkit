@@ -961,6 +961,10 @@ plugins.qmltypes
     prototype: "QQuickItem"
     Property { name: "colorFrom"; type: "QColor" }
     Property { name: "colorTo"; type: "QColor" }
+    name: "UCListItemExpansion"
+    prototype: "QObject"
+    Property { name: "expanded"; type: "bool" }
+    Property { name: "height"; type: "double" }
     name: "UCListItemStyle"
     prototype: "QQuickItem"
     exports: ["Ubuntu.Components.Styles/ListItemStyle 1.2"]
