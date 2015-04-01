@@ -321,9 +321,6 @@ UCAlarm::UCAlarm(const QDateTime &dt, DaysOfWeek days, const QString &message, Q
 
 UCAlarm::~UCAlarm()
 {
-    if (!objectName().isEmpty()) {
-        qDebug() << "DESTROYING" << objectName();
-    }
 }
 
 bool UCAlarm::operator==(const UCAlarm &that) const
