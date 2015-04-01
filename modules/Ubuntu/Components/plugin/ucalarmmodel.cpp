@@ -22,7 +22,6 @@
 #include "alarmmanager_p.h"
 #include <QtQml/QQmlPropertyMap>
 #include <QtQml/QQmlInfo>
-#include <QtQml/QQmlEngine>
 
 /*!
  * \qmltype AlarmModel
@@ -155,6 +154,19 @@ void UCAlarmModel::componentComplete()
     refresh();
 }
 
+UCAlarm *UCAlarmModel::hashedAlarm(UCAlarm *alarm)
+{
+    UCAlarm *result = 0;
+    const QString &id = UCAlarmPrivate::get(alarm)->identifier();
+    result = alarmHash.value(id).data();
+    if (!result) {
+        result = new UCAlarm(this);
+        UCAlarmPrivate::get(result)->copyAlarmData(*alarm);
+        alarmHash.insert(id, QPointer<UCAlarm>(result));
+    }
+    return result;
+}
+
 int UCAlarmModel::rowCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent);
@@ -214,12 +226,7 @@ QHash<int, QByteArray> UCAlarmModel::roleNames() const
  */
 UCAlarm* UCAlarmModel::get(int index)
 {
-    UCAlarm *alarm = AlarmManager::instance().alarmAt(index);
-    if (alarm) {
-        alarm = UCAlarm::makeCopy(alarm, this);
-        QQmlEngine::setObjectOwnership(alarm, QQmlEngine::JavaScriptOwnership);
-    }
-    return alarm;
+    return hashedAlarm(AlarmManager::instance().alarmAt(index));
 }
 
 /*!
@@ -230,12 +237,7 @@ UCAlarm* UCAlarmModel::get(int index)
  */
 UCAlarm *UCAlarmModel::find(const QString &alarmId)
 {
-    UCAlarm *alarm = AlarmManager::instance().findAlarm(alarmId);
-    if (alarm) {
-        alarm = UCAlarm::makeCopy(alarm, this);
-        QQmlEngine::setObjectOwnership(alarm, QQmlEngine::JavaScriptOwnership);
-    }
-    return alarm;
+    return hashedAlarm(AlarmManager::instance().findAlarm(alarmId));
 }
 
 /*!

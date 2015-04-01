@@ -321,6 +321,9 @@ UCAlarm::UCAlarm(const QDateTime &dt, DaysOfWeek days, const QString &message, Q
 
 UCAlarm::~UCAlarm()
 {
+    if (!objectName().isEmpty()) {
+        qDebug() << "DESTROYING" << objectName();
+    }
 }
 
 bool UCAlarm::operator==(const UCAlarm &that) const
@@ -329,16 +332,6 @@ bool UCAlarm::operator==(const UCAlarm &that) const
             message() == that.message() &&
             type() == that.type() &&
             daysOfWeek() == that.daysOfWeek();
-}
-
-// create a copy of the given alarm parented to the given alarmParent
-// we cannot use copy constructor for this as QML elements cannot have
-// copy constructors
-UCAlarm *UCAlarm::makeCopy(UCAlarm *alarm, QObject *alarmParent)
-{
-    UCAlarm *alarmCopy = new UCAlarm(alarmParent);
-    alarmCopy->d_ptr->copyAlarmData(*alarm);
-    return alarmCopy;
 }
 
 /*!

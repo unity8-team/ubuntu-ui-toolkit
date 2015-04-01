@@ -64,6 +64,11 @@ private Q_SLOTS:
     void insertFinished();
     void moveStarted(int from, int to);
     void moveFinished();
+
+private:
+    QHash<QString, QPointer<UCAlarm> > alarmHash;
+
+    UCAlarm *hashedAlarm(UCAlarm *alarm);
 };
 
 #endif // UCALARMSMODEL_H
