@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Canonical Ltd.
+ * Copyright 2015 Canonical Ltd.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,6 +17,7 @@
  */
 
 #include <QtCore/QObject>
+#include <QtCore/QStringList>
 
 class UCUriHandler;
 
@@ -30,9 +31,13 @@ class UriHandlerObject : public QObject
 
  public Q_SLOTS:
     void Open(const QStringList& uris, const QHash<QString, QVariant>& platformData);
+    void handOverCachedUris();
 
  private:
     UCUriHandler* m_uriHandler;
+    QStringList m_uris;
+    bool m_cacheUris:1;
+    friend class UCUriHandler;
 };
 
 class UCUriHandler : public QObject

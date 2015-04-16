@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Canonical Ltd.
+ * Copyright 2015 Canonical Ltd.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -34,7 +34,6 @@
 StateSaverBackend::StateSaverBackend(QObject *parent)
     : QObject(parent)
     , m_archive(0)
-    , m_globalEnabled(true)
 {
     // connect to application quit signal so when that is called, we can clean the states saved
     QObject::connect(QCoreApplication::instance(), &QCoreApplication::aboutToQuit,
@@ -54,6 +53,12 @@ StateSaverBackend::StateSaverBackend(QObject *parent)
     UnixSignalHandler::instance().connectSignal(UnixSignalHandler::Interrupt);
     QObject::connect(&UnixSignalHandler::instance(), SIGNAL(signalTriggered(int)),
                      this, SLOT(signalHandler(int)));
+
+    // check arguments the application is launched with
+    if (!waitForStateRestored()) {
+        // need to reset the states file
+        reset();
+    }
 }
 
 StateSaverBackend::~StateSaverBackend()
@@ -100,7 +105,11 @@ void StateSaverBackend::initialize()
 void StateSaverBackend::cleanup()
 {
     reset();
-    m_archive.clear();
+    // remove file as well
+    if (m_archive) {
+        QFile archiveFile(m_archive.data()->fileName());
+        archiveFile.remove();
+    }
 }
 
 void StateSaverBackend::signalHandler(int type)
@@ -112,21 +121,6 @@ void StateSaverBackend::signalHandler(int type)
                          this, &StateSaverBackend::cleanup);
     }
     QCoreApplication::quit();
-}
-
-bool StateSaverBackend::enabled() const
-{
-    return m_globalEnabled;
-}
-void StateSaverBackend::setEnabled(bool enabled)
-{
-    if (m_globalEnabled != enabled) {
-        m_globalEnabled = enabled;
-        Q_EMIT enabledChanged(m_globalEnabled);
-        if (!m_globalEnabled) {
-            reset();
-        }
-    }
 }
 
 bool StateSaverBackend::registerId(const QString &id)
@@ -193,6 +187,10 @@ int StateSaverBackend::load(const QString &id, QObject *item, const QStringList 
     if (restorePreviousGroup) {
         m_archive->beginGroup(m_groupStack.pop());
     }
+    // if the archive got empty, emit completed()
+    if (m_archive->allKeys().isEmpty()) {
+        Q_EMIT completed();
+    }
     return result;
 }
 
@@ -233,14 +231,35 @@ int StateSaverBackend::save(const QString &id, QObject *item, const QStringList 
 /*
  * The method resets the register and the state archive for the application.
  */
-bool StateSaverBackend::reset()
+void StateSaverBackend::reset()
 {
     m_register.clear();
     if (m_archive) {
+        m_archive->clear();
+        m_archive->sync();
+        // trunkate the file
         QFile archiveFile(m_archive.data()->fileName());
-        return archiveFile.remove();
+        if (archiveFile.exists() && archiveFile.open(QFile::ReadOnly | QFile::Truncate)) {
+            archiveFile.close();
+        }
+    }
+}
+
+/*
+ * The method returns the state database state.
+ */
+bool StateSaverBackend::isDatabaseEmpty()
+{
+    return !m_archive || m_archive->allKeys().isEmpty();
+}
+
+bool StateSaverBackend::waitForStateRestored()
+{
+    QStringList args = QCoreApplication::arguments();
+    Q_FOREACH(const QString &argument, args) {
+        if (argument.startsWith("--uri")) {
+            return false;
+        }
     }
     return true;
 }
-
-

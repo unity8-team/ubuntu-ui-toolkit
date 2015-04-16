@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Canonical Ltd.
+ * Copyright 2015 Canonical Ltd.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -37,21 +37,22 @@ public:
         return instance;
     }
 
-    bool enabled() const;
-    void setEnabled(bool enabled);
-
     bool registerId(const QString &id);
     void removeId(const QString &id);
 
     int load(const QString &id, QObject *item, const QStringList &properties);
     int save(const QString &id, QObject *item, const QStringList &properties);
 
+    bool isDatabaseEmpty();
+    static bool waitForStateRestored();
+
 public Q_SLOTS:
-    bool reset();
+    void reset();
 
 Q_SIGNALS:
     void enabledChanged(bool enabled);
     void initiateStateSaving();
+    void completed();
 
 protected:
     explicit StateSaverBackend(QObject *parent = 0);
@@ -65,7 +66,6 @@ private:
     QPointer<QSettings> m_archive;
     QSet<QString> m_register;
     QStack<QString> m_groupStack;
-    bool m_globalEnabled;
 };
 
 #endif // STATESAVERBACKEND_P_H

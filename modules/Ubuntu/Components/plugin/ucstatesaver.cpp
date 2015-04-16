@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Canonical Ltd.
+ * Copyright 2015 Canonical Ltd.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -66,7 +66,7 @@ void UCStateSaverAttachedPrivate::_q_init()
  */
 void UCStateSaverAttachedPrivate::_q_save()
 {
-    if (m_enabled && StateSaverBackend::instance().enabled() && !m_properties.isEmpty() && !m_absoluteId.isEmpty()) {
+    if (m_enabled && !m_properties.isEmpty() && !m_absoluteId.isEmpty()) {
         StateSaverBackend::instance().save(m_absoluteId, m_attachee, m_properties);
     }
 }
@@ -154,9 +154,10 @@ void UCStateSaverAttachedPrivate::watchComponent(bool watch)
  * \note The application name must be set correctly to the package name so that
  * state saving can work (e.g. com.ubuntu.calendar) through \l MainView::applicationName.
  *
- * States saved are discarded when the application is closed properly. The state
- * loading is ignored (but not discarded) when the application is launched through
- * UriHandler.
+ * States saved are discarded when the application is closed properly, as well as
+ * when the application is launched by the url-dispatcher and the application's
+ * desktop Exec line contains \c {--uri=%u} argument passing.
+ * \sa UriHandler
  *
  * Example:
  * \qml
@@ -280,9 +281,7 @@ void UCStateSaverAttached::setEnabled(bool v)
     if (d->m_enabled != v) {
         d->m_enabled = v;
         // make sure next time we sync properties
-        if (StateSaverBackend::instance().enabled()) {
-            d->watchComponent(d->m_enabled);
-        }
+        d->watchComponent(d->m_enabled);
         Q_EMIT enabledChanged();
     }
 }
@@ -292,7 +291,7 @@ void UCStateSaverAttached::setEnabled(bool v)
  * List of properties to be serialized, separated with commas. Properties must be
  * writable and can only be \l{http://qt-project.org/doc/qt-5.0/qtqml/qtqml-typesystem-basictypes.html}{QML base types}.
  *
- * A custom singl eline input which saves the text, polaceholderText, font and color would look as follows:
+ * A custom single line input which saves the text, paceholderText, font and color would look as follows:
  * \qml
  * TextField {
  *     id: input

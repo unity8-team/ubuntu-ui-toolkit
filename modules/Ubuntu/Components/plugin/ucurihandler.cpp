@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Canonical Ltd.
+ * Copyright 2015 Canonical Ltd.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -24,13 +24,27 @@
 
 UriHandlerObject::UriHandlerObject(UCUriHandler* uriHandler)
     : m_uriHandler(uriHandler)
+    , m_cacheUris(false)
 {
 }
 
 void UriHandlerObject::Open(const QStringList& uris, const QHash<QString, QVariant>& platformData)
 {
     Q_UNUSED(platformData);
-    Q_EMIT m_uriHandler->opened(uris);
+    m_uris << uris;
+    if (!m_cacheUris) {
+        Q_EMIT m_uriHandler->opened(uris);
+    }
+}
+
+// slot called when statesaver ends its work
+void UriHandlerObject::handOverCachedUris()
+{
+    m_cacheUris = false;
+    disconnect(&StateSaverBackend::instance(), &StateSaverBackend::completed,
+                this, &UriHandlerObject::handOverCachedUris);
+    // emit all cached URIs
+    Q_EMIT m_uriHandler->opened(m_uris);
 }
 
 /*!
@@ -53,6 +67,13 @@ void UriHandlerObject::Open(const QStringList& uris, const QHash<QString, QVaria
  *     onOpened: print(uris)
  * }
  * \endqml
+ *
+ * \section2 Interaction with StateSaver
+ * When application uses StateSaver to save property states, UriHandler will deliver
+ * the URIs only after StateSaver restores the last state of the application. This
+ * can be overruled by specifying the \c {--uri=%u} argument in Exec line of the
+ * application's desktop file. If that is specified, states will not be loaded
+ * at all, and will be lost, URIs will be delivered as they come.
  */
 UCUriHandler::UCUriHandler()
     : m_uriHandlerObject(this)
@@ -84,6 +105,15 @@ UCUriHandler::UCUriHandler()
 
     QDBusConnection::sessionBus().registerObject(
         objectPath, &m_uriHandlerObject, QDBusConnection::ExportAllSlots);
+
+    // if the app was launched with --uri= argument, we do not have to queue
+    // URLs, otherwise yes
+    if (StateSaverBackend::waitForStateRestored()) {
+        // connect to completed signal
+        m_uriHandlerObject.m_cacheUris = true;
+        connect(&StateSaverBackend::instance(), &StateSaverBackend::completed,
+                &m_uriHandlerObject, &UriHandlerObject::handOverCachedUris);
+    }
 }
 
 /*!
