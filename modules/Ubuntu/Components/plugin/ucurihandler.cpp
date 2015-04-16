@@ -113,6 +113,12 @@ UCUriHandler::UCUriHandler()
         m_uriHandlerObject.m_cacheUris = true;
         connect(&StateSaverBackend::instance(), &StateSaverBackend::completed,
                 &m_uriHandlerObject, &UriHandlerObject::handOverCachedUris);
+        // feed URIs
+        Q_FOREACH(QString arg, QCoreApplication::arguments()) {
+            if (arg.startsWith(QStringLiteral("--uri="))) {
+                m_uriHandlerObject.m_uris << arg.remove(QStringLiteral("--uri="));
+            }
+        }
     }
 }
 

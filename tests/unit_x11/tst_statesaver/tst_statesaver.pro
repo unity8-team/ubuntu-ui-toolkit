@@ -27,4 +27,5 @@ OTHER_FILES += \
     ListViewItems.qml \
     GridViewItems.qml \
     NormalAppClose.qml \
-    SaveEnum.qml
+    SaveEnum.qml \
+    UriHandlerApp.qml

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Canonical Ltd.
+ * Copyright 2015 Canonical Ltd.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -603,6 +603,38 @@ private Q_SLOTS:
         QVERIFY2(QFile(fileName).exists(), qPrintable(fileName));
         // clean the file
         QFile::remove(fileName);
+    }
+
+    void test_uri_handler()
+    {
+        qputenv("APP_ID", "UriHandlerApp");
+        QProcess testApp;
+        testApp.start("qmlscene",QStringList() << "-I" << UBUNTU_QML_IMPORT_PATH << "UriHandlerApp.qml");
+        testApp.waitForStarted();
+        QTest::qWait(1000);
+
+        // make sure we are not killing the parent
+        QVERIFY(testApp.pid() != QCoreApplication::applicationPid());
+        // skip tests if the application PID is zero => the child app PID seems to be zero as well
+        if (!testApp.pid()) {
+            // kill child process
+            testApp.close();
+            QSKIP("This test requires valid PID");
+        }
+        // send SIGINT
+        ::kill(testApp.pid(), SIGINT);
+        testApp.waitForFinished();
+
+        // launch the app with --uri argument
+        testApp.start("qmlscene",QStringList() << "-I" << UBUNTU_QML_IMPORT_PATH << "--uri=whatever.org" << "UriHandlerApp.qml");
+        testApp.waitForStarted();
+        QTest::qWait(2000);
+
+        QString result = testApp.readAllStandardError();
+        // terminate the app
+        testApp.terminate();
+        testApp.waitForFinished();
+        QCOMPARE(result, QString("qml: URI= whatever.org\nqml: completed= false\nqml: testProperty= me hardies!\n"));
     }
 };
 
