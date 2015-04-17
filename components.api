@@ -246,7 +246,12 @@ PageTreeNode
     property Flickable flickable
     property list<Action> actions
 Page 1.1
-Page10
+Toolkit10.Page
+    readonly property PageHeadConfiguration head
+Page 1.3
+PageTreeNode
+    property string title
+    property Flickable flickable
     readonly property PageHeadConfiguration head
 PageHeadConfiguration 1.1
 Object
@@ -256,6 +261,10 @@ Object
     property string preset
     readonly property PageHeadSections sections
     property color foregroundColor
+PageHeadConfiguration 1.3
+Toolkit12.PageHeadConfiguration
+    property bool locked
+    property bool visible
 PageHeadSections 1.1
 QtObject
     property bool enabled
@@ -617,11 +626,11 @@ ActionItem
     function undo()
     function remove(start, end)
     function getText(start, end)
-Palette 0.1
+Palette 0.1 1.0
 QtObject
     property PaletteValues normal
     property PaletteValues selected
-PaletteValues 0.1
+PaletteValues 0.1 1.0
 QtObject
     property color background
     property color backgroundText
@@ -692,6 +701,7 @@ TestCase
     function tryCompareFunction(func, expectedResult, timeout)
     function typeString(string)
     function warningFormat(line, column, message)
+    function waitForHeaderAnimation(mainView)
 plugins.qmltypes
     name: "FilterBehavior"
     prototype: "QObject"
@@ -1050,6 +1060,8 @@ plugins.qmltypes
     prototype: "QQuickItem"
     exports: [
     Property { name: "activeFocusOnPress"; revision: 1; type: "bool" }
+    Property { name: "theme"; revision: 2; type: "UCTheme"; isPointer: true }
+    Signal { name: "themeChanged"; revision: 2 }
     Method {
     name: "requestFocus"
     Parameter { name: "reason"; type: "Qt::FocusReason" }
@@ -1062,6 +1074,16 @@ plugins.qmltypes
     Property { name: "from"; type: "QPointF"; isReadonly: true }
     Property { name: "content"; type: "QPointF" }
     Property { name: "status"; type: "Status"; isReadonly: true }
+    name: "UCTheme"
+    prototype: "QObject"
+    exports: ["ThemeSettings 1.3"]
+    Property { name: "parentTheme"; type: "UCTheme"; isReadonly: true; isPointer: true }
+    Property { name: "name"; type: "string" }
+    Property { name: "palette"; type: "QObject"; isPointer: true }
+    Method {
+    name: "createStyleComponent"
+    Parameter { name: "styleName"; type: "string" }
+    Parameter { name: "parent"; type: "QObject"; isPointer: true }
     name: "UCUbuntuAnimation"
     prototype: "QObject"
     exports: ["UbuntuAnimation 0.1", "UbuntuAnimation 1.0"]
@@ -1075,13 +1097,14 @@ plugins.qmltypes
     name: "UCUbuntuShape"
     prototype: "QQuickItem"
     exports: [
+    name: "Aspect"
     name: "BackgroundMode"
     name: "HAlignment"
     name: "VAlignment"
     name: "FillMode"
     name: "WrapMode"
     Property { name: "radius"; type: "string" }
-    Property { name: "borderSource"; type: "string" }
+    Property { name: "aspect"; revision: 1; type: "Aspect" }
     Property { name: "source"; revision: 1; type: "QVariant" }
     Property { name: "sourceOpacity"; revision: 1; type: "double" }
     Property { name: "sourceFillMode"; revision: 1; type: "FillMode" }
@@ -1094,12 +1117,14 @@ plugins.qmltypes
     Property { name: "backgroundColor"; revision: 1; type: "QColor" }
     Property { name: "secondaryBackgroundColor"; revision: 1; type: "QColor" }
     Property { name: "backgroundMode"; revision: 1; type: "BackgroundMode" }
+    Property { name: "borderSource"; type: "string" }
     Property { name: "color"; type: "QColor" }
     Property { name: "gradientColor"; type: "QColor" }
     Property { name: "image"; type: "QVariant" }
     Property { name: "stretched"; type: "bool" }
     Property { name: "horizontalAlignment"; type: "HAlignment" }
     Property { name: "verticalAlignment"; type: "VAlignment" }
+    Signal { name: "aspectChanged"; revision: 1 }
     Signal { name: "sourceChanged"; revision: 1 }
     Signal { name: "sourceOpacityChanged"; revision: 1 }
     Signal { name: "sourceFillModeChanged"; revision: 1 }

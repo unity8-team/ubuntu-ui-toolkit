@@ -104,7 +104,7 @@ StyledItem {
       text input. This property allows to control the highlight separately from
       the focused behavior.
       */
-    property bool highlighted: focus
+    property bool highlighted: activeFocus
     /*!
       Text that appears when there is no focus and no content in the component
       (hint text).
@@ -803,7 +803,7 @@ StyledItem {
         }
         // hint is shown till user types something in the field
         visible: (editor.text == "") && !editor.inputMethodComposing
-        color: Theme.palette.normal.backgroundText
+        color: theme.palette.normal.backgroundText
         font: editor.font
         elide: Text.ElideRight
         wrapMode: Text.WordWrap
@@ -873,5 +873,5 @@ StyledItem {
         }
     }
 
-    style: Theme.createStyleComponent("TextAreaStyle.qml", control)
+    style: theme.createStyleComponent("TextAreaStyle.qml", control)
 }
