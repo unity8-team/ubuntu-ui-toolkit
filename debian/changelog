@@ -1,8 +1,9 @@
-ubuntu-ui-toolkit-gles (1.2.1485+15.04.20150417.1-0ubuntu1) UNRELEASED; urgency=medium
+ubuntu-ui-toolkit-gles (1.2.1485+15.04.20150417.1-0ubuntu1) vivid; urgency=medium
 
+  [ Zoltán Balogh ]
   * Sync with 1.2.1485+15.04.20150417.1-0ubuntu1
 
- -- Zoltán Balogh <zoltan@bakter.hu>  Fri, 17 Apr 2015 18:47:39 +0300
+ -- CI Train Bot <ci-train-bot@canonical.com>  Mon, 20 Apr 2015 12:14:40 +0000
 
 ubuntu-ui-toolkit-gles (1.2.1458+15.04.20150327-0ubuntu1) vivid; urgency=medium
 
