@@ -1,3 +1,9 @@
+ubuntu-ui-toolkit-gles (1.2.1485+15.04.20150421-0ubuntu1) vivid; urgency=medium
+
+  * Sync with 1.2.1485+15.04.20150421-0ubuntu1
+
+ -- Łukasz 'sil2100' Zemczak <lukasz.zemczak@canonical.com>  Tue, 21 Apr 2015 18:40:20 +0200
+
 ubuntu-ui-toolkit-gles (1.2.1485+15.04.20150417.1-0ubuntu1) vivid; urgency=medium
 
   [ Zoltán Balogh ]
