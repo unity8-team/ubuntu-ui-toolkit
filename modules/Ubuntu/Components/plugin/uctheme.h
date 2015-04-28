@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2015 Canonical Ltd.
+ * Copyright 2015 Canonical Ltd.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -25,48 +25,58 @@
 #include <QtCore/QUrl>
 #include <QtCore/QString>
 #include <QtQml/QQmlComponent>
+#include <QtQml/QQmlParserStatus>
 
 #include "ucdefaulttheme.h"
 
-class UCTheme : public QObject
+class UCStyledItemBase;
+class UCTheme : public QObject, public QQmlParserStatus
 {
     Q_OBJECT
-
+    Q_INTERFACES(QQmlParserStatus)
+    Q_PROPERTY(UCTheme *parentTheme READ parentTheme NOTIFY parentThemeChanged)
     Q_PROPERTY(QString name READ name WRITE setName RESET resetName NOTIFY nameChanged)
     Q_PROPERTY(QObject* palette READ palette NOTIFY paletteChanged)
 public:
     explicit UCTheme(QObject *parent = 0);
-    static UCTheme &defaultSet()
+    static UCTheme &defaultTheme()
     {
         static UCTheme instance(true);
         return instance;
     }
 
     // getter/setters
+    UCTheme *parentTheme();
     QString name() const;
     void setName(const QString& name);
     void resetName();
     QObject* palette();
 
     Q_INVOKABLE QQmlComponent* createStyleComponent(const QString& styleName, QObject* parent);
-    void registerToContext(QQmlContext* context);
-    static QUrl pathFromThemeName(QString themeName);
+    static void registerToContext(QQmlContext* context);
 
 Q_SIGNALS:
+    void parentThemeChanged();
     void nameChanged();
     void paletteChanged();
 
+protected:
+    void classBegin();
+    void componentComplete()
+    {
+        m_completed = true;
+    }
+
 private Q_SLOTS:
-    void updateEnginePaths();
-    void onThemeNameChanged();
-    void updateThemePaths();
-    QUrl styleUrl(const QString& styleName);
-    QString parentThemeName(const QString& themeName);
-    void loadPalette(bool notify = true);
+    void _q_defaultThemeChanged();
 
 private:
     UCTheme(bool defaultStyle, QObject *parent = 0);
     void init();
+    void updateEnginePaths();
+    void updateThemePaths();
+    QUrl styleUrl(const QString& styleName);
+    void loadPalette(bool notify = true);
 
     QString m_name;
     QPointer<QObject> m_palette; // the palette might be from the default style if the theme doesn't define palette
@@ -74,8 +84,11 @@ private:
     QList<QUrl> m_themePaths;
     UCDefaultTheme m_defaultTheme;
     bool m_defaultStyle:1;
+    bool m_completed:1;
 
     friend class UCDeprecatedTheme;
 };
+
+QUrl pathFromThemeName(QString themeName);
 
 #endif // UCTHEME_H

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2015 Canonical Ltd.
+ * Copyright 2015 Canonical Ltd.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,13 +18,20 @@ import QtQuick 2.4
 import Ubuntu.Components 1.3
 
 StyledItem {
-    id: item
-    property string styleDocument
-    onStyleDocumentChanged: style = Theme.createStyleComponent(styleDocument, item)
+    objectName: "main"
+    width: units.gu(40)
+    height: units.gu(71)
 
-    property string themeName
-    onThemeNameChanged: Theme.name = themeName;
+    theme: ThemeSettings{ objectName: "top" }
 
-    // make sure we start with Ambiance theme by invoking resetName()
-    Component.onCompleted: Theme.name = undefined
+    Item {
+        anchors.fill: parent
+        StyledItem {
+            objectName: "testItem"
+            theme: ThemeSettings {
+                objectName: "testSet"
+                name: "Ubuntu.Components.Themes.SuruDark"
+            }
+        }
+    }
 }

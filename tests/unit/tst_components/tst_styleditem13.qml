@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2015 Canonical Ltd.
+ * Copyright 2015 Canonical Ltd.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,17 +14,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import QtQuick 2.4
+import QtTest 1.0
 import Ubuntu.Components 1.3
+import QtQuick 2.4
 
-StyledItem {
-    id: item
-    property string styleDocument
-    onStyleDocumentChanged: style = Theme.createStyleComponent(styleDocument, item)
+TestCase {
+     name: "StyledItemAPI"
 
-    property string themeName
-    onThemeNameChanged: Theme.name = themeName;
+     StyledItem {
+         id: scope
+         StyledItem {
+             id: inner
+         }
+     }
 
-    // make sure we start with Ambiance theme by invoking resetName()
-    Component.onCompleted: Theme.name = undefined
+     function test_api() {
+         verify(scope.theme, "Null default theme");
+         compare(inner.theme, scope.theme, "default themes should be inherited!");
+     }
 }
