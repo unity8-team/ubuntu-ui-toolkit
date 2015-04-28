@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013-2015 Canonical Ltd.
+ * Copyright 2015 Canonical Ltd.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,30 +17,28 @@
 import QtQuick 2.4
 import Ubuntu.Components 1.2
 
-MainView {
+StyledItem {
+    id: component1
+    objectName: "TopItem"
     width: units.gu(50)
-    height: units.gu(70)
+    height: units.gu(100)
 
-    Page {
-        title: "Actions"
-        Label {
-            anchors.centerIn: parent
-            text: "New API"
+    Column {
+        objectName: "Column"
+        anchors.fill: parent
+        TextField {
+            objectName: "OuterText"
+            property string styleName: Theme.name
+            onStyleNameChanged: print(objectName, styleName)
         }
-        head {
-            actions: [
-                Action {
-                    iconName: "settings"
-                    onTriggered: print("Trigger first action")
-                },
-                Action {
-                    iconName: "camera-flip"
-                    onTriggered: print("Trigger second action")
-                }
-            ]
-            backAction: Action {
-                iconName: "close"
-                onTriggered: print("Trigger custom back action")
+        StyledItem {
+            objectName: "SuruDarkStyled"
+            width: parent.width
+            height: units.gu(10)
+            TextField {
+                objectName: "InnerText"
+                property string styleName: Theme.name
+                onStyleNameChanged: print(objectName, styleName)
             }
         }
     }
