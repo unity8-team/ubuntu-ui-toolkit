@@ -1,3 +1,9 @@
+ubuntu-ui-toolkit (1.2.1458+15.04.20150428-0ubuntu1) UNRELEASED; urgency=medium
+
+  * Fixes LP: #1446279 LP: #1444975 LP: #1427253 LP: #1436094 
+
+ -- Zoltán Balogh <zoltan@bakter.hu>  Tue, 28 Apr 2015 19:51:04 +0300
+
 ubuntu-ui-toolkit (1.2.1458+15.04.20150327-0ubuntu1) vivid; urgency=medium
 
   [ By Tim Peeters ]
