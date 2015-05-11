@@ -135,26 +135,6 @@ Toolkit.StyledItem {
         property real dragInitMouseX: 0.0
         property real dragInitNormalizedValue: 0.0
 
-        property Flickable flickable: {
-            // traverse parents to catch whether we have an ancestor Flickable
-            var pl = slider.parent;
-            while (pl) {
-                if (pl.hasOwnProperty("flicking")) {
-                    return pl;
-                }
-                pl = pl.parent;
-            }
-            return null;
-        }
-
-        states: State {
-            name: "sliding"
-            when: mouseArea.flickable && mouseArea.pressed
-            PropertyChanges {
-                target: mouseArea.flickable
-                interactive: false
-            }
-        }
         function normalizedValueFromValue(value) {
             if (Qt.application.layoutDirection == Qt.RightToLeft) {
                 return MathUtils.clampAndProject(value, slider.minimumValue,
@@ -197,11 +177,13 @@ Toolkit.StyledItem {
             if (!slider.live) {
                 slider.value = liveValue;
             }
+            preventStealing = true;
         }
         onPositionChanged: {
             // Left button dragging
             var normalizedOffsetX = (mouseArea.mouseX - dragInitMouseX) / barMinusThumb;
             liveValue = valueFromNormalizedValue(dragInitNormalizedValue + normalizedOffsetX);
+            preventStealing = true;
         }
         onClicked: slider.requestFocus(Qt.MouseFocusReason)
         onLiveValueChanged: if (isPressed) slider.requestFocus(Qt.MouseFocusReason)

@@ -32,7 +32,7 @@ MainView {
         UbuntuListView {
             id: listView
             width: parent.width
-            height: units.gu(20)
+            height: units.gu(15)
             clip: true
             model: 10
             delegate: Standard {
@@ -44,7 +44,7 @@ MainView {
         UbuntuListView {
             id: listView2
             width: parent.width
-            height: units.gu(20)
+            height: units.gu(15)
             clip: true
             model: 10
             delegate: Slider {
@@ -54,7 +54,7 @@ MainView {
         Flickable {
             id: flickable
             width: parent.width
-            height: units.gu(20)
+            height: units.gu(15)
             clip: true
             contentHeight: column.height
             Column {
@@ -74,7 +74,7 @@ MainView {
         Flickable {
             id: flickable2
             width: parent.width
-            height: units.gu(20)
+            height: units.gu(15)
             clip: true
             contentHeight: column2.height
             Column {
@@ -85,6 +85,34 @@ MainView {
                     model: 10
                     Slider {
                         objectName: "testSlider" + index
+                    }
+                }
+            }
+        }
+
+        Flickable {
+            id: flickable3
+            width: parent.width
+            height: units.gu(15)
+            clip: true
+            contentWidth: flickable4.width
+
+            Flickable {
+                id: flickable4
+                height: parent.height
+                width: units.gu(40)
+                clip: true
+                contentHeight: column3.height
+
+                Column {
+                    id: column3
+                    width: parent.width
+                    height: childrenRect.height
+                    Repeater {
+                        model: 10
+                        Slider {
+                            objectName: "testSlider" + index
+                        }
                     }
                 }
             }
@@ -111,6 +139,7 @@ MainView {
                 {tag: "ListView with Slider alone", flickable: listView2},
                 {tag: "Flickable with Column of Slider in ListItem", flickable: flickable},
                 {tag: "Flickable with Column of Slider alone", flickable: flickable2},
+                {tag: "Nested Flickable with Column of Slider alone", flickable: flickable3},
             ];
         }
 
@@ -122,7 +151,6 @@ MainView {
             mouseDrag(data.flickable, sliderPos.x, sliderPos.y, units.gu(20), units.gu(20));
             waitForRendering(data.flickable, 200);
             compare(flickSpy.count, 0, "The Flickable should not move while Slider is active.");
-            compare(data.flickable.interactive, true, "The Flickable aint got back to interactive mode.");
         }
     }
 }
