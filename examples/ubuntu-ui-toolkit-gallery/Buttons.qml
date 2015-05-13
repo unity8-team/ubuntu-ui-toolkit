@@ -115,6 +115,7 @@ Template {
 
             ComboButton {
                 iconSource: "call.png"
+                objectName: "combobutton_collapsed_icon"
                 comboList:  UbuntuListView {
                     model: 10
                     delegate: Standard {
@@ -129,6 +130,7 @@ Template {
 
             ComboButton {
                 text: "Answer"
+                objectName: "combobutton_collapsed_icon_and_text"
                 iconSource: "call.png"
                 comboList:  UbuntuListView {
                     model: 10
