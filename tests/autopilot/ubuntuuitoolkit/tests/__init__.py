@@ -96,7 +96,6 @@ MainView {
         self.launch_application()
 
     def launch_application(self):
-        import pdb; pdb.set_trace()
         fake_application = fixture_setup.FakeApplication(
             qml_file_contents=self.test_qml)
         self.useFixture(fake_application)
