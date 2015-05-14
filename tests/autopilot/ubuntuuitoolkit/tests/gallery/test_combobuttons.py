@@ -1,6 +1,6 @@
 # -*- Mode: Python; coding: utf-8; indent-tabs-mode: nil; tab-width: 4 -*-
 #
-# Copyright (C) 2012, 2013, 2014 Canonical Ltd.
+# Copyright (C) 2012, 2013, 2014, 2015 Canonical Ltd.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -17,50 +17,58 @@
 """Tests for the Ubuntu UI Toolkit Gallery - ComboButton component"""
 
 import testscenarios
-from testtools.matchers import Equals
 
-from ubuntuuitoolkit import ubuntu_scenarios
+from fixtures import EnvironmentVariable
+
 from ubuntuuitoolkit.tests import gallery
-
-import os
+from ubuntuuitoolkit import ubuntu_scenarios
 
 
 class ComboButtonsTestCase(gallery.GalleryTestCase):
 
-    combo_buttons_scenarios = [
-        ('standard combo button', dict(
-            combo_button_name="combobutton_collapsed", icon=None, text="Press me", expanded=False)),
-        ('standard combo button', dict(
-            combo_button_name="combobutton_collapsed_icon", icon="call.png", text=None, expanded=False)),
-        ('standard combo button', dict(
-            combo_button_name="combobutton_collapsed_icon_and_text", icon="call.png", text="Answer", expanded=False)),
-        ('standard combo button', dict(
-            combo_button_name="combobutton_expanded", icon=None, text="Press me", expanded=True))
-    ]
-
-    scenarios = testscenarios.multiply_scenarios(
-        ubuntu_scenarios.get_device_simulation_scenarios(),
-        combo_buttons_scenarios)
+    scenarios = testscenarios.multiply_scenarios(ubuntu_scenarios.get_device_simulation_scenarios())
 
     def setUp(self):
-        # Reset the locale to English
-        os.environ['LANGUAGE'] = 'en'
+        self.useFixture(EnvironmentVariable('LANGUAGE', 'en'))
         super().setUp()
 
-    def test_combo_buttons(self):
+    def test_collapsed_combo_button_has_text(self):
         self.open_page('buttonsElement')
 
-        combo_button = self.app.select_single(objectName=self.combo_button_name)
+        combo_button = self.app.select_single('ComboButton', objectName='collapsed')
+
         self.assertIsNot(combo_button, None)
+        self.assertEquals('Press me', combo_button.text)
+        self.assertFalse(combo_button.expanded)
 
-        if self.icon is not None:
-            self.assertTrue(combo_button.iconSource.endswith(self.icon))
+    def test_collapsed_combo_button_has_icon(self):
+        self.open_page('buttonsElement')
 
-        if self.text is not None:
-            self.assertEquals(self.text, combo_button.text)
+        combo_button = self.app.select_single('ComboButton', objectName='collapsed_icon')
 
-        if self.expanded:
-            self.assertTrue(combo_button.expanded)
-            self.assertEquals(combo_button.expandedHeight, combo_button.height)
-        else:
-            self.assertFalse(combo_button.expanded)
+        self.assertIsNot(combo_button, None)
+        self.assertTrue(combo_button.iconSource.endswith('call.png'))
+        self.assertFalse(combo_button.expanded)
+
+    def test_collapsed_combo_button_has_icon_and_text(self):
+        self.open_page('buttonsElement')
+
+        combo_button = self.app.select_single('ComboButton', objectName='collapsed_icon_and_text')
+
+        self.assertIsNot(combo_button, None)
+        self.assertTrue(combo_button.iconSource.endswith('call.png'))
+        self.assertEquals('Answer', combo_button.text)
+        self.assertFalse(combo_button.expanded)
+
+    def test_expanded_combo_button_has_text_and_correct_size(self):
+        self.open_page('buttonsElement')
+
+        combo_button = self.app.select_single('ComboButton', objectName='expanded')
+        self.assertIsNot(combo_button, None)
+        self.assertEquals('Press me', combo_button.text)
+        self.assertTrue(combo_button.expanded)
+        self.assertEquals(combo_button.expandedHeight, combo_button.height)
+
+        combo_list = self.app.select_single(objectName='expanded_list')
+        self.assertIsNot(combo_list, None)
+        self.assertEquals(10, combo_list.count)

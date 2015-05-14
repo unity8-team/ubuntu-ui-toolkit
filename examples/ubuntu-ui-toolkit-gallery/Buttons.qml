@@ -100,7 +100,7 @@ Template {
 
             ComboButton {
                 text: "Press me"
-                objectName: "combobutton_collapsed"
+                objectName: "collapsed"
                 comboList:  UbuntuListView {
                     model: 10
                     delegate: Standard {
@@ -115,7 +115,7 @@ Template {
 
             ComboButton {
                 iconSource: "call.png"
-                objectName: "combobutton_collapsed_icon"
+                objectName: "collapsed_icon"
                 comboList:  UbuntuListView {
                     model: 10
                     delegate: Standard {
@@ -130,7 +130,7 @@ Template {
 
             ComboButton {
                 text: "Answer"
-                objectName: "combobutton_collapsed_icon_and_text"
+                objectName: "collapsed_icon_and_text"
                 iconSource: "call.png"
                 comboList:  UbuntuListView {
                     model: 10
@@ -145,10 +145,11 @@ Template {
 
             ComboButton {
                 text: "Press me"
-                objectName: "combobutton_expanded"
+                objectName: "expanded"
                 expanded: true
                 comboList:  UbuntuListView {
                     model: 10
+                    objectName: "expanded_list"
                     delegate: Standard {
                         text: "item #" + modelData
                     }
