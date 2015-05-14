@@ -96,6 +96,7 @@ MainView {
         self.launch_application()
 
     def launch_application(self):
+        import pdb; pdb.set_trace()
         fake_application = fixture_setup.FakeApplication(
             qml_file_contents=self.test_qml)
         self.useFixture(fake_application)
@@ -116,7 +117,7 @@ MainView {
             'QML2_IMPORT_PATH',
             'UBUNTU_UI_TOOLKIT_THEMES_PATH'
         ]
-        kwargs = {'global_': True}
+        kwargs = {'global_': False}
         for env in env_vars:
             kwargs[env] = local_modules_path
         self.useFixture(fixture_setup.InitctlEnvironmentVariable(**kwargs))

@@ -14,8 +14,13 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+import logging
+import subprocess
 
-from ubuntuuitoolkit import init_system
+from autopilot import logging as autopilot_logging
+
+
+logger = logging.getLogger(__name__)
 
 
 def is_initctl_env_var_set(variable, global_=False):
@@ -27,23 +32,37 @@ def is_initctl_env_var_set(variable, global_=False):
     :return: True if the variable is set. False otherwise.
 
     """
-    init = init_system.get_init_system_module()
-    return init.is_initctl_env_var_set(variable, global_)
+    try:
+        get_initctl_env_var(variable, global_)
+        return True
+    except subprocess.CalledProcessError:
+        return False
 
 
 def get_initctl_env_var(variable, global_=False):
     """Return the value of an initctl environment variable."""
-    init = init_system.get_init_system_module()
-    return init.get_initctl_env_var(variable, global_)
+    command = ['/sbin/initctl', 'get-env', variable]
+    if global_:
+        command += ['--global']
+    output = subprocess.check_output(
+        command, stderr=subprocess.STDOUT, universal_newlines=True)
+    return output.rstrip()
 
 
+@autopilot_logging.log_action(logger.info)
 def set_initctl_env_var(variable, value, global_=False):
     """Set the value of an initctl environment variable."""
-    init = init_system.get_init_system_module()
-    init.set_initctl_env_var(variable, value, global_)
+    command = ['/sbin/initctl', 'set-env', '%s=%s' % (variable, value)]
+    if global_:
+        command += ['--global']
+    subprocess.call(command, stderr=subprocess.STDOUT, universal_newlines=True)
 
 
+@autopilot_logging.log_action(logger.info)
 def unset_initctl_env_var(variable, global_=False):
     """Remove an initctl environment variable."""
-    init = init_system.get_init_system_module()
-    init.unset_initctl_env_var(variable, global_)
+    command = ['/sbin/initctl', 'unset-env', variable]
+    if global_:
+        command += ['--global']
+    subprocess.call(
+        command, stderr=subprocess.STDOUT, universal_newlines=True)

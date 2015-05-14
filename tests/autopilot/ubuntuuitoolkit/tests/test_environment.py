@@ -23,14 +23,18 @@ from ubuntuuitoolkit import environment
 
 class InitctlEnvironmentVariableTestCase(testtools.TestCase):
 
+    def get_unique_identifier(self):
+        return str(uuid.uuid1()).replace('-', '_')
+
     def test_is_environment_variable_set_with_unset_variable(self):
         """Test that is_initctl_env_var_set returns False for unset vars."""
-        variable = 'I do not exist {}'.format(uuid.uuid1())
+        variable = 'I_do_not_exist_{}'.format(self.get_unique_identifier())
         self.assertFalse(environment.is_initctl_env_var_set(variable))
 
     def test_is_environment_variable_set_with_set_variable(self):
         """Test that is_initctl_env_var_set returns True for existing vars."""
-        variable = 'Test variable to set {}'.format(uuid.uuid1())
+        variable = 'Test_variable_to_set_{}'.format(
+            self.get_unique_identifier())
         self.addCleanup(environment.unset_initctl_env_var, variable)
 
         environment.set_initctl_env_var(variable, 'dummy')
@@ -39,7 +43,8 @@ class InitctlEnvironmentVariableTestCase(testtools.TestCase):
 
     def test_get_environment_variable(self):
         """Test that get_initctl_env_var returns the right value."""
-        variable = 'Test variable to get {}'.format(uuid.uuid1())
+        variable = 'Test_variable_to_get_{}'.format(
+            self.get_unique_identifier())
         self.addCleanup(environment.unset_initctl_env_var, variable)
         environment.set_initctl_env_var(variable, 'test value')
 
@@ -48,7 +53,8 @@ class InitctlEnvironmentVariableTestCase(testtools.TestCase):
 
     def test_unset_environment_variable(self):
         """Test that unset_initctl_env_var removes the variable."""
-        variable = 'Test variable to unset {}'.format(uuid.uuid1())
+        variable = 'Test_variable_to_unset_{}'.format(
+            self.get_unique_identifier())
         environment.set_initctl_env_var(variable, 'dummy')
 
         environment.unset_initctl_env_var(variable)
@@ -57,7 +63,7 @@ class InitctlEnvironmentVariableTestCase(testtools.TestCase):
 
     def test_unset_environment_variable_with_unset_variable(self):
         """Test that unset_initctl_env_var does nothing with unset var."""
-        variable = 'I do not exist {}'.format(uuid.uuid1())
+        variable = 'I_do_not_exist_{}'.format(self.get_unique_identifier())
 
         environment.unset_initctl_env_var(variable)
 
@@ -65,14 +71,16 @@ class InitctlEnvironmentVariableTestCase(testtools.TestCase):
 
     def test_is_global_environment_variable_set_with_unset_variable(self):
         """Test is_initctl_env_var_set returns False for unset global vars."""
-        variable = 'I do not exist global {}'.format(uuid.uuid1())
+        variable = 'I_do_not_exist_global_{}'.format(
+            self.get_unique_identifier())
 
         self.assertFalse(environment.is_initctl_env_var_set(
             variable, global_=True))
 
     def test_get_global_environment_variable(self):
         """Test that get_initctl_env_var returns the right global value."""
-        variable = 'Test variable to get {}'.format(uuid.uuid1())
+        variable = 'Test_variable_to_get_{}'.format(
+            self.get_unique_identifier())
         self.addCleanup(
             environment.unset_initctl_env_var, variable, global_=True)
         environment.set_initctl_env_var(variable, 'test value', global_=True)
@@ -83,7 +91,8 @@ class InitctlEnvironmentVariableTestCase(testtools.TestCase):
 
     def test_unset_global_environment_variable(self):
         """Test that unset_initctl_env_var removes the global variable."""
-        variable = 'Test variable to unset {}'.format(uuid.uuid1())
+        variable = 'Test_variable_to_unset_{}'.format(
+            self.get_unique_identifier())
 
         environment.set_initctl_env_var(variable, 'dummy', global_=True)
         environment.unset_initctl_env_var(variable, global_=True)
