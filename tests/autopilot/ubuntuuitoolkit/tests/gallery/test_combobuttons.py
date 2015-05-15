@@ -26,11 +26,11 @@ from ubuntuuitoolkit import ubuntu_scenarios
 
 class ComboButtonsTestCase(gallery.GalleryTestCase):
 
-    scenarios = testscenarios.multiply_scenarios(ubuntu_scenarios.get_device_simulation_scenarios())
+    scenarios = ubuntu_scenarios.get_device_simulation_scenarios()
 
     def setUp(self):
-        self.useFixture(EnvironmentVariable('LANGUAGE', 'en'))
         super().setUp()
+        self.useFixture(EnvironmentVariable('LANGUAGE', 'en'))
 
     def test_collapsed_combo_button_has_text(self):
         self.open_page('buttonsElement')
