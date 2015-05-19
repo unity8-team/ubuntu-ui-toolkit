@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Canonical Ltd.
+ * Copyright 2015 Canonical Ltd.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -98,7 +98,7 @@ Item {
     property bool anchorToKeyboard: false
 
     x: parent ? (parent.width - width) / 2 : 0
-    y: parent ? (d.availableParentHeight - height) / 2 : 0
+    y: parent ? (parent.height - height) / 2 : 0
     width: parent ? (d.flipDimensions ? d.availableParentHeight : parent.width) : 0
     height: parent ? (d.flipDimensions ? parent.width : d.availableParentHeight) : 0
 
