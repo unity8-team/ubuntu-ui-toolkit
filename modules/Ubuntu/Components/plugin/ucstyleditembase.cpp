@@ -24,7 +24,7 @@
 
 UCStyledItemBasePrivate::UCStyledItemBasePrivate()
     : activeFocusOnPress(false)
-    , styleLoadingMethod(Immediate)
+    , styleLoadingMethod(LoadOnCompleted)
     , styleComponent(0)
     , styleItemContext(0)
     , styleItem(0)
@@ -257,7 +257,7 @@ void UCStyledItemBasePrivate::postStyleChanged()
 // loads the style animated or not, depending on the loading time
 void UCStyledItemBasePrivate::loadStyleItem(bool animated)
 {
-    if (styleItem || !styleComponent || !styleItemContext || (styleLoadingMethod != Immediate && !componentComplete)) {
+    if (styleItem || !styleComponent || !styleItemContext || !componentComplete) {
         // the style loading is delayed
         return;
     }
@@ -542,10 +542,8 @@ void UCStyledItemBase::componentComplete()
 {
     QQuickItem::componentComplete();
     Q_D(UCStyledItemBase);
-    if (d->styleLoadingMethod == UCStyledItemBasePrivate::DelayTillCompleted) {
-        // the delayed completion disables animations
-        d->loadStyleItem(false);
-    }
+    // disables animations
+    d->loadStyleItem(false);
 }
 
 // grab pressed state and focus if it can be

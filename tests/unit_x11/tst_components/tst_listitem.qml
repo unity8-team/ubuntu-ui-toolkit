@@ -312,7 +312,7 @@ Item {
             trailing.delegate = null;
             listView.positionViewAtBeginning();
             // keep additional timeout for proper cleanup
-            wait(200);
+            wait(300);
         }
 
         function test_0_defaults() {
@@ -987,60 +987,68 @@ Item {
             verify(panel, "No drag handler found!");
         }
 
+        property int moveCount: 0
+        function liveUpdateAccept(event) {
+            if (event.status == ListItemDrag.Started) {
+                return;
+            }
+            moveCount++;
+            listView.model.move(event.from, event.to, 1);
+            event.accept = true;
+        }
+        function liveUpdateReject(event) {
+            if (event.status == ListItemDrag.Started) {
+                return;
+            }
+            event.accept = false;
+        }
+        function singleDropAccept(event) {
+            if (event.status == ListItemDrag.Dropped) {
+                moveCount++;
+                listView.model.move(event.from, event.to, 1);
+                event.accept = true;
+            } else if (event.status == ListItemDrag.Moving) {
+                event.accept = false;
+            }
+        }
+        function singleDropReject(event) {
+            if (event.status == ListItemDrag.Dropped) {
+                event.accept = false;
+            } else if (event.status == ListItemDrag.Moving) {
+                event.accept = false;
+            }
+        }
         function test_drag_data() {
             return [
-                {tag: "Live 0->1 OK", live: true, from: 0, to: 1, count: 1, accept: true, indices:[1,0,2,3,4]},
-                {tag: "Live 0->2 OK", live: true, from: 0, to: 2, count: 2, accept: true, indices:[1,2,0,3,4]},
-                {tag: "Live 0->3 OK", live: true, from: 0, to: 3, count: 3, accept: true, indices:[1,2,3,0,4]},
-                {tag: "Live 3->0 OK", live: true, from: 3, to: 0, count: 3, accept: true, indices:[3,0,1,2,4]},
+                {tag: "Live 0->1 OK", live: true, from: 0, to: 1, count: 1, func: liveUpdateAccept, indices:[1,0,2,3,4]},
+                {tag: "Live 0->2 OK", live: true, from: 0, to: 2, count: 2, func: liveUpdateAccept, indices:[1,2,0,3,4]},
+                {tag: "Live 0->3 OK", live: true, from: 0, to: 3, count: 3, func: liveUpdateAccept, indices:[1,2,3,0,4]},
+                {tag: "Live 3->0 OK", live: true, from: 3, to: 0, count: 3, func: liveUpdateAccept, indices:[3,0,1,2,4]},
                         // do not accept moves
-                {tag: "Live 0->1 NOK", live: true, from: 0, to: 1, count: 0, accept: false, indices:[0,1,2,3,4]},
-                {tag: "Live 0->2 NOK", live: true, from: 0, to: 2, count: 0, accept: false, indices:[0,1,2,3,4]},
-                {tag: "Live 0->3 NOK", live: true, from: 0, to: 3, count: 0, accept: false, indices:[0,1,2,3,4]},
-                {tag: "Live 3->0 NOK", live: true, from: 3, to: 0, count: 0, accept: false, indices:[0,1,2,3,4]},
+                {tag: "Live 0->1 NOK", live: true, from: 0, to: 1, count: 0, func: liveUpdateReject, indices:[0,1,2,3,4]},
+                {tag: "Live 0->2 NOK", live: true, from: 0, to: 2, count: 0, func: liveUpdateReject, indices:[0,1,2,3,4]},
+                {tag: "Live 0->3 NOK", live: true, from: 0, to: 3, count: 0, func: liveUpdateReject, indices:[0,1,2,3,4]},
+                {tag: "Live 3->0 NOK", live: true, from: 3, to: 0, count: 0, func: liveUpdateReject, indices:[0,1,2,3,4]},
 
                         // non-live updates
-                {tag: "Drop 0->1 OK", live: false, from: 0, to: 1, count: 1, accept: true, indices:[1,0,2,3,4]},
-                {tag: "Drop 0->2 OK", live: false, from: 0, to: 2, count: 1, accept: true, indices:[1,2,0,3,4]},
-                {tag: "Drop 0->3 OK", live: false, from: 0, to: 3, count: 1, accept: true, indices:[1,2,3,0,4]},
-                {tag: "Drop 3->0 OK", live: false, from: 3, to: 0, count: 1, accept: true, indices:[3,0,1,2,4]},
+                {tag: "Drop 0->1 OK", live: false, from: 0, to: 1, count: 1, func: singleDropAccept, indices:[1,0,2,3,4]},
+                {tag: "Drop 0->2 OK", live: false, from: 0, to: 2, count: 1, func: singleDropAccept, indices:[1,2,0,3,4]},
+                {tag: "Drop 0->3 OK", live: false, from: 0, to: 3, count: 1, func: singleDropAccept, indices:[1,2,3,0,4]},
+                {tag: "Drop 3->0 OK", live: false, from: 3, to: 0, count: 1, func: singleDropAccept, indices:[3,0,1,2,4]},
                         // do not accept moves
-                {tag: "Drop 0->1 NOK", live: false, from: 0, to: 1, count: 0, accept: false, indices:[0,1,2,3,4]},
-                {tag: "Drop 0->2 NOK", live: false, from: 0, to: 2, count: 0, accept: false, indices:[0,1,2,3,4]},
-                {tag: "Drop 0->3 NOK", live: false, from: 0, to: 3, count: 0, accept: false, indices:[0,1,2,3,4]},
-                {tag: "Drop 3->0 NOK", live: false, from: 3, to: 0, count: 0, accept: false, indices:[0,1,2,3,4]},
+                {tag: "Drop 0->1 NOK", live: false, from: 0, to: 1, count: 0, func: singleDropReject, indices:[0,1,2,3,4]},
+                {tag: "Drop 0->2 NOK", live: false, from: 0, to: 2, count: 0, func: singleDropReject, indices:[0,1,2,3,4]},
+                {tag: "Drop 0->3 NOK", live: false, from: 0, to: 3, count: 0, func: singleDropReject, indices:[0,1,2,3,4]},
+                {tag: "Drop 3->0 NOK", live: false, from: 3, to: 0, count: 0, func: singleDropReject, indices:[0,1,2,3,4]},
             ];
         }
-
         function test_drag(data) {
-            var moveCount = 0;
-            function liveUpdate(event) {
-                if (event.status == ListItemDrag.Started) {
-                    return;
-                }
-                if (data.accept) {
-                    moveCount++;
-                    listView.model.move(event.from, event.to, 1);
-                }
-                event.accept = data.accept;
-            }
-            function singleDrop(event) {
-                if (event.status == ListItemDrag.Dropped) {
-                    if (data.accept) {
-                        moveCount++;
-                        listView.model.move(event.from, event.to, 1);
-                    }
-                    event.accept = data.accept;
-                } else if (event.status == ListItemDrag.Moving) {
-                    event.accept = false;
-                }
-            }
+            moveCount = 0;
 
             objectModel.reset();
             waitForRendering(listView);
             listView.positionViewAtBeginning();
-            var func = data.live ? liveUpdate : singleDrop;
-            listView.ViewItems.dragUpdated.connect(func);
+            listView.ViewItems.dragUpdated.connect(data.func);
 
             // enter drag mode
             toggleDragMode(listView, true);
@@ -1052,7 +1060,7 @@ Item {
             }
 
             // cleanup
-            listView.ViewItems.dragUpdated.disconnect(func);
+            listView.ViewItems.dragUpdated.disconnect(data.func);
             toggleDragMode(listView, false);
         }
 
@@ -1069,20 +1077,20 @@ Item {
                 {tag: "[0,1] locked, drag 2->3 OK", from: 2, to: 3, count: 1, indices: [0,1,3,2,4]},
             ];
         }
-        function test_drag_restricted(data) {
-            var moveCount = 0;
-            function updateHandler(event) {
-                if (event.status == ListItemDrag.Started) {
-                    if (event.from < 2) {
-                        event.accept = false;
-                    } else {
-                        event.minimumIndex = 2;
-                    }
-                } else if (event.status == ListItemDrag.Moving) {
-                    listView.model.move(event.from, event.to, 1);
-                    moveCount++;
+        function updateHandler(event) {
+            if (event.status == ListItemDrag.Started) {
+                if (event.from < 2) {
+                    event.accept = false;
+                } else {
+                    event.minimumIndex = 2;
                 }
+            } else if (event.status == ListItemDrag.Moving) {
+                listView.model.move(event.from, event.to, 1);
+                moveCount++;
             }
+        }
+        function test_drag_restricted(data) {
+            moveCount = 0;
 
             objectModel.reset();
             waitForRendering(listView);
@@ -1116,24 +1124,24 @@ Item {
                 {tag: "[1,2] selected, move 3->0, non-live", selected: [1,2], from: 3, to: 0, expected: [2,3], live: false},
             ];
         }
-        function test_drag_keeps_selected_indexes(data) {
-            function updateHandler(event) {
-                if (event.status == ListItemDrag.Started) {
-                    return;
-                }
-                if (data.live || event.status == ListItemDrag.Dropped) {
-                    listView.model.move(event.from, event.to, 1);
-                } else {
-                    event.accept = false;
-                }
+        function updateHandler2(event) {
+            if (event.status == ListItemDrag.Started) {
+                return;
             }
+            if (data.live || event.status == ListItemDrag.Dropped) {
+                listView.model.move(event.from, event.to, 1);
+            } else {
+                event.accept = false;
+            }
+        }
+        function test_drag_keeps_selected_indexes(data) {
             objectModel.reset();
             waitForRendering(listView);
             listView.ViewItems.selectedIndices = data.selected;
-            listView.ViewItems.dragUpdated.connect(updateHandler);
+            listView.ViewItems.dragUpdated.connect(updateHandler2);
             toggleDragMode(listView, true);
             drag(listView, data.from, data.to);
-            listView.ViewItems.dragUpdated.disconnect(updateHandler);
+            listView.ViewItems.dragUpdated.disconnect(updateHandler2);
             toggleDragMode(listView, false);
 
             // NOTE: the selected indexes order is arbitrar and cannot be predicted by the test
@@ -1182,8 +1190,8 @@ Item {
                 {tag: "ObjectModel", model: objectModel2, warning: ""},
             ];
         }
+        function dummyFunc() {}
         function test_warn_model(data) {
-            function dummyFunc() {}
             if (data.warning !== "") {
                 ignoreWarning(warningFormat(116, 9, "QML ListView: " + data.warning));
             }

@@ -30,9 +30,8 @@ class UCStyledItemBasePrivate : public QQuickItemPrivate
 public:
 
     enum StyleLoadingMethod {
-        Immediate,
-        DelayTillCompleted,
-        DelayTillExplicitRequested
+        LoadOnCompleted,
+        LoadOnRequest
     };
 
     static UCStyledItemBasePrivate *get(UCStyledItemBase *item) {
