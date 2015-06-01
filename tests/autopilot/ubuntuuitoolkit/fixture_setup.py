@@ -99,7 +99,7 @@ class FakeApplication(fixtures.Fixture):
                                                   dir=desktop_file_dir)
         self._desktop_file_dict['Exec'] = (
             self._desktop_file_dict['Exec'].format(
-                qmlscene=base.get_qmlscene_launch_command(),
+                qmlscene=base.get_toolkit_launcher_command(),
                 qml_file_path=qml_file_path))
         desktop_file.write('[Desktop Entry]\n')
         for key, value in self._desktop_file_dict.items():
