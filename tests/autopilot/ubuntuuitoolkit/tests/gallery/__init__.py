@@ -55,22 +55,6 @@ class GalleryTestCase(tests.QMLFileAppTestCase):
             # --elopio - 2014-06-25
             self.resize_window()
 
-    def launch_application(self):
-        desktop_file_path = self._get_desktop_file_path()
-        command_line = [
-            base.get_toolkit_launcher_command(),
-            "-I", tests._get_module_include_path(),
-            self._get_test_qml_file_path(),
-            '--desktop_file_hint={0}'.format(desktop_file_path)
-            ]
-        self.app = self.launch_test_application(
-            *self.get_command_line(command_line),
-            emulator_base=ubuntuuitoolkit.UbuntuUIToolkitCustomProxyObjectBase,
-            app_type='qt')
-
-        self.assertThat(
-            self.main_view.visible, Eventually(Equals(True)))
-
     def should_simulate_device(self):
         return (hasattr(self, 'app_width') and hasattr(self, 'app_height') and
                 hasattr(self, 'grid_unit_px'))
@@ -94,11 +78,37 @@ class GalleryTestCase(tests.QMLFileAppTestCase):
             get_window_size,
             Eventually(Equals((self.app_width, self.app_height))))
 
-    def _get_test_source_path(self):
+    def launch_application(self):
         if self._application_source_exists():
-            test_source_path = self._get_path_to_gallery_source()
+            self._launch_installed_application()
         else:
-            test_source_path = self._get_path_to_installed_gallery()
+            self._launch_application_from_source()
+        self.assertThat(
+            self.main_view.visible, Eventually(Equals(True)))
+
+    def _application_source_exists(self):
+        return 'UBUNTU_UI_TOOLKIT_AUTOPILOT_FROM_SOURCE' in os.environ
+
+    def _launch_installed_application(self):
+        self.app = self.launch_upstart_application(
+            'ubuntu-ui-toolkit-gallery',
+            emulator_base=ubuntuuitoolkit.UbuntuUIToolkitCustomProxyObjectBase)
+
+    def _launch_application_from_source(self):
+        desktop_file_path = self._get_desktop_file_path()
+        command_line = [
+            base.get_toolkit_launcher_command(),
+            "-I", tests._get_module_include_path(),
+            self._get_test_qml_file_path(),
+            '--desktop_file_hint={0}'.format(desktop_file_path)
+            ]
+        self.app = self.launch_test_application(
+            *self.get_command_line(command_line),
+            emulator_base=ubuntuuitoolkit.UbuntuUIToolkitCustomProxyObjectBase,
+            app_type='qt')
+
+    def _get_test_source_path(self):
+        test_source_path = self._get_path_to_gallery_source()
         assert os.path.exists(test_source_path)
         return test_source_path
 
@@ -107,35 +117,27 @@ class GalleryTestCase(tests.QMLFileAppTestCase):
             tests.get_path_to_source_root(), 'examples',
             'ubuntu-ui-toolkit-gallery')
 
-    def _application_source_exists(self):
-        return 'UBUNTU_UI_TOOLKIT_AUTOPILOT_FROM_SOURCE' in os.environ
-
     def _get_test_qml_file_path(self):
         return os.path.join(
             self.test_source_path,
             'ubuntu-ui-toolkit-gallery.qml')
 
-    def _get_path_to_installed_gallery(self):
-        return '/usr/lib/ubuntu-ui-toolkit/examples/ubuntu-ui-toolkit-gallery'
-
     def _get_desktop_file_path(self):
         desktop_file_path = os.path.join(
             self.test_source_path,
             'ubuntu-ui-toolkit-gallery.desktop')
-        if self._application_source_exists():
-            local_desktop_file_dir = (
-                tests.get_local_desktop_file_directory())
-            if not os.path.exists(local_desktop_file_dir):
-                os.makedirs(local_desktop_file_dir)
-            local_desktop_file_path = os.path.join(
-                local_desktop_file_dir, 'ubuntu-ui-toolkit-gallery.desktop')
-            shutil.copy(desktop_file_path, local_desktop_file_path)
-            # We can't delete the desktop file before we close the application,
-            # so we save it on an attribute to be deleted on tear down.
-            self.local_desktop_file_path = local_desktop_file_path
-            return local_desktop_file_path
-        else:
-            return desktop_file_path
+
+        local_desktop_file_dir = (
+            tests.get_local_desktop_file_directory())
+        if not os.path.exists(local_desktop_file_dir):
+            os.makedirs(local_desktop_file_dir)
+        local_desktop_file_path = os.path.join(
+            local_desktop_file_dir, 'ubuntu-ui-toolkit-gallery.desktop')
+        shutil.copy(desktop_file_path, local_desktop_file_path)
+        # We can't delete the desktop file before we close the application,
+        # so we save it on an attribute to be deleted on tear down.
+        self.local_desktop_file_path = local_desktop_file_path
+        return local_desktop_file_path
 
     def open_page(self, page):
         """Open a page of the widget gallery.
