@@ -94,6 +94,7 @@ MainView {
     def setUp(self):
         super().setUp()
         self.launch_application()
+        self.pointing_device = Pointer(self.input_device_class.create())
 
     def launch_application(self):
         fake_application = fixture_setup.FakeApplication(
@@ -129,8 +130,6 @@ class QMLStringAppTestCase(UbuntuUIToolkitWithFakeAppRunningTestCase):
         super().setUp()
         self.assertThat(
             self.main_view.visible, Eventually(Equals(True)))
-
-        self.pointing_device = Pointer(self.input_device_class.create())
 
     @property
     def main_view(self):
