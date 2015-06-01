@@ -17,7 +17,6 @@
 """Ubuntu UI Toolkit autopilot tests."""
 
 import os
-import tempfile
 
 from autopilot.input import Pointer
 from autopilot.matchers import Eventually
@@ -25,30 +24,6 @@ from testtools.matchers import Is, Not, Equals
 
 import ubuntuuitoolkit
 from ubuntuuitoolkit import base, fixture_setup
-
-
-_DESKTOP_FILE_CONTENTS = ("""[Desktop Entry]
-Type=Application
-Exec=/usr/bin/whoami
-Path=Not important
-Name=Test app
-Icon=Not important
-""")
-
-
-def _write_test_desktop_file():
-    desktop_file_dir = get_local_desktop_file_directory()
-    if not os.path.exists(desktop_file_dir):
-        os.makedirs(desktop_file_dir)
-    # Strip underscores which look like an APP_ID to Unity
-    # See https://bugs.launchpad.net/ubuntu-ui-toolkit/+bug/1329141
-    chars = tempfile._RandomNameSequence.characters.strip("_")
-    tempfile._RandomNameSequence.characters = chars
-    desktop_file = tempfile.NamedTemporaryFile(
-        suffix='.desktop', dir=desktop_file_dir, delete=False)
-    desktop_file.write(_DESKTOP_FILE_CONTENTS.encode('utf-8'))
-    desktop_file.close()
-    return desktop_file.name
 
 
 def get_local_desktop_file_directory():
