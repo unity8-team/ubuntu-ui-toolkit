@@ -23,10 +23,14 @@ from autopilot.matchers import Eventually
 from testtools.matchers import Equals
 
 import ubuntuuitoolkit
-from ubuntuuitoolkit import fixture_setup
+from ubuntuuitoolkit import (
+    base,
+    fixture_setup,
+    tests
+)
 
 
-class GalleryTestCase(ubuntuuitoolkit.tests.QMLFileAppTestCase):
+class GalleryTestCase(tests.QMLFileAppTestCase):
 
     """Base class for gallery test cases."""
 
@@ -34,8 +38,6 @@ class GalleryTestCase(ubuntuuitoolkit.tests.QMLFileAppTestCase):
 
     def setUp(self):
         self.test_source_path = self._get_test_source_path()
-        self.test_qml_file_path = self._get_test_qml_file_path()
-        self.desktop_file_path = self._get_desktop_file_path()
 
         if self.should_simulate_device():
             # Hide the Unity7 launcher because it takes space that might be
@@ -52,6 +54,22 @@ class GalleryTestCase(ubuntuuitoolkit.tests.QMLFileAppTestCase):
             # specific size, so we must resize it after it's launched.
             # --elopio - 2014-06-25
             self.resize_window()
+
+    def launch_application(self):
+        desktop_file_path = self._get_desktop_file_path()
+        command_line = [
+            base.get_toolkit_launcher_command(),
+            "-I", tests._get_module_include_path(),
+            self._get_test_qml_file_path(),
+            '--desktop_file_hint={0}'.format(desktop_file_path)
+            ]
+        self.app = self.launch_test_application(
+            *self.get_command_line(command_line),
+            emulator_base=ubuntuuitoolkit.UbuntuUIToolkitCustomProxyObjectBase,
+            app_type='qt')
+
+        self.assertThat(
+            self.main_view.visible, Eventually(Equals(True)))
 
     def should_simulate_device(self):
         return (hasattr(self, 'app_width') and hasattr(self, 'app_height') and
@@ -86,7 +104,7 @@ class GalleryTestCase(ubuntuuitoolkit.tests.QMLFileAppTestCase):
 
     def _get_path_to_gallery_source(self):
         return os.path.join(
-            ubuntuuitoolkit.tests.get_path_to_source_root(), 'examples',
+            tests.get_path_to_source_root(), 'examples',
             'ubuntu-ui-toolkit-gallery')
 
     def _application_source_exists(self):
@@ -106,7 +124,7 @@ class GalleryTestCase(ubuntuuitoolkit.tests.QMLFileAppTestCase):
             'ubuntu-ui-toolkit-gallery.desktop')
         if self._application_source_exists():
             local_desktop_file_dir = (
-                ubuntuuitoolkit.tests.get_local_desktop_file_directory())
+                tests.get_local_desktop_file_directory())
             if not os.path.exists(local_desktop_file_dir):
                 os.makedirs(local_desktop_file_dir)
             local_desktop_file_path = os.path.join(

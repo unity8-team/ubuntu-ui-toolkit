@@ -98,7 +98,7 @@ MainView {
 
     def launch_application(self):
         fake_application = fixture_setup.FakeApplication(
-            qml_file_contents=self.test_qml)
+            qml_file_contents=self.get_test_qml())
         self.useFixture(fake_application)
 
         local_modules_path = _get_module_include_path()
@@ -110,6 +110,9 @@ MainView {
         self.app = self.launch_upstart_application(
             application_name,
             emulator_base=ubuntuuitoolkit.UbuntuUIToolkitCustomProxyObjectBase)
+
+    def get_test_qml(self):
+        return self.test_qml
 
     def use_local_modules(self, local_modules_path):
         env_vars = [
@@ -154,10 +157,9 @@ class QMLFileAppTestCase(UbuntuUIToolkitWithFakeAppRunningTestCase):
     test_qml_file_path = '/path/to/file.qml'
     desktop_file_path = None
 
-    def setUp(self):
+    def get_test_qml(self):
         with open(self.test_qml_file_path) as qml_file:
-            self.test_qml = qml_file.read()
-        super().setUp()
+            return qml_file.read()
 
     def get_command_line(self, command_line):
         return command_line
