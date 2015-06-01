@@ -149,43 +149,19 @@ class FlickDirection:
     UP, DOWN, LEFT, RIGHT = range(0, 4)
 
 
-class QMLFileAppTestCase(base.UbuntuUIToolkitAppTestCase):
+class QMLFileAppTestCase(UbuntuUIToolkitWithFakeAppRunningTestCase):
     """Base test case for self tests that launch a QML file."""
 
     test_qml_file_path = '/path/to/file.qml'
     desktop_file_path = None
 
     def setUp(self):
+        with open(self.test_qml_file_path) as qml_file:
+            self.test_qml = qml_file.read()
         super().setUp()
-        self.pointing_device = Pointer(self.input_device_class.create())
-        self.launch_application()
 
     def get_command_line(self, command_line):
         return command_line
-
-    def launch_application(self):
-        desktop_file_path = self._get_desktop_file_path()
-        command_line = [
-            base.get_toolkit_launcher_command(),
-            "-I", _get_module_include_path(),
-            self.test_qml_file_path,
-            '--desktop_file_hint={0}'.format(desktop_file_path)
-            ]
-        self.app = self.launch_test_application(
-            *self.get_command_line(command_line),
-            emulator_base=ubuntuuitoolkit.UbuntuUIToolkitCustomProxyObjectBase,
-            app_type='qt')
-
-        self.assertThat(
-            self.main_view.visible, Eventually(Equals(True)))
-
-    def _get_desktop_file_path(self):
-        if self.desktop_file_path is None:
-            desktop_file_path = _write_test_desktop_file()
-            self.addCleanup(os.remove, desktop_file_path)
-            return desktop_file_path
-        else:
-            self.desktop_file_path
 
     @property
     def main_view(self):
