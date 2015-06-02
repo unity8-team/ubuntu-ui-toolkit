@@ -37,8 +37,6 @@ class GalleryTestCase(tests.QMLFileAppTestCase):
     local_desktop_file_path = None
 
     def setUp(self):
-        self.test_source_path = self._get_test_source_path()
-
         if self.should_simulate_device():
             # Hide the Unity7 launcher because it takes space that might be
             # needed by the app with the simulated size.
@@ -80,9 +78,9 @@ class GalleryTestCase(tests.QMLFileAppTestCase):
 
     def launch_application(self):
         if self._application_source_exists():
-            self._launch_installed_application()
-        else:
             self._launch_application_from_source()
+        else:
+            self._launch_installed_application()
         self.assertThat(
             self.main_view.visible, Eventually(Equals(True)))
 
@@ -95,11 +93,12 @@ class GalleryTestCase(tests.QMLFileAppTestCase):
             emulator_base=ubuntuuitoolkit.UbuntuUIToolkitCustomProxyObjectBase)
 
     def _launch_application_from_source(self):
-        desktop_file_path = self._get_desktop_file_path()
+        test_source_path = self._get_test_source_path()
+        desktop_file_path = self._get_desktop_file_path(test_source_path)
         command_line = [
             base.get_toolkit_launcher_command(),
             "-I", tests._get_module_include_path(),
-            self._get_test_qml_file_path(),
+            self._get_test_qml_file_path(test_source_path),
             '--desktop_file_hint={0}'.format(desktop_file_path)
             ]
         self.app = self.launch_test_application(
@@ -117,15 +116,12 @@ class GalleryTestCase(tests.QMLFileAppTestCase):
             tests.get_path_to_source_root(), 'examples',
             'ubuntu-ui-toolkit-gallery')
 
-    def _get_test_qml_file_path(self):
-        return os.path.join(
-            self.test_source_path,
-            'ubuntu-ui-toolkit-gallery.qml')
+    def _get_test_qml_file_path(self, test_source_path):
+        return os.path.join(test_source_path, 'ubuntu-ui-toolkit-gallery.qml')
 
-    def _get_desktop_file_path(self):
+    def _get_desktop_file_path(self, test_source_path):
         desktop_file_path = os.path.join(
-            self.test_source_path,
-            'ubuntu-ui-toolkit-gallery.desktop')
+            test_source_path, 'ubuntu-ui-toolkit-gallery.desktop')
 
         local_desktop_file_dir = (
             tests.get_local_desktop_file_directory())
