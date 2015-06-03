@@ -28,7 +28,7 @@ MainView {
 //    }
 
     SplitView {
-        leftContents: Page {
+        leftPage: Page {
             title: "Left page"
             Label {
                 anchors.centerIn: parent
@@ -59,7 +59,7 @@ MainView {
                 ]
             }
         }
-        rightContents: Page {
+        rightPage: Page {
             title: "Right page"
             id: rp
 

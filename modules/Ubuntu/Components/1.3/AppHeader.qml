@@ -28,8 +28,9 @@ Components.StyledItem {
 
     anchors {
         left: parent.left
-        right: parent.right
+//        right: parent.right
     }
+    width: units.gu(40)
     y: 0
 
     /*!

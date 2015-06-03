@@ -24,8 +24,8 @@ PageTreeNode {
 
     // TODO TIM: automatically put the first child left,
     //  the second child right. No more children currently supported.
-    property Page leftContents: null
-    property Page rightContents: null
+    property Page leftPage: null
+    property Page rightPage: null
     PageTreeNode {
         id: leftItem
         anchors {
@@ -40,8 +40,8 @@ PageTreeNode {
 //            opacity: 0.1
 //        }
         Binding {
-            target: leftContents
-            when: leftContents
+            target: leftPage
+            when: leftPage
             property: "parent"
             value: leftItem
         }
@@ -63,8 +63,8 @@ PageTreeNode {
 //            border.color: "black"
 //        }
         Binding {
-            target: rightContents
-            when: rightContents
+            target: rightPage
+            when: rightPage
             property: "parent"
             value: rightItem
         }
@@ -89,22 +89,22 @@ PageTreeNode {
         }
         height: header.height
 
-        property color dividerColor: "yellow" //Qt.darker(mainView.headerColor, 1.1)
-        property color panelColor: "orange" //Qt.lighter(mainView.headerColor, 1.1)
-        property color foregroundColor: "black"
+        property color dividerColor: header.dividerColor
+        property color panelColor: header.panelColor //"orange" //Qt.lighter(mainView.headerColor, 1.1)
+//        property color foregroundColor: "black"
 
-        property string title: rightContents && rightContents.hasOwnProperty("title") ?
-                                   rightContents.title : ""
+        property string title: rightPage && rightPage.hasOwnProperty("title") ?
+                                   rightPage.title : ""
 
         property Item contents: null
 
-        property PageHeadConfiguration config: rightContents ? rightContents.head : null
+        property PageHeadConfiguration config: rightPage ? rightPage.head : null
 //        property PageHeadConfiguration config: PageHeadConfiguration {
 
 //            property Flickable flickable: null //internal.activePage ? internal.activePage.flickable : null
 //            property var pageStack: null //internal.activePage ? internal.activePage.pageStack : null
 
-//            actions: rightContents ? rightContents.actions : null
+//            actions: rightPage ? rightPage.actions : null
 //        }
 
     }
