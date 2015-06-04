@@ -46,7 +46,7 @@ MainView {
 DEFAULT_DESKTOP_FILE_DICT = {
     'Type': 'Application',
     'Name': 'test',
-    'Exec': '{qmlscene} {qml_file_path} %u',
+    'Exec': '{qmlscene} {qml_file_path}',
     'Icon': 'Not important'
 }
 
