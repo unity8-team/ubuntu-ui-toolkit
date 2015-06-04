@@ -214,14 +214,15 @@ class LaunchFakeApplicationTestCase(autopilot_testcase.AutopilotTestCase):
             subprocess.check_output,
             ['ubuntu-app-stop', fake_application.application_name])
 
+        self.launch_upstart_application(fake_application.application_name)
         subprocess.check_output(
             ['url-dispatcher', 'testprotocol://test'])
 
         application = introspection.get_proxy_object_for_existing_process(
             pid=self._get_pid('qmlscene'))
 
-        # We can select a component from the application.
-        application.select_single('Label', objectName='testLabel')
+        label = application.select_single('Label', objectName='testLabel')
+        self.assertEquals(label.text, 'huh')
 
 
 class InitctlEnvironmentVariableTestCase(testtools.TestCase):
