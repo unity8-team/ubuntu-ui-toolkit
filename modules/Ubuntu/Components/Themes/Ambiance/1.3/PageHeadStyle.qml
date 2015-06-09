@@ -345,7 +345,8 @@ Style.PageHeadStyle {
                     right: parent.right
                     verticalCenter: parent.verticalCenter
                 }
-                text: styledItem.title
+//                text: styledItem.title
+                text: styledItem.config.title
                 font.weight: headerStyle.fontWeight
                 fontSize: headerStyle.fontSize
                 color: headerStyle.titleColor
