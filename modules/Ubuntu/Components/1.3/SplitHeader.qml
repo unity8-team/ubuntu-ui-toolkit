@@ -31,26 +31,42 @@ Item {
     property list<PageHeadConfiguration> configurations
 
     Row {
-        anchors.fill: parent
+        id: row
+        anchors {
+            left: parent.left
+            right: parent.right
+        }
+
+        // FIXME: Deal with decreasing subheader height
+        height: 0 // will be updated by the individual headers
+
         Repeater {
             model: widths.length
 
             StyledItem {
-                height: parent.height
+                onImplicitHeightChanged: {
+                    if (row.height < implicitHeight) {
+                        row.height = implicitHeight;
+                    }
+                }
                 width: splitHeader.widths[index]
                 styleName: "PageHeadStyle"
 
+                anchors {
+                    top: parent.top
+                    bottom: parent.bottom
+                }
+
                 property PageHeadConfiguration config: splitHeader.configurations[index]
 
-                property color dividerColor: "black"// header.dividerColor
-                property color panelColor: "orange"//header.panelColor //"orange" //Qt.lighter(mainView.headerColor, 1.1)
+                property color dividerColor: header.dividerColor
+                property color panelColor: header.panelColor //"orange" //Qt.lighter(mainView.headerColor, 1.1)
                 //        property color foregroundColor: "black"
 
-                property string title: "yeah"//rightPage && rightPage.hasOwnProperty("title") ?
+//                property string title: "yeah"//rightPage && rightPage.hasOwnProperty("title") ?
                 //rightPage.title : ""
 
                 property Item contents: null
-
 
                 Rectangle {
                     visible: index > 0
@@ -60,7 +76,7 @@ Item {
                         bottom: parent.bottom
                     }
                     width: units.dp(1)
-                    color: "black" //header.dividerColor
+                    color: header.dividerColor
                 }
             }
         }

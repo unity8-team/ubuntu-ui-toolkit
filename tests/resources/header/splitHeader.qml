@@ -23,24 +23,26 @@ MainView {
     height: units.gu(60)
 
     Page {
+        id: page
         title: "Split Header"
 
         head {
-            // FIXME: this doesn't work?
+            // FIXME: this doesn't work!
             locked: true
-            visible: true
+            visible: false
+            title: "This must be hidden!"
         }
 
         SplitHeader {
+            id: splitHeader
             anchors {
-//                centerIn: parent
                 left: parent.left
                 right: parent.right
-                verticalCenter: parent.verticalCenter
+                top: parent.top
             }
             height: units.gu(10) // TODO: auto
 
-            widths: [units.gu(30), units.gu(50), units.gu(25)]
+            widths: [units.gu(40), units.gu(50), mainView.width - units.gu(40+50)]
             configurations: [
                 PageHeadConfiguration {
                     title: "With sections"
@@ -109,6 +111,20 @@ MainView {
                     ]
                 }
             ]
+        }
+
+        Item {
+            anchors {
+                left: parent.left
+                right: parent.right
+                top: splitHeader.bottom
+                bottom: parent.bottom
+            }
+
+            Label {
+                anchors.centerIn: parent
+                text: "Behold: the split header."
+            }
         }
     }
 }
