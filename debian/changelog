@@ -5,6 +5,12 @@ ubuntu-ui-toolkit-gles (1.3.1534+15.10.20150616-0ubuntu1) UNRELEASED; urgency=me
 
  -- Zoltán Balogh <zoltan@bakter.hu>  Fri, 12 Jun 2015 13:20:17 +0300
 
+ubuntu-ui-toolkit-gles (1.3.1517+15.10.20150523-0ubuntu2) wily; urgency=medium
+
+  * Sync with 1.3.1517+15.10.20150523-0ubuntu3
+
+ -- Timo Jyrinki <timo-jyrinki@ubuntu.com>  Fri, 12 Jun 2015 07:51:17 +0000
+
 ubuntu-ui-toolkit-gles (1.3.1517+15.10.20150523-0ubuntu1) wily; urgency=medium
 
   [ Zoltán Balogh ]
