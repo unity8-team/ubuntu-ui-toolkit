@@ -107,7 +107,8 @@ Style.PageHeadStyle {
         objectName: "headerSectionsItem"
         anchors {
             left: parent.left
-            leftMargin: units.gu(2)
+            right: parent.right
+            //leftMargin: units.gu(2)
             bottom: divider.top
         }
         visible: model && model.length > 0
