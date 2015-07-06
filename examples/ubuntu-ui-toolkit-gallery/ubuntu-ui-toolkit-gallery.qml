@@ -47,6 +47,21 @@ MainView {
             id: mainPage
             title: "Ubuntu UI Toolkit"
 
+            head.actions: [
+                Action {
+                    text: i18n.tr('Use dark theme')
+                    iconName: 'torch-on'
+                    visible: theme.name == 'Ubuntu.Components.Themes.Ambiance'
+                    onTriggered: theme.name = 'Ubuntu.Components.Themes.SuruDark'
+                },
+                Action {
+                    text: i18n.tr('Use light theme')
+                    iconName: 'torch-off'
+                    visible: theme.name == 'Ubuntu.Components.Themes.SuruDark'
+                    onTriggered: theme.name = 'Ubuntu.Components.Themes.Ambiance'
+                }
+            ]
+
             Rectangle {
                 color: Qt.rgba(0.0, 0.0, 0.0, 0.01)
                 anchors.fill: parent
@@ -61,12 +76,10 @@ MainView {
                         objectName: model.objectName
                         enabled: model.source != ""
                         progression: true
-                        selected: mainPage.__propagated.header.title == model.label
+                        selected: gallery.__propagated.header.title == model.label
                         onClicked: {
                             var source = Qt.resolvedUrl(model.source);
                             var newPage = columns.addPageToNextColumn(mainPage, source);
-                            // FIXME: Take header into consideration
-                            newPage.flickable.topMargin = mainPage.__propagated.header.height;
                             newPage.title = model.label;
                         }
                     }
