@@ -385,6 +385,10 @@ Style.PageHeadStyle {
         ActionBar {
             id: actionsContainer
             objectName: "headerActionBar"
+
+            //currently hardcoded maximum number of actions we want to show in the header
+            property int maxActions: 6
+
             anchors {
                 top: parent.top
                 right: rightAnchor.left
@@ -393,7 +397,9 @@ Style.PageHeadStyle {
             height: headerStyle.contentHeight
 
             actions: headerStyle.config.actions
-            numberOfSlots: 3
+
+            //FIXME: currently hardcoded icon width!
+            numberOfSlots: Math.min(Math.floor(headerStyle.width * 0.3 / units.gu(4)) , maxActions)
         }
     }
 }
