@@ -389,6 +389,9 @@ Style.PageHeadStyle {
             //currently hardcoded maximum number of actions we want to show in the header
             property int maxActions: 6
 
+            //UX: we reserver max 30% of the header width for actions
+            property real headerPortionDedicatedToActions: 0.3
+
             anchors {
                 top: parent.top
                 right: rightAnchor.left
@@ -399,7 +402,7 @@ Style.PageHeadStyle {
             actions: headerStyle.config.actions
 
             //FIXME: currently hardcoded icon width!
-            numberOfSlots: Math.min(Math.floor(headerStyle.width * 0.3 / units.gu(4)) , maxActions)
+            numberOfSlots: Math.min(Math.min(Math.floor(headerStyle.width * headerPortionDedicatedToActions / units.gu(4)), actions.length), maxActions)
         }
     }
 }
