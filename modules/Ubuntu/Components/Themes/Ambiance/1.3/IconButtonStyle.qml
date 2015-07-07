@@ -26,7 +26,7 @@ Item {
     /*!
       The color of the icons.
      */
-    property color foregroundColor: "#808080"
+    property color foregroundColor: "#333333"
 
     /*!
       The background color of the button.
