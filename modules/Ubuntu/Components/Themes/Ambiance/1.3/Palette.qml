@@ -21,7 +21,7 @@ import Ubuntu.Components.Themes 1.3
 Palette {
     normal {
         background: "#EDEDED"
-        backgroundText: "#5D5D5D"
+        backgroundText: "#81888888"
         base: Qt.rgba(0, 0, 0, 0.1)
         baseText: UbuntuColors.lightGrey
         foreground: UbuntuColors.lightGrey
@@ -33,7 +33,7 @@ Palette {
     }
     selected {
         background: Qt.rgba(0, 0, 0, 0.05)
-        backgroundText: UbuntuColors.darkGrey
+        backgroundText: "#333333"//"#5D5D5D"//UbuntuColors.darkGrey
         selection: selected.foreground
         foreground: Qt.rgba(UbuntuColors.blue.r, UbuntuColors.blue.g, UbuntuColors.blue.b, 0.2)
         foregroundText: UbuntuColors.darkGrey
