@@ -91,6 +91,12 @@ Style.PageHeadStyle {
     //  have a separator.
     property alias __separator_visible: divider.visible
 
+    //Default background for the header is white according to latest visuals
+    Rectangle {
+        anchors.fill: parent
+        color: "white"
+    }
+
     Rectangle {
         id: divider
         anchors {
