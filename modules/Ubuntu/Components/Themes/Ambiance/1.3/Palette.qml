@@ -21,7 +21,7 @@ import Ubuntu.Components.Themes 1.3
 Palette {
     normal {
         background: "#EDEDED"
-        backgroundText: "#81888888"
+        backgroundText: "#5D5D5D"
         base: Qt.rgba(0, 0, 0, 0.1)
         baseText: UbuntuColors.lightGrey
         foreground: UbuntuColors.lightGrey
