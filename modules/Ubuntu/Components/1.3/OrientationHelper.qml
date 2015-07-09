@@ -117,7 +117,7 @@ Item {
                 return 0;
 
             var availableHeight = orientationHelper.parent.height;
-            if (d.stateAngle === 0 && UbuntuApplication.inputMethod.visible && anchorToKeyboard)
+            if (d.stateAngle === 0 && UbuntuApplication.inputMethod && UbuntuApplication.inputMethod.visible && anchorToKeyboard)
                 availableHeight -= UbuntuApplication.inputMethod.keyboardRectangle.height;
             return availableHeight;
         }
