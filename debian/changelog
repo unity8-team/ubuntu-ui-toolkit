@@ -1,9 +1,9 @@
-ubuntu-ui-toolkit-gles (1.3.1549+15.10.20150709-0ubuntu1) wily; urgency=medium
+ubuntu-ui-toolkit-gles (1.3.1549+15.10.20150706-0ubuntu1) wily; urgency=medium
 
   [ Zoltán Balogh ]
-  * Sync with main 1.3.1549+15.10.20150709-0ubuntu1
+  * Sync with main 1.3.1549+15.10.20150706-0ubuntu1
 
- -- CI Train Bot <ci-train-bot@canonical.com>  Thu, 09 Jul 2015 17:29:08 +0000
+ -- CI Train Bot <ci-train-bot@canonical.com>  Mon, 06 Jul 2015 20:46:41 +0000
 
 ubuntu-ui-toolkit-gles (1.3.1534+15.10.20150625-0ubuntu1) wily; urgency=medium
 
