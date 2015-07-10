@@ -1,8 +1,9 @@
-ubuntu-ui-toolkit-gles (1.3.1549+15.10.20150710.1-0ubuntu1) UNRELEASED; urgency=medium
+ubuntu-ui-toolkit-gles (1.3.1549+15.10.20150710.1-0ubuntu1) wily; urgency=medium
 
+  [ Timo Jyrinki ]
   * Sync with main 1.3.1549+15.10.20150710.1-0ubuntu1
 
- -- Timo Jyrinki <timo-jyrinki@ubuntu.com>  Fri, 10 Jul 2015 08:12:13 +0300
+ -- CI Train Bot <ci-train-bot@canonical.com>  Fri, 10 Jul 2015 07:31:43 +0000
 
 ubuntu-ui-toolkit-gles (1.3.1549+15.10.20150706-0ubuntu1) wily; urgency=medium
 
