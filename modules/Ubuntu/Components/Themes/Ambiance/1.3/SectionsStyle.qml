@@ -400,13 +400,6 @@ Item {
 
     //Since we only show one arrow at a time, let's reuse the same item and handle the property changes with states
     states: [
-        /*State {
-            name: "default"
-            //PropertyChanges { target: mask; visible: false }
-            //PropertyChanges { target: listviewcontainer; opacity: 1.0 }
-            PropertyChanges { target: leftHoveringIcon; visible: false; }
-            PropertyChanges { target: rightHoveringIcon; visible: false; }
-        },*/
         State {
             name: "hovering"
             when: hoveringArea.containsMouse
