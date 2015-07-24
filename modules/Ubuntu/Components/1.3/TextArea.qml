@@ -849,6 +849,7 @@ Ubuntu.StyledItem {
         contentHeight: editor.paintedHeight
         // do not allow rebounding
         boundsBehavior: Flickable.StopAtBounds
+        interactive: contentHeight > height || contentWidth > width
 
         // editor
         // Images are not shown when text contains <img> tags
