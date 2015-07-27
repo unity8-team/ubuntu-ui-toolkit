@@ -150,8 +150,10 @@ class UCViewItemsAttached : public QObject
     Q_PROPERTY(bool selectMode READ selectMode WRITE setSelectMode NOTIFY selectModeChanged)
     Q_PROPERTY(QList<int> selectedIndices READ selectedIndices WRITE setSelectedIndices NOTIFY selectedIndicesChanged)
     Q_PROPERTY(bool dragMode READ dragMode WRITE setDragMode NOTIFY dragModeChanged)
-    Q_PROPERTY(QList<int> expandedIndices READ expandedIndices WRITE setExpandedIndices NOTIFY expandedIndicesChanged REVISION 1)
-    Q_PROPERTY(int expansionFlags READ expansionFlags WRITE setExpansionFlags NOTIFY expansionFlagsChanged REVISION 1)
+    // FIXME: the following properties must be REVISION 1 after bug is fixed
+    // https://bugreports.qt.io/browse/QTBUG-40043
+    Q_PROPERTY(QList<int> expandedIndices READ expandedIndices WRITE setExpandedIndices NOTIFY expandedIndicesChanged)
+    Q_PROPERTY(int expansionFlags READ expansionFlags WRITE setExpansionFlags NOTIFY expansionFlagsChanged)
     Q_ENUMS(ExpansionFlag)
 public:
     enum ExpansionFlag {
@@ -190,8 +192,10 @@ Q_SIGNALS:
     void selectModeChanged();
     void selectedIndicesChanged();
     void dragModeChanged();
-    Q_REVISION(1) void expandedIndicesChanged();
-    Q_REVISION(1) void expansionFlagsChanged();
+    // FIXME: the following signals must be REVISION 1 after bug is fixed
+    // https://bugreports.qt.io/browse/QTBUG-40043
+    void expandedIndicesChanged();
+    void expansionFlagsChanged();
 
     void dragUpdated(UCDragEvent *event);
 

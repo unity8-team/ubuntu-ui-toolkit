@@ -67,6 +67,7 @@ Item {
         }
 
         ViewItems.expandedIndices: [1]
+        ViewItems.onExpandedIndicesChanged: print(ViewItems.expandedIndices)
 
         delegate: ListItem {
             id: item

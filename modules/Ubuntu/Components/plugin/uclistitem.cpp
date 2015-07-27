@@ -1048,7 +1048,7 @@ void UCListItem::componentComplete()
                 this, SLOT(_q_syncDragMode()));
 
         // if selection or drag mode is on, initialize style, with animations turned off
-        if (d->parentAttached->selectMode() || d->parentAttached->dragMode()) {
+        if (d->parentAttached->selectMode() || d->parentAttached->dragMode() || d->expansionGroup->expanded()) {
             d->initStyleItem(false);
         }
         // set the object name for testing purposes
