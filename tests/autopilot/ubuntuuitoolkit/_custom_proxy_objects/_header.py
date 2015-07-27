@@ -1,6 +1,6 @@
 # -*- Mode: Python; coding: utf-8; indent-tabs-mode: nil; tab-width: 4 -*-
 #
-# Copyright (C) 2012, 2013, 2014 Canonical Ltd.
+# Copyright (C) 2012-2015 Canonical Ltd.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -64,6 +64,9 @@ class AppHeader(_common.UbuntuUIToolkitCustomProxyObjectBase):
             # so no need to wait.
             return
 
+        # Wait showing/hiding animation of the header.
+        self.moving.wait_for(False)
+
     @autopilot_logging.log_action(logger.info)
     def switch_to_section_by_index(self, index):
         """Select a section in the header divider
@@ -78,24 +81,38 @@ class AppHeader(_common.UbuntuUIToolkitCustomProxyObjectBase):
         if self.useDeprecatedToolbar:
             raise _common.ToolkitException('Old header has no sections')
 
+        self.wait_for_animation()
         try:
-            self.wait_for_animation()
-            object_name = "section_button_" + str(index)
-            button = self.select_single(objectName=object_name)
+            # Ubuntu.Components >=1.3
+            sections = self.select_single(
+                'Sections', objectName='headerSectionsItem')
+            sections.click_section_button(index)
         except dbus.StateNotFoundError:
-            raise _common.ToolkitException(
-                'Button for section with given index not found')
+            # Ubuntu.Components < 1.3, has no headerSectionsItem.
+            try:
+                object_name = "section_button_" + str(index)
+                button = self.select_single(objectName=object_name)
+            except dbus.StateNotFoundError:
+                raise _common.ToolkitException(
+                    'Button for section with given index not found')
 
-        self.pointing_device.click_object(button)
+            self.pointing_device.click_object(button)
 
     def get_selected_section_index(self):
         if self.useDeprecatedToolbar:
             raise _common.ToolkitException('Old header has no sections')
 
         self.wait_for_animation()
-        sectionsProperties = self.select_single(
-            'QQuickItem', objectName='sectionsProperties')
-        return sectionsProperties.selectedIndex
+        try:
+            # Ubuntu.Components >=1.3
+            sections = self.select_single(
+                'Sections', objectName='headerSectionsItem')
+            return sections.selectedIndex
+        except dbus.StateNotFoundError:
+            # Ubuntu.Components < 1.3, has no headerSectionsItem.
+            sectionsProperties = self.select_single(
+                'QQuickItem', objectName='sectionsProperties')
+            return sectionsProperties.selectedIndex
 
     def click_back_button(self):
         self.ensure_visible()
@@ -203,11 +220,15 @@ class AppHeader(_common.UbuntuUIToolkitCustomProxyObjectBase):
 
         try:
             tab_button = self.get_root_instance().select_single(
-                objectName='tabButton' + str(index))
+                objectName='select_tab_' + str(index)
+                + '_header_overflow_button')
         except dbus.StateNotFoundError:
-            raise _common.ToolkitException(
-                "Tab button {0} not found.".format(index))
-
+            try:
+                tab_button = self.get_root_instance().select_single(
+                    objectName='tabButton' + str(index))
+            except dbus.StateNotFoundError:
+                raise _common.ToolkitException(
+                    "Tab button {0} not found.".format(index))
         self.pointing_device.click_object(tab_button)
         self.wait_for_animation()
 
@@ -221,8 +242,20 @@ class AppHeader(_common.UbuntuUIToolkitCustomProxyObjectBase):
         """
         self.ensure_visible()
 
-        button = self._get_action_button(action_object_name)
-        self.pointing_device.click_object(button)
+        try:
+            # for Ubuntu.Components 1.3
+            actionbar = self.select_single(
+                'ActionBar', objectName='headerActionBar')
+            actionbar.click_action_button(action_object_name)
+        except dbus.StateNotFoundError:
+            # for Ubuntu.Components < 1.3
+            button = self._get_action_button(action_object_name)
+            self.pointing_device.click_object(button)
+        except _common.ToolkitException:
+            # Catch 'Button not found in ActionBar or overflow' exception
+            raise _common.ToolkitException(
+                'Button not found in header or overflow')
+
         self.wait_for_animation()
 
     def _get_action_button(self, action_object_name):
@@ -265,4 +298,4 @@ class Header(AppHeader):
             'Header is an internal QML component of Ubuntu.Components and '
             'its API may change or be removed at any moment. Please use '
             'MainView and Page instead.')
-        super(Header, self).__init__(*args)
+        super().__init__(*args)

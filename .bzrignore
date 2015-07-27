@@ -1,8 +1,12 @@
-Makefile
-modules/Makefile.ubuntu-ui-toolkit
-modules/Ubuntu/Components/Makefile.ubuntu-ui-toolkit
-modules/Ubuntu/Components/plugin/Makefile.ubuntu-ui-toolkit
-modules/Ubuntu/Components/plugin/qrc_plugin.cpp
+Makefile*
+src/Makefile*
+src/Ubuntu/Components/Makefile*
+src/Ubuntu/Components/plugin/Makefile*
+src/Ubuntu/Components/plugin/qrc_plugin.cpp
+src/Ubuntu/Components/Themes/Makefile*
+src/Ubuntu/Components/Layouts/Makefile*
+src/Ubuntu/Components/PerformanceMetrics/Makefile*
+src/Ubuntu/Test/Makefile*
 documentation/html/*
 *.moc
 moc_*.cpp
@@ -15,6 +19,7 @@ plugins.qmltypes
 po/*.mo
 examples/ubuntu-ui-toolkit-gallery/po/*.mo
 tests/unit/tst_i18n/locale/en/LC_MESSAGES/*.mo
+tests/apicheck/apicheck
 tests/launcher/launcher
 build_paths.inc
 tests/unit/tst_i18n/localizedApp/share/locale/en/LC_MESSAGES/localizedApp.mo

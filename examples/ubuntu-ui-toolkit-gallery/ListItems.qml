@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Canonical Ltd.
+ * Copyright 2015 Canonical Ltd.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,8 +15,8 @@
  */
 
 import QtQuick 2.4
-import Ubuntu.Components 1.2 as Toolkit
-import Ubuntu.Components.ListItems 1.0 as ListItem
+import Ubuntu.Components 1.3 as Toolkit
+import Ubuntu.Components.ListItems 1.3 as ListItem
 
 Template {
     objectName: "listItemsTemplate"
@@ -207,7 +207,7 @@ Template {
             confirmRemoval: (index % 2)
             backgroundIndicator: Rectangle {
                 anchors.fill: parent
-                color: Theme.palette.normal.base
+                color: theme.palette.normal.base
             }
         }
 
@@ -352,7 +352,7 @@ Template {
                         Toolkit.UbuntuShape {
                             anchors { left: parent.left; right: parent.right }
                             height: index % 2 == 0 ? units.gu(6) : units.gu(18)
-                            color: "khaki"
+                            backgroundColor: "khaki"
                         }
                     }
                 }
@@ -393,7 +393,7 @@ Template {
                         Toolkit.UbuntuShape {
                             anchors { left: parent.left; right: parent.right }
                             height: index % 2 == 0 ? units.gu(6) : units.gu(18)
-                            color: "khaki"
+                            backgroundColor: "khaki"
                         }
                     }
                 }
