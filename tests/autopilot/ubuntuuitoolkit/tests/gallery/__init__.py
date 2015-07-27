@@ -1,6 +1,6 @@
 # -*- Mode: Python; coding: utf-8; indent-tabs-mode: nil; tab-width: 4 -*-
 #
-# Copyright (C) 2012, 2013, 2014 Canonical Ltd.
+# Copyright (C) 2012, 2013, 2014, 2015 Canonical Ltd.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -45,7 +45,7 @@ class GalleryTestCase(ubuntuuitoolkit.tests.QMLFileAppTestCase):
             # the app.
             self.simulate_device()
 
-        super(GalleryTestCase, self).setUp()
+        super().setUp()
 
         if self.should_simulate_device():
             # XXX Currently we have no way to launch the application with a
@@ -98,7 +98,9 @@ class GalleryTestCase(ubuntuuitoolkit.tests.QMLFileAppTestCase):
             'ubuntu-ui-toolkit-gallery.qml')
 
     def _get_path_to_installed_gallery(self):
-        return '/usr/lib/ubuntu-ui-toolkit/examples/ubuntu-ui-toolkit-gallery'
+        host_multiarch = ubuntuuitoolkit.base.get_host_multiarch()
+        return '/usr/lib/{}/qt5/examples//ubuntu-ui-toolkit/examples/' \
+               'ubuntu-ui-toolkit-gallery'.format(host_multiarch)
 
     def _get_desktop_file_path(self):
         desktop_file_path = os.path.join(
@@ -133,7 +135,7 @@ class GalleryTestCase(ubuntuuitoolkit.tests.QMLFileAppTestCase):
         element.selected.wait_for(True)
 
     def tearDown(self):
-        super(GalleryTestCase, self).tearDown()
+        super().tearDown()
         # We can't delete the desktop file before we close the application,
         # so we save it on an attribute to be deleted on tear down.
         if self.local_desktop_file_path is not None:

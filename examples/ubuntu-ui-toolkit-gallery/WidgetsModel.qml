@@ -24,11 +24,6 @@ ListModel {
         source: "Navigation.qml"
     }
     ListElement {
-        objectName: "stylesElement"
-        label: "Styles"
-        source: "Styles.qml"
-    }
-    ListElement {
         objectName: "colorsElement"
         label: "Colors"
         source: "Colors.qml"
@@ -72,6 +67,11 @@ ListModel {
         source: "ProgressBars.qml"
     }
     ListElement {
+        objectName: "sectionsElement"
+        label: "Sections"
+        source: "Sections.qml"
+    }
+    ListElement {
         objectName: "ubuntuShapesElement"
         label: "Ubuntu Shape"
         source: "UbuntuShape.qml"
@@ -90,6 +90,11 @@ ListModel {
         objectName: "crossFadeImageElement"
         label: "CrossFadeImage"
         source: "CrossFadeImage.qml"
+    }
+    ListElement {
+        objectName: "bottomEdgeHintElement"
+        label: "Bottom Edge Hint"
+        source: "BottomEdgeHint.qml"
     }
 
     // Already in design guidelines but should be reordered
