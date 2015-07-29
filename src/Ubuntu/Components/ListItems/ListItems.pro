@@ -6,10 +6,10 @@ IMPORT_VERSION = 0.1
 QT *= qml
 
 HEADERS += \
-    ubuntulistitemplugin.h
+    listitemplugin.h
 
 SOURCES += \
-    ubuntulistitemplugin.cpp
+    listitemplugin.cpp
 
 RESOURCES += \
     listitems.qrc
