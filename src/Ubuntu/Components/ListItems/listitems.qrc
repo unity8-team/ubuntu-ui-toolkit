@@ -1,0 +1,42 @@
+<RCC>
+    <qresource prefix="/Ubuntu/Components/ListItems">
+        <file>1.2/Base.qml</file>
+        <file>1.2/Caption.qml</file>
+        <file>1.2/Divider.qml</file>
+        <file>1.2/Empty.qml</file>
+        <file>1.2/Expandable.qml</file>
+        <file>1.2/ExpandablesColumn.qml</file>
+        <file>1.2/Header.qml</file>
+        <file>1.2/IconVisual.qml</file>
+        <file>1.2/ImageWithFallback.qml</file>
+        <file>1.2/ItemSelector.qml</file>
+        <file>1.2/LabelVisual.qml</file>
+        <file>1.2/MultiValue.qml</file>
+        <file>1.2/ProgressionVisual.qml</file>
+        <file>1.2/SingleControl.qml</file>
+        <file>1.2/SingleValue.qml</file>
+        <file>1.2/Standard.qml</file>
+        <file>1.2/Subtitled.qml</file>
+        <file>1.2/ThinDivider.qml</file>
+        <file>1.2/ValueSelector.qml</file>
+        <file>1.3/Base.qml</file>
+        <file>1.3/Caption.qml</file>
+        <file>1.3/Divider.qml</file>
+        <file>1.3/Empty.qml</file>
+        <file>1.3/Expandable.qml</file>
+        <file>1.3/ExpandablesColumn.qml</file>
+        <file>1.3/Header.qml</file>
+        <file>1.3/IconVisual.qml</file>
+        <file>1.3/ImageWithFallback.qml</file>
+        <file>1.3/ItemSelector.qml</file>
+        <file>1.3/LabelVisual.qml</file>
+        <file>1.3/MultiValue.qml</file>
+        <file>1.3/ProgressionVisual.qml</file>
+        <file>1.3/SingleControl.qml</file>
+        <file>1.3/SingleValue.qml</file>
+        <file>1.3/Standard.qml</file>
+        <file>1.3/Subtitled.qml</file>
+        <file>1.3/ThinDivider.qml</file>
+        <file>1.3/ValueSelector.qml</file>
+    </qresource>
+</RCC>
