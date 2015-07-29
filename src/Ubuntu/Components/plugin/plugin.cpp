@@ -172,6 +172,8 @@ void UbuntuComponentsPlugin::registerTypesToVersion(const char *uri, int major, 
     qmlRegisterSingletonType<UCUriHandler>(uri, major, minor, "UriHandler", registerUriHandler);
     qmlRegisterType<UCMouse>(uri, major, minor, "Mouse");
     qmlRegisterType<UCInverseMouse>(uri, major, minor, "InverseMouse");
+
+    qmlRegisterSingletonType(QUrl("qrc:/Ubuntu/Components/1.1/Haptics.qml"), uri, major, minor, "Haptics");
 }
 
 void UbuntuComponentsPlugin::registerTypes(const char *uri)
