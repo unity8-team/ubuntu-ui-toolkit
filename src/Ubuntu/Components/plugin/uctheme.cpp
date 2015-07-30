@@ -423,9 +423,9 @@ void UCTheme::updateThemePaths()
  */
 UCTheme *UCTheme::parentTheme()
 {
-    UCThemingAttached *styling = itemStyling(static_cast<QQuickItem*>(parent()));
-    if (styling && styling->m_theme == this && styling->m_parentStyling) {
-        return styling->m_parentStyling->getTheme();
+    UCThemingAttached *theming = itemTheming(static_cast<QQuickItem*>(parent()));
+    if (theming && theming->m_theme == this && theming->m_parentTheming) {
+        return theming->m_parentTheming->getTheme();
     }
     return NULL;
 }

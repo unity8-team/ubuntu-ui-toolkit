@@ -60,7 +60,7 @@ protected:
     friend class UCTheme;
 
     QStack< QPointer<QQuickItem> > m_parentStack;
-    QPointer<UCThemingAttached> m_parentStyling;
+    QPointer<UCThemingAttached> m_parentTheming;
     UCTheme *m_theme;
     UCThemeChangeListener *m_listener;
     QQuickItem *m_ownerItem;
@@ -74,7 +74,7 @@ protected:
 };
 QML_DECLARE_TYPEINFO(UCThemingAttached, QML_HAS_ATTACHED_PROPERTIES)
 
-UCThemingAttached *itemStyling(QQuickItem *item);
+UCThemingAttached *itemTheming(QQuickItem *item);
 
 
 #endif // UCTHEMINGATTACHED_H

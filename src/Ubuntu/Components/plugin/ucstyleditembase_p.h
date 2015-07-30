@@ -65,7 +65,7 @@ public:
 
 public:
     QString styleDocument;
-    QPointer<UCThemingAttached> styling;
+    QPointer<UCThemingAttached> theming;
     QPointer<QQmlContext> styleItemContext;
     QQmlComponent *styleComponent;
     QQuickItem *styleItem;

@@ -449,11 +449,11 @@ void UCStyledItemBasePrivate::_q_styleResized()
  */
 UCTheme *UCStyledItemBasePrivate::getTheme() const
 {
-    return styling->getTheme();
+    return theming->getTheme();
 }
 void UCStyledItemBasePrivate::setTheme(UCTheme *newTheme)
 {
-    if (styling && !styling->setTheme(newTheme)) {
+    if (theming && !theming->setTheme(newTheme)) {
         return;
     }
 
@@ -466,7 +466,7 @@ void UCStyledItemBasePrivate::setTheme(UCTheme *newTheme)
 }
 void UCStyledItemBasePrivate::resetTheme()
 {
-    styling->setTheme(Q_NULLPTR);
+    theming->setTheme(Q_NULLPTR);
 }
 
 
@@ -475,11 +475,12 @@ void UCStyledItemBase::classBegin()
     QQuickItem::classBegin();
 
     Q_D(UCStyledItemBase);
-    d->styling = qobject_cast<UCThemingAttached*>(
+    // attache theming
+    d->theming = qobject_cast<UCThemingAttached*>(
                 qmlAttachedPropertiesObject<UCThemingAttached>(this, true));
-    if (d->styling) {
-        d->styling->setListener(d);
-        connect(d->styling.data(), SIGNAL(themeChanged()),
+    if (d->theming) {
+        d->theming->setListener(d);
+        connect(d->theming.data(), SIGNAL(themeChanged()),
                          this, SLOT(_q_reloadStyle()));
     }
 }
@@ -526,8 +527,8 @@ void UCStyledItemBase::itemChange(ItemChange change, const ItemChangeData &data)
     QQuickItem::itemChange(change, data);
 
     Q_D(UCStyledItemBase);
-    if (change == ItemParentHasChanged && d->styling) {
-        d->styling->itemParentChanged();
+    if (change == ItemParentHasChanged && d->theming) {
+        d->theming->itemParentChanged();
     }
 }
 

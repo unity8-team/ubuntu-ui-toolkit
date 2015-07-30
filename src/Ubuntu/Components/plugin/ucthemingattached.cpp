@@ -34,7 +34,7 @@
  * is not mandatory.
  */
 
-UCThemingAttached *itemStyling(QQuickItem *item)
+UCThemingAttached *itemTheming(QQuickItem *item)
 {
     return qobject_cast<UCThemingAttached*>(
                 qmlAttachedPropertiesObject<UCThemingAttached>(item, false));
@@ -76,7 +76,7 @@ bool UCThemingAttached::connectParents(QQuickItem *fromItem)
     while (item) {
         // push the item onto the stack
         m_parentStack.push(QPointer<QQuickItem>(item));
-        UCThemingAttached *styling = itemStyling(item);
+        UCThemingAttached *styling = itemTheming(item);
         if (styling) {
             // this is the closest StyledItem, connect its themeChanged() signal
             QObject::connect(styling, SIGNAL(themeChanged()),
@@ -99,13 +99,13 @@ void UCThemingAttached::disconnectTillItem(QQuickItem *item)
     while (!m_parentStack.isEmpty() && item != m_parentStack.top()) {
         QPointer<QQuickItem> stackItem = m_parentStack.pop();
         // the topmost item can be the only one which is a StyledItem
-        UCThemingAttached *styling = itemStyling(stackItem.data());
+        UCThemingAttached *styling = itemTheming(stackItem.data());
         if (styling) {
             QObject::disconnect(styling, SIGNAL(themeChanged()),
                                 this, SLOT(parentStyleChanged()));
             // clear parent styling as well
-            if (styling == m_parentStyling) {
-                m_parentStyling.clear();
+            if (styling == m_parentTheming) {
+                m_parentTheming.clear();
             }
         } else if (!stackItem.isNull()) {
             QObject::disconnect(stackItem.data(), SIGNAL(parentChanged(QQuickItem*)),
@@ -117,10 +117,10 @@ void UCThemingAttached::disconnectTillItem(QQuickItem *item)
 // set the used parent styled item's style; returns true if the parent styled got changed
 bool UCThemingAttached::setParentStyled(UCThemingAttached *newStyling)
 {
-    if (m_parentStyling == newStyling) {
+    if (m_parentTheming == newStyling) {
         return false;
     }
-    m_parentStyling = newStyling;
+    m_parentTheming = newStyling;
     if (m_theme) {
         Q_EMIT themeChanged();
     }
@@ -131,8 +131,8 @@ UCTheme *UCThemingAttached::getTheme()
 {
     if (m_theme) {
         return m_theme;
-    } else if (!m_parentStyling.isNull()) {
-        return m_parentStyling->getTheme();
+    } else if (!m_parentTheming.isNull()) {
+        return m_parentTheming->getTheme();
     }
     return &UCTheme::defaultTheme();
 }
@@ -151,7 +151,7 @@ bool UCThemingAttached::setTheme(UCTheme *newTheme)
     // disconnect from the previous set
     UCTheme *connectedSet = m_theme ?
                                 m_theme :
-                                (!m_parentStyling ? &UCTheme::defaultTheme() : NULL);
+                                (!m_parentTheming ? &UCTheme::defaultTheme() : NULL);
     if (connectedSet) {
         connectThemeSignals(connectedSet, false);
     }
@@ -174,7 +174,7 @@ bool UCThemingAttached::setTheme(UCTheme *newTheme)
     // connect to the new set
     connectedSet = m_theme ?
                     m_theme :
-                    (!m_parentStyling ? &UCTheme::defaultTheme() : NULL);
+                    (!m_parentTheming ? &UCTheme::defaultTheme() : NULL);
     if (connectedSet) {
         connectThemeSignals(connectedSet, true);
     }
@@ -204,7 +204,7 @@ void UCThemingAttached::itemParentChanged()
     // clean stack
     disconnectTillItem(0);
     // make sure we reset parent StyledItem
-    m_parentStyling.clear();
+    m_parentTheming.clear();
     // build the stack - if possible
     connectParents(0);
     Q_EMIT themeChanged();
@@ -221,7 +221,7 @@ void UCThemingAttached::ascendantChanged(QQuickItem *ascendant)
     if (ascendant) {
         // disconnect from the previous ones
         disconnectTillItem(sender);
-        m_parentStyling.clear();
+        m_parentTheming.clear();
         // traverse ascendants till we reach a StyledItem or root and push them into the stack
         if (connectParents(ascendant)) {
             Q_EMIT themeChanged();
