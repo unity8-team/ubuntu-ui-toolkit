@@ -123,5 +123,8 @@
         <file>artwork/chevron@27.png</file>
         <file>artwork/delete@8.png</file>
         <file>artwork/ListItemDivider6px@8.png</file>
+        <file>Styles/1.2/ComboButtonStyle.qml</file>
+        <file>Styles/1.2/PageHeadStyle.qml</file>
+        <file>Styles/1.2/PullToRefreshStyle.qml</file>
     </qresource>
 </RCC>

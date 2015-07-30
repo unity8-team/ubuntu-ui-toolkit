@@ -229,6 +229,11 @@ void UbuntuComponentsPlugin::initializeEngine(QQmlEngine *engine, const char *ur
     const char *styleUri = "Ubuntu.Components.Styles";
     qmlRegisterType<UCListItemStyle>(styleUri, 1, 2, "ListItemStyle");
     qmlRegisterType<UCListItemStyle, 1>(styleUri, 1, 3, "ListItemStyle");
+    qmlRegisterType(QUrl("qrc:/Ubuntu/Components/Styles/1.2/ComboButtonStyle.qml"),styleUri,1,1,"ComboButtonStyle");
+
+    //register styles
+    qmlRegisterType(QUrl("qrc:/Ubuntu/Components/Styles/1.2/PullToRefreshStyle.qml"),styleUri,1,1,"PullToRefreshStyle");
+    qmlRegisterType(QUrl("qrc:/Ubuntu/Components/Styles/1.2/PageHeadStyle.qml"),styleUri,1,1,"PageHeadStyle");
 
     QQmlExtensionPlugin::initializeEngine(engine, uri);
     QQmlContext* context = engine->rootContext();
