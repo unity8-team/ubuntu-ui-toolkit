@@ -449,7 +449,7 @@ void UCStyledItemBasePrivate::_q_styleResized()
  */
 UCTheme *UCStyledItemBasePrivate::getTheme() const
 {
-    return theming->getTheme();
+    return theming ? theming->getTheme() : &UCTheme::defaultTheme();
 }
 void UCStyledItemBasePrivate::setTheme(UCTheme *newTheme)
 {
