@@ -196,33 +196,6 @@ UCTheme::ThemeRecord pathFromThemeName(QString themeName)
             record.deprecated = QFile::exists(absoluteThemeFolder + "deprecated");
             record.shared = QFile::exists(qmlDirFileName);
             record.path = QUrl::fromLocalFile(absoluteThemeFolder);
-
-            //check if this theme requires a plugin import
-            if (record.shared) {
-                QFile qmlDirFile(qmlDirFileName);
-                if (!qmlDirFile.exists() || !qmlDirFile.open(QIODevice::ReadOnly))
-                    break;
-
-                QQmlDirParser parser;
-                parser.parse(qmlDirFile.readAll());
-                if (parser.hasError()) {
-                    qmlInfo(0)    << "Can not parse qmldir file "<<record.path.toLocalFile().append(QStringLiteral("/qmldir"))
-                                  <<"for theme "<<record.name
-                                  << parser.errors(record.name) ;
-                    break ;
-                }
-
-                if (parser.plugins().empty())
-                    break;
-
-                Q_FOREACH(const QQmlDirParser::Component &comp, parser.components()) {
-                    if (comp.fileName.startsWith(QStringLiteral("qrc:/"))) {
-                        record.needsImport = true;
-                        break;
-                    }
-                }
-            }
-
             break;
         }
     }
@@ -432,20 +405,25 @@ void UCTheme::_q_defaultThemeChanged()
     Q_EMIT nameChanged();
 }
 
-bool UCTheme::loadThemePlugin(const ThemeRecord &theme, quint16 version)
+bool UCTheme::loadThemePlugin(const ThemeRecord &theme, quint16 version, const QString &component)
 {
-    if (theme.needsImport) {
-        static QString qmlTemplate("import %1 %2.%3");
-        QQmlExpression exp(m_engine->rootContext(), 0, qmlTemplate
-                           .arg(theme.name)
-                           .arg(MAJOR_VERSION(version))
-                           .arg(MINOR_VERSION(version)));
-        exp.evaluate();
-        if (!exp.hasError())
-            return true;
+    if (theme.pluginLoaded)
+        return true;
 
-        qmlInfo(this) << "Importing the plugin for theme "<<theme.name<<" failed. "<<exp.error();
-    }
+    static QString qmlTemplate("import %1 %2.%3\n%4{}");
+    QQmlComponent comp(m_engine);
+    comp.setData(qmlTemplate
+                 .arg(theme.name)
+                 .arg(MAJOR_VERSION(version))
+                 .arg(MINOR_VERSION(version))
+                 .arg(component).toUtf8(), QUrl());
+
+   if (comp.errors().isEmpty()) {
+       theme.pluginLoaded = true;
+       return true;
+   }
+
+    qmlInfo(this) << "Importing the plugin for theme "<<theme.name<<" failed. "<<comp.errors();
     return false;
 }
 
@@ -609,6 +587,10 @@ QUrl UCTheme::styleUrl(const QString& styleName, quint16 version, bool *isFallba
     if (isFallback) {
         (*isFallback) = false;
     }
+
+    if (styleName == QStringLiteral("ProgressionVisualStyle.qml"))
+        qDebug()<<"WE ARE HERE";
+
     Q_FOREACH (const ThemeRecord &themePath, m_themePaths) {
         QUrl styleUrl;
         /*
@@ -624,49 +606,90 @@ QUrl UCTheme::styleUrl(const QString& styleName, quint16 version, bool *isFallba
             styleVersion = LATEST_UITK_VERSION;
         }
 
+        //bool hasPlugin = false;
+        QHash<QString, QQmlDirParser::Component> components;
+        if (themePath.shared ) {
+            QQmlDirParser qmlDir;
+            QString qmlDirFileName = themePath.path.resolved(QStringLiteral("./qmldir")).toLocalFile();
+            QFile qmlDirFile(qmlDirFileName);
+
+            if (!qmlDirFile.open(QIODevice::ReadOnly)) {
+                qmlInfo(this) << "Could not read qmldir file of "<<themePath.name<<" skipping";
+                continue;
+            }
+
+            qmlDir.parse(qmlDirFile.readAll());
+            if (qmlDir.hasError()) {
+                qmlInfo(this) << "Error parsing file "<<qmlDirFileName
+                              << qmlDir.errors(themePath.name);
+                continue;
+            }
+            components = qmlDir.components();
+            //hasPlugin  = qmlDir.plugins().size() > 0;
+        }
+
         // loop through the versions to see if we have one matching
         // we stop at version 1.2 as we do not have support for earlier themes anymore.
         for (int minor = MINOR_VERSION(styleVersion); minor >= 2; minor--) {
-            bool match = false;
             QString versionedName = QStringLiteral("%1.%2/%3").arg(MAJOR_VERSION(styleVersion)).arg(minor).arg(styleName);
-            styleUrl = themePath.path.resolved(versionedName);
-            if (styleUrl.isValid() && QFile::exists(styleUrl.toLocalFile())) {
-                match = true;
-            }
+            if (themePath.shared) {
+                QString prefixedName = themePath.name;
+                prefixedName.replace(QStringLiteral("."), QStringLiteral("/"));
+                prefixedName = QStringLiteral("%1/%2")
+                        .arg(prefixedName)
+                        .arg(versionedName);
 
-            //check if the file is compiled
-            if (!match && themePath.needsImport) {
-                static QString pathTemplate(QStringLiteral(":/%1/%2"));
+                Q_FOREACH(const QQmlDirParser::Component &c, components) {
+                    if ( c.fileName.endsWith(prefixedName) && BUILD_VERSION(c.majorVersion, c.minorVersion) == version ) {
+                        if (loadThemePlugin(themePath, version, c.typeName) ) {
+                            if (isFallback && (version != styleVersion))
+                                (*isFallback) = true;
 
-                QString pathPrefix = themePath.name;
-                pathPrefix.replace(QStringLiteral("."), QStringLiteral("/"));
-
-                if (loadThemePlugin(themePath, version)) {
-                    QString qrcPath = QDir::cleanPath(pathTemplate
-                            .arg(pathPrefix)
-                            .arg(versionedName));
-
-                    if (QFile::exists(qrcPath)) {
-                        styleUrl = QUrl(qrcPath.mid(3));
-                        match = true;
+                            if (c.fileName.startsWith(QStringLiteral("qrc:/")))
+                                return QUrl(c.fileName);
+                            else
+                                return themePath.path.resolved(c.fileName);
+                        }
+                        break;
                     }
                 }
-            }
-
-            if (match) {
-                // set fallback warning if the theme is shared
-                if (isFallback && themePath.shared && (version != styleVersion)) {
-                    (*isFallback) = true;
+            } else {
+                styleUrl = themePath.path.resolved(versionedName);
+                if (styleUrl.isValid() && QFile::exists(styleUrl.toLocalFile())) {
+                    // set fallback warning if the theme is shared
+                    if (isFallback && themePath.shared && (version != styleVersion)) {
+                        (*isFallback) = true;
+                    }
+                    return styleUrl;
                 }
-                return styleUrl;
             }
         }
 
         // if we don't get any style, get the non-versioned ones for non-shared and deprecated styles
         if (!themePath.shared || themePath.deprecated) {
-            styleUrl = themePath.path.resolved(styleName);
-            if (styleUrl.isValid() && QFile::exists(styleUrl.toLocalFile())) {
-                return styleUrl;
+            if (themePath.shared) {
+                QString prefixedName = themePath.name;
+                prefixedName.replace(QStringLiteral("."), QStringLiteral("/"));
+                prefixedName = QStringLiteral("%1/%2")
+                        .arg(prefixedName)
+                        .arg(styleName);
+
+                Q_FOREACH(const QQmlDirParser::Component &c, components) {
+                    if ( c.fileName.endsWith(prefixedName) ) {
+                        if (loadThemePlugin(themePath, version, c.typeName) ) {
+                            if (c.fileName.startsWith(QStringLiteral("qrc:/")))
+                                return QUrl(c.fileName);
+                            else
+                                return themePath.path.resolved(c.fileName);
+                        }
+                        break;
+                    }
+                }
+            } else {
+                styleUrl = themePath.path.resolved(styleName);
+                if (styleUrl.isValid() && QFile::exists(styleUrl.toLocalFile())) {
+                    return styleUrl;
+                }
             }
         }
     }
