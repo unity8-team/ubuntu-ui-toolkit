@@ -1,0 +1,15 @@
+<RCC>
+    <qresource prefix="/Ubuntu/Components/Themes/SuruDark">
+        <file>1.2/ListItemStyle.qml</file>
+        <file>1.2/MainViewStyle.qml</file>
+        <file>1.2/OptionSelectorStyle.qml</file>
+        <file>1.2/Palette.qml</file>
+        <file>1.2/TabBarStyle.qml</file>
+        <file>1.3/ListItemStyle.qml</file>
+        <file>1.3/MainViewStyle.qml</file>
+        <file>1.3/OptionSelectorStyle.qml</file>
+        <file>1.3/Palette.qml</file>
+        <file>1.3/TabBarStyle.qml</file>
+        <file>artwork/chevron@27.png</file>
+    </qresource>
+</RCC>

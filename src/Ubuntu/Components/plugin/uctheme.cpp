@@ -39,6 +39,7 @@
 
 #include <QtQml/private/qqmlproperty_p.h>
 #include <QtQml/private/qqmlabstractbinding_p.h>
+#include <QtQml/private/qqmldirparser_p.h>
 #define foreach Q_FOREACH
 #include <QtQml/private/qqmlbinding_p.h>
 #undef foreach
@@ -166,6 +167,7 @@ QStringList themeSearchPath()
         pathList << qml2ImportPath.split(':', QString::SkipEmptyParts);
     }
     pathList << QLibraryInfo::location(QLibraryInfo::Qml2ImportsPath).split(':', QString::SkipEmptyParts);
+
     // fix folders
     QStringList result;
     Q_FOREACH(const QString &path, pathList) {
@@ -189,9 +191,38 @@ UCTheme::ThemeRecord pathFromThemeName(QString themeName)
         // QUrl needs a trailing slash to understand it's a directory
         QString absoluteThemeFolder = QDir(themeFolder).absolutePath().append('/');
         if (QDir(absoluteThemeFolder).exists()) {
+
+            QString qmlDirFileName = absoluteThemeFolder + "qmldir";
             record.deprecated = QFile::exists(absoluteThemeFolder + "deprecated");
-            record.shared = QFile::exists(absoluteThemeFolder + "qmldir");
+            record.shared = QFile::exists(qmlDirFileName);
             record.path = QUrl::fromLocalFile(absoluteThemeFolder);
+
+            //check if this theme requires a plugin import
+            if (record.shared) {
+                QFile qmlDirFile(qmlDirFileName);
+                if (!qmlDirFile.exists() || !qmlDirFile.open(QIODevice::ReadOnly))
+                    break;
+
+                QQmlDirParser parser;
+                parser.parse(qmlDirFile.readAll());
+                if (parser.hasError()) {
+                    qmlInfo(0)    << "Can not parse qmldir file "<<record.path.toLocalFile().append(QStringLiteral("/qmldir"))
+                                  <<"for theme "<<record.name
+                                  << parser.errors(record.name) ;
+                    break ;
+                }
+
+                if (parser.plugins().empty())
+                    break;
+
+                Q_FOREACH(const QQmlDirParser::Component &comp, parser.components()) {
+                    if (comp.fileName.startsWith(QStringLiteral("qrc:/"))) {
+                        record.needsImport = true;
+                        break;
+                    }
+                }
+            }
+
             break;
         }
     }
@@ -401,6 +432,23 @@ void UCTheme::_q_defaultThemeChanged()
     Q_EMIT nameChanged();
 }
 
+bool UCTheme::loadThemePlugin(const ThemeRecord &theme, quint16 version)
+{
+    if (theme.needsImport) {
+        static QString qmlTemplate("import %1 %2.%3");
+        QQmlExpression exp(m_engine->rootContext(), 0, qmlTemplate
+                           .arg(theme.name)
+                           .arg(MAJOR_VERSION(version))
+                           .arg(MINOR_VERSION(version)));
+        exp.evaluate();
+        if (!exp.hasError())
+            return true;
+
+        qmlInfo(this) << "Importing the plugin for theme "<<theme.name<<" failed. "<<exp.error();
+    }
+    return false;
+}
+
 void UCTheme::updateThemePaths()
 {
     m_themePaths.clear();
@@ -579,9 +627,33 @@ QUrl UCTheme::styleUrl(const QString& styleName, quint16 version, bool *isFallba
         // loop through the versions to see if we have one matching
         // we stop at version 1.2 as we do not have support for earlier themes anymore.
         for (int minor = MINOR_VERSION(styleVersion); minor >= 2; minor--) {
+            bool match = false;
             QString versionedName = QStringLiteral("%1.%2/%3").arg(MAJOR_VERSION(styleVersion)).arg(minor).arg(styleName);
             styleUrl = themePath.path.resolved(versionedName);
             if (styleUrl.isValid() && QFile::exists(styleUrl.toLocalFile())) {
+                match = true;
+            }
+
+            //check if the file is compiled
+            if (!match && themePath.needsImport) {
+                static QString pathTemplate(QStringLiteral(":/%1/%2"));
+
+                QString pathPrefix = themePath.name;
+                pathPrefix.replace(QStringLiteral("."), QStringLiteral("/"));
+
+                if (loadThemePlugin(themePath, version)) {
+                    QString qrcPath = QDir::cleanPath(pathTemplate
+                            .arg(pathPrefix)
+                            .arg(versionedName));
+
+                    if (QFile::exists(qrcPath)) {
+                        styleUrl = QUrl(qrcPath.mid(3));
+                        match = true;
+                    }
+                }
+            }
+
+            if (match) {
                 // set fallback warning if the theme is shared
                 if (isFallback && themePath.shared && (version != styleVersion)) {
                     (*isFallback) = true;
@@ -659,6 +731,8 @@ QQmlComponent* UCTheme::createStyleComponent(const QString& styleName, QObject* 
 {
     QQmlComponent *component = NULL;
 
+    qDebug()<<Q_FUNC_INFO<<styleName<<version;
+
     if (!version) {
         version = m_version;
     }
@@ -673,6 +747,7 @@ QQmlComponent* UCTheme::createStyleComponent(const QString& styleName, QObject* 
         if (engine != NULL) {
             bool fallback = false;
             QUrl url = styleUrl(styleName, version, &fallback);
+            qDebug()<<url;
             if (url.isValid()) {
                 if (fallback) {
                     qmlInfo(parent) << QStringLiteral("Theme '%1' has no '%2' style for version %3.%4, fall back to version %5.%6.")

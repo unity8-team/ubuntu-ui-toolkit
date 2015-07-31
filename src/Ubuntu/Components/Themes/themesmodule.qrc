@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/Ubuntu/Components/Themes">
+        <file>1.2/Palette.qml</file>
+        <file>1.2/PaletteValues.qml</file>
+        <file>1.3/Palette.qml</file>
+        <file>1.3/PaletteValues.qml</file>
+    </qresource>
+</RCC>

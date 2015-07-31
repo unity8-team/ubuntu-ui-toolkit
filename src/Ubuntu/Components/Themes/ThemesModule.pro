@@ -1,12 +1,20 @@
 TARGETPATH = Ubuntu/Components/Themes
 
+CXX_MODULE = qml
+TARGET  = UbuntuThemesModule
+IMPORT_VERSION = 0.1
 
-ARTWORK_FILES = $$system(find artwork -type f)
+QT *= qml
 
-QML_FILES += 1.2/Palette.qml \
-             1.2/PaletteValues.qml \
-             1.3/Palette.qml \
-             1.3/PaletteValues.qml \
-             $$ARTWORK_FILES
+HEADERS += \
+    themesplugin.h
 
-load(ubuntu_qml_module)
+SOURCES += \
+    themesplugin.cpp
+
+RESOURCES += \
+    themesmodule.qrc
+
+OTHER_FILES += qmldir
+
+load(ubuntu_qml_plugin)

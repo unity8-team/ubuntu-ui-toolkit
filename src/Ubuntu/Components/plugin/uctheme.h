@@ -43,7 +43,7 @@ class UCTheme : public QObject, public QQmlParserStatus
 public:
     struct ThemeRecord {
         ThemeRecord() :
-            shared(false), deprecated(false)
+            shared(false), deprecated(false), needsImport(false)
         {}
         ThemeRecord(const QString &name, const QUrl &path, bool shared, bool deprecated) :
             name(name), path(path), shared(shared), deprecated(deprecated)
@@ -57,6 +57,7 @@ public:
         QUrl path;
         bool shared:1;
         bool deprecated:1;
+        bool needsImport: 1;
     };
 
     explicit UCTheme(QObject *parent = 0);
@@ -95,7 +96,6 @@ protected:
     {
         m_completed = true;
     }
-
 private Q_SLOTS:
     void resetPalette();
     void _q_defaultThemeChanged();
@@ -107,6 +107,7 @@ private:
     void updateThemePaths();
     QUrl styleUrl(const QString& styleName, quint16 version, bool *isFallback = NULL);
     void loadPalette(bool notify = true);
+    bool loadThemePlugin(const ThemeRecord &theme, quint16 version);
 
     class PaletteConfig
     {

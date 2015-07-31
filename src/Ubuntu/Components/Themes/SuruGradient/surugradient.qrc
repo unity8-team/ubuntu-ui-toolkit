@@ -1,0 +1,11 @@
+<RCC>
+    <qresource prefix="/ Ubuntu/Components/Themes/SuruGradient">
+        <file>artwork/chevron@27.png</file>
+        <file>artwork/chevron_down@30.png</file>
+        <file>artwork/tick@30.png</file>
+        <file>MainViewStyle.qml</file>
+        <file>OptionSelectorStyle.qml</file>
+        <file>Palette.qml</file>
+        <file>TabBarStyle.qml</file>
+    </qresource>
+</RCC>
