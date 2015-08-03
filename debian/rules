@@ -10,14 +10,12 @@ DEB_HOST_ARCH ?= $(shell dpkg-architecture -qDEB_HOST_ARCH)
 CONFIGURE_SWITCHES = "-r" \
                      "ROOT_SOURCE_DIR=$(CURDIR)" \
                      "ROOT_BUILD_DIR=$(CURDIR)" 
-override_dh_auto_configure:
-	qmake -r
-
 %:
 	dh $@
 
 override_dh_auto_configure:
-	dh_auto_configure -- $(CONFIGURE_SWITCHES)
+	qmake -r
+	#dh_auto_configure -- $(CONFIGURE_SWITCHES)
 
 override_dh_auto_test:
 ifeq (,$(findstring nocheck,$(DEB_BUILD_OPTIONS)))
