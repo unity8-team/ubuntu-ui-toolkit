@@ -99,7 +99,7 @@ QML_FILES += 1.3/AbstractButton.qml \
              1.3/DraggingArea.qml \
              1.3/Header.qml \
              1.3/InputHandler.qml \
-             1.3/Label.qml \
+             1.3/ULabel.qml \
              1.3/MainViewBase.qml \
              1.3/MainView.qml \
              1.3/mathUtils.js \

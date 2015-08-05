@@ -929,7 +929,7 @@ ActionItem {
     }
 
     // hint text
-    Label {
+    Ubuntu.Label {
         id: hint
         verticalAlignment: Text.AlignVCenter
         horizontalAlignment: editor.horizontalAlignment

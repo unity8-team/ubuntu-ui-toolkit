@@ -60,6 +60,7 @@
 #include "uclistitemactions.h"
 #include "uclistitemstyle.h"
 #include "ucserviceproperties.h"
+#include "uclabel.h"
 #include "ucnamespace.h"
 
 #include <sys/types.h>
@@ -173,6 +174,7 @@ void UbuntuComponentsPlugin::registerTypesToVersion(const char *uri, int major, 
     qmlRegisterSingletonType<UCUriHandler>(uri, major, minor, "UriHandler", registerUriHandler);
     qmlRegisterType<UCMouse>(uri, major, minor, "Mouse");
     qmlRegisterType<UCInverseMouse>(uri, major, minor, "InverseMouse");
+    qmlRegisterType<UCLabel>(uri, major, minor, "Label");
 }
 
 void UbuntuComponentsPlugin::registerTypes(const char *uri)
@@ -217,6 +219,7 @@ void UbuntuComponentsPlugin::registerTypes(const char *uri)
     qmlRegisterCustomType<UCStyleHints>(uri, 1, 3, "StyleHints", new UCStyleHintsParser);
     qmlRegisterType<UCAction, 1>(uri, 1, 3, "Action");
     qmlRegisterType<UCUbuntuShape, 2>(uri, 1, 3, "UbuntuShape");
+    qmlRegisterType<UCLabel, 1>(uri, 1, 3, "Label");
 }
 
 void UbuntuComponentsPlugin::initializeEngine(QQmlEngine *engine, const char *uri)
