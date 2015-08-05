@@ -24,6 +24,7 @@
 #include "i18n.h"
 #include "ucfontutils.h"
 #include "ucstyleditembase_p.h"
+#include "ucthemingattached.h"
 
 #include <QtQml/qqml.h>
 #include <QtQml/qqmlinfo.h>
@@ -422,10 +423,9 @@ void UCTheme::updateThemePaths()
  */
 UCTheme *UCTheme::parentTheme()
 {
-    UCStyledItemBase *owner = qobject_cast<UCStyledItemBase*>(parent());
-    UCStyledItemBasePrivate *pOwner = owner ? UCStyledItemBasePrivate::get(owner) : NULL;
-    if (pOwner && pOwner->theme == this && pOwner->parentStyledItem) {
-        return UCStyledItemBasePrivate::get(pOwner->parentStyledItem)->getTheme();
+    UCThemingAttached *theming = itemTheming(static_cast<QQuickItem*>(parent()));
+    if (theming && theming->m_theme == this && theming->m_parentTheming) {
+        return theming->m_parentTheming->getTheme();
     }
     return NULL;
 }

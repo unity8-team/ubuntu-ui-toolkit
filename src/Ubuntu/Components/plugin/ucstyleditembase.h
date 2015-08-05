@@ -53,6 +53,7 @@ Q_SIGNALS:
 protected:
     UCStyledItemBase(UCStyledItemBasePrivate &, QQuickItem *parent);
 
+    void classBegin();
     void componentComplete();
     void mousePressEvent(QMouseEvent *event);
     bool childMouseEventFilter(QQuickItem *child, QEvent *event);
@@ -61,8 +62,6 @@ protected:
 private:
     Q_DECLARE_PRIVATE(UCStyledItemBase)
     Q_PRIVATE_SLOT(d_func(), void _q_styleResized())
-    Q_PRIVATE_SLOT(d_func(), void _q_ascendantChanged(QQuickItem*))
-    Q_PRIVATE_SLOT(d_func(), void _q_parentStyleChanged())
     Q_PRIVATE_SLOT(d_func(), void _q_reloadStyle())
 };
 

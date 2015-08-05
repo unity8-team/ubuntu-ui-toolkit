@@ -22,6 +22,7 @@
 
 #include "plugin.h"
 #include "uctheme.h"
+#include "ucthemingattached.h"
 #include "ucdeprecatedtheme.h"
 
 #include <QtQml/QQmlContext>
@@ -208,11 +209,11 @@ void UbuntuComponentsPlugin::registerTypes(const char *uri)
     qmlRegisterType<UCUbuntuShapeOverlay>(uri, 1, 2, "UbuntuShapeOverlay");
 
     // register 1.3 API
+    qmlRegisterType<UCThemingAttached>();
     qmlRegisterType<UCListItem13>(uri, 1, 3, "ListItem");
     qmlRegisterType<UCTheme>(uri, 1, 3, "ThemeSettings");
     qmlRegisterType<UCStyledItemBase, 2>(uri, 1, 3, "StyledItem");
     qmlRegisterSingletonType<UCNamespaceV13>(uri, 1, 3, "Ubuntu", registerUbuntuNamespace13);
-    qmlRegisterType<UCStyledItemBase, 2>(uri, 1, 3, "StyledItem");
     qmlRegisterCustomType<UCStyleHints>(uri, 1, 3, "StyleHints", new UCStyleHintsParser);
     qmlRegisterType<UCAction, 1>(uri, 1, 3, "Action");
     qmlRegisterType<UCUbuntuShape, 2>(uri, 1, 3, "UbuntuShape");
