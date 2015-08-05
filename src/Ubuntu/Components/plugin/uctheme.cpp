@@ -196,6 +196,32 @@ UCTheme::ThemeRecord pathFromThemeName(QString themeName)
             record.deprecated = QFile::exists(absoluteThemeFolder + "deprecated");
             record.shared = QFile::exists(qmlDirFileName);
             record.path = QUrl::fromLocalFile(absoluteThemeFolder);
+
+            if (record.shared) {
+                QQmlDirParser qmlDir;
+                QFile qmlDirFile(qmlDirFileName);
+
+                if (!qmlDirFile.open(QIODevice::ReadOnly)) {
+                    qmlInfo(0) << "Could not read qmldir file of "<<record.path<<" skipping";
+                    //@BUG return empty ThemeRecord if qmldir is not readable?
+                    break;
+                }
+
+                qmlDir.parse(qmlDirFile.readAll());
+                if (qmlDir.hasError()) {
+                    qmlInfo(0) << "Error parsing file "<<qmlDirFileName
+                                  << qmlDir.errors(record.name);
+                    //@BUG return empty ThemeRecord if qmldir is not valid?
+                    break;
+                }
+
+                Q_FOREACH(const QQmlDirParser::Component &comp, qmlDir.components()) {
+                    if (comp.fileName.startsWith(QStringLiteral("qrc:/"))) {
+                        record.requiresImport = true;
+                        break;
+                    }
+                }
+            }
             break;
         }
     }
@@ -407,10 +433,11 @@ void UCTheme::_q_defaultThemeChanged()
 
 bool UCTheme::loadThemePlugin(const ThemeRecord &theme, quint16 version, const QString &component)
 {
+    //@BUG will this be a problem when the engine changes?
     if (theme.pluginLoaded)
         return true;
 
-    static QString qmlTemplate("import %1 %2.%3\n%4{}");
+    static QString qmlTemplate("import QtQuick 2.4\nimport %1 %2.%3\n%4{}");
     QQmlComponent comp(m_engine);
     comp.setData(qmlTemplate
                  .arg(theme.name)
@@ -588,9 +615,6 @@ QUrl UCTheme::styleUrl(const QString& styleName, quint16 version, bool *isFallba
         (*isFallback) = false;
     }
 
-    if (styleName == QStringLiteral("ProgressionVisualStyle.qml"))
-        qDebug()<<"WE ARE HERE";
-
     Q_FOREACH (const ThemeRecord &themePath, m_themePaths) {
         QUrl styleUrl;
         /*
@@ -606,90 +630,59 @@ QUrl UCTheme::styleUrl(const QString& styleName, quint16 version, bool *isFallba
             styleVersion = LATEST_UITK_VERSION;
         }
 
-        //bool hasPlugin = false;
-        QHash<QString, QQmlDirParser::Component> components;
-        if (themePath.shared ) {
-            QQmlDirParser qmlDir;
-            QString qmlDirFileName = themePath.path.resolved(QStringLiteral("./qmldir")).toLocalFile();
-            QFile qmlDirFile(qmlDirFileName);
-
-            if (!qmlDirFile.open(QIODevice::ReadOnly)) {
-                qmlInfo(this) << "Could not read qmldir file of "<<themePath.name<<" skipping";
-                continue;
-            }
-
-            qmlDir.parse(qmlDirFile.readAll());
-            if (qmlDir.hasError()) {
-                qmlInfo(this) << "Error parsing file "<<qmlDirFileName
-                              << qmlDir.errors(themePath.name);
-                continue;
-            }
-            components = qmlDir.components();
-            //hasPlugin  = qmlDir.plugins().size() > 0;
-        }
-
         // loop through the versions to see if we have one matching
         // we stop at version 1.2 as we do not have support for earlier themes anymore.
         for (int minor = MINOR_VERSION(styleVersion); minor >= 2; minor--) {
             QString versionedName = QStringLiteral("%1.%2/%3").arg(MAJOR_VERSION(styleVersion)).arg(minor).arg(styleName);
-            if (themePath.shared) {
+            if (themePath.requiresImport) {
                 QString prefixedName = themePath.name;
                 prefixedName.replace(QStringLiteral("."), QStringLiteral("/"));
                 prefixedName = QStringLiteral("%1/%2")
                         .arg(prefixedName)
                         .arg(versionedName);
 
-                Q_FOREACH(const QQmlDirParser::Component &c, components) {
-                    if ( c.fileName.endsWith(prefixedName) && BUILD_VERSION(c.majorVersion, c.minorVersion) == version ) {
-                        if (loadThemePlugin(themePath, version, c.typeName) ) {
-                            if (isFallback && (version != styleVersion))
-                                (*isFallback) = true;
-
-                            if (c.fileName.startsWith(QStringLiteral("qrc:/")))
-                                return QUrl(c.fileName);
-                            else
-                                return themePath.path.resolved(c.fileName);
+                if (loadThemePlugin(themePath, version, QStringLiteral("Item")) ) {
+                    if (QFile::exists(QStringLiteral(":/")+prefixedName)) {
+                        // set fallback warning if the theme is shared
+                        if (isFallback && (version != styleVersion)) {
+                            (*isFallback) = true;
                         }
-                        break;
+                        return QUrl(QStringLiteral("qrc:/")+prefixedName);
                     }
                 }
-            } else {
-                styleUrl = themePath.path.resolved(versionedName);
-                if (styleUrl.isValid() && QFile::exists(styleUrl.toLocalFile())) {
-                    // set fallback warning if the theme is shared
-                    if (isFallback && themePath.shared && (version != styleVersion)) {
-                        (*isFallback) = true;
-                    }
-                    return styleUrl;
+            }
+
+            // no style yet? Maybe its not in the qrc
+            styleUrl = themePath.path.resolved(versionedName);
+            if (styleUrl.isValid() && QFile::exists(styleUrl.toLocalFile())) {
+                // set fallback warning if the theme is shared
+                if (isFallback && themePath.shared && (version != styleVersion)) {
+                    (*isFallback) = true;
                 }
+                return styleUrl;
             }
         }
 
         // if we don't get any style, get the non-versioned ones for non-shared and deprecated styles
         if (!themePath.shared || themePath.deprecated) {
-            if (themePath.shared) {
+            if (themePath.requiresImport) {
                 QString prefixedName = themePath.name;
                 prefixedName.replace(QStringLiteral("."), QStringLiteral("/"));
                 prefixedName = QStringLiteral("%1/%2")
                         .arg(prefixedName)
                         .arg(styleName);
 
-                Q_FOREACH(const QQmlDirParser::Component &c, components) {
-                    if ( c.fileName.endsWith(prefixedName) ) {
-                        if (loadThemePlugin(themePath, version, c.typeName) ) {
-                            if (c.fileName.startsWith(QStringLiteral("qrc:/")))
-                                return QUrl(c.fileName);
-                            else
-                                return themePath.path.resolved(c.fileName);
-                        }
-                        break;
+                if (loadThemePlugin(themePath, version, QStringLiteral("Item")) ) {
+                    if (QFile::exists(QStringLiteral(":/")+prefixedName)) {
+                        return QUrl(QStringLiteral("qrc:/")+prefixedName);
                     }
                 }
-            } else {
-                styleUrl = themePath.path.resolved(styleName);
-                if (styleUrl.isValid() && QFile::exists(styleUrl.toLocalFile())) {
-                    return styleUrl;
-                }
+            }
+
+            //no style yet? fall back to filesystem
+            styleUrl = themePath.path.resolved(styleName);
+            if (styleUrl.isValid() && QFile::exists(styleUrl.toLocalFile())) {
+                return styleUrl;
             }
         }
     }
@@ -754,8 +747,6 @@ QQmlComponent* UCTheme::createStyleComponent(const QString& styleName, QObject* 
 {
     QQmlComponent *component = NULL;
 
-    qDebug()<<Q_FUNC_INFO<<styleName<<version;
-
     if (!version) {
         version = m_version;
     }
@@ -770,7 +761,6 @@ QQmlComponent* UCTheme::createStyleComponent(const QString& styleName, QObject* 
         if (engine != NULL) {
             bool fallback = false;
             QUrl url = styleUrl(styleName, version, &fallback);
-            qDebug()<<url;
             if (url.isValid()) {
                 if (fallback) {
                     qmlInfo(parent) << QStringLiteral("Theme '%1' has no '%2' style for version %3.%4, fall back to version %5.%6.")
@@ -792,7 +782,6 @@ QQmlComponent* UCTheme::createStyleComponent(const QString& styleName, QObject* 
             }
         }
     }
-
     return component;
 }
 

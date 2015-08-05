@@ -43,7 +43,7 @@ class UCTheme : public QObject, public QQmlParserStatus
 public:
     struct ThemeRecord {
         ThemeRecord() :
-            shared(false), deprecated(false), pluginLoaded(false)
+            shared(false), deprecated(false), requiresImport(false), pluginLoaded(false)
         {}
         ThemeRecord(const QString &name, const QUrl &path, bool shared, bool deprecated) :
             name(name), path(path), shared(shared), deprecated(deprecated)
@@ -57,6 +57,7 @@ public:
         QUrl path;
         bool shared:1;
         bool deprecated:1;
+        bool requiresImport:1;
         mutable bool pluginLoaded: 1;
     };
 
