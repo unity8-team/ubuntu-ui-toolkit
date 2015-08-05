@@ -14,26 +14,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import QtQuick 2.4
-import Ubuntu.Components 1.2
+import QtQuick 2.0
+import Ubuntu.Components 1.1
 
-Text {
-    id: label
-
-    /*
-      The size of the text. One of the following strings (from smallest to largest):
-        \list
-          \li "xx-small"
-          \li "x-small"
-          \li "small"
-          \li "medium"
-          \li "large"
-          \li "x-large"
-        \endlist
-        Default value is "medium".
-      */
-    property string fontSize: "medium"
-
-    font.pixelSize: FontUtils.sizeToPixels(fontSize)
-    color: Theme.palette.selected.backgroundText
+Grid {
+    width: 800
+    height: 600
+    rows: 16
+    columns: 16
+    Repeater {
+        model: 16*16
+        OldLabel {}
+    }
 }
