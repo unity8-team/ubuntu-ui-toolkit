@@ -40,7 +40,6 @@ QML_FILES += 1.2/AbstractButton.qml \
              1.2/DraggingArea.qml \
              1.2/Header.qml \
              1.2/InputHandler.qml \
-             1.2/Label.qml \
              1.2/MainView12.qml \
              1.2/MainViewBase.qml \
              1.2/MainView.qml \
@@ -99,7 +98,6 @@ QML_FILES += 1.3/AbstractButton.qml \
              1.3/DraggingArea.qml \
              1.3/Header.qml \
              1.3/InputHandler.qml \
-             1.3/ULabel.qml \
              1.3/MainViewBase.qml \
              1.3/MainView.qml \
              1.3/mathUtils.js \
