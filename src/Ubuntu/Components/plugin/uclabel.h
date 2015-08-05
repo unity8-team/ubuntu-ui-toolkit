@@ -24,8 +24,7 @@ class UCLabel : public QQuickText
     Q_OBJECT
 
     Q_ENUMS(AdaptiveSize)
-    Q_PROPERTY(AdaptiveSize adaptiveSize READ adaptiveSize WRITE setAdaptiveSize
-               NOTIFY adaptiveSizeChanged REVISION 1)
+    Q_PROPERTY(AdaptiveSize adaptiveSize MEMBER m_adaptiveSize WRITE setAdaptiveSize NOTIFY adaptiveSizeChanged FINAL REVISION 1)
 
     // Deprecated.
     Q_PROPERTY(QString fontSize READ fontSize WRITE setFontSize NOTIFY fontSizeChanged)
@@ -33,14 +32,23 @@ class UCLabel : public QQuickText
 public:
     UCLabel(QQuickItem* parent=0);
 
-    enum AdaptiveSize { XxSmall = 0, XSmall = 1, Small = 2, Medium = 3, Large = 4, XLarge = 5 };
+    enum AdaptiveSize {
+        XxSmall = 0,
+        XSmall = 1,
+        Small = 2,
+        Medium = 3,
+        Large = 4,
+        XLarge = 5
+    };
 
-    AdaptiveSize adaptiveSize() const { return m_adaptiveSize; }
     void setAdaptiveSize(AdaptiveSize adaptiveSize);
 
     // Deprecated.
-    QString fontSize() const {
-        if (m_flags & AdaptiveSizeSet) { return ""; }
+    QString fontSize() const
+    {
+        if (m_flags & AdaptiveSizeSet) {
+            return "";
+        }
         const char* const sizes[] =
             { "xx-small", "x-small", "small", "medium", "large", "x-large" };
         return QString(sizes[m_adaptiveSize]);
@@ -56,7 +64,9 @@ Q_SIGNALS:
 private:
     void updatePixelSize();
 
-    enum { AdaptiveSizeSet = 1 };
+    enum {
+        AdaptiveSizeSet = 1
+    };
 
     AdaptiveSize m_adaptiveSize;
     quint8 m_flags;
