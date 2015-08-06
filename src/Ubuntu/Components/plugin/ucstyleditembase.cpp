@@ -475,9 +475,8 @@ void UCStyledItemBase::classBegin()
     QQuickItem::classBegin();
 
     Q_D(UCStyledItemBase);
-    // attache theming
-    d->theming = qobject_cast<UCThemingAttached*>(
-                qmlAttachedPropertiesObject<UCThemingAttached>(this, true));
+    // attach theming
+    d->theming = UCThemingAttached::attachTheming(this);
     if (d->theming) {
         d->theming->setListener(d);
         connect(d->theming.data(), SIGNAL(themeChanged()),
@@ -519,17 +518,6 @@ bool UCStyledItemBase::childMouseEventFilter(QQuickItem *child, QEvent *event)
     }
     // let the event be passed to children
     return QQuickItem::childMouseEventFilter(child, event);
-}
-
-// catch parent change event so we can lookup for the parent chain theme
-void UCStyledItemBase::itemChange(ItemChange change, const ItemChangeData &data)
-{
-    QQuickItem::itemChange(change, data);
-
-    Q_D(UCStyledItemBase);
-    if (change == ItemParentHasChanged && d->theming) {
-        d->theming->itemParentChanged();
-    }
 }
 
 #include "moc_ucstyleditembase.cpp"

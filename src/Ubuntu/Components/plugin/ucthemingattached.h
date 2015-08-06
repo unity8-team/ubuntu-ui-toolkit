@@ -39,6 +39,7 @@ public:
     explicit UCThemingAttached(QObject *parent = 0);
 
     static UCThemingAttached *qmlAttachedProperties(QObject *owner);
+    static UCThemingAttached *attachTheming(QObject *owner);
 
     void setListener(UCThemeChangeListener *listener)
     {
@@ -46,7 +47,6 @@ public:
     }
     UCTheme *getTheme();
     bool setTheme(UCTheme *theme);
-    void itemParentChanged();
 
 Q_SIGNALS:
     void themeChanged();
@@ -55,6 +55,7 @@ public Q_SLOTS:
 
     void ascendantChanged(QQuickItem *ascendant);
     void parentStyleChanged();
+    void itemParentChanged();
 
 protected:
     friend class UCTheme;

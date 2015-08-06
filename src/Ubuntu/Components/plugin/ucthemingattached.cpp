@@ -54,7 +54,16 @@ UCThemingAttached *UCThemingAttached::qmlAttachedProperties(QObject *owner)
     // the theme is the default one at this stage, so connect all the necessary signals
     // owner must have theme signal
     theming->connectThemeSignals(theming->getTheme(), true);
+    // connect parentChanged of owner to know when its parent is changed
+    connect(theming->m_ownerItem, &QQuickItem::parentChanged,
+            theming, &UCThemingAttached::itemParentChanged, Qt::DirectConnection);
     return theming;
+}
+
+UCThemingAttached *UCThemingAttached::attachTheming(QObject *owner)
+{
+    return qobject_cast<UCThemingAttached*>(
+                qmlAttachedPropertiesObject<UCThemingAttached>(owner, true));
 }
 
 void UCThemingAttached::connectThemeSignals(UCTheme *theme, bool connect)
