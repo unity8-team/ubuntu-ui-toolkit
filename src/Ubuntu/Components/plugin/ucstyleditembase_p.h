@@ -21,10 +21,11 @@
 
 #include <QtQuick/private/qquickitem_p.h>
 #include "ucstyleditembase.h"
+#include "ucthemingattached.h"
 
 class QQuickMouseArea;
 class UCStyledItemBase;
-class UCStyledItemBasePrivate : public QQuickItemPrivate
+class UCStyledItemBasePrivate : public QQuickItemPrivate, public UCThemeChangeListener
 {
     Q_DECLARE_PUBLIC(UCStyledItemBase)
 public:
@@ -35,8 +36,6 @@ public:
 
     void _q_reloadStyle();
     void _q_styleResized();
-    void _q_ascendantChanged(QQuickItem *ascendant);
-    void _q_parentStyleChanged();
 
     UCStyledItemBasePrivate();
     virtual ~UCStyledItemBasePrivate();
@@ -61,25 +60,19 @@ public:
     void setTheme(UCTheme *theme);
     void resetTheme();
 
-    virtual void preThemeChanged(){}
-    virtual void postThemeChanged(){}
+    void preThemeChanged(){}
+    void postThemeChanged(){}
 
 public:
-    bool activeFocusOnPress:1;
     QString styleDocument;
-    QQmlComponent *styleComponent;
+    QPointer<UCThemingAttached> theming;
     QPointer<QQmlContext> styleItemContext;
+    QQmlComponent *styleComponent;
     QQuickItem *styleItem;
-    UCTheme *theme;
-    QPointer<UCStyledItemBase> parentStyledItem;
+    bool activeFocusOnPress:1;
 
 protected:
-    QStack< QPointer<QQuickItem> > parentStack;
-
     void connectStyleSizeChanges(bool attach);
-    bool connectParents(QQuickItem *fromItem);
-    bool setParentStyled(UCStyledItemBase *styledItem);
-    void disconnectTillItem(QQuickItem *item);
 };
 
 #endif // UCSTYLEDITEMBASE_P_H
