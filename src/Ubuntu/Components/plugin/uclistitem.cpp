@@ -16,6 +16,7 @@
 
 #include "ucunits.h"
 #include "uctheme.h"
+#include "ucpalette.h"
 #include "ucnamespace.h"
 #include "uclistitem.h"
 #include "uclistitem_p.h"
@@ -91,7 +92,7 @@ void UCListItemDivider::init(UCListItem *listItem)
 void UCListItemDivider::paletteChanged()
 {
     Q_D(UCListItemDivider);
-    QColor background = d->listItem->getTheme()->getPaletteColor("normal", "background");
+    QColor background = d->listItem->getTheme()->palette()->m_normal->m_background;
     if (!background.isValid()) {
         return;
     }
@@ -1537,7 +1538,7 @@ void UCListItem::resetHighlightColor()
 {
     Q_D(UCListItem);
     d->customColor = false;
-    d->highlightColor = d->getTheme()->getPaletteColor("selected", "background");
+    d->highlightColor = d->getTheme()->palette()->m_selected->m_background;
     update();
     Q_EMIT highlightColorChanged();
 }

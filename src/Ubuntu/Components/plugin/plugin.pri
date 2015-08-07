@@ -78,7 +78,8 @@ HEADERS += $$PWD/plugin.h \
     $$PWD/ucdeprecatedtheme.h \
     $$PWD/ucdefaulttheme.h \
     $$PWD/ucstylehints.h \
-    $$PWD/ucthemingattached.h
+    $$PWD/ucthemingattached.h \
+    $$PWD/ucpalette.h
 
 SOURCES += $$PWD/plugin.cpp \
     $$PWD/uctheme.cpp \
@@ -129,7 +130,8 @@ SOURCES += $$PWD/plugin.cpp \
     $$PWD/ucdeprecatedtheme.cpp \
     $$PWD/ucdefaulttheme.cpp \
     $$PWD/ucstylehints.cpp \
-    $$PWD/ucthemingattached.cpp
+    $$PWD/ucthemingattached.cpp \
+    $$PWD/ucpalette.cpp
 
 # adapters
 SOURCES += $$PWD/adapters/alarmsadapter_organizer.cpp

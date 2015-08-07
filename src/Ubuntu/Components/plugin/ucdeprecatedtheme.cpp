@@ -19,6 +19,7 @@
 #include "ucnamespace.h"
 #include "ucdeprecatedtheme.h"
 #include "uctheme.h"
+#include "ucpalette.h"
 #include "listener.h"
 #include <QtQml/QQmlComponent>
 #include <QtQml/QQmlContext>
@@ -119,7 +120,7 @@ void UCDeprecatedTheme::resetName()
 
     The palette of the current theme.
 */
-QObject* UCDeprecatedTheme::palette()
+UCPalette* UCDeprecatedTheme::palette()
 {
     showDeprecatedNote(this, "Theme.palette is deprecated. Use ThemeSettings instead.");
     return UCTheme::defaultTheme().palette();

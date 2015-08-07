@@ -22,6 +22,7 @@
 
 #include "plugin.h"
 #include "uctheme.h"
+#include "ucpalette.h"
 #include "ucthemingattached.h"
 #include "ucdeprecatedtheme.h"
 
@@ -230,6 +231,12 @@ void UbuntuComponentsPlugin::initializeEngine(QQmlEngine *engine, const char *ur
     const char *styleUri = "Ubuntu.Components.Styles";
     qmlRegisterType<UCListItemStyle>(styleUri, 1, 2, "ListItemStyle");
     qmlRegisterType<UCListItemStyle, 1>(styleUri, 1, 3, "ListItemStyle");
+
+    const char *themesUri = "Ubuntu.Components.Themes";
+    qmlRegisterType<UCPalette>(themesUri, 0, 1, "Palette");
+    qmlRegisterType<UCPaletteValues>(themesUri, 0, 1, "PaletteValues");
+    qmlRegisterType<UCPalette>(themesUri, 1, 0, "Palette");
+    qmlRegisterType<UCPaletteValues>(themesUri, 1, 0, "PaletteValues");
 
     QQmlExtensionPlugin::initializeEngine(engine, uri);
     QQmlContext* context = engine->rootContext();

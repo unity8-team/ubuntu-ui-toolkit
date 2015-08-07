@@ -19,6 +19,7 @@
 
 #include "ucnamespace.h"
 #include "uctheme.h"
+#include "ucpalette.h"
 #include "listener.h"
 #include "quickutils.h"
 #include "i18n.h"
@@ -219,7 +220,7 @@ QString parentThemeName(const UCTheme::ThemeRecord& themePath)
  */
 
 // builds configuration list and applies the configuration on the palette
-void UCTheme::PaletteConfig::configurePalette(QObject *themePalette)
+void UCTheme::PaletteConfig::configurePalette(UCPalette *themePalette)
 {
     if (!palette || !themePalette || configured) {
         return;
@@ -282,7 +283,10 @@ void UCTheme::PaletteConfig::buildConfig()
 
     for (int i = 0; i < 2; i++) {
         const char *valueSet = valueSetList[i];
-        QObject *configObject = palette->property(valueSet).value<QObject*>();
+        UCPaletteValues *configObject = palette->property(valueSet).value<UCPaletteValues*>();
+        if (!configObject) {
+            continue;
+        }
         const QMetaObject *mo = configObject->metaObject();
 
         for (int ii = mo->propertyOffset(); ii < mo->propertyCount(); ii++) {
@@ -306,7 +310,7 @@ void UCTheme::PaletteConfig::buildConfig()
 }
 
 // apply configuration on the palette
-void UCTheme::PaletteConfig::apply(QObject *themePalette)
+void UCTheme::PaletteConfig::apply(UCPalette *themePalette)
 {
     QQmlContext *context = qmlContext(themePalette);
     for (int i = 0; i < configList.count(); i++) {
@@ -515,20 +519,16 @@ void UCTheme::resetName()
  * The palette doesn't need to be reset as it automatically resets when the
  * palette used for configuration is destroyed.
  */
-QObject* UCTheme::palette()
+UCPalette* UCTheme::palette()
 {
     if (!m_palette) {
         loadPalette(false);
     }
     return m_palette;
 }
-void UCTheme::setPalette(QObject *config)
+void UCTheme::setPalette(UCPalette *config)
 {
     if (config == m_palette || config == m_config.palette) {
-        return;
-    }
-    if (config && !QuickUtils::inherits(config, "Palette")) {
-        qmlInfo(config) << UbuntuI18n::instance().tr("Not a Palette component.");
         return;
     }
 
@@ -712,7 +712,11 @@ void UCTheme::loadPalette(bool notify)
     // theme may not have palette defined
     QUrl paletteUrl = styleUrl("Palette.qml", m_version);
     if (paletteUrl.isValid()) {
-        m_palette = QuickUtils::instance().createQmlObject(paletteUrl, m_engine);
+        QObject *paletteObject = QuickUtils::instance().createQmlObject(paletteUrl, m_engine);
+        m_palette = qobject_cast<UCPalette*>(paletteObject);
+        if (!m_palette) {
+            delete paletteObject;
+        }
         if (m_palette) {
             m_palette->setParent(this);
         }
@@ -725,17 +729,3 @@ void UCTheme::loadPalette(bool notify)
         m_palette = defaultTheme().m_palette;
     }
 }
-
-// returns the palette color value of a color profile
-QColor UCTheme::getPaletteColor(const char *profile, const char *color)
-{
-    QColor result;
-    if (palette()) {
-        QObject *paletteProfile = m_palette->property(profile).value<QObject*>();
-        if (paletteProfile) {
-            result = paletteProfile->property(color).value<QColor>();
-        }
-    }
-    return result;
-}
-

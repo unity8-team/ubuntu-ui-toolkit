@@ -32,13 +32,14 @@
 
 class UCStyledItemBase;
 class QQmlAbstractBinding;
+class UCPalette;
 class UCTheme : public QObject, public QQmlParserStatus
 {
     Q_OBJECT
     Q_INTERFACES(QQmlParserStatus)
     Q_PROPERTY(UCTheme *parentTheme READ parentTheme NOTIFY parentThemeChanged FINAL)
     Q_PROPERTY(QString name READ name WRITE setName RESET resetName NOTIFY nameChanged FINAL)
-    Q_PROPERTY(QObject* palette READ palette WRITE setPalette RESET resetPalette NOTIFY paletteChanged FINAL)
+    Q_PROPERTY(UCPalette* palette READ palette WRITE setPalette RESET resetPalette NOTIFY paletteChanged FINAL)
     Q_PROPERTY(quint16 version READ version WRITE setVersion NOTIFY versionChanged FINAL)
 public:
     struct ThemeRecord {
@@ -71,17 +72,14 @@ public:
     QString name() const;
     void setName(const QString& name);
     void resetName();
-    QObject* palette();
-    void setPalette(QObject *config);
+    UCPalette* palette();
+    void setPalette(UCPalette *config);
     quint16 version();
     void setVersion(quint16 version);
 
     // internal, used by the deprecated Theme.createStyledComponent()
     QQmlComponent* createStyleComponent(const QString& styleName, QObject* parent, quint16 version = 0);
     static void registerToContext(QQmlContext* context);
-
-    // helper functions
-    QColor getPaletteColor(const char *profile, const char *color);
 
 Q_SIGNALS:
     void parentThemeChanged();
@@ -119,17 +117,17 @@ private:
             restorePalette();
         }
 
-        void configurePalette(QObject *themePalette);
+        void configurePalette(UCPalette *themePalette);
         void restorePalette();
         void reset()
         {
             configList.clear();
         }
 
-        QObject *palette;
+        UCPalette *palette;
     private:
         void buildConfig();
-        void apply(QObject *palette);
+        void apply(UCPalette *palette);
 
         struct Data {
             Data(const QString &name, const QQmlProperty &prop)
@@ -153,7 +151,7 @@ private:
     };
 
     QString m_name;
-    QPointer<QObject> m_palette; // the palette might be from the default style if the theme doesn't define palette
+    QPointer<UCPalette> m_palette; // the palette might be from the default style if the theme doesn't define palette
     QQmlEngine *m_engine;
     PaletteConfig m_config;
     QList<ThemeRecord> m_themePaths;

@@ -25,11 +25,12 @@
 class QQmlComponent;
 class QQmlContext;
 class UCTheme;
+class UCPalette;
 class UCDeprecatedTheme : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QString name READ name WRITE setName RESET resetName NOTIFY nameChanged)
-    Q_PROPERTY(QObject* palette READ palette NOTIFY paletteChanged)
+    Q_PROPERTY(UCPalette* palette READ palette NOTIFY paletteChanged)
 public:
     static UCDeprecatedTheme& instance() {
         static UCDeprecatedTheme instance;
@@ -41,7 +42,7 @@ public:
     QString name();
     void setName(const QString& name);
     void resetName();
-    QObject* palette();
+    UCPalette* palette();
 
     Q_INVOKABLE QQmlComponent* createStyleComponent(const QString& styleName, QObject* parent);
     void registerToContext(QQmlContext* context);
