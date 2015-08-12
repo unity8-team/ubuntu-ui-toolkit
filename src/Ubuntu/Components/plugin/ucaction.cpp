@@ -249,23 +249,27 @@ bool shortcutContextMatcher(QObject* object, Qt::ShortcutContext)
 {
     UCAction* action = static_cast<UCAction*>(object);
     // Can't access member here because it's not public
-    if (!action->property("enabled").toBool())
+    if (!action->property("enabled").toBool()) {
         return false;
+    }
 
     QObject* window = object;
     while (window && !window->isWindowType()) {
         window = window->parent();
-        if (QQuickItem* item = qobject_cast<QQuickItem*>(window))
+        if (QQuickItem* item = qobject_cast<QQuickItem*>(window)) {
             window = item->window();
+        }
     }
     return window && window == QGuiApplication::focusWindow();
 }
 
 QKeySequence sequenceFromVariant(const QVariant& variant) {
-    if (variant.type() == QVariant::Int)
+    if (variant.type() == QVariant::Int) {
         return static_cast<QKeySequence::StandardKey>(variant.toInt());
-    if (variant.type() == QVariant::String)
+    }
+    if (variant.type() == QVariant::String) {
         return QKeySequence::fromString(variant.toString());
+    }
     return QKeySequence();
 }
 
@@ -278,14 +282,16 @@ QKeySequence sequenceFromVariant(const QVariant& variant) {
  */
 void UCAction::setShortcut(const QVariant& shortcut)
 {
-    if (m_shortcut.isValid())
+    if (m_shortcut.isValid()) {
         QGuiApplicationPrivate::instance()->shortcutMap.removeShortcut(0, this, sequenceFromVariant(m_shortcut));
+    }
 
     QKeySequence sequence(sequenceFromVariant(shortcut));
-    if (!sequence.toString().isEmpty())
+    if (!sequence.toString().isEmpty()) {
         QGuiApplicationPrivate::instance()->shortcutMap.addShortcut(this, sequence, Qt::WindowShortcut, shortcutContextMatcher);
-    else
+    } else {
         qmlInfo(this) << "Invalid shortcut: " << shortcut.toString();
+    }
 
     m_shortcut = shortcut;
     Q_EMIT shortcutChanged(shortcut);
@@ -293,8 +299,9 @@ void UCAction::setShortcut(const QVariant& shortcut)
 
 bool UCAction::event(QEvent *event)
 {
-    if (event->type() != QEvent::Shortcut)
+    if (event->type() != QEvent::Shortcut) {
         return false;
+    }
 
     QShortcutEvent *shortcut_event(static_cast<QShortcutEvent*>(event));
     if (shortcut_event->isAmbiguous()) {
