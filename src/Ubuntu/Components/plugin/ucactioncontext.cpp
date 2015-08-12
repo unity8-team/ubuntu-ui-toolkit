@@ -105,12 +105,10 @@ int UCActionContext::count(QQmlListProperty<UCAction> *list)
  * whether or not the actions in a context are available to external components.
  *
  * The \l ActionManager monitors the active property of each of the local contexts
- * that has been added to it. There can be only one active local context at a time.
- * When one of the local contexts sets itself active the manager will notice this,
- * export the actions from that given context and set the previously active local
- * context as inactive. This way setting active to true on a local context is
- * sufficient to manage the active local context of the manager and no additional
- * calls are necessary to manually inactivate the other contexts.
+ * that has been added to it. There can be many local contexts active at the same
+ * time.
+ *
+ * The global context is the only context which cannot be deactivated.
  */
 void UCActionContext::setActive(bool active)
 {

@@ -121,15 +121,18 @@ TestCase {
 
      function test_activate_contexts_data() {
          return [
-             {tag: "Activate context1", active: context1, inactive: context2},
-             {tag: "Activate context2", active: context2, inactive: context1},
-             {tag: "Activate context1 again", active: context1, inactive: context2},
+             {tag: "Activate context1", activate: context1, active: [context1], inactive: [context2]},
+             {tag: "Activate context2", activate: context2, active: [context1, context2], inactive: []},
          ];
      }
      function test_activate_contexts(data) {
-         data.active.active = true;
-         verify(data.active.active, "Context activation error");
-         verify(!data.inactive.active, "Context deactivation error");
+         data.activate.active = true;
+         for (var i = 0; i < data.active.length; i++) {
+             verify(data.active[i].active, "Context activation error");
+         }
+         for (var i = 0; i < data.inactive.length; i++) {
+             verify(!data.inactive[i].active, "Context deactivation error");
+         }
      }
 
      Action {

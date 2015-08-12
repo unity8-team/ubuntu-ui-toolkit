@@ -37,7 +37,6 @@ public:
 
     UCActionContext *globalContext;
 
-    static UCActionContext *currentContext();
     static const QSet<UCActionContext*> &localContexts();
     static void publishGlobalContext();
     static void addContext(UCActionContext *context);
@@ -54,7 +53,7 @@ protected Q_SLOTS:
 
 private:
     QSet<UCActionContext*> m_localContexts;
-    QPointer<UCActionContext> m_activeContext;
+    QSet<UCActionContext*> m_activeContexts;
 };
 
 #endif // ACTIONSPROXY_P_H

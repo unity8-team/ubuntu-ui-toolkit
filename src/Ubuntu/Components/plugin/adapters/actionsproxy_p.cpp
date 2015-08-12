@@ -28,18 +28,9 @@ ActionProxy::ActionProxy()
 }
 ActionProxy::~ActionProxy()
 {
-    // if there is still an active context clear it
-    if (!m_activeContext.isNull()) {
-        m_activeContext->setActive(false);
-    }
     // clear context explicitly, as global context is not connected to
     clearContextActions(globalContext);
     delete globalContext;
-}
-
-UCActionContext *ActionProxy::currentContext()
-{
-    return instance().m_activeContext;
 }
 
 const QSet<UCActionContext*> &ActionProxy::localContexts()
@@ -105,31 +96,20 @@ void ActionProxy::handleContextActivation(bool active)
 {
     // sender is the context changing activation
     UCActionContext *context = qobject_cast<UCActionContext*>(sender());
-    if (!context) {
+    if (!context || (active && m_activeContexts.contains(context))) {
         return;
     }
-    // deactivate the previous context if any
-    if (!m_activeContext.isNull()) {
-        if (!active) {
-            // the slot has been called due to the previous active deactivation,
-            // so perform system cleanup
-            clearContextActions(m_activeContext);
-            m_activeContext->markActionsPublished(false);
-            // finally clear the context and leave
-            m_activeContext.clear();
-            return;
-        } else {
-            // deactivate previous actiev context, this will cause the slot to
-            // be called with active = false within this call context
-            m_activeContext->setActive(false);
-        }
-    }
-    if (active) {
+    if (!active && m_activeContexts.contains(context)) {
+        // perform system cleanup and remove the context
+        clearContextActions(context);
+        context->markActionsPublished(false);
+        m_activeContexts.remove(context);
+    } else {
         // publish the context's actions to the system
         publishContextActions(context);
         context->markActionsPublished(true);
-        // and finally set it as active
-        m_activeContext = context;
+        // and finally add as active
+        m_activeContexts.insert(context);
     }
 }
 // empty functions for context activation/deactivation, connect to HUD
