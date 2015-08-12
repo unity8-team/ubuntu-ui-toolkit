@@ -43,6 +43,14 @@ void UCActionContext::componentComplete()
     ActionProxy::addContext(this);
 }
 
+void UCActionContext::clear()
+{
+    Q_FOREACH(UCAction *action, m_actions) {
+        action->m_context = Q_NULLPTR;
+    }
+    m_actions.clear();
+}
+
 /*
  * The function marks all context actions being (un)published.
  */
@@ -67,7 +75,7 @@ void UCActionContext::append(QQmlListProperty<UCAction> *list, UCAction *action)
 {
     UCActionContext *context = qobject_cast<UCActionContext*>(list->object);
     if (context) {
-        context->m_actions.insert(action);
+        context->addAction(action);
     }
 }
 
@@ -75,7 +83,7 @@ void UCActionContext::clear(QQmlListProperty<UCAction> *list)
 {
     UCActionContext *context = qobject_cast<UCActionContext*>(list->object);
     if (context) {
-        context->m_actions.clear();
+        context->clear();
     }
 }
 
@@ -119,7 +127,6 @@ void UCActionContext::setActive(bool active)
 
 /*!
  * \qmlmethod ActionContext::addAction(Action action)
- * \deprecated
  * Adds an Action to the context programatically.
  */
 void UCActionContext::addAction(UCAction *action)
@@ -128,11 +135,11 @@ void UCActionContext::addAction(UCAction *action)
         return;
     }
     m_actions.insert(action);
+    action->m_context = this;
 }
 
 /*!
  * \qmlmethod ActionContext::removeAction(Action action)
- * \deprecated
  * Removes an action from the context programatically.
  */
 void UCActionContext::removeAction(UCAction *action)
@@ -141,4 +148,5 @@ void UCActionContext::removeAction(UCAction *action)
         return;
     }
     m_actions.remove(action);
+    action->m_context = Q_NULLPTR;
 }

@@ -20,11 +20,14 @@
 #include <QtCore/QObject>
 #include <QtCore/QVariant>
 #include <QtCore/QUrl>
+#include <QtQml/QQmlParserStatus>
 
 class QQmlComponent;
-class UCAction : public QObject
+class UCActionContext;
+class UCAction : public QObject, public QQmlParserStatus
 {
     Q_OBJECT
+    Q_INTERFACES(QQmlParserStatus)
 
     // transferred from Unity Actions
     Q_ENUMS(Type)
@@ -60,6 +63,10 @@ public:
         return m_published;
     }
 
+    // from QQmlParserStatus
+    void classBegin() {}
+    void componentComplete();
+
 Q_SIGNALS:
     void nameChanged();
     void textChanged();
@@ -84,6 +91,7 @@ private:
     QString m_description;
     QString m_keywords;
     QVariant m_shortcut;
+    UCActionContext *m_context;
     QQmlComponent *m_itemHint;
     Type m_parameterType;
     bool m_factoryIconSource:1;

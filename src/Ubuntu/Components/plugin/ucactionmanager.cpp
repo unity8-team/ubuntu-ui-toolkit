@@ -65,7 +65,7 @@ void UCActionManager::actionClear(QQmlListProperty<UCAction> *list)
 {
     Q_UNUSED(list);
     UCActionContext *context = ActionProxy::instance().globalContext;
-    context->m_actions.clear();
+    context->clear();
 }
 
 int UCActionManager::actionCount(QQmlListProperty<UCAction> *list)
@@ -115,7 +115,6 @@ UCActionContext *UCActionManager::globalContext() const
 
 /*!
  * \qmlmethod ActionManager::addAction(Action action)
- * \deprecated
  * This is a shorthand for \c ActionManager.globalContext.addAction(action) call.
  */
 void UCActionManager::addAction(UCAction *action)
@@ -128,7 +127,6 @@ void UCActionManager::addAction(UCAction *action)
 
 /*!
  * \qmlmethod ActionManager::removeAction(Action action)
- * \deprecated
  * This is a shorthand for \c ActionManager.globalContext.removeAction(action) call.
  */
 void UCActionManager::removeAction(UCAction *action)
@@ -141,7 +139,6 @@ void UCActionManager::removeAction(UCAction *action)
 
 /*!
  * \qmlmethod ActionManager::addLocalContext(ActionContext context)
- * \deprecated
  * Adds the local context.
  *
  * This is deprecated. ActionContext instances are added autimatically to the
@@ -157,7 +154,6 @@ void UCActionManager::addLocalContext(UCActionContext *context)
 
 /*!
  * \qmlmethod ActionManager::removeLocalContext(ActionContext context)
- * \deprecated
  * Removes the local context.
  *
  * This is deprecated. ActionContext instances are added autimatically to the

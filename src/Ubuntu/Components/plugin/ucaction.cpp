@@ -15,6 +15,9 @@
  */
 
 #include "ucaction.h"
+#include "ucactioncontext.h"
+#include "adapters/actionsproxy_p.h"
+#include "quickutils.h"
 
 #include <QtDebug>
 #include <QtQml/QQmlInfo>
@@ -151,7 +154,8 @@
 UCAction::UCAction(QObject *parent)
     : QObject(parent)
     , m_shortcut(0)
-    , m_itemHint(0)
+    , m_context(Q_NULLPTR)
+    , m_itemHint(Q_NULLPTR)
     , m_parameterType(None)
     , m_factoryIconSource(true)
     , m_enabled(true)
@@ -159,6 +163,31 @@ UCAction::UCAction(QObject *parent)
     , m_published(false)
 {
     generateName();
+}
+
+// detect action context
+void UCAction::componentComplete()
+{
+    if (m_context) {
+        // nothing to do, we have a context set
+        return;
+    }
+    // if the Action is not in an ActionContext, try to detect a context in between the parents
+    UCActionContext *context = Q_NULLPTR;
+    QObject *parent = this->parent();
+    while (parent) {
+        context = parent->property("__actionContext").value<UCActionContext*>();
+        if (context) {
+            context->addAction(this);
+            return;
+        }
+        // if the parent is an Item, we go that way forward
+        QQuickItem *parentItem = qobject_cast<QQuickItem*>(parent);
+        parent = parentItem ? parentItem->parentItem() : parent->parent();
+    }
+    // if no context found, we add the action to the global context, but show a warning!
+    ActionProxy::instance().globalContext->addAction(this);
+    qmlInfo(this) << QString(QStringLiteral("No local ActionContext found for Action with text '%1'. Global context will be used.")).arg(m_text);
 }
 
 bool UCAction::isValidType(QVariant::Type valueType)

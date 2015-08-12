@@ -46,6 +46,13 @@ PageTreeNode {
         title: page.title
     }
 
+    /*
+      Internal property holding the action context.
+      */
+    readonly property QtObject __actionContext: Toolkit13.ActionContext {
+        objectName: "PageContext"
+    }
+
     Toolkit13.Object {
         id: internal
 
