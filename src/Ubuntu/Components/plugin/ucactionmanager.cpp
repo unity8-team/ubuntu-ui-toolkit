@@ -114,7 +114,7 @@ UCActionContext *UCActionManager::globalContext() const
 }
 
 /*!
- * \qmlmethod ActionManager::addAction(Action action)
+ * \qmlmethod void ActionManager::addAction(Action action)
  * This is a shorthand for \c ActionManager.globalContext.addAction(action) call.
  */
 void UCActionManager::addAction(UCAction *action)
@@ -126,7 +126,7 @@ void UCActionManager::addAction(UCAction *action)
 }
 
 /*!
- * \qmlmethod ActionManager::removeAction(Action action)
+ * \qmlmethod void ActionManager::removeAction(Action action)
  * This is a shorthand for \c ActionManager.globalContext.removeAction(action) call.
  */
 void UCActionManager::removeAction(UCAction *action)
@@ -138,10 +138,10 @@ void UCActionManager::removeAction(UCAction *action)
 }
 
 /*!
- * \qmlmethod ActionManager::addLocalContext(ActionContext context)
+ * \qmlmethod void ActionManager::addLocalContext(ActionContext context)
  * Adds the local context.
  *
- * This is deprecated. ActionContext instances are added autimatically to the
+ * ActionContext instances are added autimatically to the
  * action management stystem when declared and removed when destroyed.
  */
 void UCActionManager::addLocalContext(UCActionContext *context)
@@ -153,10 +153,10 @@ void UCActionManager::addLocalContext(UCActionContext *context)
 }
 
 /*!
- * \qmlmethod ActionManager::removeLocalContext(ActionContext context)
+ * \qmlmethod void ActionManager::removeLocalContext(ActionContext context)
  * Removes the local context.
  *
- * This is deprecated. ActionContext instances are added autimatically to the
+ * ActionContext instances are added autimatically to the
  * action management stystem when declared and removed when destroyed.
  */
 void UCActionManager::removeLocalContext(UCActionContext *context)

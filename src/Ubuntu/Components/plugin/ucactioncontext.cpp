@@ -124,7 +124,7 @@ void UCActionContext::setActive(bool active)
 }
 
 /*!
- * \qmlmethod ActionContext::addAction(Action action)
+ * \qmlmethod void ActionContext::addAction(Action action)
  * Adds an Action to the context programatically.
  */
 void UCActionContext::addAction(UCAction *action)
@@ -137,7 +137,7 @@ void UCActionContext::addAction(UCAction *action)
 }
 
 /*!
- * \qmlmethod ActionContext::removeAction(Action action)
+ * \qmlmethod void ActionContext::removeAction(Action action)
  * Removes an action from the context programatically.
  */
 void UCActionContext::removeAction(UCAction *action)
