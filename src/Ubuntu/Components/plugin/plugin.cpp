@@ -218,6 +218,7 @@ void UbuntuComponentsPlugin::registerTypes(const char *uri)
     qmlRegisterType<UCAction, 1>(uri, 1, 3, "Action");
     qmlRegisterType<UCUbuntuShape, 2>(uri, 1, 3, "UbuntuShape");
     qmlRegisterType<UCProportionalShape>(uri, 1, 3, "ProportionalShape");
+    qmlRegisterType<UCActionContext, 1>(uri, 1, 3, "ActionContext");
 }
 
 void UbuntuComponentsPlugin::initializeEngine(QQmlEngine *engine, const char *uri)

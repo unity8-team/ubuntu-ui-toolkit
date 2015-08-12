@@ -81,16 +81,20 @@ void ActionProxy::watchContextActivation(UCActionContext *context, bool watch)
     }
     if (watch) {
         // connect to action proxy
-        QObject::connect(context, SIGNAL(activeChanged(bool)),
-                         this, SLOT(handleContextActivation(bool)),
+        QObject::connect(context, &UCActionContext::activeChanged,
+                         this, &ActionProxy::handleContextActivation,
+                         Qt::DirectConnection);
+        QObject::connect(context, &UCActionContext::overlayChanged,
+                         this, &ActionProxy::handleContextOverlay,
                          Qt::DirectConnection);
     } else {
         // disconnect
-        QObject::disconnect(context, SIGNAL(activeChanged(bool)),
-                         this, SLOT(handleContextActivation(bool)));
+        QObject::disconnect(context, &UCActionContext::activeChanged,
+                            this, &ActionProxy::handleContextActivation);
+        QObject::disconnect(context, &UCActionContext::overlayChanged,
+                            this, &ActionProxy::handleContextOverlay);
     }
 }
-
 // handles the local context activation
 void ActionProxy::handleContextActivation(bool active)
 {
@@ -112,6 +116,12 @@ void ActionProxy::handleContextActivation(bool active)
         m_activeContexts.insert(context);
     }
 }
+// handles overlay state change of a context
+void ActionProxy::handleContextOverlay(bool overlay)
+{
+    Q_UNUSED(overlay);
+}
+
 // empty functions for context activation/deactivation, connect to HUD
 void ActionProxy::clearContextActions(UCActionContext *context)
 {

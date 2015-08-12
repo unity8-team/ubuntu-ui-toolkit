@@ -124,6 +124,31 @@ void UCActionContext::setActive(bool active)
 }
 
 /*!
+ * \qmlproperty bool ActionContext::overlay
+ * \since Ubuntu.Components 1.3
+ * The property specifies whether the action context is overlay or not. An active
+ * overlay ActionContext deactivates all previous active contexts, so only the
+ * active overlay context stays active. There can be only one active overlay
+ * ActionContext at a time in an application. When all overlay ActionContext
+ * elements are deactivated, the last state of local and global contexts will
+ * be restored.
+ *
+ * Defaults to false.
+ */
+void UCActionContext::setOverlay(bool overlay)
+{
+    if (m_overlay == overlay) {
+        return;
+    }
+    // global context canot be overlay
+    if (ActionProxy::instance().globalContext == this) {
+        return;
+    }
+    m_overlay = overlay;
+    Q_EMIT overlayChanged(overlay);
+}
+
+/*!
  * \qmlmethod void ActionContext::addAction(Action action)
  * Adds an Action to the context programatically.
  */
