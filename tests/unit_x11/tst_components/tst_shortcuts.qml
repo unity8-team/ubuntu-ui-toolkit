@@ -24,11 +24,16 @@ Item {
     width: 400
     height: 600
 
+    // need a manager to activate global context
+    ActionManager{}
+
     Action {
         id: action
+        text: "First"
     }
     Action {
         id: other
+        text: "Second"
         shortcut: 'Ctrl+G'
     }
 
@@ -79,12 +84,12 @@ Item {
             ];
         }
         function test_shortcut_invalid(data) {
-            ignoreQMLWarning(':27:5: QML Action: Invalid shortcut: ');
+            ignoreQMLWarning(':30:5: QML Action: Invalid shortcut: ');
             action.shortcut = data;
         }
 
         function test_shortcut_duplicate() {
-            ignoreQMLWarning(':30:5: QML Action: Ambiguous shortcut: Ctrl+G');
+            ignoreQMLWarning(':34:5: QML Action: Ambiguous shortcut: Ctrl+G');
             action.shortcut = other.shortcut;
             keyClick(Qt.Key_G, Qt.ControlModifier);
         }

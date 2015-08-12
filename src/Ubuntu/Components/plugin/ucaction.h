@@ -62,6 +62,7 @@ public:
     {
         return m_published;
     }
+    bool isActive();
 
     // from QQmlParserStatus
     void classBegin() {}

@@ -145,6 +145,10 @@
  * action migth either hide the action or make it insensitive. However visibility
  * can be controlled separately using the \l visible property.
  */
+bool UCAction::isActive()
+{
+    return (m_context ? m_context->isActive() : true) && m_enabled;
+}
 
 /*!
  * \qmlproperty bool Action::visible
@@ -277,8 +281,8 @@ void UCAction::setItemHint(QQmlComponent *)
 bool shortcutContextMatcher(QObject* object, Qt::ShortcutContext)
 {
     UCAction* action = static_cast<UCAction*>(object);
-    // Can't access member here because it's not public
-    if (!action->property("enabled").toBool()) {
+    // is action in an active context?
+    if (!action->isActive()) {
         return false;
     }
 

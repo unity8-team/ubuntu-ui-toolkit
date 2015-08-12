@@ -112,7 +112,7 @@ TestCase {
      }
 
      function test_globalcontext_actions() {
-         compare(manager.globalContext.actions.length, 3, "Global context action count must be a sum of all manager's actions' counts");
+         compare(manager.globalContext.actions.length, 5, "Global context action count must be a sum of all manager's actions' and non'contextual actions counts");
      }
 
      function ignoreQMLWarning(message) {

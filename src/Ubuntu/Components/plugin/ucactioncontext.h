@@ -29,7 +29,7 @@ class UCActionContext : public QObject, public QQmlParserStatus
     Q_OBJECT
     Q_INTERFACES(QQmlParserStatus)
     Q_PROPERTY(QQmlListProperty<UCAction> actions READ actions)
-    Q_PROPERTY(bool active MEMBER m_active WRITE setActive NOTIFY activeChanged)
+    Q_PROPERTY(bool active READ isActive WRITE setActive NOTIFY activeChanged)
     Q_CLASSINFO("DefaultProperty", "actions")
 public:
     explicit UCActionContext(QObject *parent = 0);
@@ -42,6 +42,10 @@ public:
 
     QQmlListProperty<UCAction> actions();
 
+    inline bool isActive()
+    {
+        return m_active;
+    }
     void setActive(bool active);
 
 Q_SIGNALS:
