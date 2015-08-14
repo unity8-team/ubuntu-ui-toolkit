@@ -603,6 +603,7 @@ Ubuntu.Components.Page 1.0 0.1: PageTreeNode
 Ubuntu.Components.Page 1.1: Page
     readonly property PageHeadConfiguration head
 Ubuntu.Components.Page 1.3: PageTreeNode
+    readonly property ActionContext actionContext
     property Flickable flickable
     readonly property PageHeadConfiguration head
     property string title
@@ -762,6 +763,7 @@ Ubuntu.Components.Popups.PopupBase 1.0 0.1: OrientationHelper
     function var show()
     function var hide()
 Ubuntu.Components.Popups.PopupBase 1.3: OrientationHelper
+    readonly property ActionContext actionContext
     property Item dismissArea
     property PropertyAnimation fadingAnimation
     property bool grabDismissAreaEvents

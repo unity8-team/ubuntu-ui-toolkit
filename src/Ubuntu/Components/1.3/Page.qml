@@ -15,7 +15,7 @@
  */
 
 import QtQuick 2.4
-import Ubuntu.Components 1.3 as Toolkit13
+import Ubuntu.Components 1.3
 import "pageUtils.js" as Utils
 
 /*!
@@ -41,19 +41,20 @@ PageTreeNode {
       \qmlproperty PageHeadConfiguration head
      */
     readonly property alias head: headerConfig
-    Toolkit13.PageHeadConfiguration {
+    PageHeadConfiguration {
         id: headerConfig
         title: page.title
     }
 
     /*
-      Internal property holding the action context.
+      \since Ubuntu.Components 1.3
+      The property holding the ActionContext of the Page. The context is active
+      while the Page is active. All actions declared in Page will belong to this
+      context.
       */
-    readonly property QtObject __actionContext: Toolkit13.ActionContext {
-        objectName: "PageContext"
-    }
+    readonly property ActionContext actionContext: ActionContext {}
 
-    Toolkit13.Object {
+    Object {
         id: internal
 
         property AppHeader header: page.__propagated && page.__propagated.header ? page.__propagated.header : null

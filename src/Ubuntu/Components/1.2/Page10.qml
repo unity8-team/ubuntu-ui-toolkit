@@ -65,11 +65,6 @@ PageTreeNode {
      */
     property alias actions: actionContext.actions
 
-    /*
-      Internal property holding the action context.
-      */
-    readonly property alias __actionContext: actionContext
-
     Object {
         id: internal
 

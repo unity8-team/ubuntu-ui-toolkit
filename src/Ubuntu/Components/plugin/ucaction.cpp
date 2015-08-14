@@ -180,7 +180,7 @@ void UCAction::componentComplete()
     UCActionContext *context = Q_NULLPTR;
     QObject *parent = this->parent();
     while (parent) {
-        context = parent->property("__actionContext").value<UCActionContext*>();
+        context = parent->property("actionContext").value<UCActionContext*>();
         if (context) {
             context->addAction(this);
             return;
