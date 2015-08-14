@@ -47,12 +47,6 @@ OrientationHelper {
       */
     property PropertyAnimation fadingAnimation: PropertyAnimation{duration: 0}
 
-    /*!
-      \since Ubuntu.Components.Popups 1.3
-      The property holds the ActioNContext of the popup (Popover or Dialog).
-      */
-    readonly property ActionContext actionContext: ActionContext {}
-
     // without specifying width and height below, some width calculations go wrong in Sheet.
     // I guess popupBase.width is not correctly set initially
     width: parent ? parent.width : undefined

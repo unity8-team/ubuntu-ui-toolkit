@@ -25,6 +25,17 @@
 #include <QtQuick/qquickwindow.h>
 #include <private/qguiapplication_p.h>
 
+// convert variant shortcut into a QKeySequence
+QKeySequence sequenceFromVariant(const QVariant& variant) {
+    if (variant.type() == QVariant::Int) {
+        return static_cast<QKeySequence::StandardKey>(variant.toInt());
+    }
+    if (variant.type() == QVariant::String) {
+        return QKeySequence::fromString(variant.toString());
+    }
+    return QKeySequence();
+}
+
 /*!
  * \qmltype Action
  * \instantiates UCAction
@@ -151,13 +162,36 @@ bool UCAction::isActive()
 }
 
 /*!
+ * \qmlproperty bool Action::global
+ * \since Ubuntu.components 1.3
+ * The property specifies whether the action is registerd in the global or local
+ * ActionContext. Depending on the registration the shortcuts of the action may
+ * be available while teh application is running in background.
+ */
+bool UCAction::isGlobal()
+{
+    return m_global;
+}
+void UCAction::setGlobal(bool global)
+{
+    if (global == m_global) {
+        return;
+    }
+    m_global = global;
+    if (m_shortcut.isValid()) {
+        // reset shortcut
+        setShortcut(m_shortcut);
+    }
+    Q_EMIT globalChanged();
+}
+
+/*!
  * \qmlproperty bool Action::visible
  * Specifies whether the action is visible to the user. Defaults to true.
  */
 
 UCAction::UCAction(QObject *parent)
     : QObject(parent)
-    , m_shortcut(0)
     , m_context(Q_NULLPTR)
     , m_itemHint(Q_NULLPTR)
     , m_parameterType(None)
@@ -165,8 +199,21 @@ UCAction::UCAction(QObject *parent)
     , m_enabled(true)
     , m_visible(true)
     , m_published(false)
+    , m_global(false)
 {
     generateName();
+}
+UCAction::~UCAction()
+{
+    // make sure the shortcut is removed from the app
+    if (m_shortcut.isValid()) {
+        QGuiApplicationPrivate::instance()->shortcutMap.removeShortcut(0, this, sequenceFromVariant(m_shortcut));
+    }
+    m_shortcut = QVariant();
+    // remove the action from the context
+    if (m_context) {
+        m_context->removeAction(this);
+    }
 }
 
 // detect action context
@@ -190,8 +237,8 @@ void UCAction::componentComplete()
         parent = parentItem ? parentItem->parentItem() : parent->parent();
     }
     // if no context found, we add the action to the global context, but show a warning!
-    ActionProxy::instance().globalContext->addAction(this);
-    qmlInfo(this) << QString(QStringLiteral("No local ActionContext found for Action with text '%1'. Global context will be used.")).arg(m_text);
+    ActionProxy::instance().sharedContext->addAction(this);
+    qmlInfo(this) << QString(QStringLiteral("No local ActionContext found for Action with text '%1'. Shared context will be used.")).arg(m_text);
 }
 
 bool UCAction::isValidType(QVariant::Type valueType)
@@ -278,12 +325,17 @@ void UCAction::setItemHint(QQmlComponent *)
     qWarning() << "Action.itemHint is a DEPRECATED property. Use ActionItems to specify the representation of an Action.";
 }
 
-bool shortcutContextMatcher(QObject* object, Qt::ShortcutContext)
+bool shortcutContextMatcher(QObject* object, Qt::ShortcutContext context)
 {
     UCAction* action = static_cast<UCAction*>(object);
     // is action in an active context?
     if (!action->isActive()) {
         return false;
+    }
+
+    if (action->isGlobal() && (context == Qt::ApplicationShortcut)) {
+        // global action, no need to check the window it is registered to
+        return true;
     }
 
     QObject* window = object;
@@ -294,16 +346,6 @@ bool shortcutContextMatcher(QObject* object, Qt::ShortcutContext)
         }
     }
     return window && window == QGuiApplication::focusWindow();
-}
-
-QKeySequence sequenceFromVariant(const QVariant& variant) {
-    if (variant.type() == QVariant::Int) {
-        return static_cast<QKeySequence::StandardKey>(variant.toInt());
-    }
-    if (variant.type() == QVariant::String) {
-        return QKeySequence::fromString(variant.toString());
-    }
-    return QKeySequence();
 }
 
 /*!
@@ -321,7 +363,10 @@ void UCAction::setShortcut(const QVariant& shortcut)
 
     QKeySequence sequence(sequenceFromVariant(shortcut));
     if (!sequence.toString().isEmpty()) {
-        QGuiApplicationPrivate::instance()->shortcutMap.addShortcut(this, sequence, Qt::WindowShortcut, shortcutContextMatcher);
+        // FIXME: register the global shortcut using a different approach
+        Qt::ShortcutContext context = m_global ? Qt::ApplicationShortcut : Qt::WindowShortcut;
+        qDebug() << "SHORTCUT CONTEXT" << context;
+        QGuiApplicationPrivate::instance()->shortcutMap.addShortcut(this, sequence, context, shortcutContextMatcher);
     } else {
         qmlInfo(this) << "Invalid shortcut: " << shortcut.toString();
     }

@@ -36,6 +36,7 @@ public:
     }
 
     UCActionContext *globalContext;
+    UCActionContext *sharedContext;
 
     static const QSet<UCActionContext*> &localContexts();
     static void publishGlobalContext();

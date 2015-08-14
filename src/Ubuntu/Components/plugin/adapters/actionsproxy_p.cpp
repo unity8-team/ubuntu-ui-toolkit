@@ -22,15 +22,19 @@
 ActionProxy::ActionProxy()
     : QObject(0)
     , globalContext(new UCActionContext)
+    , sharedContext(new UCActionContext)
 {
     // for testing purposes
     globalContext->setObjectName("GlobalActionContext");
+    sharedContext->setObjectName("SharedActionContext");
 }
 ActionProxy::~ActionProxy()
 {
     // clear context explicitly, as global context is not connected to
     clearContextActions(globalContext);
+    clearContextActions(sharedContext);
     delete globalContext;
+    delete sharedContext;
 }
 
 const QSet<UCActionContext*> &ActionProxy::localContexts()

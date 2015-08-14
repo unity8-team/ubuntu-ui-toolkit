@@ -132,6 +132,16 @@ PopupBase {
       */
     property bool modal: true
 
+    /*!
+      \qmlproperty ActionContext actionContext
+      \readonly
+      \since Ubuntu.Components.Popups 1.3
+      The property holds the ActionContext of the Dialog. This is an overlay action
+      context blocking all active actions defined in the application, so only actions
+      declared in the dialog will be active.
+      */
+    readonly property alias actionContext: overlayContext
+
     /*
     QtObject {
         id: internal
@@ -145,6 +155,12 @@ PopupBase {
 
     Pointer { id: pointer }
     */
+
+    ActionContext {
+        id: overlayContext
+        overlay: true
+        active: dialog.visible
+    }
 
     __foreground: foreground
     __eventGrabber.enabled: modal

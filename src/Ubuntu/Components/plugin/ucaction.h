@@ -20,6 +20,7 @@
 #include <QtCore/QObject>
 #include <QtCore/QVariant>
 #include <QtCore/QUrl>
+#include <QtCore/QPointer>
 #include <QtQml/QQmlParserStatus>
 
 class QQmlComponent;
@@ -46,6 +47,8 @@ class UCAction : public QObject, public QQmlParserStatus
 
     // QtQuickControls.Action
     Q_PROPERTY(QVariant shortcut MEMBER m_shortcut WRITE setShortcut NOTIFY shortcutChanged REVISION 1)
+    // TODO: make it enum, READONLY
+    Q_PROPERTY(bool global READ isGlobal NOTIFY globalChanged FINAL REVISION 1)
 public:
     enum Type {
         None,
@@ -57,12 +60,15 @@ public:
     };
 
     explicit UCAction(QObject *parent = 0);
+    ~UCAction();
 
     inline bool isPublished() const
     {
         return m_published;
     }
     bool isActive();
+    bool isGlobal();
+    void setGlobal(bool global);
 
     // from QQmlParserStatus
     void classBegin() {}
@@ -78,7 +84,8 @@ Q_SIGNALS:
     void parameterTypeChanged();
     void iconSourceChanged();
     void visibleChanged();
-    void shortcutChanged(const QVariant& shortcut);
+    Q_REVISION(1) void shortcutChanged(const QVariant& shortcut);
+    Q_REVISION(1) void globalChanged();
     void triggered(const QVariant &value);
 
 public Q_SLOTS:
@@ -92,13 +99,14 @@ private:
     QString m_description;
     QString m_keywords;
     QVariant m_shortcut;
-    UCActionContext *m_context;
+    QPointer<UCActionContext> m_context;
     QQmlComponent *m_itemHint;
     Type m_parameterType;
     bool m_factoryIconSource:1;
     bool m_enabled:1;
     bool m_visible:1;
     bool m_published:1;
+    bool m_global:1;
 
     friend class UCActionContext;
     friend class UCListItemPrivate;

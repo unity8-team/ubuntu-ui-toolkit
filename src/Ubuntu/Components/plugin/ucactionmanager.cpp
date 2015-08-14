@@ -27,11 +27,16 @@
  * \brief ActionManager manages actions and action contexts withion an application.
  *
  * Acts as an interface between the application and external components. Maintains
- * the global context action registration.
+ * the global and a shared context action registration.
  *
  * There can be many ActionManager instances in an application, and all instances
  * will have the ActionContexts shared between each other. If individual ActionManager
  * instances add more Action objects, those will be published as well.
+ *
+ * Global actions must be declared as child actions of the ActionManager, or into
+ * the \l actions default property. All other Actions declared outside of the ActionManager
+ * and not in a Page or Dialog will be registered as shared actions, into the
+ * \l sharedContext.
  */
 UCActionManager::UCActionManager(QObject *parent)
     : QObject(parent)
@@ -111,6 +116,18 @@ int UCActionManager::contextCount(QQmlListProperty<UCActionContext> *list)
 UCActionContext *UCActionManager::globalContext() const
 {
     return ActionProxy::instance().globalContext;
+}
+
+/*!
+ * \qmlproperty ActionContext ActionManager::sharedContext
+ * The sharedContext of the Application. Shared actions are actions shared between
+ * different parts across the application, but which are not exposed as global actions
+ * and therefore are neither accessible while the application is running in background.
+ * \note Setting the \l ActionContext::active on the shared context has no effect.
+ */
+UCActionContext *UCActionManager::sharedContext() const
+{
+    return ActionProxy::instance().sharedContext;
 }
 
 /*!

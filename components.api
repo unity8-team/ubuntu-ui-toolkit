@@ -11,6 +11,7 @@ Ubuntu.Components.AbstractButton 1.3: ActionItem
 Ubuntu.Components.Action 1.3 1.0 0.1: QtObject
     property string description
     property bool enabled
+    readonly property bool global 1.3
     property string iconName
     property url iconSource
     property Component itemHint
@@ -59,7 +60,7 @@ Ubuntu.Components.ActionList 1.0 0.1: QtObject
 Ubuntu.Components.ActionList 1.3: QtObject
     readonly property Action actions
     default readonly property Action children
-Ubuntu.Components.ActionManager 1.0 0.1: QtObject
+Ubuntu.Components.ActionManager 1.3 1.0 0.1: QtObject
     default readonly property Action actions
     readonly property ActionContext globalContext
     readonly property ActionContext localContexts
@@ -68,6 +69,7 @@ Ubuntu.Components.ActionManager 1.0 0.1: QtObject
     function removeAction(Action action)
     function addLocalContext(ActionContext context)
     function removeLocalContext(ActionContext context)
+    readonly property ActionContext sharedContext 1.3
 Ubuntu.Components.Popups.ActionSelectionPopover 1.0 0.1: Popover
     property var actions
     property Component delegate
@@ -297,6 +299,7 @@ Ubuntu.Components.Popups.Dialog 1.0 0.1: PopupBase
     property string text
     property string title
 Ubuntu.Components.Popups.Dialog 1.3: PopupBase
+    readonly property ActionContext actionContext
     property Item caller
     property double callerMargin
     default readonly property QtObject contents
@@ -763,7 +766,6 @@ Ubuntu.Components.Popups.PopupBase 1.0 0.1: OrientationHelper
     function var show()
     function var hide()
 Ubuntu.Components.Popups.PopupBase 1.3: OrientationHelper
-    readonly property ActionContext actionContext
     property Item dismissArea
     property PropertyAnimation fadingAnimation
     property bool grabDismissAreaEvents

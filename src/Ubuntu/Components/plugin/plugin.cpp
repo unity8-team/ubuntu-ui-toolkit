@@ -221,6 +221,7 @@ void UbuntuComponentsPlugin::registerTypes(const char *uri)
     qmlRegisterType<UCProportionalShape>(uri, 1, 3, "ProportionalShape");
     qmlRegisterType<LiveTimer>(uri, 1, 3, "LiveTimer");
     qmlRegisterType<UCActionContext, 1>(uri, 1, 3, "ActionContext");
+    qmlRegisterType<UCActionManager, 1>(uri, 1, 3, "ActionManager");
 }
 
 void UbuntuComponentsPlugin::initializeEngine(QQmlEngine *engine, const char *uri)

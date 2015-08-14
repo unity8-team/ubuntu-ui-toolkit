@@ -26,14 +26,27 @@
  * \brief ActionContext groups actions together and by providing multiple contexts
  * the developer is able to control the visibility of the actions. The \l ActionManager
  * then exposes the actions from these different contexts.
+ *
+ * Actions declared in Dialog or Page, including the ones declared for the header,
+ * are stored implicitly in the ActionContext associated to the component. When
+ * the Page is activated, the Actions in the context will be activated as well.
+ * Depending on the context \l overlay type, there can be only one or more action
+ * contexts active at a time. When the ActionContext is destroyed, it is removed
+ * from the action management, and all its actions declared in the same document
+ * will be removed and destroyed. However, action contexts may contain actions
+ * from other documents (so called shared actions), which in case of deletion
+ * will be moved into the \l ActionManager::sharedContext actions context.
  */
 UCActionContext::UCActionContext(QObject *parent)
     : QObject(parent)
     , m_active(false)
+    , m_overlay(false)
 {
 }
 UCActionContext::~UCActionContext()
 {
+    // remove all actions from the context
+    clear();
     ActionProxy::removeContext(this);
 }
 
@@ -45,10 +58,24 @@ void UCActionContext::componentComplete()
 
 void UCActionContext::clear()
 {
-    Q_FOREACH(UCAction *action, m_actions) {
-        action->m_context = Q_NULLPTR;
+    if (ActionProxy::instance().globalContext == this) {
+        // cleaning global context, only set the context to NULL
+        Q_FOREACH(UCAction *action, m_actions) {
+            // remove action from context
+            action->m_context = Q_NULLPTR;
+        }
+        m_actions.clear();
+    } else {
+        // move actions to global context
+        QSetIterator<UCAction*> i(m_actions);
+        while (i.hasNext()) {
+            UCAction *action = i.next();
+            qDebug() << "MOVE" << action->m_text << "INTO SHARED";
+            action->m_context = ActionProxy::instance().sharedContext;
+            action->setGlobal(false);
+        }
+        m_actions.clear();
     }
-    m_actions.clear();
 }
 
 /*
@@ -157,8 +184,10 @@ void UCActionContext::addAction(UCAction *action)
     if (m_actions.contains(action)) {
         return;
     }
+    qDebug() << "INSERT ACTION" << action->m_text << "INTO" << this;
     m_actions.insert(action);
     action->m_context = this;
+    action->setGlobal(this == ActionProxy::instance().globalContext);
 }
 
 /*!
@@ -170,6 +199,8 @@ void UCActionContext::removeAction(UCAction *action)
     if (!action) {
         return;
     }
+    qDebug() << "REMOVE ACTION" << action->m_text << "FROM" << this;
     m_actions.remove(action);
-    action->m_context = Q_NULLPTR;
+    action->m_context = (this == ActionProxy::instance().sharedContext) ? Q_NULLPTR : ActionProxy::instance().sharedContext;
+    action->setGlobal(false);
 }
