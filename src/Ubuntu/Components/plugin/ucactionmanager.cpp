@@ -45,6 +45,7 @@ UCActionManager::UCActionManager(QObject *parent)
 
 void UCActionManager::componentComplete()
 {
+    ActionProxy::instance().sharedContext->setActive(true);
     // publish global context to system
     ActionProxy::instance().globalContext->setActive(true);
     ActionProxy::publishGlobalContext();

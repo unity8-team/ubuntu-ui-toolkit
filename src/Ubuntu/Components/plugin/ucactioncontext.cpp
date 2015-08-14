@@ -143,7 +143,7 @@ void UCActionContext::setActive(bool active)
         return;
     }
     // skip deactivation for global context
-    if (!active && (ActionProxy::instance().globalContext == this)) {
+    if (!active && (ActionProxy::instance().globalContext == this || ActionProxy::instance().sharedContext == this)) {
         return;
     }
     m_active = active;
