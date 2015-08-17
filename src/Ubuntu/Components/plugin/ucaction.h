@@ -21,6 +21,7 @@
 #include <QtCore/QVariant>
 #include <QtCore/QUrl>
 #include <QtCore/QPointer>
+#include <QtCore/QSet>
 #include <QtQml/QQmlParserStatus>
 
 class QQmlComponent;
@@ -99,7 +100,7 @@ private:
     QString m_description;
     QString m_keywords;
     QVariant m_shortcut;
-    QPointer<UCActionContext> m_context;
+    QSet<UCActionContext*> m_contexts;
     QQmlComponent *m_itemHint;
     Type m_parameterType;
     bool m_factoryIconSource:1;

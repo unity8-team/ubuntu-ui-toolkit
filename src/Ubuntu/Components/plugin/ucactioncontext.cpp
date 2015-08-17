@@ -42,8 +42,7 @@
  * Shared actions are typical reusable actions across application views. They are
  * "dormant" until used in local contexts. \b Global actions are the third type of
  * actions, and are those type of actions which are also available while the application
- * is in background. Using these actions in local contexts will deactivate them,
- * fact that should be taken into account when designing application's global actions.
+ * is in background.
  */
 UCActionContext::UCActionContext(QObject *parent)
     : QObject(parent)
@@ -66,22 +65,14 @@ void UCActionContext::componentComplete()
 
 void UCActionContext::clear()
 {
-    if (ActionProxy::instance().globalContext == this) {
-        // cleaning global context, only set the context to NULL
-        Q_FOREACH(UCAction *action, m_actions) {
-            // remove action from context
-            action->m_context = Q_NULLPTR;
-        }
-        m_actions.clear();
-    } else {
-        // move actions to shared context
-        QSetIterator<UCAction*> i(m_actions);
-        while (i.hasNext()) {
-            UCAction *action = i.next();
-            action->m_context = ActionProxy::instance().sharedContext;
-        }
-        m_actions.clear();
+    // remove context from actions
+    Q_FOREACH(UCAction *action, m_actions) {
+        action->m_contexts.remove(this);
+        // FIXME: shouldn't we emit action->activeChanged?
+        // actions can be active until they are in an active context,
+        // maybe we want to notify this
     }
+    m_actions.clear();
 }
 
 /*
@@ -101,7 +92,7 @@ void UCActionContext::markActionsPublished(bool mark)
  */
 QQmlListProperty<UCAction> UCActionContext::actions()
 {
-    return QQmlListProperty<UCAction>(this, 0, UCActionContext::append, UCActionContext::count, 0, UCActionContext::clear);
+    return QQmlListProperty<UCAction>(this, 0, UCActionContext::append, UCActionContext::count, UCActionContext::at, UCActionContext::clear);
 }
 
 void UCActionContext::append(QQmlListProperty<UCAction> *list, UCAction *action)
@@ -118,6 +109,12 @@ void UCActionContext::clear(QQmlListProperty<UCAction> *list)
     if (context) {
         context->clear();
     }
+}
+
+UCAction *UCActionContext::at(QQmlListProperty<UCAction> *list, int index)
+{
+    UCActionContext *context = qobject_cast<UCActionContext*>(list->object);
+    return context->m_actions.toList().at(index);
 }
 
 int UCActionContext::count(QQmlListProperty<UCAction> *list)
@@ -192,7 +189,7 @@ void UCActionContext::addAction(UCAction *action)
         return;
     }
     m_actions.insert(action);
-    action->m_context = this;
+    action->m_contexts.insert(this);
     action->setGlobal(this == ActionProxy::instance().globalContext);
 }
 
@@ -206,6 +203,9 @@ void UCActionContext::removeAction(UCAction *action)
         return;
     }
     m_actions.remove(action);
-    action->m_context = (this == ActionProxy::instance().sharedContext) ? Q_NULLPTR : ActionProxy::instance().sharedContext;
-    action->setGlobal(false);
+    action->m_contexts.remove(this);
+    // reset global behavior once the action is removed from teh global list
+    if (!action->m_contexts.contains(ActionProxy::instance().globalContext)) {
+        action->setGlobal(false);
+    }
 }

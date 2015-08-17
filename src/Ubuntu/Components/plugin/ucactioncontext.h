@@ -70,6 +70,7 @@ private:
 
     static void append(QQmlListProperty<UCAction> *list, UCAction *action);
     static void clear(QQmlListProperty<UCAction> *list);
+    static UCAction *at(QQmlListProperty<UCAction> *list, int index);
     static int count(QQmlListProperty<UCAction> *list);
 };
 

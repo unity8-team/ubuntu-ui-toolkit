@@ -206,7 +206,14 @@ QKeySequence sequenceFromVariant(const QVariant& variant) {
  */
 bool UCAction::isActive()
 {
-    return (m_context ? m_context->isActive() : true) && m_enabled;
+    bool activeContext = false;
+    Q_FOREACH(UCActionContext *context, m_contexts) {
+        activeContext = context->isActive();
+        if (activeContext) {
+            break;
+        }
+    }
+    return activeContext && m_enabled;
 }
 
 /*!
@@ -240,7 +247,6 @@ void UCAction::setGlobal(bool global)
 
 UCAction::UCAction(QObject *parent)
     : QObject(parent)
-    , m_context(Q_NULLPTR)
     , m_itemHint(Q_NULLPTR)
     , m_parameterType(None)
     , m_factoryIconSource(true)
@@ -258,17 +264,19 @@ UCAction::~UCAction()
         QGuiApplicationPrivate::instance()->shortcutMap.removeShortcut(0, this, sequenceFromVariant(m_shortcut));
     }
     m_shortcut = QVariant();
-    // remove the action from the context
-    if (m_context) {
-        m_context->removeAction(this);
+    if (m_contexts.size() > 0) {
+        // clear context list, the action is no longer available
+        Q_FOREACH(UCActionContext *context, m_contexts) {
+            context->removeAction(this);
+        }
     }
 }
 
 // detect action context
 void UCAction::componentComplete()
 {
-    if (m_context) {
-        // nothing to do, we have a context set
+    if (m_contexts.size() > 0) {
+        // nothing to do, we have a context set by QML engine
         return;
     }
     // if the Action is not in an ActionContext, try to detect a context in between the parents
@@ -284,9 +292,8 @@ void UCAction::componentComplete()
         QQuickItem *parentItem = qobject_cast<QQuickItem*>(parent);
         parent = parentItem ? parentItem->parentItem() : parent->parent();
     }
-    // if no context found, we add the action to the global context, but show a warning!
+    // if no context found, we add the action to the shared context
     ActionProxy::instance().sharedContext->addAction(this);
-    qmlInfo(this) << QString(QStringLiteral("No local ActionContext found for Action with text '%1'. Shared context will be used.")).arg(m_text);
 }
 
 bool UCAction::isValidType(QVariant::Type valueType)
@@ -448,7 +455,7 @@ bool UCAction::event(QEvent *event)
  */
 void UCAction::trigger(const QVariant &value)
 {
-    if (!m_enabled) {
+    if (!isActive()) {
         return;
     }
     if (!isValidType(value.type())) {

@@ -21,19 +21,6 @@ import Ubuntu.Components 1.1
 TestCase {
      name: "ActionAPI"
 
-     TestUtil {
-         id: util
-     }
-
-     function contains(list, entry) {
-         for (var i = 0; i < list.length; i++) {
-             if (list[i] == entry) {
-                 return true;
-             }
-         }
-         return false;
-     }
-
      function initTestCase() {
          compare(action.text, "", "text is empty string set by default")
          compare(action.iconSource, "", "iconSource is empty string by default")
@@ -108,15 +95,11 @@ TestCase {
 
      function test_actionmanager() {
          verify(manager.globalContext, "Global context is not defined");
-         compare(manager.localContexts.length, 2, "Invalid number of local contexts defined");
+         compare(manager.localContexts.length, 3, "Invalid number of local contexts defined");
      }
 
      function test_globalcontext_actions() {
          compare(manager.globalContext.actions.length, 3, "Global context action count must be a sum of all manager's actions' counts");
-     }
-
-     function ignoreQMLWarning(message) {
-         ignoreWarning(util.callerFile() + message);
      }
 
      function test_activate_contexts_data() {
@@ -187,5 +170,5 @@ TestCase {
      ActionContext {
          id: context2
      }
-
+     ActionContext { id: activeContext; active: true; actions: [valueType] }
 }

@@ -36,6 +36,7 @@ Item {
     ActionManager{}
     // shortcuts need an active action to trigger
     ActionContext{
+        id: context
         active: true
         actions: [action, other]
     }
@@ -59,17 +60,25 @@ Item {
 
         function test_shortcut_triggered_data() {
             return [
-                { tag: 'Multiple modifiers and letter', shortcut: 'Ctrl+Shift+Alt+A', key: Qt.Key_A, mod: Qt.ControlModifier + Qt.ShiftModifier + Qt.AltModifier },
-                { tag: 'Modifier and letter', shortcut: 'Ctrl+A', key: Qt.Key_A, mod: Qt.ControlModifier },
-                { tag: 'Single letter', shortcut: 'E', key: Qt.Key_E, mod: Qt.NoModifier },
-                { tag: 'StandardKey', shortcut: StandardKey.Copy, key: Qt.Key_C, mod: Qt.ControlModifier }
+                { tag: 'Multiple modifiers and letter', shortcut: 'Ctrl+Shift+Alt+A', key: Qt.Key_A, mod: Qt.ControlModifier + Qt.ShiftModifier + Qt.AltModifier, active: true, xfail: false },
+                { tag: 'Multiple modifiers and letter, xfail', shortcut: 'Ctrl+Shift+Alt+A', key: Qt.Key_A, mod: Qt.ControlModifier + Qt.ShiftModifier + Qt.AltModifier, active: false, xfail: true },
+                { tag: 'Modifier and letter', shortcut: 'Ctrl+A', key: Qt.Key_A, mod: Qt.ControlModifier, active: true, xfail: false },
+                { tag: 'Modifier and letter, xfail', shortcut: 'Ctrl+A', key: Qt.Key_A, mod: Qt.ControlModifier, active: false, xfail: true },
+                { tag: 'Single letter', shortcut: 'E', key: Qt.Key_E, mod: Qt.NoModifier, active: true, xfail: false },
+                { tag: 'Single letter, xfail', shortcut: 'E', key: Qt.Key_E, mod: Qt.NoModifier, active: false, xfail: true },
+                { tag: 'StandardKey', shortcut: StandardKey.Copy, key: Qt.Key_C, mod: Qt.ControlModifier, active: true, xfail: false },
+                { tag: 'StandardKey, xfail', shortcut: StandardKey.Copy, key: Qt.Key_C, mod: Qt.ControlModifier, active: false, xfail: true }
             ];
         }
         function test_shortcut_triggered(data) {
+            context.active = data.active;
             action.shortcut = data.shortcut;
             spy.clear();
             keyClick(data.key, data.mod);
-            spy.wait();
+            if (data.xfail) {
+                expectFailContinue(data.tag, "Signal should not be triggered");
+            }
+            spy.wait(400);
         }
 
         function test_shortcut_invalid_data() {
