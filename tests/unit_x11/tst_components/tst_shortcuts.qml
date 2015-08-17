@@ -26,20 +26,19 @@ Item {
 
     Action {
         id: action
-        text: "First"
     }
     Action {
         id: other
-        text: "Second"
         shortcut: 'Ctrl+G'
-    }
-
-    TestUtil {
-        id: util
     }
 
     // need a manager to activate global context
     ActionManager{}
+    // shortcuts need an active action to trigger
+    ActionContext{
+        active: true
+        actions: [action, other]
+    }
 
     UbuntuTestCase {
         id: testCase
@@ -56,10 +55,6 @@ Item {
             id: spy
             signalName: 'triggered'
             target: action
-        }
-
-        function ignoreQMLWarning(message) {
-            ignoreWarning(util.callerFile() + message);
         }
 
         function test_shortcut_triggered_data() {
@@ -84,12 +79,12 @@ Item {
             ];
         }
         function test_shortcut_invalid(data) {
-            ignoreQMLWarning(':27:5: QML Action: Invalid shortcut: ');
+            ignoreWarning(warningFormat(27, 5, 'QML Action: Invalid shortcut: '));
             action.shortcut = data;
         }
 
         function test_shortcut_duplicate() {
-            ignoreQMLWarning(':31:5: QML Action: Ambiguous shortcut: Ctrl+G');
+            ignoreWarning(warningFormat(30, 5, 'QML Action: Ambiguous shortcut: Ctrl+G'));
             action.shortcut = other.shortcut;
             keyClick(Qt.Key_G, Qt.ControlModifier);
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Canonical Ltd.
+ * Copyright 2015 Canonical Ltd.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -112,7 +112,7 @@ TestCase {
      }
 
      function test_globalcontext_actions() {
-         compare(manager.globalContext.actions.length, 5, "Global context action count must be a sum of all manager's actions' and non'contextual actions counts");
+         compare(manager.globalContext.actions.length, 3, "Global context action count must be a sum of all manager's actions' counts");
      }
 
      function ignoreQMLWarning(message) {

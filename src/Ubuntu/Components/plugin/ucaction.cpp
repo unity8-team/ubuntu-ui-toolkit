@@ -88,6 +88,54 @@ QKeySequence sequenceFromVariant(const QVariant& variant) {
  * as well as to define actions for pages, or when defining options in \c ListItemOptions.
  *
  * Examples: See \l Page
+ *
+ * \section2 Contextual action handling
+ * Actions are typically declared in place they are used. However, the toolkit
+ * differentiates them in global, shared and local actions, depending on how they
+ * are declared or where are registered. Global actions are meant to handle those
+ * type of actions whicm must be available also when the application is running
+ * in background. Shared actions are those actions which are reused across application
+ * views, and local actions are those which are declared in place of their use, like
+ * Page header actions, Dialog actions, etc. The activation and lifetime of these
+ * actions are controlled by the \l ActionContext component. An action can be
+ * present in many ActionContexts, however it will be active only when at least
+ * one of these contexts is active. There can be several contexts active at a
+ * time, except if those are overlay, in which case there can be only one overlay
+ * context be active at a time. When organizing the application's actions, these
+ * constraints must be taken into account.
+ *
+ * The Action registers itself to the closest ActionContext found in the component
+ * hierarchy, however this can be achieved also programatically by adding them
+ * explicitly to the context. Each Page and Dialog has a property called \l
+ * Page::actionContext, which holds a local context and can be used to register
+ * local or other actions. The following application skeleton illustrates how to
+ * reuse shared actions and mix with local actions in a context. Note that shared
+ * actions are registered in two contexts, however the shared action will only
+ * be activated once Page is activated due to shared context being inactive all
+ * the time.
+ * \qml
+ * import QtQuick 2.4
+ * import Ubuntu.Components 1.3
+ * MainView {
+ *     width: units.gu(40)
+ *     height: units.gu(71)
+ *
+ *     ActionManager {
+ *         sharedContext.actions: [
+ *             Action {
+ *                 id: sharedAction
+ *             }
+ *         ]
+ *     }
+ *
+ *     Page {
+ *         actionContext.actions: [ sharedAction, localAction ]
+ *         Action {
+ *             id: localAction
+ *         }
+ *     }
+ * }
+ * \endqml
  */
 
 /*!
@@ -166,7 +214,7 @@ bool UCAction::isActive()
  * \since Ubuntu.components 1.3
  * The property specifies whether the action is registerd in the global or local
  * ActionContext. Depending on the registration the shortcuts of the action may
- * be available while teh application is running in background.
+ * be available while the application is running in background.
  */
 bool UCAction::isGlobal()
 {
@@ -365,7 +413,6 @@ void UCAction::setShortcut(const QVariant& shortcut)
     if (!sequence.toString().isEmpty()) {
         // FIXME: register the global shortcut using a different approach
         Qt::ShortcutContext context = m_global ? Qt::ApplicationShortcut : Qt::WindowShortcut;
-        qDebug() << "SHORTCUT CONTEXT" << context;
         QGuiApplicationPrivate::instance()->shortcutMap.addShortcut(this, sequence, context, shortcutContextMatcher);
     } else {
         qmlInfo(this) << "Invalid shortcut: " << shortcut.toString();

@@ -45,7 +45,7 @@ UCActionManager::UCActionManager(QObject *parent)
 
 void UCActionManager::componentComplete()
 {
-    ActionProxy::instance().sharedContext->setActive(true);
+    ActionProxy::instance().sharedContext->setActive(false);
     // publish global context to system
     ActionProxy::instance().globalContext->setActive(true);
     ActionProxy::publishGlobalContext();
@@ -64,7 +64,7 @@ QQmlListProperty<UCAction> UCActionManager::actions()
 void UCActionManager::actionAppend(QQmlListProperty<UCAction> *list, UCAction *action)
 {
     Q_UNUSED(list);
-    ActionProxy::instance().globalContext->m_actions.insert(action);
+    ActionProxy::instance().globalContext->addAction(action);
 }
 
 void UCActionManager::actionClear(QQmlListProperty<UCAction> *list)

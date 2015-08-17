@@ -33,9 +33,17 @@
  * Depending on the context \l overlay type, there can be only one or more action
  * contexts active at a time. When the ActionContext is destroyed, it is removed
  * from the action management, and all its actions declared in the same document
- * will be removed and destroyed. However, action contexts may contain actions
- * from other documents (so called shared actions), which in case of deletion
- * will be moved into the \l ActionManager::sharedContext actions context.
+ * will be removed and destroyed, exception being the shared actions.
+ *
+ * There can be three types of action contexts present in an application: local,
+ * shared and global context. \b Local contexts contains those actions which are active
+ * and/or are available on a given Page or Dialog or other context. Tis can contain
+ * \b shared actions also, which are registered in \l ActionManager::sharedContext.
+ * Shared actions are typical reusable actions across application views. They are
+ * "dormant" until used in local contexts. \b Global actions are the third type of
+ * actions, and are those type of actions which are also available while the application
+ * is in background. Using these actions in local contexts will deactivate them,
+ * fact that should be taken into account when designing application's global actions.
  */
 UCActionContext::UCActionContext(QObject *parent)
     : QObject(parent)
@@ -66,13 +74,11 @@ void UCActionContext::clear()
         }
         m_actions.clear();
     } else {
-        // move actions to global context
+        // move actions to shared context
         QSetIterator<UCAction*> i(m_actions);
         while (i.hasNext()) {
             UCAction *action = i.next();
-            qDebug() << "MOVE" << action->m_text << "INTO SHARED";
             action->m_context = ActionProxy::instance().sharedContext;
-            action->setGlobal(false);
         }
         m_actions.clear();
     }
@@ -142,8 +148,9 @@ void UCActionContext::setActive(bool active)
     if (m_active == active) {
         return;
     }
-    // skip deactivation for global context
-    if (!active && (ActionProxy::instance().globalContext == this || ActionProxy::instance().sharedContext == this)) {
+    // skip deactivation for global context or activation of the shared context
+    if ((!active && ActionProxy::instance().globalContext == this) ||
+        (active && ActionProxy::instance().sharedContext == this)) {
         return;
     }
     m_active = active;
@@ -167,8 +174,8 @@ void UCActionContext::setOverlay(bool overlay)
     if (m_overlay == overlay) {
         return;
     }
-    // global context canot be overlay
-    if (ActionProxy::instance().globalContext == this) {
+    // global or shared context canot be overlay
+    if (ActionProxy::instance().globalContext == this || ActionProxy::instance().sharedContext == this) {
         return;
     }
     m_overlay = overlay;
@@ -184,7 +191,6 @@ void UCActionContext::addAction(UCAction *action)
     if (m_actions.contains(action)) {
         return;
     }
-    qDebug() << "INSERT ACTION" << action->m_text << "INTO" << this;
     m_actions.insert(action);
     action->m_context = this;
     action->setGlobal(this == ActionProxy::instance().globalContext);
@@ -199,7 +205,6 @@ void UCActionContext::removeAction(UCAction *action)
     if (!action) {
         return;
     }
-    qDebug() << "REMOVE ACTION" << action->m_text << "FROM" << this;
     m_actions.remove(action);
     action->m_context = (this == ActionProxy::instance().sharedContext) ? Q_NULLPTR : ActionProxy::instance().sharedContext;
     action->setGlobal(false);
