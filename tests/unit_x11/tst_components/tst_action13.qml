@@ -67,6 +67,9 @@ MainView {
             context.removeAction(global2);
             activeContext.removeAction(global1);
             context.active = false;
+            activeContext.overlay = false;
+            context.active = false;
+            activeContext.active = true;
             triggeredSpy.target = null;
             triggeredSpy.clear();
         }
@@ -122,6 +125,24 @@ MainView {
                 data.contexts[i].removeAction(data.action);
                 verify(!contains(data.contexts[i].actions, data.action), "Action not removed from context");
             }
+        }
+
+        function test_multiple_conytexts_active() {
+            context.active = true;
+            compare(activeContext.active, true);
+            compare(context.active, true);
+        }
+
+        function test_overlay_data() {
+            return [
+                {tag: "inactive overlay", active: false, activeContext: true},
+                {tag: "active overlay", active: true, activeContext: false},
+            ];
+        }
+        function test_overlay(data) {
+            context.overlay = true;
+            context.active = data.active;
+            compare(activeContext.active, data.activeContext);
         }
     }
 }
