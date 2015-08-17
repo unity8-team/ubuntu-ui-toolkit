@@ -49,6 +49,10 @@ MainView {
                     onClicked: layout.addPageToCurrentColumn(rootPage, leftPage)
                 }
                 ListItemWithLabel {
+                    text: "Add scrollable page left"
+                    onClicked: layout.addPageToCurrentColumn(rootPage, scrollPage)
+                }
+                ListItemWithLabel {
                     text: "Add page right"
                     onClicked: layout.addPageToNextColumn(rootPage, rightPage)
                 }
@@ -60,6 +64,10 @@ MainView {
                     text: "Add external page right"
                     onClicked: layout.addPageToNextColumn(
                                    rootPage, Qt.resolvedUrl("MyExternalPage.qml"))
+                }
+                ListItemWithLabel {
+                    text: "Add scrollable page right"
+                    onClicked: layout.addPageToNextColumn(rootPage, scrollPage)
                 }
             }
         }
@@ -106,6 +114,22 @@ MainView {
                     margins: units.gu(2)
                 }
                 color: "blue"
+            }
+        }
+        Page {
+            id: scrollPage
+            title: "Page with Flickable"
+            Flickable {
+                anchors.fill: parent
+                contentHeight: root.height * 2
+                Label {
+                    anchors {
+                        horizontalCenter: parent.horizontalCenter
+                        top: parent.top
+                        topMargin: units.gu(15)
+                    }
+                    text: "Scroll down to hide the header."
+                }
             }
         }
     }
