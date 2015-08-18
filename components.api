@@ -299,7 +299,6 @@ Ubuntu.Components.Popups.Dialog 1.0 0.1: PopupBase
     property string text
     property string title
 Ubuntu.Components.Popups.Dialog 1.3: PopupBase
-    readonly property ActionContext actionContext
     property Item caller
     property double callerMargin
     default readonly property QtObject contents
@@ -766,6 +765,7 @@ Ubuntu.Components.Popups.PopupBase 1.0 0.1: OrientationHelper
     function var show()
     function var hide()
 Ubuntu.Components.Popups.PopupBase 1.3: OrientationHelper
+    readonly property ActionContext actionContext
     property Item dismissArea
     property PropertyAnimation fadingAnimation
     property bool grabDismissAreaEvents
