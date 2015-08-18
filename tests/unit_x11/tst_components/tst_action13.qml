@@ -29,8 +29,9 @@ MainView {
         Action { id: global2 }
         Action { id: global3 }
         sharedContext.actions: [
-            Action { id: shared1 },
-            Action { id: shared2 }
+            Action { id: shared1; objectName: "shared1" },
+            Action { id: shared2; objectName: "shared2" },
+            Action { id: shared3; objectName: "shared3" }
         ]
     }
     Item {
@@ -42,6 +43,10 @@ MainView {
     ActionContext {
         id: activeContext
         active: true
+    }
+    ActionContext {
+        id: overlayContext
+        overlay: true
     }
 
     UbuntuTestCase {
@@ -64,11 +69,18 @@ MainView {
 
         function cleanup() {
             context.removeAction(shared1);
+            context.removeAction(shared2);
             context.removeAction(global2);
             activeContext.removeAction(global1);
+            activeContext.removeAction(shared1);
+            activeContext.removeAction(shared2);
+            overlayContext.removeAction(shared1);
+            overlayContext.removeAction(shared2);
+            overlayContext.removeAction(shared3);
             context.active = false;
             activeContext.overlay = false;
             context.active = false;
+            overlayContext.active = false;
             activeContext.active = true;
             triggeredSpy.target = null;
             triggeredSpy.clear();
@@ -80,10 +92,10 @@ MainView {
             compare(manager.globalContext.overlay, false, "globalContext is not overlay");
             compare(manager.sharedContext.overlay, false, "sharedContext is not overlay");
             compare(manager.globalContext.actions.length, 3, "global context action count mismatch");
-            compare(manager.sharedContext.actions.length, 2, "shared context action count mismatch");
+            compare(manager.sharedContext.actions.length, 3, "shared context action count mismatch");
             compare(context.actions.length, 1, "Local context action count mismatch");
             compare(context.active, false, "context should be inactive");
-            compare(activeContext.active, true, "activeContext shoudl be active");
+            compare(activeContext.active, true, "activeContext should be active");
         }
 
         function test_actions_in_multiple_contexts() {
@@ -104,11 +116,11 @@ MainView {
 
         function test_shared_actions_active_data() {
             return [
-                {tag: "shared Action not in any local context", contexts: [], action: shared1, xfail: true},
-                {tag: "shared Action in inactive local context", contexts: [context], action: shared1, xfail: true},
-                {tag: "shared Action in active local context", contexts: [activeContext], action: shared1, xfail: false},
-                {tag: "shared Action in an active and inactive local context", contexts: [context, activeContext], action: shared1, xfail: false},
-            ];
+                        {tag: "shared Action not in any local context", contexts: [], action: shared1, xfail: true},
+                        {tag: "shared Action in inactive local context", contexts: [context], action: shared1, xfail: true},
+                        {tag: "shared Action in active local context", contexts: [activeContext], action: shared1, xfail: false},
+                        {tag: "shared Action in an active and inactive local context", contexts: [context, activeContext], action: shared1, xfail: false},
+                    ];
         }
         function test_shared_actions_active(data) {
             for (var i = 0; i < data.contexts.length; i++) {
@@ -135,14 +147,60 @@ MainView {
 
         function test_overlay_data() {
             return [
-                {tag: "inactive overlay", active: false, activeContext: true},
-                {tag: "active overlay", active: true, activeContext: false},
-            ];
+                        {tag: "active overlay", active: true, xfail: true},
+                        {tag: "inactive overlay", active: false, xfail: false},
+                    ];
         }
         function test_overlay(data) {
+            activeContext.addAction(shared1);
             context.overlay = true;
             context.active = data.active;
-            compare(activeContext.active, data.activeContext);
+            verify(activeContext.active, "active ActionContext deactivated");
+            // try emit activeContext actions
+            triggeredSpy.target = shared1;
+            shared1.trigger();
+            if (data.xfail) {
+                expectFailContinue(data.tag, "Overlay should suppress other active context triggering");
+            }
+
+            triggeredSpy.wait(400);
+        }
+
+        function test_only_one_overlay_active_data() {
+            return [
+                {tag: "disable topmost first", trigger: [shared1, shared2, shared3], triggerCount: [0, 0, 1], disableOrder: [overlayContext, context], disableTriggerCount: [[0, 1, 0], [1, 0, 0]] },
+                {tag: "disable second first", trigger: [shared1, shared2, shared3], triggerCount: [0, 0, 1], disableOrder: [context, overlayContext], disableTriggerCount: [[0, 0, 1], [1, 0, 0]] },
+            ]
+        }
+        function test_only_one_overlay_active(data) {
+            activeContext.addAction(shared1);
+            context.addAction(shared2);
+            overlayContext.addAction(shared3);
+            context.overlay = true;
+            context.active = true;
+            overlayContext.active = true;
+            verify(context.active, "context deactivated");
+            verify(activeContext.active, "activeContext deactivated");
+            verify(overlayContext.active, "overlayContext deactivated");
+
+            // try to trigger actions
+            for (var i = 0; i < data.trigger.length; i++) {
+                triggeredSpy.clear();
+                triggeredSpy.target = data.trigger[i];
+                triggeredSpy.target.trigger();
+                compare(triggeredSpy.count, data.triggerCount[i], "action #" + data.trigger[i] + " should not be triggered");
+            }
+            // deactivate
+            for (var i = 0; i < data.disableOrder.length; i++) {
+                data.disableOrder[i].active = false;
+                var disableCount = data.disableTriggerCount[i]
+                for (var j = 0; j < data.trigger.length; j++) {
+                    triggeredSpy.clear();
+                    triggeredSpy.target = data.trigger[j];
+                    triggeredSpy.target.trigger();
+                    compare(triggeredSpy.count, disableCount[j], "action #" + data.trigger[j] + " should not be triggered");
+                }
+            }
         }
     }
 }

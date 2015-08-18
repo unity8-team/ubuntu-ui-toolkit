@@ -55,10 +55,8 @@ PageTreeNode {
 
     property Flickable flickable: internal.getFlickableChild(page)
 
-    /*! \internal */
-    onActiveChanged: {
-        internal.updateActions();
-    }
+    // internal, introduced due to contextual actions changes in 1.3 affecting earlier versions
+    readonly property QtObject __actionContext: actionContext
 
     /*!
       \qmlproperty list<Action> actions
@@ -71,10 +69,7 @@ PageTreeNode {
         // Toolkit ActionContext registers automatically to ActionManager
         Toolkit.ActionContext {
             id: actionContext
-        }
-
-        function updateActions() {
-            actionContext.active = page.active;
+            active: page.active
         }
 
         property Item header: page.__propagated && page.__propagated.header ? page.__propagated.header : null

@@ -47,6 +47,10 @@ OrientationHelper {
       */
     property PropertyAnimation fadingAnimation: PropertyAnimation{duration: 0}
 
+    // internal, introduced due to contextual actions changes in 1.3 affecting earlier versions
+    readonly property ActionContext __actionContext: ActionContext {
+        active: popupBase.visible
+    }
     // without specifying width and height below, some width calculations go wrong in Sheet.
     // I guess popupBase.width is not correctly set initially
     width: parent ? parent.width : undefined

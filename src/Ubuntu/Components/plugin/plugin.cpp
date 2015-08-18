@@ -217,11 +217,11 @@ void UbuntuComponentsPlugin::registerTypes(const char *uri)
     qmlRegisterType<UCStyledItemBase, 2>(uri, 1, 3, "StyledItem");
     qmlRegisterCustomType<UCStyleHints>(uri, 1, 3, "StyleHints", new UCStyleHintsParser);
     qmlRegisterType<UCAction, 1>(uri, 1, 3, "Action");
+    qmlRegisterType<UCActionContext, 1>(uri, 1, 3, "ActionContext");
+    qmlRegisterType<UCActionManager, 1>(uri, 1, 3, "ActionManager");
     qmlRegisterType<UCUbuntuShape, 2>(uri, 1, 3, "UbuntuShape");
     qmlRegisterType<UCProportionalShape>(uri, 1, 3, "ProportionalShape");
     qmlRegisterType<LiveTimer>(uri, 1, 3, "LiveTimer");
-    qmlRegisterType<UCActionContext, 1>(uri, 1, 3, "ActionContext");
-    qmlRegisterType<UCActionManager, 1>(uri, 1, 3, "ActionManager");
 }
 
 void UbuntuComponentsPlugin::initializeEngine(QQmlEngine *engine, const char *uri)

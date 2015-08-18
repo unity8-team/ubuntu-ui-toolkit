@@ -37,6 +37,7 @@ public:
 
     UCActionContext *globalContext;
     UCActionContext *sharedContext;
+    QList<QPointer<UCActionContext> > activeOverlays;
 
     static const QSet<UCActionContext*> &localContexts();
     static void publishGlobalContext();
@@ -56,6 +57,8 @@ protected Q_SLOTS:
 private:
     QSet<UCActionContext*> m_localContexts;
     QSet<UCActionContext*> m_activeContexts;
+
+    void activateContext(UCActionContext* context);
 };
 
 #endif // ACTIONSPROXY_P_H

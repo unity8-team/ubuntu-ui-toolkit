@@ -29,7 +29,7 @@ class UCActionContext : public QObject, public QQmlParserStatus
     Q_OBJECT
     Q_INTERFACES(QQmlParserStatus)
     Q_PROPERTY(QQmlListProperty<UCAction> actions READ actions)
-    Q_PROPERTY(bool active READ isActive WRITE setActive NOTIFY activeChanged)
+    Q_PROPERTY(bool active MEMBER m_active WRITE setActive NOTIFY activeChanged)
     Q_PROPERTY(bool overlay READ isOverlay WRITE setOverlay NOTIFY overlayChanged FINAL REVISION 1)
     Q_CLASSINFO("DefaultProperty", "actions")
 public:
@@ -43,10 +43,7 @@ public:
 
     QQmlListProperty<UCAction> actions();
 
-    inline bool isActive()
-    {
-        return m_active;
-    }
+    bool isActive();
     void setActive(bool active);
     inline bool isOverlay()
     {
@@ -67,6 +64,7 @@ private:
     bool m_active:1;
     bool m_overlay:1;
     friend class UCActionManager;
+    friend class ActionProxy;
 
     static void append(QQmlListProperty<UCAction> *list, UCAction *action);
     static void clear(QQmlListProperty<UCAction> *list);

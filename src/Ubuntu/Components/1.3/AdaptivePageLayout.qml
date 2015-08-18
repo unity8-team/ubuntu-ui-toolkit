@@ -621,6 +621,14 @@ PageTreeNode {
         visible: false
         // make sure nothing is shown eventually
         clip: true
+        // deactivate all children
+        onChildrenChanged: {
+            for (var i = 0; i < children.length; i++) {
+                if (QuickUtils.inherits(children[i], "PageWrapper")) {
+                    children[i].active = false;
+                }
+            }
+        }
     }
 
     // Holds the columns holding the pages visible. Each column has only one page

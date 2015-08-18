@@ -102,28 +102,48 @@ void ActionProxy::watchContextActivation(UCActionContext *context, bool watch)
 // handles the local context activation
 void ActionProxy::handleContextActivation(bool active)
 {
+    Q_UNUSED(active);
     // sender is the context changing activation
     UCActionContext *context = qobject_cast<UCActionContext*>(sender());
-    if (!context || (active && m_activeContexts.contains(context))) {
+    if (!context) {
         return;
     }
-    if (!active && m_activeContexts.contains(context)) {
+    activateContext(context);
+}
+// handles overlay state change of a context
+void ActionProxy::handleContextOverlay(bool overlay)
+{
+    Q_UNUSED(overlay);
+    UCActionContext *context = qobject_cast<UCActionContext*>(sender());
+    if (!context) {
+        return;
+    }
+    activateContext(context);
+}
+
+void ActionProxy::activateContext(UCActionContext *context)
+{
+    // handle overlay change
+    if (context->m_overlay) {
+        if (context->m_active) {
+            activeOverlays.append(context);
+        } else {
+            activeOverlays.removeAll(context);
+        }
+    }
+    // handle active change
+    if (!context->m_active && m_activeContexts.contains(context)) {
         // perform system cleanup and remove the context
         clearContextActions(context);
         context->markActionsPublished(false);
         m_activeContexts.remove(context);
-    } else {
+    } else if (context->m_active && !m_activeContexts.contains(context)) {
         // publish the context's actions to the system
         publishContextActions(context);
         context->markActionsPublished(true);
         // and finally add as active
         m_activeContexts.insert(context);
     }
-}
-// handles overlay state change of a context
-void ActionProxy::handleContextOverlay(bool overlay)
-{
-    Q_UNUSED(overlay);
 }
 
 // empty functions for context activation/deactivation, connect to HUD

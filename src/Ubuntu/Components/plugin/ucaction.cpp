@@ -284,6 +284,10 @@ void UCAction::componentComplete()
     QObject *parent = this->parent();
     while (parent) {
         context = parent->property("actionContext").value<UCActionContext*>();
+        // for earlier than 1.3 versions, we introduce a private property
+        if (!context) {
+            context = parent->property("__actionContext").value<UCActionContext*>();
+        }
         if (context) {
             context->addAction(this);
             return;

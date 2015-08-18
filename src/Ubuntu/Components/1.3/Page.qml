@@ -52,7 +52,10 @@ PageTreeNode {
       while the Page is active. All actions declared in Page will belong to this
       context.
       */
-    readonly property ActionContext actionContext: ActionContext {}
+    readonly property ActionContext actionContext: ActionContext {
+        active: page.active
+        objectName: "ActionContext+"+page.title
+    }
 
     Object {
         id: internal

@@ -140,6 +140,10 @@ int UCActionContext::count(QQmlListProperty<UCAction> *list)
  *
  * The global context is the only context which cannot be deactivated.
  */
+bool UCActionContext::isActive()
+{
+    return (ActionProxy::instance().activeOverlays.size() > 0) ? (ActionProxy::instance().activeOverlays.last() == this) : m_active;
+}
 void UCActionContext::setActive(bool active)
 {
     if (m_active == active) {

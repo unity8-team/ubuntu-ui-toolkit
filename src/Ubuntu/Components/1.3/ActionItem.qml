@@ -42,6 +42,19 @@ StyledItem {
      */
     property Action action: null
 
+    //FIXME: will need a more performant way to do this most likely moved in StyledItem
+    onActionChanged: {
+        if (!action) return;
+        // get the first parent which has an ActionContext
+        var p = parent;
+        while (p && !p.hasOwnProperty("actionContext")) {
+            p = p.parent;
+        }
+        if (p) {
+            p.actionContext.addAction(action);
+        }
+    }
+
     visible: action ? action.visible : true
     enabled: action ? action.enabled : true
 
