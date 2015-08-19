@@ -20,8 +20,18 @@ import Ubuntu.Components 1.3
 /*!
   TODO docs
 */
-Components.StyledItem {
+// TODO TIM: Do we need a StyledItem here? Or just an Item?
+//StyledItem {
+Item {
     id: header
+
+    // TODO: Use __styleInstance for:
+    // -- contentHeight: units.gu(6)
+    // -- foregroundColor
+    // -- backgroundColor
+    // -- fontWeight: Font.Light
+    // -- f ontSize: "large"
+    // -- margins?
 
     anchors {
         left: parent.left
@@ -29,6 +39,14 @@ Components.StyledItem {
         top: parent.top
     }
     y: 0
+
+    implicitHeight: units.gu(6) //headerStyle.contentHeight + divider.height + sectionsItem.height
+
+    Rectangle {
+        anchors.fill: parent
+        color: "red"
+        opacity: 0.2
+    }
 
     /*!
       Animate showing and hiding of the header.
@@ -38,7 +56,7 @@ Components.StyledItem {
     Behavior on y {
         enabled: animate && !(header.flickable && header.flickable.moving)
         SmoothedAnimation {
-            duration: Components.UbuntuAnimation.BriskDuration
+            duration: UbuntuAnimation.BriskDuration
         }
     }
 
@@ -258,6 +276,6 @@ Components.StyledItem {
         }
     }
 
-    theme.version: Components.Ubuntu.toolkitVersion
+//    theme.version: Components.Ubuntu.toolkitVersion
 //    styleName: header.useDeprecatedToolbar ? "HeaderStyle" : "PageHeadStyle"
 }

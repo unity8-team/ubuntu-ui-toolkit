@@ -24,6 +24,11 @@ ListModel {
         source: "Navigation.qml"
     }
     ListElement {
+        objectName: "headersElement"
+        label: "Header"
+        source: "Headers.qml"
+    }
+    ListElement {
         objectName: "actionBarElement"
         label: "ActionBar"
         source: "ActionBars.qml"

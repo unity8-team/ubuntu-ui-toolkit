@@ -87,7 +87,7 @@ MainView {
                     objectName: "widgetList"
                     anchors.fill: parent
                     model: widgetsModel
-                    currentIndex: -1
+                    currentIndex: 1 //-1
                     delegate: ListItem.Standard {
                         text: model.label
                         objectName: model.objectName
