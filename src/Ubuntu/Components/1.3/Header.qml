@@ -15,13 +15,10 @@
  */
 
 import QtQuick 2.4
-import Ubuntu.Components 1.3 as Components
+import Ubuntu.Components 1.3
 
 /*!
-    \internal
-    \qmltype AppHeader
-    \inqmlmodule Ubuntu.Components 1.1
-    \ingroup ubuntu
+  TODO docs
 */
 Components.StyledItem {
     id: header
@@ -29,6 +26,7 @@ Components.StyledItem {
     anchors {
         left: parent.left
         right: parent.right
+        top: parent.top
     }
     y: 0
 
@@ -37,16 +35,6 @@ Components.StyledItem {
      */
     property bool animate: true
 
-    /*!
-      The background color of the divider. Value set by MainView.
-     */
-    property color dividerColor
-
-    /*!
-      The background color of the panel. Value set by MainView.
-     */
-    property color panelColor
-
     Behavior on y {
         enabled: animate && !(header.flickable && header.flickable.moving)
         SmoothedAnimation {
@@ -54,31 +42,36 @@ Components.StyledItem {
         }
     }
 
+// TODO test this
     /*! \internal */
-    onHeightChanged: {
-        internal.checkFlickableMargins();
-        internal.movementEnded();
-        if (header.config.visible) {
-            header.show();
-        } else {
-            header.hide();
-        }
-    }
+//    onHeightChanged: {
+//        internal.checkFlickableMargins();
+//        internal.movementEnded();
+//        if (header.config.visible) {
+//            header.show();
+//        } else {
+//            header.hide();
+//        }
+//    }
 
     // with PageHeadConfiguration 1.2, always be visible.
-    visible: title || contents || tabsModel || internal.newConfig
-    onVisibleChanged: {
-        internal.checkFlickableMargins();
-    }
+//    visible: title || contents || tabsModel || internal.newConfig
+//    onVisibleChanged: {
+//        internal.checkFlickableMargins();
+//    }
+    // avoid interacting with the header contents when it is animating y
     enabled: header.y === 0
+
+
+    // TODO TIM: readonly property visible?
 
     /*!
       Show the header
      */
     function show() {
-        if (internal.newConfig) {
-            header.config.visible = true;
-        }
+//        if (internal.newConfig) {
+//            header.config.visible = true;
+//        }
         // Enable the header as soon as it finished animating
         //  to the fully visible state:
         header.enabled = Qt.binding(function() { return header.y === 0; });
@@ -89,9 +82,9 @@ Components.StyledItem {
       Hide the header
      */
     function hide() {
-        if (internal.newConfig) {
-            header.config.visible = false;
-        }
+//        if (internal.newConfig) {
+//            header.config.visible = false;
+//        }
         // Disable the header immediately (the update of the y-value
         //  is delayed because of the Behavior defined on it):
         header.enabled = false;
@@ -102,130 +95,43 @@ Components.StyledItem {
       The text to display in the header
      */
     property string title: ""
-    onTitleChanged: {
-        // deprecated for new versions of PageHeadConfiguration
-        if (!internal.newConfig) {
-            header.show();
-        }
-    }
 
     /*!
-      The contents of the header. If this is set, \l title will be ignored.
-      DEPRECATED and replaced by Page.head.contents.
+      The contents of the header. If this is set, the \l title will be invisible.
      */
     property Item contents: null
-    onContentsChanged: {
-        // deprecated for new versions of PageHeadConfiguration
-        if (!internal.newConfig) {
-            header.show();
-        }
-    }
 
-    /*!
-      A model of tabs to represent in the header.
-      This is automatically set by \l Tabs.
-     */
-    property var tabsModel: null
-
-    /*!
-      If it is possible to pop this PageStack, a back button will be
-      shown in the header.
-     */
-    property var pageStack: null
-
-    /*!
-      \deprecated
-      \qmlproperty list<Action> actions
-      The list of actions actions that will be shown in the header.
-      DEPRECATED. Use Page.head.actions instead.
-     */
-    property var actions
-    onActionsChanged: print("WARNING: Header.actions property is DEPRECATED. "+
-                            "Use Page.head.actions instead.")
-
-    /*!
-      \internal
-      \deprecated
-      Action shown before the title. Setting this will disable the back
-      button and tabs drawer button in the new header and replace it with a button
-      representing the action below.
-      DEPRECATED. Use Page.head.backAction property instead.
-     */
-    property var __customBackAction: null
-
-    // FIXME: Currently autopilot can only get visual items, but once bug #1273956
-    //  is fixed to support non-visual items, a QtObject may be used.
-    //  --timp - 2014-03-20
-    Item {
-        // FIXME: This is a workaround to be able to get the properties of
-        //  tabsModel in an autopilot test.
-        objectName: "tabsModelProperties"
-        property int count: tabsModel ? tabsModel.count : 0
-        property int selectedIndex: tabsModel ? tabsModel.selectedIndex : -1
-    }
-    Item {
-        // FIXME: This is a workaround to be able to get the properties of
-        //  the sections in an autopilot test.
-        objectName: "sectionsProperties"
-        property int selectedIndex: header.config ? header.config.sections.selectedIndex : -1
-    }
+    // FIXME TIM: In the CPO, add getLeadingActionBar, getTrailingActionBar and
+    //  getSections functions.
 
     /*!
       The flickable that controls the movement of the header.
-      Will be set automatically by Pages inside a MainView, but can
-      be overridden.
      */
     property Flickable flickable: null
     onFlickableChanged: {
         internal.connectFlickable();
-        if (!internal.newConfig || !header.config.locked) {
+        if (!header.locked) {
             header.show();
         }
     }
-
-    /*!
-      Set by \l MainView
-     */
-    property bool useDeprecatedToolbar: true
-
-    /*!
-      Configuration of the header.
-      FIXME: Must be of type PageHeadConfiguration. Setting that as the property type
-      however will use the latest version (1.3) and a Page that uses an older
-      version (1.1) will no longer work.
-     */
-    property QtObject config: null
-    onConfigChanged: {
-        // set internal.newConfig because when we rely on the binding,
-        //  the value of newConfig may be updated after executing the code below.
-        internal.newConfig = config && config.hasOwnProperty("visible") &&
-                config.hasOwnProperty("locked");
-        internal.connectFlickable();
-
-        if (internal.newConfig && header.config.locked &&!header.config.visible) {
-            header.hide();
-        } else {
-            header.show();
-        }
-    }
-    Connections {
-        target: header.config
-        ignoreUnknownSignals: true // PageHeadConfiguration <1.2 lacks the signals below
-        onVisibleChanged: {
-            if (header.config.visible) {
-                header.show();
-            } else {
-                header.hide();
-            }
-            internal.checkFlickableMargins();
-        }
-        onLockedChanged: {
-            internal.connectFlickable();
-            if (!header.config.locked) {
-                internal.movementEnded();
-            }
-        }
-    }
+//    Connections {
+//        target: header.config
+//        ignoreUnknownSignals: true // PageHeadConfiguration <1.2 lacks the signals below
+//        onVisibleChanged: {
+//            if (header.config.visible) {
+//                header.show();
+//            } else {
+//                header.hide();
+//            }
+//            internal.checkFlickableMargins();
+//        }
+//        onLockedChanged: {
+//            internal.connectFlickable();
+//            if (!header.config.locked) {
+//                internal.movementEnded();
+//            }
+//        }
+//    }
 
     /*!
       The header is not fully opened or fully closed.
@@ -239,18 +145,13 @@ Components.StyledItem {
 
       Used in tst_header_locked_visible.qml.
     */
-    readonly property bool moving: internal.newConfig &&
-                                   ((config.visible && header.y !== 0) ||
-                                    (!config.visible && header.y !== -header.height))
+    // TODO TIM: expose as 'animating'?
+//    readonly property bool moving: internal.newConfig &&
+//                                   ((config.visible && header.y !== 0) ||
+//                                    (!config.visible && header.y !== -header.height))
 
     QtObject {
         id: internal
-
-        // This property is updated in header.onConfigChanged to ensure it
-        //  is updated before other functions are called in onConfigChanged.
-        property bool newConfig: header.config &&
-                                 header.config.hasOwnProperty("locked") &&
-                                 header.config.hasOwnProperty("visible")
 
         /*!
           Track the y-position inside the flickable.
@@ -305,7 +206,7 @@ Components.StyledItem {
           Fully show or hide the header, depending on its current y.
          */
         function movementEnded() {
-            if (!(internal.newConfig && header.config.locked)) {
+            if (!header.locked) {
                 if ( (flickable && flickable.contentY < 0) ||
                         (header.y > -header.height/2)) {
                     header.show();
@@ -336,9 +237,12 @@ Components.StyledItem {
         function checkFlickableMargins() {
             if (header.flickable) {
                 var headerHeight = 0;
-                if (header.visible && !(internal.newConfig &&
-                                        header.config.locked &&
-                                        !header.config.visible)) {
+//                if (header.visible && !(internal.newConfig &&
+//                                        header.config.locked &&
+//                                        !header.config.visible)) {
+                // TODO TIM: check this.
+                // TODO TIM 2: Why don't we make a locked header always visible?
+                if (header.visible || !header.locked) {
                     headerHeight = header.height;
                 }
 
@@ -355,5 +259,5 @@ Components.StyledItem {
     }
 
     theme.version: Components.Ubuntu.toolkitVersion
-    styleName: header.useDeprecatedToolbar ? "HeaderStyle" : "PageHeadStyle"
+//    styleName: header.useDeprecatedToolbar ? "HeaderStyle" : "PageHeadStyle"
 }
