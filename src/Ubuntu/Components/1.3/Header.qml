@@ -36,9 +36,10 @@ Item {
     anchors {
         left: parent.left
         right: parent.right
-        top: parent.top
+//        top: parent.top
     }
     y: 0
+    onYChanged: print("header.y = "+y)
 
     implicitHeight: units.gu(6) //headerStyle.contentHeight + divider.height + sectionsItem.height
 
@@ -53,12 +54,12 @@ Item {
      */
     property bool animate: true
 
-    Behavior on y {
-        enabled: animate && !(header.flickable && header.flickable.moving)
-        SmoothedAnimation {
-            duration: UbuntuAnimation.BriskDuration
-        }
-    }
+//    Behavior on y {
+//        enabled: animate && !(header.flickable && header.flickable.moving)
+//        SmoothedAnimation {
+//            duration: UbuntuAnimation.BriskDuration
+//        }
+//    }
 
 // TODO test this
     /*! \internal */
@@ -78,7 +79,7 @@ Item {
 //        internal.checkFlickableMargins();
 //    }
     // avoid interacting with the header contents when it is animating y
-    enabled: header.y === 0
+//    enabled: header.y === 0
 
 
     // TODO TIM: readonly property visible?
@@ -132,6 +133,7 @@ Item {
             header.show();
         }
     }
+    Component.onCompleted: header.flickableChanged()
 //    Connections {
 //        target: header.config
 //        ignoreUnknownSignals: true // PageHeadConfiguration <1.2 lacks the signals below
@@ -195,7 +197,8 @@ Item {
                 previousFlickable.interactiveChanged.disconnect(internal.interactiveChanged);
                 previousFlickable = null;
             }
-            if (flickable && !(internal.newConfig && header.config.locked)) {
+            if (header.flickable && !header.locked) {
+                print("Connecting new flickable!");
                 // Connect flicking to movements of the header
                 previousContentY = flickable.contentY;
                 flickable.contentYChanged.connect(internal.scrollContents);
@@ -203,6 +206,7 @@ Item {
                 flickable.interactiveChanged.connect(internal.interactiveChanged);
                 flickable.contentHeightChanged.connect(internal.contentHeightChanged);
                 previousFlickable = flickable;
+                print("previousFlickable = "+previousFlickable)
             }
             internal.checkFlickableMargins();
         }
@@ -211,11 +215,17 @@ Item {
           Update the position of the header to scroll with the flickable.
          */
         function scrollContents() {
+            print("scrolling contents")
             // Avoid updating header.y when rebounding or being dragged over the bounds.
             if (!flickable.atYBeginning && !flickable.atYEnd) {
                 var deltaContentY = flickable.contentY - previousContentY;
+                print("D = "+deltaContentY)
                 // FIXME: MathUtils.clamp  is expensive. Fix clamp, or replace it here.
+                print("header.y = "+header.y)
+                var n = header.y - deltaContentY;
+                print("n = "+n);
                 header.y = MathUtils.clamp(header.y - deltaContentY, -header.height, 0);
+                print("header.y = "+header.y)
             }
             previousContentY = flickable.contentY;
         }
@@ -253,6 +263,7 @@ Item {
           contents becoming unavailable behind the header.
          */
         function checkFlickableMargins() {
+            print("checking flickable margins. flickable = "+header.flickable)
             if (header.flickable) {
                 var headerHeight = 0;
 //                if (header.visible && !(internal.newConfig &&
@@ -261,6 +272,7 @@ Item {
                 // TODO TIM: check this.
                 // TODO TIM 2: Why don't we make a locked header always visible?
                 if (header.visible || !header.locked) {
+                    print("visible unlocked header. height = "+header.height)
                     headerHeight = header.height;
                 }
 
