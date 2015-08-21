@@ -24,9 +24,7 @@ QML_FILES += 1.1/Button.qml \
              1.1/UbuntuColors.qml
 
 #1.2
-QML_FILES += 1.2/AbstractButton.qml \
-             1.2/ActionItem.qml \
-             1.2/ActionList.qml \
+QML_FILES += 1.2/ActionList.qml \
              1.2/ActivityIndicator.qml \
              1.2/AnimatedItem.qml \
              1.2/AppHeader.qml \
@@ -81,9 +79,7 @@ QML_FILES += 1.2/AbstractButton.qml \
              1.2/UbuntuNumberAnimation.qml
 
 #1.3
-QML_FILES += 1.3/AbstractButton.qml \
-             1.3/ActionBar.qml \
-             1.3/ActionItem.qml \
+QML_FILES += 1.3/ActionBar.qml \
              1.3/ActionList.qml \
              1.3/ActivityIndicator.qml \
 	     1.3/AdaptivePageLayout.qml \
@@ -140,7 +136,8 @@ QML_FILES += 1.3/AbstractButton.qml \
              1.3/PageColumn.qml \
              1.3/PageColumnsLayout.qml
 
-OTHER_FILES+= 1.3/CrossFadeImage.qdoc \
+OTHER_FILES+= qmldir \
+             1.3/CrossFadeImage.qdoc \
              1.3/UbuntuListView11.qdoc \
              1.3/Page.qdoc \
              1.3/PageHeadConfiguration.qdoc \

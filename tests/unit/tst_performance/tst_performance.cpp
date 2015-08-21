@@ -102,6 +102,7 @@ private Q_SLOTS:
         QTest::addColumn<QString>("document");
         QTest::addColumn<QUrl>("theme");
 
+        QTest::newRow("AbstractButton") << "AbstractButtonGrid.qml" << QUrl();
         QTest::newRow("grid with Rectangle") << "RectangleGrid.qml" << QUrl();
         QTest::newRow("grid with Text") << "TextGrid.qml" << QUrl();
         QTest::newRow("grid with Label") << "LabelGrid.qml" << QUrl();

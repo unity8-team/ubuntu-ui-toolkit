@@ -110,6 +110,7 @@ private:
     bool m_global:1;
 
     friend class UCActionContext;
+    friend class UCActionItem;
     friend class UCListItemPrivate;
     friend class UCListItemAttached;
     friend class UCListItemActionsPrivate;
