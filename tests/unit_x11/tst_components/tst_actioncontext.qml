@@ -29,7 +29,6 @@ MainView {
     Action {
         id: sharedAction;
         text: "pressme"
-        onTriggered: print("hey")
     }
 
     Component {
@@ -69,7 +68,7 @@ MainView {
                     action: Action {
                         id: dialogOpen
                         text: "Open dialog"
-                        onTriggered: testDialog = PopupUtils.open(dialogComponent)
+                        onTriggered: testDialog = PopupUtils.open(dialogComponent);
                     }
                 }
             }
@@ -123,7 +122,9 @@ MainView {
         }
 
         function test_dialog() {
+            triggerSpy.target = dialogOpen;
             dialogOpen.trigger();
+            triggerSpy.wait();
             waitForRendering(testDialog);
             // the active property doesn't change, only actions are not triggered from it
             verify(multiColumn.primaryPage.actionContext.active, "primary page context should be active");
@@ -131,6 +132,7 @@ MainView {
             verify(testDialog.actionContext.overlay, "test dialog context should be overlay");
 
             // test action triggering
+            triggerSpy.clear();
             triggerSpy.target = sharedAction;
             triggerSpy.target.trigger();
             compare(triggerSpy.count, 0, "sharedAction should not be triggered");

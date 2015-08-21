@@ -48,7 +48,6 @@ class UCAction : public QObject, public QQmlParserStatus
 
     // QtQuickControls.Action
     Q_PROPERTY(QVariant shortcut MEMBER m_shortcut WRITE setShortcut NOTIFY shortcutChanged REVISION 1)
-    // TODO: make it enum, READONLY
     Q_PROPERTY(bool global READ isGlobal NOTIFY globalChanged FINAL REVISION 1)
 public:
     enum Type {
