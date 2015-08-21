@@ -30,7 +30,6 @@ class UCActionManager : public QObject, public QQmlParserStatus
     Q_PROPERTY(QQmlListProperty<UCAction> actions READ actions)
     Q_PROPERTY(QQmlListProperty<UCActionContext> localContexts READ localContexts)
     Q_PROPERTY(UCActionContext *globalContext READ globalContext CONSTANT)
-    Q_PROPERTY(UCActionContext *sharedContext READ sharedContext CONSTANT REVISION 1)
     Q_CLASSINFO("DefaultProperty", "actions")
 public:
     explicit UCActionManager(QObject *parent = 0);
@@ -41,7 +40,6 @@ public:
     QQmlListProperty<UCAction> actions();
     QQmlListProperty<UCActionContext> localContexts();
     UCActionContext *globalContext() const;
-    UCActionContext *sharedContext() const;
 
 Q_SIGNALS:
     void quit();

@@ -17,6 +17,7 @@
 #include "ucactionitem.h"
 #include "ucaction.h"
 #include "ucactioncontext.h"
+#include <QtQuick/private/qquickitem_p.h>
 
 /*!
  * \qmltype ActionItem
@@ -43,6 +44,14 @@ UCActionItem::UCActionItem(QQuickItem *parent)
 {
     connect(this, &UCActionItem::visibleChanged, this, &UCActionItem::_q_visibleChanged);
     connect(this, &UCActionItem::enabledChanged, this, &UCActionItem::_q_enabledChanged);
+}
+
+void UCActionItem::componentComplete()
+{
+    UCStyledItemBase::componentComplete();
+    if (m_action) {
+        UCActionContext::registerActionToAncestorContext(this, m_action);
+    }
 }
 
 void UCActionItem::_q_visibleChanged()
@@ -162,8 +171,8 @@ void UCActionItem::setAction(UCAction *action)
     updateProperties();
     // an action can be present in multiple contexts, therefore
     // we only add this action to the context, no need to remove it
-    if (m_action) {
-        UCActionContext::findAncestorContext(parent())->addAction(m_action);
+    if (m_action && QQuickItemPrivate::get(this)->componentComplete) {
+        UCActionContext::registerActionToAncestorContext(this, m_action);
     }
 }
 

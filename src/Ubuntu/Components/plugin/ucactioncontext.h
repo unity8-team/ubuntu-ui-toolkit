@@ -37,6 +37,7 @@ public:
     ~UCActionContext();
 
     static UCActionContext *findAncestorContext(QObject *parent);
+    static bool registerActionToAncestorContext(QObject *parent, UCAction *action);
 
     void classBegin(){}
     void componentComplete();

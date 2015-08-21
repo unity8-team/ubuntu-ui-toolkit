@@ -280,7 +280,7 @@ void UCAction::componentComplete()
         return;
     }
     // if the Action is not in an ActionContext, try to detect a context in between the parents
-    UCActionContext::findAncestorContext(parent())->addAction(this);
+    UCActionContext::registerActionToAncestorContext(parent(), this);
 }
 
 bool UCAction::isValidType(QVariant::Type valueType)

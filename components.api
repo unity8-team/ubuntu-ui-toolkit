@@ -58,7 +58,6 @@ Ubuntu.Components.ActionManager 1.3 1.0 0.1: QtObject
     function removeAction(Action action)
     function addLocalContext(ActionContext context)
     function removeLocalContext(ActionContext context)
-    readonly property ActionContext sharedContext 1.3
 Ubuntu.Components.Popups.ActionSelectionPopover 1.0 0.1: Popover
     property var actions
     property Component delegate

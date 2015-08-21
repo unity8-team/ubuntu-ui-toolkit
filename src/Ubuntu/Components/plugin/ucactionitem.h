@@ -40,6 +40,9 @@ public:
     void setIconName(const QString &iconName);
     void resetIconName();
 
+protected:
+    void componentComplete();
+
 Q_SIGNALS:
     void actionChanged();
     void textChanged();

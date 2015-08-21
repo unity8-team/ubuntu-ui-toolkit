@@ -36,7 +36,6 @@ public:
     }
 
     UCActionContext *globalContext;
-    UCActionContext *sharedContext;
     QList<QPointer<UCActionContext> > activeOverlays;
 
     static const QSet<UCActionContext*> &localContexts();

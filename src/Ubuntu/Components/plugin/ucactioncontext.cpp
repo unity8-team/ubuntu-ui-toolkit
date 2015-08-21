@@ -63,21 +63,30 @@ UCActionContext::~UCActionContext()
 UCActionContext *UCActionContext::findAncestorContext(QObject *parent)
 {
     UCActionContext *context = Q_NULLPTR;
-    while (parent) {
+    while (parent && !context) {
         context = parent->property("actionContext").value<UCActionContext*>();
         // for earlier than 1.3 versions, we introduce a private property
         if (!context) {
             context = parent->property("__actionContext").value<UCActionContext*>();
         }
-        if (context) {
-            return context;
-        }
         // if the parent is an Item, we go that way forward
         QQuickItem *parentItem = qobject_cast<QQuickItem*>(parent);
         parent = parentItem ? parentItem->parentItem() : parent->parent();
     }
-    // if no context found, return the shared context
-    return ActionProxy::instance().sharedContext;
+    return context;
+}
+
+bool UCActionContext::registerActionToAncestorContext(QObject *parent, UCAction *action)
+{
+    if (!parent || !action) {
+        return false;
+    }
+    UCActionContext *context = findAncestorContext(parent);
+    if (!context) {
+        return false;
+    }
+    context->addAction(action);
+    return true;
 }
 
 void UCActionContext::componentComplete()
@@ -173,8 +182,7 @@ void UCActionContext::setActive(bool active)
         return;
     }
     // skip deactivation for global context or activation of the shared context
-    if ((!active && ActionProxy::instance().globalContext == this) ||
-        (active && ActionProxy::instance().sharedContext == this)) {
+    if (!active && ActionProxy::instance().globalContext == this) {
         return;
     }
     m_active = active;
@@ -199,7 +207,7 @@ void UCActionContext::setOverlay(bool overlay)
         return;
     }
     // global or shared context canot be overlay
-    if (ActionProxy::instance().globalContext == this || ActionProxy::instance().sharedContext == this) {
+    if (ActionProxy::instance().globalContext == this) {
         return;
     }
     m_overlay = overlay;

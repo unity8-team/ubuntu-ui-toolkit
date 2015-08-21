@@ -314,7 +314,7 @@ void UCViewItemsAttached::completed()
     }
     // detect if we have any ancestor ActionContext, if none, create one
     d->actionContext = UCActionContext::findAncestorContext(parent());
-    if (d->actionContext == ActionProxy::instance().sharedContext) {
+    if (!d->actionContext) {
         // create own context
         d->actionContext = new UCActionContext(this);
         connect(parent(), SIGNAL(enabledChanged()), this, SLOT(updateActionContext()));
