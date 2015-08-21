@@ -280,8 +280,11 @@ void UCAction::componentComplete()
         return;
     }
     // if the Action is not in an ActionContext, try to detect a context in between the parents
+    detectActionContext(parent());
+}
+void UCAction::detectActionContext(QObject *parent)
+{
     UCActionContext *context = Q_NULLPTR;
-    QObject *parent = this->parent();
     while (parent) {
         context = parent->property("actionContext").value<UCActionContext*>();
         // for earlier than 1.3 versions, we introduce a private property

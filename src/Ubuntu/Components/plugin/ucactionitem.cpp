@@ -159,6 +159,11 @@ void UCActionItem::setAction(UCAction *action)
     _q_updateVisible();
     _q_updateEnabled();
     updateProperties();
+    // an action can be present in multiple contexts, therefore
+    // we only add this action to the context, no need to remove it
+    if (m_action) {
+        m_action->detectActionContext(this);
+    }
 }
 
 /*!
