@@ -26,6 +26,7 @@
 #include "i18n.h"
 #include "quickutils.h"
 #include "ucaction.h"
+#include "ucactioncontext.h"
 #include "ucnamespace.h"
 #include <QtQml/QQmlInfo>
 #include <QtQuick/private/qquickitem_p.h>
@@ -338,6 +339,14 @@ bool UCListItemPrivate::loadStyleItem(bool animated)
         // the style is not derived from ListItemStyle, clean
         preStyleChanged();
         return false;
+    }
+    // add leading/trailing actions to an active context!
+    Q_Q(UCListItem);
+    if (leadingActions) {
+        UCListItemActionsPrivate::get(leadingActions)->registerActionsToActionContext(q);
+    }
+    if (trailingActions) {
+        UCListItemActionsPrivate::get(trailingActions)->registerActionsToActionContext(q);
     }
     // bring the panels foreground
     styleItem->setZ(0);
@@ -955,6 +964,10 @@ void UCListItem::componentComplete()
     }
 
     if (d->parentAttached) {
+        // make sure the action is added to the closest ActionContext
+        if (d->mainAction && UCViewItemsAttachedPrivate::get(d->parentAttached)->actionContext) {
+            UCViewItemsAttachedPrivate::get(d->parentAttached)->actionContext->addAction(d->mainAction);
+        }
         // connect selectedIndicesChanged
         connect(d->parentAttached.data(), &UCViewItemsAttached::selectedIndicesChanged,
                 this, &UCListItem::selectedChanged);
@@ -1633,10 +1646,20 @@ void UCListItemPrivate::setAction(UCAction *action)
     if (mainAction == action) {
         return;
     }
+    if (mainAction && parentAttached &&
+            UCViewItemsAttachedPrivate::get(parentAttached)->actionContext && componentComplete) {
+        UCViewItemsAttachedPrivate::get(parentAttached)->actionContext->removeAction(mainAction);
+    }
     mainAction = action;
-    if (mainAction && (mainAction->m_parameterType == UCAction::None)) {
-        // call setProperty to invoke notify signal
-        mainAction->setProperty("parameterType", UCAction::Integer);
+    if (mainAction) {
+        if (mainAction->m_parameterType == UCAction::None) {
+            // call setProperty to invoke notify signal
+            mainAction->setProperty("parameterType", UCAction::Integer);
+        }
+        // add the action to the closest ActionContext
+        if (parentAttached && UCViewItemsAttachedPrivate::get(parentAttached)->actionContext && componentComplete) {
+            UCViewItemsAttachedPrivate::get(parentAttached)->actionContext->addAction(mainAction);
+        }
     }
     Q_EMIT q->actionChanged();
 }

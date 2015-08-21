@@ -23,6 +23,8 @@
 #include "i18n.h"
 #include "uclistitemstyle.h"
 #include "privates/listitemdragarea.h"
+#include "ucactioncontext.h"
+#include "adapters/actionsproxy_p.h"
 #include <QtQuick/private/qquickflickable_p.h>
 #include <QtQml/private/qqmlcomponentattached_p.h>
 #include <QtQml/QQmlInfo>
@@ -104,6 +106,7 @@ UCViewItemsAttachedPrivate::UCViewItemsAttachedPrivate()
     : QObjectPrivate()
     , listView(0)
     , dragArea(0)
+    , actionContext(Q_NULLPTR)
     , globalDisabled(false)
     , selectable(false)
     , draggable(false)
@@ -309,6 +312,23 @@ void UCViewItemsAttached::completed()
     } else {
         d->leaveDragMode();
     }
+    // detect if we have any ancestor ActionContext, if none, create one
+    d->actionContext = UCActionContext::findAncestorContext(parent());
+    if (d->actionContext == ActionProxy::instance().sharedContext) {
+        // create own context
+        d->actionContext = new UCActionContext(this);
+        connect(parent(), SIGNAL(enabledChanged()), this, SLOT(updateActionContext()));
+        connect(parent(), SIGNAL(visibleChanged()), this, SLOT(updateActionContext()));
+        updateActionContext();
+    }
+}
+
+// slot connected to owner's enabled and visible signals
+void UCViewItemsAttached::updateActionContext()
+{
+    Q_D(UCViewItemsAttached);
+    QQuickItem *owner = static_cast<QQuickItem*>(parent());
+    d->actionContext->setActive(owner->isEnabled() && owner->isVisible());
 }
 
 /*!

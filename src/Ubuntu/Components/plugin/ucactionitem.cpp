@@ -16,6 +16,7 @@
 
 #include "ucactionitem.h"
 #include "ucaction.h"
+#include "ucactioncontext.h"
 
 /*!
  * \qmltype ActionItem
@@ -162,7 +163,7 @@ void UCActionItem::setAction(UCAction *action)
     // an action can be present in multiple contexts, therefore
     // we only add this action to the context, no need to remove it
     if (m_action) {
-        m_action->detectActionContext(this);
+        UCActionContext::findAncestorContext(parent())->addAction(m_action);
     }
 }
 

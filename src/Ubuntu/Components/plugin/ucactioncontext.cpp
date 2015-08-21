@@ -17,6 +17,7 @@
 #include "ucactioncontext.h"
 #include "ucaction.h"
 #include "adapters/actionsproxy_p.h"
+#include <QtQuick/QQuickItem>
 
 /*!
  * \qmltype ActionContext
@@ -55,6 +56,28 @@ UCActionContext::~UCActionContext()
     // remove all actions from the context
     clear();
     ActionProxy::removeContext(this);
+}
+
+// Returns an ancestor ActionContext declared either as actionContext or __actionContext (1.2)
+// property. If none found, returns the sharedContext. Never returns NULL.
+UCActionContext *UCActionContext::findAncestorContext(QObject *parent)
+{
+    UCActionContext *context = Q_NULLPTR;
+    while (parent) {
+        context = parent->property("actionContext").value<UCActionContext*>();
+        // for earlier than 1.3 versions, we introduce a private property
+        if (!context) {
+            context = parent->property("__actionContext").value<UCActionContext*>();
+        }
+        if (context) {
+            return context;
+        }
+        // if the parent is an Item, we go that way forward
+        QQuickItem *parentItem = qobject_cast<QQuickItem*>(parent);
+        parent = parentItem ? parentItem->parentItem() : parent->parent();
+    }
+    // if no context found, return the shared context
+    return ActionProxy::instance().sharedContext;
 }
 
 void UCActionContext::componentComplete()

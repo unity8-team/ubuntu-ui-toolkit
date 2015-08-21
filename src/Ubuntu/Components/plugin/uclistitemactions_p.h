@@ -36,6 +36,8 @@ public:
     QList<UCAction*> actions;
     QList<QObject*> data;
 
+    void registerActionsToActionContext(UCListItem *activeListItem);
+
     static int actions_count(QQmlListProperty<UCAction> *p);
     static void actions_append(QQmlListProperty<UCAction> *p, UCAction *v);
     static UCAction *actions_at(QQmlListProperty<UCAction>*, int);

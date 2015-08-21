@@ -36,6 +36,8 @@ public:
     explicit UCActionContext(QObject *parent = 0);
     ~UCActionContext();
 
+    static UCActionContext *findAncestorContext(QObject *parent);
+
     void classBegin(){}
     void componentComplete();
     void clear();

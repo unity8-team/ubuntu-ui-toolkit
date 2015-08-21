@@ -24,6 +24,8 @@
 #include "ucaction.h"
 #include "ucunits.h"
 #include "uclistitemstyle.h"
+#include "ucactioncontext.h"
+#include "adapters/actionsproxy_p.h"
 
 UCListItemActionsPrivate::UCListItemActionsPrivate()
     : QObjectPrivate()
@@ -33,6 +35,18 @@ UCListItemActionsPrivate::UCListItemActionsPrivate()
 UCListItemActionsPrivate::~UCListItemActionsPrivate()
 {
 }
+
+void UCListItemActionsPrivate::registerActionsToActionContext(UCListItem *activeListItem)
+{
+    UCViewItemsAttached *viewItems = UCListItemPrivate::get(activeListItem)->parentAttached.data();
+    Q_ASSERT(viewItems);
+    UCActionContext *context = UCViewItemsAttachedPrivate::get(viewItems)->actionContext;
+    Q_ASSERT(context);
+    Q_FOREACH(UCAction *action, actions) {
+        context->addAction(action);
+    }
+}
+
 
 /*!
  * \qmltype ListItemActions

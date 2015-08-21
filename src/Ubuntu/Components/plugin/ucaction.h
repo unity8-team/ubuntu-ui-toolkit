@@ -74,7 +74,6 @@ public:
     // from QQmlParserStatus
     void classBegin() {}
     void componentComplete();
-    void detectActionContext(QObject *parent);
 
 Q_SIGNALS:
     void nameChanged();

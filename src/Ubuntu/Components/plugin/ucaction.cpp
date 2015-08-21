@@ -280,27 +280,7 @@ void UCAction::componentComplete()
         return;
     }
     // if the Action is not in an ActionContext, try to detect a context in between the parents
-    detectActionContext(parent());
-}
-void UCAction::detectActionContext(QObject *parent)
-{
-    UCActionContext *context = Q_NULLPTR;
-    while (parent) {
-        context = parent->property("actionContext").value<UCActionContext*>();
-        // for earlier than 1.3 versions, we introduce a private property
-        if (!context) {
-            context = parent->property("__actionContext").value<UCActionContext*>();
-        }
-        if (context) {
-            context->addAction(this);
-            return;
-        }
-        // if the parent is an Item, we go that way forward
-        QQuickItem *parentItem = qobject_cast<QQuickItem*>(parent);
-        parent = parentItem ? parentItem->parentItem() : parent->parent();
-    }
-    // if no context found, we add the action to the shared context
-    ActionProxy::instance().sharedContext->addAction(this);
+    UCActionContext::findAncestorContext(parent())->addAction(this);
 }
 
 bool UCAction::isValidType(QVariant::Type valueType)

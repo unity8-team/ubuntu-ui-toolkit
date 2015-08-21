@@ -123,6 +123,7 @@ UCListItemStyle *UCListItemPrivate::listItemStyle() const
 
 class PropertyChange;
 class ListItemDragArea;
+class UCActionContext;
 class UCViewItemsAttachedPrivate : public QObjectPrivate
 {
     Q_DECLARE_PUBLIC(UCViewItemsAttached)
@@ -149,6 +150,7 @@ public:
 
     QQuickFlickable *listView;
     ListItemDragArea *dragArea;
+    UCActionContext *actionContext;
     bool globalDisabled:1;
     bool selectable:1;
     bool draggable:1;

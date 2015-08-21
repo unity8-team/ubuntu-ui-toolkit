@@ -180,6 +180,7 @@ public:
 private Q_SLOTS:
     void unbindItem();
     void completed();
+    void updateActionContext();
 
 Q_SIGNALS:
     void selectModeChanged();
