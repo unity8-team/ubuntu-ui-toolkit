@@ -99,4 +99,10 @@ StyledItem {
             }
         }
     }
+
+    // add own action context and keep it active as long as the Sections is visible and enabled
+    ActionContext {
+        active: sections.enabled && sections.visible
+        actions: sections.actions
+    }
 }

@@ -60,7 +60,7 @@ Rectangle {
         Label {
             anchors.left: parent.left
             text: "actions in-line:"
-            fontSize: small
+            fontSize: "small"
         }
         Sections {
             // Not used in the tests below, but added here to
