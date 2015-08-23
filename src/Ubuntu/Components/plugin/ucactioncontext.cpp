@@ -36,14 +36,13 @@
  * from the action management, and all its actions declared in the same document
  * will be removed and destroyed, exception being the shared actions.
  *
- * There can be three types of action contexts present in an application: local,
- * shared and global context. \b Local contexts contains those actions which are active
- * and/or are available on a given Page or Dialog or other context. Tis can contain
- * \b shared actions also, which are registered in \l ActionManager::sharedContext.
- * Shared actions are typical reusable actions across application views. They are
- * "dormant" until used in local contexts. \b Global actions are the third type of
- * actions, and are those type of actions which are also available while the application
- * is in background.
+ * There can be two types of action contexts present in an application: local
+ * and global context. \b Local contexts contains those actions which are active
+ * and/or are available on a given Page or Dialog or other context. This can contain
+ * \e shared actions. Shared actions are typical reusable actions across application
+ * views. They are "dormant" until used in local contexts. \b Global actions are
+ * those type of actions which are also available while the application is in
+ * background.
  */
 UCActionContext::UCActionContext(QObject *parent)
     : QObject(parent)
