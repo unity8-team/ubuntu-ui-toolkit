@@ -49,7 +49,7 @@ Ubuntu.Components.ActionList 1.0 0.1: QtObject
 Ubuntu.Components.ActionList 1.3: QtObject
     readonly property Action actions
     default readonly property Action children
-Ubuntu.Components.ActionManager 1.3 1.0 0.1: QtObject
+Ubuntu.Components.ActionManager 1.0 0.1: QtObject
     default readonly property Action actions
     readonly property ActionContext globalContext
     readonly property ActionContext localContexts

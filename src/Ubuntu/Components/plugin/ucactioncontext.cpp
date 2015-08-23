@@ -164,7 +164,9 @@ int UCActionContext::count(QQmlListProperty<UCAction> *list)
  */
 bool UCActionContext::isActive()
 {
-    return (ActionProxy::instance().activeOverlays.size() > 0) ? (ActionProxy::instance().activeOverlays.last() == this) : m_active;
+    // TODO: lookup for an overlay parent if there is overlay contexts set
+    return ((ActionProxy::instance().activeOverlays.size() > 0) ? (ActionProxy::instance().activeOverlays.last() == this) : m_active) &&
+            isEnabled();
 }
 void UCActionContext::setActive(bool active)
 {

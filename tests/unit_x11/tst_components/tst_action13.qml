@@ -28,11 +28,16 @@ MainView {
         Action { id: global1 }
         Action { id: global2 }
         Action { id: global3 }
-        sharedContext.actions: [
-            Action { id: shared1; objectName: "shared1" },
-            Action { id: shared2; objectName: "shared2" },
-            Action { id: shared3; objectName: "shared3" }
-        ]
+    }
+    Action {
+        id: shared1
+        objectName: "shared1"
+    }
+    Action { id: shared2
+        objectName: "shared2"
+    }
+    Action { id: shared3
+        objectName: "shared3"
     }
     Item {
         ActionContext {
@@ -88,11 +93,8 @@ MainView {
 
         function initTestCase() {
             compare(manager.globalContext.active, true, "globalContext is always active");
-            compare(manager.sharedContext.active, false, "sharedContext is always inactive");
             compare(manager.globalContext.overlay, false, "globalContext is not overlay");
-            compare(manager.sharedContext.overlay, false, "sharedContext is not overlay");
             compare(manager.globalContext.actions.length, 3, "global context action count mismatch");
-            compare(manager.sharedContext.actions.length, 3, "shared context action count mismatch");
             compare(context.actions.length, 1, "Local context action count mismatch");
             compare(context.active, false, "context should be inactive");
             compare(activeContext.active, true, "activeContext should be active");
@@ -101,7 +103,6 @@ MainView {
         function test_actions_in_multiple_contexts() {
             context.addAction(shared1);
             context.addAction(global2);
-            verify(contains(manager.sharedContext.actions, shared1), "shared Action missing from shared");
             verify(contains(context.actions, shared1), "shared Action missing from local");
             verify(contains(manager.globalContext.actions, global2), "global Action missing from global");
             verify(contains(context.actions, global2), "global Action missing from local");
