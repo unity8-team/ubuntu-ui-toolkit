@@ -55,22 +55,22 @@ PageTreeNode {
 
     property Flickable flickable: internal.getFlickableChild(page)
 
-    // internal, introduced due to contextual actions changes in 1.3 affecting earlier versions
-    readonly property QtObject __actionContext: actionContext
-
     /*!
       \qmlproperty list<Action> actions
      */
-    property alias actions: actionContext.actions
+    property alias actions: context.actions
+
+    /*! \internal, redirect all data to ActionContext */
+    default property alias data: context.data
+
+    Toolkit.ActionContext {
+        id: context
+        active: page.active
+        anchors.fill: parent
+    }
 
     Object {
         id: internal
-
-        // Toolkit ActionContext registers automatically to ActionManager
-        Toolkit.ActionContext {
-            id: actionContext
-            active: page.active
-        }
 
         property Item header: page.__propagated && page.__propagated.header ? page.__propagated.header : null
         // Used to position the Page when there is no flickable.

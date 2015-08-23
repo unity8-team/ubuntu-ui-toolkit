@@ -18,6 +18,7 @@
 #include "ucaction.h"
 #include "adapters/actionsproxy_p.h"
 #include <QtQuick/QQuickItem>
+#include <QtQuick/private/qquickitem_p.h>
 
 /*!
  * \qmltype ActionContext
@@ -44,11 +45,12 @@
  * those type of actions which are also available while the application is in
  * background.
  */
-UCActionContext::UCActionContext(QObject *parent)
-    : QObject(parent)
+UCActionContext::UCActionContext(QQuickItem *parent)
+    : QQuickItem(parent)
     , m_active(false)
     , m_overlay(false)
 {
+    setFlag(ItemIsFocusScope);
 }
 UCActionContext::~UCActionContext()
 {
@@ -63,11 +65,7 @@ UCActionContext *UCActionContext::findAncestorContext(QObject *parent)
 {
     UCActionContext *context = Q_NULLPTR;
     while (parent && !context) {
-        context = parent->property("actionContext").value<UCActionContext*>();
-        // for earlier than 1.3 versions, we introduce a private property
-        if (!context) {
-            context = parent->property("__actionContext").value<UCActionContext*>();
-        }
+        context = qobject_cast<UCActionContext*>(parent);
         // if the parent is an Item, we go that way forward
         QQuickItem *parentItem = qobject_cast<QQuickItem*>(parent);
         parent = parentItem ? parentItem->parentItem() : parent->parent();
@@ -129,17 +127,13 @@ QQmlListProperty<UCAction> UCActionContext::actions()
 void UCActionContext::append(QQmlListProperty<UCAction> *list, UCAction *action)
 {
     UCActionContext *context = qobject_cast<UCActionContext*>(list->object);
-    if (context) {
-        context->addAction(action);
-    }
+    context->addAction(action);
 }
 
 void UCActionContext::clear(QQmlListProperty<UCAction> *list)
 {
     UCActionContext *context = qobject_cast<UCActionContext*>(list->object);
-    if (context) {
-        context->clear();
-    }
+    context->clear();
 }
 
 UCAction *UCActionContext::at(QQmlListProperty<UCAction> *list, int index)
@@ -151,10 +145,7 @@ UCAction *UCActionContext::at(QQmlListProperty<UCAction> *list, int index)
 int UCActionContext::count(QQmlListProperty<UCAction> *list)
 {
     UCActionContext *context = qobject_cast<UCActionContext*>(list->object);
-    if (context) {
-        return context->m_actions.count();
-    }
-    return 0;
+    return context->m_actions.count();
 }
 
 /*!
@@ -213,6 +204,32 @@ void UCActionContext::setOverlay(bool overlay)
     Q_EMIT overlayChanged(overlay);
 }
 
+// override data property's append and clear function to add/remove orphan shared actions
+// to/from context
+QQmlListProperty<QObject> UCActionContext::data()
+{
+    return QQmlListProperty<QObject>(this, 0, UCActionContext::data_append,
+                                             QQuickItemPrivate::data_count,
+                                             QQuickItemPrivate::data_at,
+                                             UCActionContext::data_clear);
+}
+void UCActionContext::data_append(QQmlListProperty<QObject> *list, QObject *obj)
+{
+    QQuickItemPrivate::data_append(list, obj);
+    // if obj is Action, add the action to the context.
+    UCAction *action = qobject_cast<UCAction*>(obj);
+    if (action) {
+        static_cast<UCActionContext*>(list->object)->addAction(action);
+    }
+}
+void UCActionContext::data_clear(QQmlListProperty<QObject> *list)
+{
+    // actions are registered as resources, so we must do cleanup here
+    UCActionContext *context = static_cast<UCActionContext*>(list->object);
+    context->clear();
+    QQuickItemPrivate::data_clear(list);
+}
+
 /*!
  * \qmlmethod void ActionContext::addAction(Action action)
  * Adds an Action to the context programatically.
@@ -238,7 +255,7 @@ void UCActionContext::removeAction(UCAction *action)
     }
     m_actions.remove(action);
     action->m_contexts.remove(this);
-    // reset global behavior once the action is removed from teh global list
+    // reset global behavior once the action is removed from the global list
     if (!action->m_contexts.contains(ActionProxy::instance().globalContext)) {
         action->setGlobal(false);
     }

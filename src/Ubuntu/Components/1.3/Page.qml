@@ -47,14 +47,21 @@ PageTreeNode {
     }
 
     /*
+      \qmlproperty ActionContext actionContext
       \since Ubuntu.Components 1.3
       The property holding the ActionContext of the Page. The context is active
       while the Page is active. All actions declared in Page will belong to this
       context.
       */
-    readonly property ActionContext actionContext: ActionContext {
-        active: page.active
+    readonly property alias actionContext: context
+
+    /*! /internal - forward all data to ActionContext */
+    default property alias data: context.data
+    ActionContext {
+        id: context
         objectName: "ActionContext+"+page.title
+        active: page.active
+        anchors.fill: parent
     }
 
     Object {

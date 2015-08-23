@@ -29,8 +29,8 @@ Ubuntu.Components.Action.Type: Enum
 Ubuntu.Components.ActionBar 1.3: StyledItem
     readonly property Action actions
     property int numberOfSlots
-Ubuntu.Components.ActionContext 1.3 1.0 0.1: QtObject
-    default readonly property Action actions
+Ubuntu.Components.ActionContext 1.3 1.0 0.1: Item
+    readonly property Action actions
     property bool active
     function addAction(Action action)
     function removeAction(Action action)
@@ -287,6 +287,7 @@ Ubuntu.Components.Popups.Dialog 1.0 0.1: PopupBase
     property string text
     property string title
 Ubuntu.Components.Popups.Dialog 1.3: PopupBase
+    readonly property ActionContext actionContext
     property Item caller
     property double callerMargin
     default readonly property QtObject contents
@@ -736,6 +737,7 @@ Ubuntu.Components.Popups.Popover 1.0 0.1: PopupBase
     function var hide()
     property Item pointerTarget
 Ubuntu.Components.Popups.Popover 1.3: PopupBase
+    readonly property ActionContext actionContext
     property bool autoClose
     property Item caller
     property double callerMargin
@@ -754,7 +756,6 @@ Ubuntu.Components.Popups.PopupBase 1.0 0.1: OrientationHelper
     function var show()
     function var hide()
 Ubuntu.Components.Popups.PopupBase 1.3: OrientationHelper
-    readonly property ActionContext actionContext
     property Item dismissArea
     property PropertyAnimation fadingAnimation
     property bool grabDismissAreaEvents

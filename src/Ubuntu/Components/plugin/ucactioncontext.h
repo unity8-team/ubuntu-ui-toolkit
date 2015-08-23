@@ -20,20 +20,21 @@
 #include <QtCore/QObject>
 #include <QtQml/QQmlListProperty>
 #include <QtQml/QQmlParserStatus>
+#include <QtQuick/QQuickItem>
 #include <QtCore/QSet>
 #include <QtQml>
 
 class UCAction;
-class UCActionContext : public QObject, public QQmlParserStatus
+class UCActionContext : public QQuickItem
 {
     Q_OBJECT
-    Q_INTERFACES(QQmlParserStatus)
     Q_PROPERTY(QQmlListProperty<UCAction> actions READ actions)
     Q_PROPERTY(bool active MEMBER m_active WRITE setActive NOTIFY activeChanged)
     Q_PROPERTY(bool overlay READ isOverlay WRITE setOverlay NOTIFY overlayChanged FINAL REVISION 1)
-    Q_CLASSINFO("DefaultProperty", "actions")
+    Q_PROPERTY(QQmlListProperty<QObject> data READ data DESIGNABLE false)
+    Q_CLASSINFO("DefaultProperty", "data")
 public:
-    explicit UCActionContext(QObject *parent = 0);
+    explicit UCActionContext(QQuickItem *parent = 0);
     ~UCActionContext();
 
     static UCActionContext *findAncestorContext(QObject *parent);
@@ -53,6 +54,11 @@ public:
         return m_overlay;
     }
     void setOverlay(bool overlay);
+
+    // data property
+    static void data_append(QQmlListProperty<QObject> *, QObject *);
+    static void data_clear(QQmlListProperty<QObject> *);
+    QQmlListProperty<QObject> data();
 
 Q_SIGNALS:
     void activeChanged(bool);

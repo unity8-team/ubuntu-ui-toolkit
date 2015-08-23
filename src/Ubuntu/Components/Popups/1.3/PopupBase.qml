@@ -139,18 +139,6 @@ OrientationHelper {
       */
     property alias __eventGrabber: eventGrabber
 
-    /*!
-      \qmlproperty ActionContext actionContext
-      \readonly
-      \since Ubuntu.Components.Popups 1.3
-      The property holds the ActionContext of the Dialog. This is an overlay action
-      context blocking all active actions defined in the application, so only actions
-      declared in the dialog will be active.
-      */
-    readonly property ActionContext actionContext: ActionContext {
-        active: popupBase.visible
-    }
-
     // dimmer
     Rectangle {
         id: background

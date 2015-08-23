@@ -35,10 +35,10 @@ MainView {
         ]
     }
     Item {
-        property ActionContext actionContext: ActionContext {
+        ActionContext {
             id: context
+            Action { id: local }
         }
-        Action { id: local }
     }
     ActionContext {
         id: activeContext

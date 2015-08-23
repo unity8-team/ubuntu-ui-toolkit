@@ -217,8 +217,9 @@ PopupBase {
         width: Math.min(minimumWidth, maxWidth)
         height: containerItem.height
 
-        Item {
+        ActionContext {
             id: containerItem
+            active: popover.visible
             parent: foreground.__styleInstance.contentItem
             anchors {
                 left: parent.left

@@ -102,6 +102,8 @@ StyledItem {
 
     // add own action context and keep it active as long as the Sections is visible and enabled
     ActionContext {
+        // TODO: we may get rid of this, as an action context can serve actions if it is both active and enabled
+        // enabled being bound to the parent's enabled state, but actions can be active also when invisible?
         active: sections.enabled && sections.visible
         actions: sections.actions
     }

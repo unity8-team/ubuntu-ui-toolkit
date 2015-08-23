@@ -153,6 +153,16 @@ PopupBase {
     property alias foregroundStyle: foreground.style
 
     /*!
+      \qmlproperty ActionContext actionContext
+      \readonly
+      \since Ubuntu.Components.Popups 1.3
+      The property holds the ActionContext of the Dialog. This is an overlay action
+      context blocking all active actions defined in the application, so only actions
+      declared in the dialog will be active.
+      */
+    readonly property alias actionContext: containerItem
+
+    /*!
       Make the popover visible. Reparent to the background area object first if needed.
       Only use this function if you handle memory management. Otherwise use
       PopupUtils.open() to do it automatically.
@@ -217,8 +227,9 @@ PopupBase {
         width: Math.min(minimumWidth, maxWidth)
         height: containerItem.height
 
-        Item {
+        ActionContext {
             id: containerItem
+            active: popover.visible
             parent: foreground.__styleInstance.contentItem
             anchors {
                 left: parent.left
