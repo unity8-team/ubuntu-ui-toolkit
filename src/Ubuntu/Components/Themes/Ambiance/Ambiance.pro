@@ -13,6 +13,7 @@ ARTWORK_FILES += artwork/background_paper@27.png \
              artwork/caret_noshadow@27.png \
              artwork/chevron@27.png \
              artwork/chevron_down@30.png \
+             artwork/contextual_menu_bg@27.png \
              artwork/cross@30.png \
              artwork/header_overflow_dropshadow@27.png \
              artwork/header_overflow_dropshadow@27.sci \
@@ -80,6 +81,7 @@ QML_FILES += 1.2/ActivityIndicatorStyle.qml \
              1.3/ButtonStyle.qml \
              1.3/CheckBoxStyle.qml \
              1.3/ComboButtonStyle.qml \
+             1.3/ContextMenuForegroundStyle.qml \
              1.3/DatePickerStyle.qml \
              1.3/DialerHandStyle.qml \
              1.3/DialerStyle.qml \

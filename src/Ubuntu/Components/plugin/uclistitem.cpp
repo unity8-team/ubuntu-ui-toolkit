@@ -1108,7 +1108,7 @@ void UCListItem13::mousePressEvent(QMouseEvent *event)
 
         quint16 version(d->getTheme()->version());
         QString versionString(QStringLiteral("%1.%2").arg(MAJOR_VERSION(version)).arg(MINOR_VERSION(version)));
-        QUrl url(UbuntuComponentsPlugin::pluginUrl().resolved(versionString + "/ListItemPopover.qml"));
+        QUrl url(UbuntuComponentsPlugin::pluginUrl().resolved("Popups/" + versionString + "/ListItemContextMenu.qml"));
 
         // Open Popover
         QQmlEngine* engine = qmlEngine(this);

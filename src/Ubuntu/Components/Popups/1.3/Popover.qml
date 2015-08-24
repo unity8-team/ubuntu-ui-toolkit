@@ -244,6 +244,7 @@ PopupBase {
         theme.version: Ubuntu.toolkitVersion
         styleName: "PopoverForegroundStyle"
     }
+    property alias styleName: foreground.styleName
 
     QtObject {
         id: pointer

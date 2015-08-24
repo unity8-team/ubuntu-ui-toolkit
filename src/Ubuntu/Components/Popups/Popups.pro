@@ -11,9 +11,13 @@ QML_FILES += 1.2/ActionSelectionPopover.qml \
              1.2/SheetBase.qml \
              1.3/ActionSelectionPopover.qml \
              1.3/ComposerSheet.qml \
+             1.3/ContextMenu.qml \
+             1.3/MenuGroup.qml \
+             1.3/MenuItem.qml \
              1.3/DefaultSheet.qml \
              1.3/Dialog.qml \
              1.3/internalPopupUtils.js \
+             1.3/ListItemContextMenu.qml \
              1.3/Popover.qml \
              1.3/PopupBase.qml \
              1.3/popupUtils.js \
