@@ -32,6 +32,7 @@ StyledItem {
     theme.version: Ubuntu.toolkitVersion
 
     /*!
+      \qmlproperty list<Action> actions
       List of actions that represent the sections.
       The text of each action is displayed as the section name and clicking
       a section will update the \l selectedIndex.
@@ -64,7 +65,7 @@ StyledItem {
      without setting the actions property. If both \l actions and \l model are set,
      model overrides the actions.
      */
-    property list<Action> actions
+    property alias actions: context.actions
 
     /*!
       The input model for the sections. By default model takes the \l actions
@@ -102,9 +103,9 @@ StyledItem {
 
     // add own action context and keep it active as long as the Sections is visible and enabled
     ActionContext {
+        id: context
         // TODO: we may get rid of this, as an action context can serve actions if it is both active and enabled
         // enabled being bound to the parent's enabled state, but actions can be active also when invisible?
         active: sections.enabled && sections.visible
-        actions: sections.actions
     }
 }

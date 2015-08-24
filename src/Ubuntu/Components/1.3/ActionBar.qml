@@ -53,12 +53,13 @@ StyledItem {
     styleName: "ActionBarStyle"
 
     /*!
+      \qmlproperty list<Action> actions
       The actions to display in the bar.
       If more actions are specified than there are slots, an overflow
       button will be show which opens a popover with the actions that
       did not fit in the bar directly.
      */
-    property list<Action> actions
+    property alias actions: context.actions
     
     /*!
       The number of actions to be shown in the bar directly.
@@ -69,4 +70,10 @@ StyledItem {
       and no other action buttons. Default value is 3.
      */
     property int numberOfSlots: 3
+
+    ActionContext {
+        id: context
+        active: true
+        anchors.fill: parent
+    }
 }

@@ -55,7 +55,6 @@ MainView {
                     action: Action {
                         id: nestedAction
                         text: "Nested"
-                        onTriggered: print("AHH")
                     }
                     onClicked: action.trigger()
                 }
