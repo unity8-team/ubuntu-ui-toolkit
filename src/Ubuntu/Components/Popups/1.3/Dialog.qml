@@ -182,6 +182,7 @@ PopupBase {
 
         ActionContext {
             id: context
+            objectName: dialog.title + "ActionContext"
             overlay: true
             active: dialog.visible
             anchors.fill: parent

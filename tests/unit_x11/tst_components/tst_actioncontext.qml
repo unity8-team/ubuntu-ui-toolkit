@@ -27,7 +27,7 @@ MainView {
     property Dialog testDialog: null
 
     Action {
-        id: sharedAction;
+        id: sharedAction
         text: "pressme"
     }
 
@@ -35,6 +35,7 @@ MainView {
         id: dialogComponent
         Dialog {
             id: dialog
+            title: "TestDialog"
             Button {
                 objectName: "okButton"
                 action: Action {
@@ -45,15 +46,18 @@ MainView {
                     }
                 }
             }
-            Page {
-                title: "Nested"
+            // simulate Page
+            ActionContext {
+                active: true
                 Button {
                     anchors.bottom: parent.bottom
                     objectName: "nestedButton"
                     action: Action {
                         id: nestedAction
                         text: "Nested"
+                        onTriggered: print("AHH")
                     }
+                    onClicked: action.trigger()
                 }
             }
         }
@@ -71,6 +75,7 @@ MainView {
         }
 
         primaryPage: Page {
+            title: "MainPage"
             Column {
                 Button {
                     action: sharedAction
@@ -86,6 +91,7 @@ MainView {
         }
         Page {
             id: secondPage
+            title: "SecondPage"
             objectName: "secondPage"
             Button {
                 action: Action {
@@ -117,9 +123,10 @@ MainView {
             if (testDialog) {
                 PopupUtils.close(testDialog);
                 testDialog = null;
+                wait(500);
             }
             multiColumn.removePages(multiColumn.primaryPage);
-            waitForRendering(multiColumn);
+            waitForRendering(multiColumn, 400);
         }
 
         function test_secondPage_deactivates_first_actions() {
@@ -136,7 +143,7 @@ MainView {
             triggerSpy.target = dialogOpen;
             dialogOpen.trigger();
             triggerSpy.wait();
-            waitForRendering(testDialog);
+            wait(500);
             // the active property doesn't change, only actions are not triggered from it
             verify(multiColumn.primaryPage.actionContext.active, "primary page context should be active");
             verify(testDialog.actionContext.active, "test dialog context should be active");
@@ -153,18 +160,19 @@ MainView {
             triggerSpy.clear();
             triggerSpy.target.trigger();
             triggerSpy.wait();
+            wait(500);
         }
 
         function test_nested_context_active_in_overlay() {
             triggerSpy.target = dialogOpen;
             dialogOpen.trigger();
             triggerSpy.wait();
-            waitForRendering(testDialog);
+            wait(500);
             // trigger nested context
             triggerSpy.clear();
             triggerSpy.target = findChild(testDialog, "nestedButton");
             triggerSpy.target.trigger();
-            triggerSpy.wait();
+            triggerSpy.wait(400);
         }
     }
 }

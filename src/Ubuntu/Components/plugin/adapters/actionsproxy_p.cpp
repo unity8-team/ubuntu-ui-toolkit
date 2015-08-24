@@ -121,11 +121,7 @@ void ActionProxy::activateContext(UCActionContext *context)
 {
     // handle overlay change
     if (context->m_overlay) {
-        if (context->m_active) {
-            activeOverlays.append(context);
-        } else {
-            activeOverlays.removeAll(context);
-        }
+        activeOverlay = (context->m_active) ? context : Q_NULLPTR;
     }
     // handle active change
     if (!context->m_active && m_activeContexts.contains(context)) {
