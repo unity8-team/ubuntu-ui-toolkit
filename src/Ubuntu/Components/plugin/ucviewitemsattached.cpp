@@ -316,7 +316,7 @@ void UCViewItemsAttached::completed()
     d->actionContext = UCActionContext::findAncestorContext(parent());
     if (!d->actionContext) {
         // create own context
-        d->actionContext = new UCActionContext(this);
+        d->actionContext = new UCActionContext(static_cast<QQuickItem*>(parent()));
         connect(parent(), SIGNAL(enabledChanged()), this, SLOT(updateActionContext()));
         connect(parent(), SIGNAL(visibleChanged()), this, SLOT(updateActionContext()));
         updateActionContext();
