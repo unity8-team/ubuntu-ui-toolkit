@@ -79,7 +79,6 @@ PopupBase {
       Content will be put inside a column in the foreround of the Dialog.
     */
     default property alias contents: contentsColumn.data
-    property alias data: contentsColumn.data
 
     /*!
       The title of the question to ask the user.
