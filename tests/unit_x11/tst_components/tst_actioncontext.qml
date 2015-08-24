@@ -45,6 +45,17 @@ MainView {
                     }
                 }
             }
+            Page {
+                title: "Nested"
+                Button {
+                    anchors.bottom: parent.bottom
+                    objectName: "nestedButton"
+                    action: Action {
+                        id: nestedAction
+                        text: "Nested"
+                    }
+                }
+            }
         }
     }
 
@@ -140,6 +151,18 @@ MainView {
             // trigger dialog action
             triggerSpy.target = findChild(testDialog, "okButton").action;
             triggerSpy.clear();
+            triggerSpy.target.trigger();
+            triggerSpy.wait();
+        }
+
+        function test_nested_context_active_in_overlay() {
+            triggerSpy.target = dialogOpen;
+            dialogOpen.trigger();
+            triggerSpy.wait();
+            waitForRendering(testDialog);
+            // trigger nested context
+            triggerSpy.clear();
+            triggerSpy.target = findChild(testDialog, "nestedButton");
             triggerSpy.target.trigger();
             triggerSpy.wait();
         }
