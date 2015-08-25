@@ -93,11 +93,12 @@ QKeySequence sequenceFromVariant(const QVariant& variant) {
  * Actions are typically declared in place they are used. However, the toolkit
  * differentiates them in global, shared and local actions, depending on how they
  * are declared or where are registered. Global actions are meant to handle those
- * type of actions whicm must be available also when the application is running
+ * type of actions which must be available also when the application is running
  * in background. Shared actions are those actions which are reused across application
  * views, and local actions are those which are declared in place of their use, like
  * Page header actions, Dialog actions, etc. The activation and lifetime of these
- * actions are controlled by the \l ActionContext component. An action can be
+ * actions are controlled by the \l ActionContext component. This component is
+ * built in all UI toolkit components which handle Actions. An action can be
  * present in many ActionContexts, however it will be active only when at least
  * one of these contexts is active. There can be several contexts active at a
  * time, except if those are overlay, in which case there can be only one overlay
@@ -107,12 +108,12 @@ QKeySequence sequenceFromVariant(const QVariant& variant) {
  * The Action registers itself to the closest ActionContext found in the component
  * hierarchy, however this can be achieved also programatically by adding them
  * explicitly to the context. Each Page and Dialog has a property called \l
- * Page::actionContext, which holds a local context and can be used to register
- * local or other actions. The following application skeleton illustrates how to
- * reuse shared actions and mix with local actions in a context. Note that shared
- * actions are registered in two contexts, however the shared action will only
- * be activated once Page is activated due to shared context being inactive all
- * the time.
+ * Page::actionContext and \l Dialog::actionContext, which holds a local context
+ * and can be used to register local or other actions. The following application
+ * skeleton illustrates how to reuse shared actions and mix with local actions
+ * in a context. Note that shared actions will only be activable once Page is
+ * activated.
+ *
  * \qml
  * import QtQuick 2.4
  * import Ubuntu.Components 1.3
@@ -120,12 +121,8 @@ QKeySequence sequenceFromVariant(const QVariant& variant) {
  *     width: units.gu(40)
  *     height: units.gu(71)
  *
- *     ActionManager {
- *         sharedContext.actions: [
- *             Action {
- *                 id: sharedAction
- *             }
- *         ]
+ *     Action {
+ *         id: sharedAction
  *     }
  *
  *     Page {
@@ -203,12 +200,14 @@ QKeySequence sequenceFromVariant(const QVariant& variant) {
  * If set to false the action can not be triggered. Components visualizing the
  * action migth either hide the action or make it insensitive. However visibility
  * can be controlled separately using the \l visible property.
+ * \note Setting an action to enabled alone is not enough to trigget the action.
+ * The action must be added to an active ActionContext.
  */
 bool UCAction::isActive()
 {
     bool activeContext = false;
     Q_FOREACH(UCActionContext *context, m_contexts) {
-        activeContext = context->isActive();
+        activeContext = context->effectiveActive();
         if (activeContext) {
             break;
         }

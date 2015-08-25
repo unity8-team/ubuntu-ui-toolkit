@@ -75,15 +75,19 @@ MainView {
 
         primaryPage: Page {
             title: "MainPage"
-            Column {
-                Button {
-                    action: sharedAction
-                }
-                Button {
-                    action: Action {
-                        id: dialogOpen
-                        text: "Open dialog"
-                        onTriggered: testDialog = PopupUtils.open(dialogComponent);
+            ActionContext {
+                id: nestedContext
+                anchors.fill: parent
+                Column {
+                    Button {
+                        action: sharedAction
+                    }
+                    Button {
+                        action: Action {
+                            id: dialogOpen
+                            text: "Open dialog"
+                            onTriggered: testDialog = PopupUtils.open(dialogComponent);
+                        }
                     }
                 }
             }

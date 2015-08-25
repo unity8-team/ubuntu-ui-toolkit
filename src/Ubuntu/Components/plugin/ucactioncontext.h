@@ -47,7 +47,7 @@ public:
 
     QQmlListProperty<UCAction> actions();
 
-    bool isActive();
+    bool effectiveActive();
     void setActive(bool active);
     inline bool isOverlay()
     {

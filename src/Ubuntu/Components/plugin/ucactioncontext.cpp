@@ -29,6 +29,14 @@
  * the developer is able to control the visibility of the actions. The \l ActionManager
  * then exposes the actions from these different contexts.
  *
+ * There can be two types of action contexts present in an application: local
+ * and global context. \b Local contexts contains those actions which are active
+ * and/or are available on a given Page or Dialog or other context. This can contain
+ * \e shared actions. Shared actions are typical reusable actions across application
+ * views. They are "dormant" until used in local contexts. \b Global actions are
+ * those type of actions which are also available while the application is in
+ * background.
+ *
  * Actions declared in Dialog or Page, including the ones declared for the header,
  * are stored implicitly in the ActionContext associated to the component. When
  * the Page is activated, the Actions in the context will be activated as well.
@@ -37,13 +45,12 @@
  * from the action management, and all its actions declared in the same document
  * will be removed and destroyed, exception being the shared actions.
  *
- * There can be two types of action contexts present in an application: local
- * and global context. \b Local contexts contains those actions which are active
- * and/or are available on a given Page or Dialog or other context. This can contain
- * \e shared actions. Shared actions are typical reusable actions across application
- * views. They are "dormant" until used in local contexts. \b Global actions are
- * those type of actions which are also available while the application is in
- * background.
+ * Dialogs are a special case on action handling. When a dialog is shown, the main
+ * action context of the Dialog is set to be overlay, meaning all action contexts
+ * of the application are disabled, and only contexts declared in the Dialog will
+ * be active. Actions registered in the disabled contexts will be suppressed,
+ * excluding global actions, which will be also active. There can be only one overlay
+ * action context active at a time.
  */
 UCActionContext::UCActionContext(QQuickItem *parent)
     : QQuickItem(parent)
@@ -162,7 +169,7 @@ int UCActionContext::count(QQmlListProperty<UCAction> *list)
  *
  * The global context is the only context which cannot be deactivated.
  */
-bool UCActionContext::isActive()
+bool UCActionContext::effectiveActive()
 {
     if (!ActionProxy::instance().activeOverlay.isNull()) {
         if (ActionProxy::instance().activeOverlay == this) {
@@ -171,11 +178,16 @@ bool UCActionContext::isActive()
         // find out whether the context is in the active overlay one
         UCActionContext *parentContext = findAncestorContext(parentItem());
         if (parentContext) {
-            return parentContext->isActive();
+            return parentContext->effectiveActive();
         }
         // the context is not declared as child of the active overlay
         // therefore report as inactive
         return false;
+    }
+    // the action context may be embedded in an other context, so it will be active only if all parent contexts are active
+    UCActionContext *parentContext = findAncestorContext(parentItem());
+    if (parentContext) {
+        return parentContext->effectiveActive();
     }
     return m_active && isEnabled();
 }
