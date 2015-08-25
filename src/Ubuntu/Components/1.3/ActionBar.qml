@@ -59,7 +59,7 @@ StyledItem {
       button will be show which opens a popover with the actions that
       did not fit in the bar directly.
      */
-    property alias actions: context.actions
+    property list<Action> actions
     
     /*!
       The number of actions to be shown in the bar directly.
@@ -73,7 +73,6 @@ StyledItem {
 
     ActionContext {
         id: context
-        active: true
-        anchors.fill: parent
+        actions: bar.actions
     }
 }
