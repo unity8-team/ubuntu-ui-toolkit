@@ -27,6 +27,11 @@ Template {
             iconSource: "call_icon.png"
             onTriggered: PopupUtils.open(actionSelectionPopover)
             visible: true
+        },
+        Action {
+            text: "Context menu"
+            iconName: "like"
+            onTriggered: PopupUtils.open(Qt.resolvedUrl('ExampleContextMenu.qml'))
         }
     ]
 

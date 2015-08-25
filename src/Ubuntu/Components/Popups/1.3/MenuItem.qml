@@ -30,7 +30,7 @@ ListItem {
     Mouse.onEntered: hovered = true
     Mouse.onExited: hovered = false
     property bool hovered
-    enabled: action.enabled
+    enabled: false//action.enabled
 
     Row {
         anchors.left: parent.left

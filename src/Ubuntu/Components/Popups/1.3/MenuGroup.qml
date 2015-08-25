@@ -22,6 +22,10 @@ Column {
     property Popover menu
     property list<Action> actions
 
+    Label {
+        text: i18n.tr('MenuGroup')
+    }
+
     Repeater {
         model: actions
 

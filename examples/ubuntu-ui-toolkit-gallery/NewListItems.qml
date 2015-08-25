@@ -21,36 +21,6 @@ Template {
     objectName: "listItemsTemplate"
 
     TemplateSection {
-        ContextMenu {
-            MenuGroup {
-                Action {
-                    text: i18n.tr("Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.")
-                }
-                Action {
-                    text: i18n.tr("Once upon a time there was a story nobody told.")
-                }
-            }
-            MenuGroup {
-                Action {
-                    iconName: 'delete'
-                    text: i18n.tr("Delete")
-                }
-                MenuGroup {
-                    text: i18n.tr("But wait, there's more...")
-                    Action {
-                        iconName: 'compose'
-                        text: i18n.tr("Send an email")
-                    }
-                    Action {
-                        iconName: 'save-to'
-                        text: i18n.tr("Save to file")
-                    }
-                }
-            }
-        }
-    }
-
-    TemplateSection {
         className: "ListItem"
         // no spacing between the list items in the Column
         spacing: 0
