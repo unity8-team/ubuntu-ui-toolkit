@@ -49,8 +49,12 @@ UCActionItem::UCActionItem(QQuickItem *parent)
 void UCActionItem::componentComplete()
 {
     UCStyledItemBase::componentComplete();
+    // make sure we connect to the right signals, so we detach and re-attach actions
+    // to make sure the SLOT macro picks up the custom trigger() slot
     if (m_action) {
         UCActionContext::registerActionToAncestorContext(this, m_action);
+        attachAction(false);
+        attachAction(true);
     }
 }
 
@@ -106,8 +110,8 @@ void UCActionItem::updateProperties()
 void UCActionItem::attachAction(bool attach)
 {
     if (attach) {
-        connect(this, &UCActionItem::triggered,
-                m_action, &UCAction::triggered, Qt::DirectConnection);
+        connect(this, SIGNAL(triggered(QVariant)),
+                m_action, SLOT(trigger(QVariant)), Qt::DirectConnection);
         connect(m_action, &UCAction::visibleChanged,
                 this, &UCActionItem::_q_updateVisible, Qt::DirectConnection);
         connect(m_action, &UCAction::enabledChanged,
@@ -125,8 +129,8 @@ void UCActionItem::attachAction(bool attach)
                     this, &UCActionItem::iconNameChanged, Qt::DirectConnection);
         }
     } else {
-        disconnect(this, &UCActionItem::triggered,
-                   m_action, &UCAction::triggered);
+        disconnect(this, SIGNAL(triggered(QVariant)),
+                   m_action, SLOT(trigger(QVariant)));
         disconnect(m_action, &UCAction::visibleChanged,
                    this, &UCActionItem::_q_updateVisible);
         disconnect(m_action, &UCAction::enabledChanged,

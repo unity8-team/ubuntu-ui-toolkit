@@ -21,6 +21,20 @@ import Ubuntu.Components 1.1
 TestCase {
      name: "ActionAPI"
 
+     function contains(list, entry) {
+         for (var i = 0; i < list.length; i++) {
+             if (list[i] == entry) {
+                 return true;
+             }
+         }
+         return false;
+     }
+
+     function cleanup() {
+         triggeredSignalSpy.target = action;
+         triggeredSignalSpy.clear();
+     }
+
      function initTestCase() {
          compare(action.text, "", "text is empty string set by default")
          compare(action.iconSource, "", "iconSource is empty string by default")
@@ -118,6 +132,12 @@ TestCase {
          }
      }
 
+     function test_overloaded_action_trigger() {
+         triggeredSignalSpy.target = suppressTrigger;
+         suppressTrigger.trigger();
+         compare(triggeredSignalSpy.count, 0, "Overloaded trigger should not trigger action");
+     }
+
      Action {
          id: action
      }
@@ -170,5 +190,9 @@ TestCase {
      ActionContext {
          id: context2
      }
-     ActionContext { id: activeContext; active: true; actions: [valueType] }
+
+     Action {
+         id: suppressTrigger
+         function trigger() {}
+     }
 }

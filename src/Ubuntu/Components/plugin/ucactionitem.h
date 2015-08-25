@@ -73,6 +73,8 @@ protected:
     UCAction *m_action;
     quint8 m_flags;
 
+    void componentComplete();
+
     void updateProperties();
     void attachAction(bool attach);
 };
