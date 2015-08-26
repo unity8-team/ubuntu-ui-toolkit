@@ -30,9 +30,15 @@ TestCase {
          return false;
      }
 
+     function init() {
+         context1.addAction(valueType);
+     }
+
      function cleanup() {
          triggeredSignalSpy.target = action;
          triggeredSignalSpy.clear();
+         context1.removeAction(valueType);
+         context2.active = false;
      }
 
      function initTestCase() {
@@ -109,7 +115,7 @@ TestCase {
 
      function test_actionmanager() {
          verify(manager.globalContext, "Global context is not defined");
-         compare(manager.localContexts.length, 3, "Invalid number of local contexts defined");
+         compare(manager.localContexts.length, 2, "Invalid number of local contexts defined");
      }
 
      function test_globalcontext_actions() {
@@ -186,6 +192,7 @@ TestCase {
 
      ActionContext {
          id: context1
+         active: true
      }
      ActionContext {
          id: context2
