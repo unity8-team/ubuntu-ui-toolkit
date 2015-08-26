@@ -100,4 +100,9 @@ TestCase {
          text: "actionText"
          iconSource: "imageURL"
      }
+
+     ActionContext {
+         active: true
+         actions: action1
+     }
 }
