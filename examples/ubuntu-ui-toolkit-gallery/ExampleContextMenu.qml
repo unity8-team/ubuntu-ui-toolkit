@@ -19,32 +19,40 @@ import Ubuntu.Components 1.3
 import Ubuntu.Components.Popups 1.3
 
 ContextMenu {
-    Label {
-        text: i18n.tr('Comic Sans is awesome')
-    }
     MenuGroup {
         Action {
             text: i18n.tr("Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.")
+            shortcut: 'Alt+P'
         }
         Action {
+            iconName: 'compose'
             text: i18n.tr("Once upon a time there was a story nobody told.")
+            enabled: false
+            shortcut: 'Ctrl+Shift+T'
         }
     }
     MenuGroup {
         Action {
             iconName: 'delete'
             text: i18n.tr("Delete")
+            shortcut: 'Del'
         }
         MenuGroup {
-            text: i18n.tr("But wait, there's more...")
+            text: i18n.tr("But wait, there's more")
             Action {
-                iconName: 'compose'
                 text: i18n.tr("Send an email")
+                shortcut: 'Ctrl+C'
+                enabled: false
             }
             Action {
                 iconName: 'save-to'
                 text: i18n.tr("Save to file")
+                shortcut: 'Shift+S'
             }
+        }
+        MenuGroup {
+            text: i18n.tr("Forever moar quoth the raven")
+            enabled: false
         }
     }
 }

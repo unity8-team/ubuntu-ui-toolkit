@@ -20,11 +20,12 @@ import Ubuntu.Components 1.3
 Popover {
     id: contextmenu
     objectName: 'ContextMenu'
-    contentWidth: units.gu(25)
+    contentHeight: Math.max(column.childrenRect.height, units.gu(4))
+    contentWidth: Math.max(column.childrenRect.width, units.gu(4))
 
     default property alias children: column.children
 
-    styleName: "ContextMenuForegroundStyle"
+    // FIXME: styleName: "ContextMenuForegroundStyle"
     Column {
         id: column
         anchors {

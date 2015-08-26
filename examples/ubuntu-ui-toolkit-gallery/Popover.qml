@@ -31,7 +31,7 @@ Template {
         Action {
             text: "Context menu"
             iconName: "like"
-            onTriggered: PopupUtils.open(Qt.resolvedUrl('ExampleContextMenu.qml'))
+            onTriggered: PopupUtils.open(Qt.resolvedUrl('ExampleContextMenu.qml'), popoverWithFlickableButton)
         }
     ]
 

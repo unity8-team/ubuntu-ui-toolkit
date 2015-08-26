@@ -18,21 +18,29 @@ import QtQuick 2.4
 import Ubuntu.Components 1.3
 
 Column {
-    id: menu
-    property Popover menu
-    property list<Action> actions
+    id: group
+    property ContextMenu menu
+    property list<QtObject> actions
+    default property alias children: group.actions
+    property Component delegate: MenuItem {
+        action: modelData.hasOwnProperty('shortcut') ? modelData : null
+        text: modelData.text
+        enabled: modelData.enabled
+        onClicked: contextmenu.hide() // FIXME
+        divider.visible: action == actions[group.actions.length - 1]
+    }
+    property string text
 
-    Label {
-        text: i18n.tr('MenuGroup')
+    Loader {
+        property var modelData: Action {
+            text: group.text
+        }
+        active: group.text !== ''
+        sourceComponent: group.delegate
     }
 
     Repeater {
         model: actions
-
-        MenuItem {
-            action: modelData
-            onClicked: contextmenu.hide() // FIXME
-            divider.visible: action == actions[actions.length - 2]
-        }
+        delegate: group.delegate
     }
 }

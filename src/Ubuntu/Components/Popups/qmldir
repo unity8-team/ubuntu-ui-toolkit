@@ -23,8 +23,8 @@ PopupUtils 1.0 1.2/popupUtils.js
 
 #################################################
 #version 1.3
-ContextMenu 1.3/ContextMenu.qml
-MenuGroup 1.3/MenuGroup.qml
+ContextMenu 1.3 1.3/ContextMenu.qml
+MenuGroup 1.3 1.3/MenuGroup.qml
 internal MenuItem 1.3/MenuItem.qml
 Dialog 1.3 1.3/Dialog.qml
 PopupBase 1.3 1.3/PopupBase.qml

@@ -18,11 +18,12 @@ import QtQuick 2.4
 import Ubuntu.Components 1.3
 
 ListItem {
+    id: menuitem
     contentItem.anchors {
          leftMargin: units.gu(2)
          rightMargin: units.gu(2)
     }
-    width: units.gu(20) // FIXME: label.implicitWidth
+    width: row.spacing + units.gu(25) + hotkey.width + units.gu(4)
     height: units.gu(4)
 
     color: '#ffffff'
@@ -30,35 +31,56 @@ ListItem {
     Mouse.onEntered: hovered = true
     Mouse.onExited: hovered = false
     property bool hovered
-    enabled: false//action.enabled
+    property string text
+    enabled: action ? action.enabled : true
 
     Row {
+        id: row
         anchors.left: parent.left
         anchors.verticalCenter: parent.verticalCenter
         anchors.right: shortcut.left
         spacing: units.gu(1)
 
         Icon {
-            name: action.iconName
-            width: units.gu(2)
+            id: icon
+            name: action ? action.iconName : ''
+            width: visible ? units.gu(2) : 0
             height: width
             opacity: label.opacity
+            visible: name != ''
         }
 
         Label {
             id: label
-            text: action.text
+            text: action ? action.text : menuitem.text
             color: '#333333'
-            opacity: action.enabled ? 1.0 : 0.3
+            opacity: menuitem.enabled ? 1.0 : 0.3
+            elide: Text.ElideRight
+            width: units.gu(25) - icon.width
         }
     }
 
-    Label {
+    Row {
         id: shortcut
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
-        text: "^S" // action.shortcut
-        color: label.color
         opacity: label.opacity
+
+        Label {
+            id: hotkey
+            property string shortcut: action && action.shortcut ? action.shortcut : ''
+            text: hotkey.shortcut.replace('Ctrl+', '^').replace('Shift+', '⇧')
+            color: label.color
+            visible: shortcut != ''
+            width: units.gu(5)
+        }
+
+        Icon {
+            id: chevron
+            name: 'chevron'
+            width: units.gu(2)
+            height: width
+            visible: !action
+        }
     }
 }
