@@ -23,6 +23,7 @@
 #include <QtCore/QHash>
 #include <QtCore/QUrl>
 
+class QScreen;
 class UCUnits : public QObject
 {
     Q_OBJECT
@@ -51,6 +52,7 @@ Q_SIGNALS:
 protected:
     QString suffixForGridUnit(float gridUnit);
     float gridUnitSuffixFromFileName(const QString &fileName);
+    Q_SLOT void updateDprOnScreenChange(QScreen *screen);
 
 private:
     float m_devicePixelRatio;

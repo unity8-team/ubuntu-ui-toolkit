@@ -27,6 +27,8 @@
 #include <QtGui/QGuiApplication>
 #include <QtGui/QScreen>
 
+#include <QDebug>
+
 #define ENV_GRID_UNIT_PX "GRID_UNIT_PX"
 #define DEFAULT_GRID_UNIT_PX 8
 
@@ -103,7 +105,16 @@ UCUnits::UCUnits(QObject *parent) :
         m_gridUnit = getenvFloat(ENV_GRID_UNIT_PX, DEFAULT_GRID_UNIT_PX);
     } else {
         m_gridUnit = DEFAULT_GRID_UNIT_PX * m_devicePixelRatio;
+        connect(qGuiApp, &QGuiApplication::screenAdded, this, &UCUnits::updateDprOnScreenChange);
     }
+}
+
+void UCUnits::updateDprOnScreenChange(QScreen *screen)
+{
+    Q_UNUSED(screen);
+    m_devicePixelRatio = qGuiApp->devicePixelRatio();
+    m_gridUnit = DEFAULT_GRID_UNIT_PX * m_devicePixelRatio;
+    Q_EMIT gridUnitChanged();
 }
 
 /*!
