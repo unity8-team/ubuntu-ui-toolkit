@@ -19,7 +19,8 @@ import QtTest 1.0
 import Ubuntu.Test 1.0
 import Ubuntu.Components 1.3
 
-Item {
+ActionContext {
+    active: true
     width: units.gu(40)
     height: units.gu(71)
 
