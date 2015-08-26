@@ -121,7 +121,13 @@ void ActionProxy::activateContext(UCActionContext *context)
 {
     // handle overlay change
     if (context->m_overlay) {
-        activeOverlay = (context->m_active) ? context : Q_NULLPTR;
+        UCActionContext *nextContext = (context->m_active) ? context : Q_NULLPTR;
+        if (activeOverlay && nextContext != activeOverlay) {
+            // deactivate any previous active overlay
+            // TODO: block signals while we deactivate the overlay
+            activeOverlay->setActive(false);
+        }
+        activeOverlay = nextContext;
     }
     // handle active change
     if (!context->m_active && m_activeContexts.contains(context)) {

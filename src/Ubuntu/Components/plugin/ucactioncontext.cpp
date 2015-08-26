@@ -50,7 +50,8 @@
  * of the application are disabled, and only contexts declared in the Dialog will
  * be active. Actions registered in the disabled contexts will be suppressed,
  * excluding global actions, which will be also active. There can be only one overlay
- * action context active at a time.
+ * action context active at a time. Any previously active overlay context will be
+ * deactivated when a new overlay context is activated.
  */
 UCActionContext::UCActionContext(QQuickItem *parent)
     : QQuickItem(parent)
@@ -178,7 +179,8 @@ bool UCActionContext::effectiveActive()
         // find out whether the context is in the active overlay one
         UCActionContext *parentContext = findAncestorContext(parentItem());
         if (parentContext) {
-            return parentContext->effectiveActive();
+            bool active = parentContext->effectiveActive();
+            return active;
         }
         // the context is not declared as child of the active overlay
         // therefore report as inactive
@@ -187,7 +189,8 @@ bool UCActionContext::effectiveActive()
     // the action context may be embedded in an other context, so it will be active only if all parent contexts are active
     UCActionContext *parentContext = findAncestorContext(parentItem());
     if (parentContext) {
-        return parentContext->effectiveActive();
+        bool active = parentContext->effectiveActive();
+        return active;
     }
     return m_active && isEnabled();
 }

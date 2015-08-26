@@ -31,6 +31,7 @@ class UCActionContext : public QQuickItem
     Q_PROPERTY(QQmlListProperty<UCAction> actions READ actions)
     Q_PROPERTY(bool active MEMBER m_active WRITE setActive NOTIFY activeChanged)
     Q_PROPERTY(bool overlay READ isOverlay WRITE setOverlay NOTIFY overlayChanged FINAL REVISION 1)
+    Q_PROPERTY(bool effectiveActive READ effectiveActive CONSTANT)
     Q_PROPERTY(QQmlListProperty<QObject> data READ data DESIGNABLE false)
     Q_CLASSINFO("DefaultProperty", "data")
 public:
