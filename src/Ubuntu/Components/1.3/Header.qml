@@ -25,24 +25,32 @@ import Ubuntu.Components 1.3
 Item {
     id: header
 
+    // TODO: document
+    property bool locked: false
+
+    onLockedChanged: {
+        internal.connectFlickable();
+    }
+    // TODO: document
+    visible: header.y + header.height > 0
+
     // TODO: Use __styleInstance for:
     // -- contentHeight: units.gu(6)
     // -- foregroundColor
     // -- backgroundColor
     // -- fontWeight: Font.Light
-    // -- f ontSize: "large"
+    // -- fontSize: "large"
     // -- margins?
 
     anchors {
         left: parent.left
         right: parent.right
-//        top: parent.top
     }
     y: 0
-    onYChanged: print("header.y = "+y)
 
     implicitHeight: units.gu(6) //headerStyle.contentHeight + divider.height + sectionsItem.height
 
+    // FIXME TIM: Move to HeaderStyle.
     Rectangle {
         anchors.fill: parent
         color: "red"
@@ -54,12 +62,12 @@ Item {
      */
     property bool animate: true
 
-//    Behavior on y {
-//        enabled: animate && !(header.flickable && header.flickable.moving)
-//        SmoothedAnimation {
-//            duration: UbuntuAnimation.BriskDuration
-//        }
-//    }
+    Behavior on y {
+        enabled: animate && !(header.flickable && header.flickable.moving)
+        SmoothedAnimation {
+            duration: UbuntuAnimation.BriskDuration
+        }
+    }
 
 // TODO test this
     /*! \internal */
@@ -81,9 +89,6 @@ Item {
     // avoid interacting with the header contents when it is animating y
 //    enabled: header.y === 0
 
-
-    // TODO TIM: readonly property visible?
-
     /*!
       Show the header
      */
@@ -91,6 +96,9 @@ Item {
 //        if (internal.newConfig) {
 //            header.config.visible = true;
 //        }
+        // TODO TIM: The enabled binding would overwrite enabled if the
+        //  developer sets it. See if we can avoid that. Or perhaps only
+        //  enable the contents of the header?
         // Enable the header as soon as it finished animating
         //  to the fully visible state:
         header.enabled = Qt.binding(function() { return header.y === 0; });
@@ -146,11 +154,7 @@ Item {
 //            internal.checkFlickableMargins();
 //        }
 //        onLockedChanged: {
-//            internal.connectFlickable();
-//            if (!header.config.locked) {
-//                internal.movementEnded();
-//            }
-//        }
+
 //    }
 
     /*!
@@ -284,6 +288,7 @@ Item {
                     // pull up contents when header shrinks.
                     flickable.contentY = oldContentY - headerHeight + previousHeaderHeight;
                 }
+                internal.movementEnded();
             }
         }
     }

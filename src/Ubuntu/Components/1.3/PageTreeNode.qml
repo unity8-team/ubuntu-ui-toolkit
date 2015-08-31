@@ -46,15 +46,15 @@ Toolkit.StyledItem {
       The header of the node. Propagates down from the root node.
       This property is DEPRECATED.
      */
-    property Item header: node.__propagated ? node.__propagated.header : null
+//    property Item header: node.__propagated ? node.__propagated.header : null
 
     /*!
       \deprecated
       The toolbar of the node. Propagates down from the root node.
       This property is DEPRECATED.
      */
-    property Item toolbar: node.__propagated && node.__propagated.hasOwnProperty("toolbar")
-                              ? node.__propagated.toolbar : null
+//    property Item toolbar: node.__propagated && node.__propagated.hasOwnProperty("toolbar")
+//                              ? node.__propagated.toolbar : null
 
     /*!
       \internal

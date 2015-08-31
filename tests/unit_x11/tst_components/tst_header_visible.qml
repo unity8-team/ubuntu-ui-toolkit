@@ -23,23 +23,53 @@ Item {
     height: units.gu(70)
 
     Header {
+        id: header
         title: "Visibility testing"
         flickable: greenFlickable
+        locked: lockedSwitch.checked
     }
 
     Flickable {
         id: greenFlickable
         anchors.fill: parent
         contentHeight: height * 2
-        Rectangle {
-            anchors {
-                fill: parent
-                margins: units.gu(2)
-            }
-            color: UbuntuColors.green
-        }
 
-        // TODO: locking and hiding
+        Grid {
+            id: switchGrid
+            columns: 2
+            spacing: units.gu(1)
+            anchors {
+                top: parent.top
+                left: parent.left
+                margins: units.gu(5)
+            }
+            Switch {
+                id: lockedSwitch
+                checked: false
+            }
+            Label {
+                text: "header locked"
+            }
+            Switch {
+                id: visibleSwitch
+                checked: !header.visible
+                onClicked: {
+                    if (checked) header.hide();
+                    else header.show();
+                }
+            }
+            Label {
+                text: "header hidden"
+            }
+        }
+        Label {
+            anchors {
+                top : switchGrid.bottom
+                horizontalCenter: parent.horizontalCenter
+                topMargin: units.gu(5)
+            }
+            text: "Flick me up and down"
+        }
     }
 
 
