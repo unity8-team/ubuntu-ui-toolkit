@@ -20,7 +20,9 @@
 UCListItemExpansion::UCListItemExpansion(QObject *parent)
     : QObject(parent)
     , m_listItem(static_cast<UCListItem13*>(parent))
+    , m_content(Q_NULLPTR)
     , m_height(0.0)
+    , m_hideCollapsedContent(false)
     , m_filtering(false)
 {
 }
@@ -104,3 +106,22 @@ void UCListItemExpansion::setHeight(qreal height)
     m_height = height;
     Q_EMIT heightChanged();
 }
+
+void UCListItemExpansion::setContent(QQmlComponent *component)
+{
+    if (component == m_content) {
+        return;
+    }
+    m_content = component;
+    Q_EMIT contentChanged();
+}
+
+void UCListItemExpansion::setHideCollapsedContent(bool hide)
+{
+    if (m_hideCollapsedContent == hide) {
+        return;
+    }
+    m_hideCollapsedContent = hide;
+    Q_EMIT hideCollapsedContentChanged();
+}
+

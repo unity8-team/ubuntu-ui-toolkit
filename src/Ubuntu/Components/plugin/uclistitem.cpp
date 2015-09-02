@@ -1763,6 +1763,8 @@ void UCListItem13::itemChange(ItemChange change, const ItemChangeData &data)
  * \qmlpropertygroup ::ListItem::expansion
  * \qmlproperty bool ListItem::expansion.expanded
  * \qmlproperty real ListItem::expansion.height
+ * \qmlproperty Component ListItem::expansion.content
+ * \qmlproperty bool ListItem::expansion.hideCollapsedContent
  * \since Ubuntu.Components 1.3
  * The group drefines the expansion state of the ListItem.
  */
