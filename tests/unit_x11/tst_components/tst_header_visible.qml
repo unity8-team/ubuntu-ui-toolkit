@@ -25,12 +25,12 @@ Item {
     Header {
         id: header
         title: "Visibility testing"
-        flickable: greenFlickable
+        flickable: flickable
         locked: lockedSwitch.checked
     }
 
     Flickable {
-        id: greenFlickable
+        id: flickable
         anchors.fill: parent
         contentHeight: height * 2
 
@@ -66,9 +66,9 @@ Item {
             anchors {
                 top : switchGrid.bottom
                 horizontalCenter: parent.horizontalCenter
-                topMargin: units.gu(5)
+                topMargin: units.gu(6)
             }
-            text: "Flick me up and down"
+            text: "Flick me"
         }
     }
 

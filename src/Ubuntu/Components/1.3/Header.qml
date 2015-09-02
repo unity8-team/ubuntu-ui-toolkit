@@ -46,6 +46,7 @@ Item {
         left: parent.left
         right: parent.right
     }
+    // TODO: anchor to top, use topMargin
     y: 0
 
     implicitHeight: units.gu(6) //headerStyle.contentHeight + divider.height + sectionsItem.height
@@ -54,7 +55,7 @@ Item {
     Rectangle {
         anchors.fill: parent
         color: "red"
-        opacity: 0.2
+        opacity: 0.3
     }
 
     /*!
@@ -121,12 +122,12 @@ Item {
     /*!
       The text to display in the header
      */
-    property string title: ""
+//    property string title: ""
 
     /*!
       The contents of the header. If this is set, the \l title will be invisible.
      */
-    property Item contents: null
+//    property Item contents: null
 
     // FIXME TIM: In the CPO, add getLeadingActionBar, getTrailingActionBar and
     //  getSections functions.
@@ -142,20 +143,6 @@ Item {
         }
     }
     Component.onCompleted: header.flickableChanged()
-//    Connections {
-//        target: header.config
-//        ignoreUnknownSignals: true // PageHeadConfiguration <1.2 lacks the signals below
-//        onVisibleChanged: {
-//            if (header.config.visible) {
-//                header.show();
-//            } else {
-//                header.hide();
-//            }
-//            internal.checkFlickableMargins();
-//        }
-//        onLockedChanged: {
-
-//    }
 
     /*!
       The header is not fully opened or fully closed.
@@ -169,7 +156,6 @@ Item {
 
       Used in tst_header_locked_visible.qml.
     */
-    // TODO TIM: expose as 'animating'?
 //    readonly property bool moving: internal.newConfig &&
 //                                   ((config.visible && header.y !== 0) ||
 //                                    (!config.visible && header.y !== -header.height))
