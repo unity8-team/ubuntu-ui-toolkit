@@ -236,6 +236,8 @@ private:
 };
 QML_DECLARE_TYPEINFO(UCViewItemsAttached13, QML_HAS_ATTACHED_PROPERTIES)
 
+class QQuickTransition;
+class UCListItemStyle;
 class UCListItemExpansion : public QObject
 {
     Q_OBJECT
@@ -243,8 +245,10 @@ class UCListItemExpansion : public QObject
     Q_PROPERTY(qreal height MEMBER m_height WRITE setHeight NOTIFY heightChanged)
     Q_PROPERTY(QQmlComponent *content MEMBER m_content WRITE setContent NOTIFY contentChanged)
     Q_PROPERTY(bool hideCollapsedContent MEMBER m_hideCollapsedContent WRITE setHideCollapsedContent NOTIFY hideCollapsedContentChanged)
+    Q_PROPERTY(QQuickTransition *expandCollapse MEMBER m_expandCollapse WRITE setExpandCollapse)
 public:
     explicit UCListItemExpansion(QObject *parent = 0);
+    void updateTransitions(UCListItemStyle *style);
 
     bool expandedWithFlag(UCViewItemsAttached::ExpansionFlag flag);
     void enableClickFiltering(bool enable);
@@ -254,6 +258,8 @@ public:
     void setHeight(qreal height);
     void setContent(QQmlComponent *component);
     void setHideCollapsedContent(bool hide);
+    void setExpandCollapse(QQuickTransition *transition);
+    void resetExpandCollapse();
 
 Q_SIGNALS:
     void expandedChanged();
@@ -267,9 +273,11 @@ protected:
 private:
     UCListItem13 *m_listItem;
     QQmlComponent *m_content;
+    QQuickTransition *m_expandCollapse;
     qreal m_height;
     bool m_hideCollapsedContent:1;
     bool m_filtering:1;
+    bool m_customExpandCollapse:1;
 
     friend class UCListItem;
     friend class UCListItem13;

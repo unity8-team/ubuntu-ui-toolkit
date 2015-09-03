@@ -55,6 +55,7 @@ public:
 
     virtual void preStyleChanged();
     virtual void postStyleChanged() {}
+    virtual void preStyleCompletion() {}
     virtual bool loadStyleItem(bool animated = true);
 
     UCTheme *getTheme() const;

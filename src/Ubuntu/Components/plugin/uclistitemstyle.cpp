@@ -43,6 +43,7 @@ UCListItemStyle::UCListItemStyle(QQuickItem *parent)
     , m_dropAnimation(0)
     , m_dragPanel(0)
     , m_flickable(Q_NULLPTR)
+    , m_flickableAnimation(Q_NULLPTR)
     , m_animatePanels(true)
 {
 }

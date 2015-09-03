@@ -73,6 +73,7 @@ class UCListItemStyle : public QQuickItem
     Q_PROPERTY(int listItemIndex READ index NOTIFY listItemIndexChanged FINAL REVISION 1)
     Q_PROPERTY(QQuickFlickable *flickable READ flickable NOTIFY flickableChanged REVISION 1)
     Q_PROPERTY(bool completed READ completed NOTIFY completedChanged REVISION 1)
+    Q_PROPERTY(QQuickAbstractAnimation *flickableAnimation MEMBER m_flickableAnimation REVISION 1)
 public:
     explicit UCListItemStyle(QQuickItem *parent = 0);
 
@@ -111,8 +112,10 @@ private:
     QQuickPropertyAnimation *m_dropAnimation;
     QQuickItem *m_dragPanel;
     QQuickFlickable *m_flickable;
+    QQuickAbstractAnimation *m_flickableAnimation;
     bool m_animatePanels:1;
 
+    friend class UCListItemExpansion;
     friend class UCListItemPrivate;
     friend class ListItemDragArea;
     friend class ListItemDragHandler;

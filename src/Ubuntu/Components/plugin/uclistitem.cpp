@@ -321,6 +321,30 @@ void UCListItemPrivate::preStyleChanged()
     UCStyledItemBasePrivate::preStyleChanged();
 }
 
+void UCListItemPrivate::preStyleCompletion()
+{
+    UCListItemStyle *myStyle = qobject_cast<UCListItemStyle*>(styleItem);
+    if (!myStyle) {
+        return;
+    }
+    myStyle->updateFlickable(flickable);
+    if (expansion) {
+        // update transitions
+        expansion->updateTransitions(myStyle);
+    }
+}
+
+void UCListItemPrivate::postStyleChanged()
+{
+    if (!styleItem) {
+        return;
+    }
+    // update style transitions
+    UCListItemStyle *myStyle = qobject_cast<UCListItemStyle*>(styleItem);
+    QQmlListProperty<QQuickTransition> transitions = QQuickItemPrivate::get(myStyle)->transitions();
+    qDebug() << "COUNT" << transitions.count(&transitions);
+}
+
 // creates the style item, with altered default value of the animatePanels style property
 // the property is turned on after the panel initialization.
 bool UCListItemPrivate::loadStyleItem(bool animated)
@@ -340,7 +364,6 @@ bool UCListItemPrivate::loadStyleItem(bool animated)
         preStyleChanged();
         return false;
     }
-    myStyle->updateFlickable(flickable);
     // bring the panels foreground
     styleItem->setZ(0);
     listItemStyle()->setAnimatePanels(true);
