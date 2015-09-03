@@ -421,7 +421,27 @@ Styles.ListItemStyle {
     }
 
     // expansion
-    state: (listItemStyle.completed && styledItem.expansion.expanded) ? (listItemStyle.flickable ? "expandedWithFlickable" : "expandedNoFlickable") : ""
+    state: {
+        if (!listItemStyle.completed || !styledItem.expansion.expanded) {
+            return "";
+        }
+        // states are:
+        // expandedWithFlickable, expandedNoFlickable
+        // expandedOverContentWithFlickable, expandedOverContentNoFlickable
+        // expandedUnderContentWithFlickable, expandedUnderContentNoFlickable
+        // expandedContentHiddenWithFlickable, expandedContentHiddenNoFlickable
+        var result = "expanded";
+
+        if (styledItem.expansion.content) {
+            result += styledItem.expansion.hideCollapsedContent ? "OverContent" : "UnderContent";
+        } else if (styledItem.expansion.hideCollapsedContent) {
+            result += "ContentHidden";
+        }
+
+        result += (listItemStyle.flickable) ? "WithFlickable" : "NoFlickable";
+
+        return result;
+    }
     states: [
         State {
             name: "expandedNoFlickable"
@@ -460,15 +480,13 @@ Styles.ListItemStyle {
             to: "expandedWithFlickable"
             reversible: true
             enabled: listItemStyle.animatePanels
-            ParallelAnimation {
-                UbuntuNumberAnimation {
-                    target: listItemStyle.flickable
-                    property: "contentY"
-                }
-                UbuntuNumberAnimation {
-                    target: styledItem
-                    property: "height"
-                }
+            UbuntuNumberAnimation {
+                target: listItemStyle.flickable
+                property: "contentY"
+            }
+            UbuntuNumberAnimation {
+                target: styledItem
+                property: "height"
             }
         },
         Transition {
