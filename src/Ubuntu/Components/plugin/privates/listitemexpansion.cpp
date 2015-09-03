@@ -27,14 +27,7 @@ UCListItemExpansion::UCListItemExpansion(QObject *parent)
     , m_height(0.0)
     , m_hideCollapsedContent(false)
     , m_filtering(false)
-    , m_customExpandCollapse(true) // set so reset can proceed
 {
-    resetExpandCollapse();
-    UCListItemPrivate *listItem = UCListItemPrivate::get(m_listItem);
-    if (listItem->styleItem) {
-        // update the transitions
-        updateTransitions(static_cast<UCListItemStyle*>(listItem->styleItem));
-    }
 }
 
 bool UCListItemExpansion::expandedWithFlag(UCViewItemsAttached::ExpansionFlag flag)
@@ -140,40 +133,13 @@ void UCListItemExpansion::setExpandCollapse(QQuickTransition *transition)
     if (transition == m_expandCollapse) {
         return;
     }
-    if (!m_customExpandCollapse) {
-        delete m_expandCollapse;
-        m_expandCollapse = Q_NULLPTR;
+    UCListItemPrivate *listItem = UCListItemPrivate::get(m_listItem);
+    UCListItemStyle *style = static_cast<UCListItemStyle*>(listItem->styleItem);
+    if (style) {
+        style->updateExpandCollapseTransition(m_expandCollapse, false);
     }
     m_expandCollapse = transition;
-    if (!m_expandCollapse) {
-        resetExpandCollapse();
-        UCListItemPrivate *listItem = UCListItemPrivate::get(m_listItem);
-        if (listItem->styleItem) {
-            // update the transitions
-            updateTransitions(static_cast<UCListItemStyle*>(listItem->styleItem));
-        }
-    }
-    m_customExpandCollapse = (transition != Q_NULLPTR);
-}
-void UCListItemExpansion::resetExpandCollapse()
-{
-    if (!m_customExpandCollapse) {
-        return;
-    }
-    // re-create transition
-    m_expandCollapse = new QQuickTransition(m_listItem);
-    m_expandCollapse->setFromState("");
-    m_expandCollapse->setToState("expanded");
-    m_expandCollapse->setReversible(true);
-    m_customExpandCollapse = false;
-}
-
-void UCListItemExpansion::updateTransitions(UCListItemStyle *style)
-{
-    UCListItemPrivate *listItem = UCListItemPrivate::get(m_listItem);
-    if (style->m_flickableAnimation && !listItem->flickable.isNull()) {
-        QQmlListProperty<QQuickAbstractAnimation> animations = m_expandCollapse->animations();
-        animations.append(&animations, style->m_flickableAnimation);
+    if (style) {
+        style->updateExpandCollapseTransition(m_expandCollapse, true);
     }
 }
-
