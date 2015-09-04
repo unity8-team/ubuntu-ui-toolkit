@@ -170,7 +170,7 @@ class UCViewItemsAttached : public QObject
 public:
     enum ExpansionFlag {
         Exclusive = 0x01,
-        LockExpanded = 0x02,
+        UnlockExpanded = 0x02,
         CollapseOnOutsidePress = Exclusive | 0x04
     };
     Q_DECLARE_FLAGS(ExpansionFlags, ExpansionFlag)
@@ -247,7 +247,7 @@ class UCListItemExpansion : public QObject
 public:
     explicit UCListItemExpansion(QObject *parent = 0);
 
-    bool expandedWithFlag(UCViewItemsAttached::ExpansionFlag flag);
+    bool expandedLocked();
     void enableClickFiltering(bool enable);
 
     bool expanded();

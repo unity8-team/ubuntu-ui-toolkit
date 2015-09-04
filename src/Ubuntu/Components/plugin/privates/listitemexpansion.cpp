@@ -52,11 +52,11 @@ void UCListItemExpansion::createOrUpdateContentItem()
     }
 }
 
-bool UCListItemExpansion::expandedWithFlag(UCViewItemsAttached::ExpansionFlag flag)
+bool UCListItemExpansion::expandedLocked()
 {
     UCListItemPrivate *listItem = UCListItemPrivate::get(m_listItem);
     UCViewItemsAttachedPrivate *viewItems = UCViewItemsAttachedPrivate::get(listItem->parentAttached);
-    return expanded() && ((viewItems->expansionFlags & flag) == flag);
+    return expanded() && !((viewItems->expansionFlags & UCViewItemsAttached::UnlockExpanded) == UCViewItemsAttached::UnlockExpanded);
 }
 
 void UCListItemExpansion::enableClickFiltering(bool enable)
@@ -115,8 +115,6 @@ void UCListItemExpansion::setExpanded(bool expanded)
         }
         if (expanded) {
             viewItems->expand(listItem->index(), m_listItem);
-            // invoke expandedContent
-            Q_EMIT contentItemChanged();
         } else {
             viewItems->collapse(listItem->index());
         }

@@ -228,15 +228,18 @@ Template {
 
     TemplateSection {
         className: "ListItem"
-        title: "Expansion - exclusive"
+        title: "Expansion - exclusive, unlocked, auto-collapsing"
 
         UbuntuListView {
             width: parent.width
             height: units.gu(28)
             clip: true
-            model: 10
+            model: 5
+            ViewItems.expansionFlags: ViewItems.CollapseOnOutsidePress | ViewItems.UnlockExpanded
             delegate: ListItemWithLabel {
                 text: i18n.tr("Item #%1: pressAndHold to expand/collapse").arg(modelData)
+                leadingActions: exampleLeadingActions
+                trailingActions: exampleTrailingActions
                 expansion.height: units.gu(15)
                 onPressAndHold: expansion.expanded = !expansion.expanded
             }
@@ -245,20 +248,40 @@ Template {
 
     TemplateSection {
         className: "ListItem"
-        title: "Expansion - unlocked"
+        title: "Expansion - content under collapsed layout"
 
         UbuntuListView {
             width: parent.width
             height: units.gu(28)
             clip: true
-            model: 10
-            ViewItems.expansionFlags: ViewItems.UnlockExpanded
+            model: ListModel {
+                Component.onCompleted: {
+                    for (var i = 0; i < 5; i++) {
+                        append({label: i18n.tr("Item #%1: pressAndHold to expand/collapse").arg(i)})
+                    }
+                }
+            }
+
             delegate: ListItemWithLabel {
-                text: i18n.tr("Item #%1: pressAndHold to expand/collapse").arg(modelData)
-                leadingActions: exampleLeadingActions
-                trailingActions: exampleTrailingActions
-                expansion.height: units.gu(15)
+                id: mainItem
+                text: label
                 onPressAndHold: expansion.expanded = !expansion.expanded
+                expansion {
+                    height: units.gu(21)
+                    content: UbuntuListView {
+                        clip: true
+                        anchors.right: parent.right
+                        width: parent.width - units.gu(4)
+                        height: units.gu(14)
+                        model: 5
+                        delegate: ListItemWithLabel {
+                            text: i18n.tr("Sub-item #%1").arg(modelData)
+                            onClicked: {
+                                mainItem.model.get(mainItem.index).label = "Replaced with " + modelData
+                            }
+                        }
+                    }
+                }
             }
         }
     }
