@@ -1266,9 +1266,10 @@ UCListItemDivider: Item
     property color colorTo
 UCListItemExpansion: QtObject
     property Component content
+    readonly property Item contentItem
     property bool expanded
     property double height
-    property bool hideCollapsedContent
+    property bool overlapListItem
 UCStateSaverAttached: QtObject
     property bool enabled
     property string properties
