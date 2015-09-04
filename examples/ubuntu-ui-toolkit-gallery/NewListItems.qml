@@ -34,13 +34,15 @@ Template {
         // clip the action delegates while swiping left/right
         clip: true
 
-       ListItemWithLabel {
+        ListItemWithLabel {
             color: UbuntuColors.blue
             text: i18n.tr("Colored")
+            onPressAndHold: selectMode = !selectMode
         }
         ListItemWithLabel {
             text: i18n.tr("Highlight color")
             highlightColor: UbuntuColors.orange
+            onPressAndHold: selectMode = !selectMode
             // no highlight without clicked() or leading/trailing actions
         }
 
@@ -70,18 +72,22 @@ Template {
         ListItemWithLabel {
             text: i18n.tr("Leading actions")
             leadingActions: exampleLeadingActions
+            onPressAndHold: selectMode = !selectMode
         }
         ListItemWithLabel {
             text: i18n.tr("Trailing actions")
             trailingActions: exampleTrailingActions
+            onPressAndHold: selectMode = !selectMode
         }
         ListItemWithLabel {
             text: i18n.tr("Leading and trailing actions")
             leadingActions: exampleLeadingActions
             trailingActions: exampleTrailingActions
+            onPressAndHold: selectMode = !selectMode
         }
         ListItemWithLabel {
             text: i18n.tr("Custom action delegates")
+            onPressAndHold: selectMode = !selectMode
             leadingActions: ListItemActions {
                 actions: [
                     Action {
@@ -163,6 +169,7 @@ Template {
             model: [ i18n.tr("Basic"), i18n.tr("Colored divider"), i18n.tr("Immutable"), i18n.tr("No divider") ]
             delegate: ListItemWithLabel {
                 text: modelData
+                onPressAndHold: selectMode = !selectMode
                 color: dragging ? "lightblue" : "transparent"
                 divider {
                     colorFrom: modelData == i18n.tr("Colored divider") ? UbuntuColors.red : Qt.rgba(0.0, 0.0, 0.0, 0.0)
@@ -209,11 +216,49 @@ Template {
             delegate: ListItemWithLabel {
                 text: modelData
                 color: dragMode ? "lightblue" : "lightgray"
+                onPressAndHold: selectMode = !selectMode
                 divider {
                     colorFrom: modelData == i18n.tr("Colored divider") ? UbuntuColors.red : Qt.rgba(0.0, 0.0, 0.0, 0.0)
                     colorTo: modelData == i18n.tr("Colored divider") ? UbuntuColors.green : Qt.rgba(0.0, 0.0, 0.0, 0.0)
                     visible: modelData != i18n.tr("No divider")
                 }
+            }
+        }
+    }
+
+    TemplateSection {
+        className: "ListItem"
+        title: "Expansion - exclusive"
+
+        UbuntuListView {
+            width: parent.width
+            height: units.gu(28)
+            clip: true
+            model: 10
+            delegate: ListItemWithLabel {
+                text: i18n.tr("Item #%1: pressAndHold to expand/collapse").arg(modelData)
+                expansion.height: units.gu(15)
+                onPressAndHold: expansion.expanded = !expansion.expanded
+            }
+        }
+    }
+
+    TemplateSection {
+        className: "ListItem"
+        title: "Expansion - unlocked"
+
+        UbuntuListView {
+            width: parent.width
+            height: units.gu(28)
+            clip: true
+            model: 10
+            ViewItems.expansionFlags: ViewItems.UnlockExpanded
+            delegate: ListItemWithLabel {
+                text: i18n.tr("Item #%1: pressAndHold to expand/collapse").arg(modelData)
+                leadingActions: exampleLeadingActions
+                trailingActions: exampleTrailingActions
+                expansion.height: units.gu(15)
+                onPressAndHold: expansion.expanded = !expansion.expanded
             }
         }
     }
