@@ -442,6 +442,7 @@ Styles.ListItemStyle {
 
         return result;
     }
+    onStateChanged: print(state)
     states: [
         State {
             name: "expandedNoFlickable"
@@ -452,6 +453,54 @@ Styles.ListItemStyle {
         },
         State {
             name: "expandedWithFlickable"
+            PropertyChanges {
+                target: styledItem
+                height: styledItem.expansion.height
+            }
+            PropertyChanges {
+                target: listItemStyle.flickable
+                // we do not need to restore the original values
+                restoreEntryValues: false
+                // and we should not get any binding updates even
+                explicit: true
+                contentY: {
+                    var bottom = styledItem.y + styledItem.expansion.height - listItemStyle.flickable.contentY + listItemStyle.flickable.originY;
+                    var dy = bottom - listItemStyle.flickable.height;
+                    if (dy > 0) {
+                        return listItemStyle.flickable.contentY + dy - listItemStyle.flickable.originY;
+                    } else {
+                        return listItemStyle.flickable.contentY;
+                    }
+                }
+            }
+        },
+        State {
+            name: "expandedUnderContentNoFlickable"
+            AnchorChanges {
+                target: styledItem.contentItem
+                anchors.bottom: undefined
+            }
+            PropertyChanges {
+                target: styledItem.expansion.contentItem
+                opacity: 1.0
+                z: 1
+            }
+            PropertyChanges {
+                target: styledItem
+                height: styledItem.expansion.height
+            }
+        },
+        State {
+            name: "expandedUnderContentWithFlickable"
+            AnchorChanges {
+                target: styledItem.contentItem
+                anchors.bottom: undefined
+            }
+            PropertyChanges {
+                target: styledItem.expansion.contentItem
+                opacity: 1.0
+                z: 1
+            }
             PropertyChanges {
                 target: styledItem
                 height: styledItem.expansion.height
@@ -491,9 +540,41 @@ Styles.ListItemStyle {
         },
         Transition {
             from: ""
+            to: "expandedUnderContentWithFlickable"
+            reversible: true
+            enabled: listItemStyle.animatePanels
+            UbuntuNumberAnimation {
+                target: styledItem.expansion.contentItem
+                property: "opacity"
+            }
+            UbuntuNumberAnimation {
+                target: listItemStyle.flickable
+                property: "contentY"
+            }
+            UbuntuNumberAnimation {
+                target: styledItem
+                property: "height"
+            }
+        },
+        Transition {
+            from: ""
             to: "expandedNoFlickable"
             reversible: true
             enabled: listItemStyle.animatePanels
+            UbuntuNumberAnimation {
+                target: styledItem
+                property: "height"
+            }
+        },
+        Transition {
+            from: ""
+            to: "expandedUnderContentNoFlickable"
+            reversible: true
+            enabled: listItemStyle.animatePanels
+            UbuntuNumberAnimation {
+                target: styledItem.expansion.contentItem
+                property: "opacity"
+            }
             UbuntuNumberAnimation {
                 target: styledItem
                 property: "height"

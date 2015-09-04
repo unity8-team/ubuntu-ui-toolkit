@@ -21,10 +21,29 @@ UCListItemExpansion::UCListItemExpansion(QObject *parent)
     : QObject(parent)
     , m_listItem(static_cast<UCListItem13*>(parent))
     , m_content(Q_NULLPTR)
+    , m_contentItem(Q_NULLPTR)
     , m_height(0.0)
     , m_hideCollapsedContent(false)
     , m_filtering(false)
 {
+}
+
+void UCListItemExpansion::createOrUpdateContentItem()
+{
+    if (!m_contentItem && m_content && expanded()) {
+        m_contentItem = static_cast<QQuickItem*>(m_content->create(qmlContext(m_listItem)));
+        m_contentItem->setParentItem(m_listItem);
+        m_contentItem->setOpacity(0.0);
+        m_listItem->setClip(true);
+    }
+
+    // adjust expanded contentItem anchoring
+    if (m_contentItem) {
+        QQuickAnchors *contentAnchors = QQuickItemPrivate::get(m_contentItem)->anchors();
+        QQuickAnchorLine topLine = (m_hideCollapsedContent) ?
+                    QQuickItemPrivate::get(m_listItem)->top() : QQuickItemPrivate::get(m_listItem->contentItem())->bottom();
+        contentAnchors->setTop(topLine);
+    }
 }
 
 bool UCListItemExpansion::expandedWithFlag(UCViewItemsAttached::ExpansionFlag flag)
@@ -112,9 +131,21 @@ void UCListItemExpansion::setContent(QQmlComponent *component)
     if (component == m_content) {
         return;
     }
+    if (m_contentItem) {
+        delete m_contentItem;
+        m_contentItem = Q_NULLPTR;
+    }
     m_content = component;
     Q_EMIT contentChanged();
+    Q_EMIT contentItemChanged();
 }
+
+QQuickItem *UCListItemExpansion::contentItem()
+{
+    createOrUpdateContentItem();
+    return m_contentItem;
+}
+
 
 void UCListItemExpansion::setHideCollapsedContent(bool hide)
 {
@@ -123,5 +154,5 @@ void UCListItemExpansion::setHideCollapsedContent(bool hide)
     }
     m_hideCollapsedContent = hide;
     Q_EMIT hideCollapsedContentChanged();
+    createOrUpdateContentItem();
 }
-

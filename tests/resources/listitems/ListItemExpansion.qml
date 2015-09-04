@@ -76,6 +76,12 @@ MainView {
                         actions: contextualActions
                     }
                     expansion.height: units.gu(15)
+                    expansion.content: Rectangle {
+                        color: UbuntuColors.green
+                        width: parent.width
+                        height: units.gu(8)
+                        radius: units.gu(1)
+                    }
 
                     RowLayout {
                         anchors {
@@ -104,6 +110,12 @@ MainView {
             ListItem {
                 Label { text: "Standalone ListItem" }
                 expansion.height: units.gu(15)
+                expansion.content: Rectangle {
+                    color: UbuntuColors.darkGrey
+                    width: parent.width
+                    height: units.gu(8)
+                    radius: units.gu(1)
+                }
                 onPressAndHold: expansion.expanded = !expansion.expanded;
             }
             ListItem {

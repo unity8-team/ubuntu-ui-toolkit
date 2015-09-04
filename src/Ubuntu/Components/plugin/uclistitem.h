@@ -242,6 +242,7 @@ class UCListItemExpansion : public QObject
     Q_PROPERTY(bool expanded READ expanded WRITE setExpanded NOTIFY expandedChanged)
     Q_PROPERTY(qreal height MEMBER m_height WRITE setHeight NOTIFY heightChanged)
     Q_PROPERTY(QQmlComponent *content MEMBER m_content WRITE setContent NOTIFY contentChanged)
+    Q_PROPERTY(QQuickItem *contentItem READ contentItem NOTIFY contentItemChanged)
     Q_PROPERTY(bool hideCollapsedContent MEMBER m_hideCollapsedContent WRITE setHideCollapsedContent NOTIFY hideCollapsedContentChanged)
 public:
     explicit UCListItemExpansion(QObject *parent = 0);
@@ -253,20 +254,24 @@ public:
     void setExpanded(bool expanded);
     void setHeight(qreal height);
     void setContent(QQmlComponent *component);
+    QQuickItem *contentItem();
     void setHideCollapsedContent(bool hide);
 
 Q_SIGNALS:
     void expandedChanged();
     void heightChanged();
     void contentChanged();
+    void contentItemChanged();
     void hideCollapsedContentChanged();
 
 protected:
     bool eventFilter(QObject *, QEvent *);
+    void createOrUpdateContentItem();
 
 private:
     UCListItem13 *m_listItem;
     QQmlComponent *m_content;
+    QQuickItem *m_contentItem;
     qreal m_height;
     bool m_hideCollapsedContent:1;
     bool m_filtering:1;
