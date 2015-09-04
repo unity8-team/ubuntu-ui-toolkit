@@ -38,12 +38,6 @@ MainView {
             iconName: "stock_website"
         }
     ]
-    Component {
-        id: otherContent
-        Rectangle {
-            color: "tan"
-        }
-    }
 
     Page {
         title: "Expansion"
@@ -89,10 +83,6 @@ MainView {
                             width: parent.width
                             height: units.gu(8)
                             radius: units.gu(1)
-                            Button {
-                                text: "change content"
-                                onClicked: item.expansion.content = otherContent
-                            }
                         }
                     }
                     expansion.overlapListItem: true

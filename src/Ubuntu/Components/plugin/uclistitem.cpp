@@ -1764,9 +1764,19 @@ void UCListItem13::itemChange(ItemChange change, const ItemChangeData &data)
  * \qmlproperty bool ListItem::expansion.expanded
  * \qmlproperty real ListItem::expansion.height
  * \qmlproperty Component ListItem::expansion.content
- * \qmlproperty bool ListItem::expansion.hideCollapsedContent
+ * \qmlproperty Item ListItem::expansion.contentItem
+ * \qmlproperty bool ListItem::expansion.overlapListItem
  * \since Ubuntu.Components 1.3
- * The group drefines the expansion state of the ListItem.
+ * The group drefines the expansion state of the ListItem. \c expanded drives
+ * the expansion of the ListItem, \c height specifies the height of the expanded
+ * ListItem. By default the ListItem's content is expanded together with the
+ * ListItem. There may be use cases where the expanded content may have slightly
+ * different content. This can be achieved by specifying a component in \c content
+ * property. When content is specified, it will be anchored to the bottom of the
+ * \l ListItem::contentItem, which in turn will not resize together with the
+ * ListItem. Setting \c overlapListItem will hide the \l ListItem::contentItem
+ * and will fill the entire ListItem with the \c content. Setting \c overlapListItem
+ * without a valid \c content component will have no effect.
  */
 UCListItemExpansion *UCListItem13::expansion()
 {
