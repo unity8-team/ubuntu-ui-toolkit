@@ -83,6 +83,7 @@ MainView {
                         radius: units.gu(1)
                     }
 
+
                     RowLayout {
                         anchors {
                             fill: parent

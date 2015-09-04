@@ -23,7 +23,7 @@ UCListItemExpansion::UCListItemExpansion(QObject *parent)
     , m_content(Q_NULLPTR)
     , m_contentItem(Q_NULLPTR)
     , m_height(0.0)
-    , m_hideCollapsedContent(false)
+    , m_overlapListItem(false)
     , m_filtering(false)
 {
 }
@@ -40,7 +40,7 @@ void UCListItemExpansion::createOrUpdateContentItem()
     // adjust expanded contentItem anchoring
     if (m_contentItem) {
         QQuickAnchors *contentAnchors = QQuickItemPrivate::get(m_contentItem)->anchors();
-        QQuickAnchorLine topLine = (m_hideCollapsedContent) ?
+        QQuickAnchorLine topLine = (m_overlapListItem) ?
                     QQuickItemPrivate::get(m_listItem)->top() : QQuickItemPrivate::get(m_listItem->contentItem())->bottom();
         contentAnchors->setTop(topLine);
     }
@@ -147,12 +147,12 @@ QQuickItem *UCListItemExpansion::contentItem()
 }
 
 
-void UCListItemExpansion::setHideCollapsedContent(bool hide)
+void UCListItemExpansion::setOverlapListItem(bool overlap)
 {
-    if (m_hideCollapsedContent == hide) {
+    if (m_overlapListItem == overlap) {
         return;
     }
-    m_hideCollapsedContent = hide;
-    Q_EMIT hideCollapsedContentChanged();
+    m_overlapListItem = overlap;
+    Q_EMIT overlapListItemChanged();
     createOrUpdateContentItem();
 }
