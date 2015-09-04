@@ -429,13 +429,10 @@ Styles.ListItemStyle {
         // expandedWithFlickable, expandedNoFlickable
         // expandedOverContentWithFlickable, expandedOverContentNoFlickable
         // expandedUnderContentWithFlickable, expandedUnderContentNoFlickable
-        // expandedContentHiddenWithFlickable, expandedContentHiddenNoFlickable
         var result = "expanded";
 
         if (styledItem.expansion.content) {
-            result += styledItem.expansion.hideCollapsedContent ? "OverContent" : "UnderContent";
-        } else if (styledItem.expansion.hideCollapsedContent) {
-            result += "ContentHidden";
+            result += styledItem.expansion.overlapListItem ? "OverContent" : "UnderContent";
         }
 
         result += (listItemStyle.flickable) ? "WithFlickable" : "NoFlickable";
@@ -521,6 +518,56 @@ Styles.ListItemStyle {
                     }
                 }
             }
+        },
+        State {
+            name: "expandedOverContentNoFlickable"
+            PropertyChanges {
+                target: styledItem.contentItem
+                opacity: 0.0
+                enabled: false
+            }
+            PropertyChanges {
+                target: styledItem.expansion.contentItem
+                opacity: 1.0
+                z: 1
+            }
+            PropertyChanges {
+                target: styledItem
+                height: styledItem.expansion.height
+            }
+        },
+        State {
+            name: "expandedOverContentWithFlickable"
+            PropertyChanges {
+                target: styledItem.contentItem
+                opacity: 0.0
+                enabled: false
+            }
+            PropertyChanges {
+                target: styledItem.expansion.contentItem
+                opacity: 1.0
+                z: 1
+            }
+            PropertyChanges {
+                target: styledItem
+                height: styledItem.expansion.height
+            }
+            PropertyChanges {
+                target: listItemStyle.flickable
+                // we do not need to restore the original values
+                restoreEntryValues: false
+                // and we should not get any binding updates even
+                explicit: true
+                contentY: {
+                    var bottom = styledItem.y + styledItem.expansion.height - listItemStyle.flickable.contentY + listItemStyle.flickable.originY;
+                    var dy = bottom - listItemStyle.flickable.height;
+                    if (dy > 0) {
+                        return listItemStyle.flickable.contentY + dy - listItemStyle.flickable.originY;
+                    } else {
+                        return listItemStyle.flickable.contentY;
+                    }
+                }
+            }
         }
     ]
     transitions: [
@@ -558,6 +605,24 @@ Styles.ListItemStyle {
         },
         Transition {
             from: ""
+            to: "expandedOverContentWithFlickable"
+            reversible: true
+            enabled: listItemStyle.animatePanels
+            UbuntuNumberAnimation {
+                targets: [styledItem.contentItem, styledItem.expansion.contentItem]
+                property: "opacity"
+            }
+            UbuntuNumberAnimation {
+                target: listItemStyle.flickable
+                property: "contentY"
+            }
+            UbuntuNumberAnimation {
+                target: styledItem
+                property: "height"
+            }
+        },
+        Transition {
+            from: ""
             to: "expandedNoFlickable"
             reversible: true
             enabled: listItemStyle.animatePanels
@@ -573,6 +638,20 @@ Styles.ListItemStyle {
             enabled: listItemStyle.animatePanels
             UbuntuNumberAnimation {
                 target: styledItem.expansion.contentItem
+                property: "opacity"
+            }
+            UbuntuNumberAnimation {
+                target: styledItem
+                property: "height"
+            }
+        },
+        Transition {
+            from: ""
+            to: "expandedOverContentNoFlickable"
+            reversible: true
+            enabled: listItemStyle.animatePanels
+            UbuntuNumberAnimation {
+                targets: [styledItem.expansion.contentItem, styledItem.contentItem]
                 property: "opacity"
             }
             UbuntuNumberAnimation {

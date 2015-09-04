@@ -38,6 +38,13 @@ MainView {
             iconName: "stock_website"
         }
     ]
+    Component {
+        id: otherContent
+        Rectangle {
+            color: "tan"
+        }
+    }
+
     Page {
         title: "Expansion"
         Column {
@@ -75,14 +82,20 @@ MainView {
                     trailingActions: ListItemActions {
                         actions: contextualActions
                     }
-                    expansion.height: units.gu(15)
-                    expansion.content: Rectangle {
-                        color: UbuntuColors.green
-                        width: parent.width
-                        height: units.gu(8)
-                        radius: units.gu(1)
+                    expansion {
+                        height: units.gu(15)
+                        content: Rectangle {
+                            color: UbuntuColors.green
+                            width: parent.width
+                            height: units.gu(8)
+                            radius: units.gu(1)
+                            Button {
+                                text: "change content"
+                                onClicked: item.expansion.content = otherContent
+                            }
+                        }
                     }
-
+                    expansion.overlapListItem: true
 
                     RowLayout {
                         anchors {
@@ -96,10 +109,6 @@ MainView {
                             title.text: label
                             subtitle.text: "from index #" + index
                         }
-                        Button {
-                            text: "Enable drag mode"
-                            onClicked: listView.ViewItems.dragMode = true
-                        }
                     }
 
                     onPressAndHold: {
@@ -110,18 +119,23 @@ MainView {
             }
             ListItem {
                 Label { text: "Standalone ListItem" }
-                expansion.height: units.gu(15)
-                expansion.content: Rectangle {
-                    color: UbuntuColors.darkGrey
-                    width: parent.width
-                    height: units.gu(8)
-                    radius: units.gu(1)
+                expansion {
+                    height: units.gu(15)
+                    content: Rectangle {
+                        color: UbuntuColors.darkGrey
+                        width: parent.width
+                        height: units.gu(8)
+                        radius: units.gu(1)
+                    }
                 }
                 onPressAndHold: expansion.expanded = !expansion.expanded;
             }
             ListItem {
                 Label { text: "Other Standalone ListItem" }
-                expansion.height: units.gu(15)
+                expansion {
+                    height: units.gu(15)
+                    overlapListItem: true
+                }
                 onPressAndHold: expansion.expanded = !expansion.expanded;
             }
 

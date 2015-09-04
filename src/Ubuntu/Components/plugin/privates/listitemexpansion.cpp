@@ -40,9 +40,15 @@ void UCListItemExpansion::createOrUpdateContentItem()
     // adjust expanded contentItem anchoring
     if (m_contentItem) {
         QQuickAnchors *contentAnchors = QQuickItemPrivate::get(m_contentItem)->anchors();
-        QQuickAnchorLine topLine = (m_overlapListItem) ?
-                    QQuickItemPrivate::get(m_listItem)->top() : QQuickItemPrivate::get(m_listItem->contentItem())->bottom();
-        contentAnchors->setTop(topLine);
+        QQuickItemPrivate *contentItem = QQuickItemPrivate::get(m_listItem->contentItem());
+        if (m_overlapListItem) {
+            contentAnchors->resetTop();
+            contentAnchors->setFill(m_listItem->contentItem());
+        } else {
+            // make sure we remove the fill
+            contentAnchors->resetFill();
+            contentAnchors->setTop(contentItem->bottom());
+        }
     }
 }
 
@@ -109,6 +115,8 @@ void UCListItemExpansion::setExpanded(bool expanded)
         }
         if (expanded) {
             viewItems->expand(listItem->index(), m_listItem);
+            // invoke expandedContent
+            Q_EMIT contentItemChanged();
         } else {
             viewItems->collapse(listItem->index());
         }
@@ -130,10 +138,6 @@ void UCListItemExpansion::setContent(QQmlComponent *component)
 {
     if (component == m_content) {
         return;
-    }
-    if (m_contentItem) {
-        delete m_contentItem;
-        m_contentItem = Q_NULLPTR;
     }
     m_content = component;
     Q_EMIT contentChanged();
