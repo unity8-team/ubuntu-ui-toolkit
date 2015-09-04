@@ -342,8 +342,6 @@ bool UCStyledItemBasePrivate::loadStyleItem(bool animated)
         // anchor fill to the styled component
         QQuickAnchors *styleAnchors = QQuickItemPrivate::get(styleItem)->anchors();
         styleAnchors->setFill(q);
-        // performe pre-completion tasks
-        preStyleCompletion();
     } else {
         delete object;
     }

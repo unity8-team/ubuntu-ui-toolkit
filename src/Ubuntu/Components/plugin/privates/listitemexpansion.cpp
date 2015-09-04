@@ -16,14 +16,11 @@
 
 #include "uclistitem.h"
 #include "uclistitem_p.h"
-#include <QtQuick/private/qquicktransition_p.h>
-#include <QtQuick/private/qquickanimation_p.h>
 
 UCListItemExpansion::UCListItemExpansion(QObject *parent)
     : QObject(parent)
     , m_listItem(static_cast<UCListItem13*>(parent))
     , m_content(Q_NULLPTR)
-    , m_expandCollapse(Q_NULLPTR)
     , m_height(0.0)
     , m_hideCollapsedContent(false)
     , m_filtering(false)
@@ -128,18 +125,3 @@ void UCListItemExpansion::setHideCollapsedContent(bool hide)
     Q_EMIT hideCollapsedContentChanged();
 }
 
-void UCListItemExpansion::setExpandCollapse(QQuickTransition *transition)
-{
-    if (transition == m_expandCollapse) {
-        return;
-    }
-    UCListItemPrivate *listItem = UCListItemPrivate::get(m_listItem);
-    UCListItemStyle *style = static_cast<UCListItemStyle*>(listItem->styleItem);
-    if (style) {
-        style->updateExpandCollapseTransition(m_expandCollapse, false);
-    }
-    m_expandCollapse = transition;
-    if (style) {
-        style->updateExpandCollapseTransition(m_expandCollapse, true);
-    }
-}

@@ -432,30 +432,52 @@ Styles.ListItemStyle {
         // expandedContentHiddenWithFlickable, expandedContentHiddenNoFlickable
         var result = "expanded";
 
-//        if (styledItem.expansion.content) {
-//            result += styledItem.expansion.hideCollapsedContent ? "OverContent" : "UnderContent";
-//        } else if (styledItem.expansion.hideCollapsedContent) {
-//            result += "ContentHidden";
-//        }
+        if (styledItem.expansion.content) {
+            result += styledItem.expansion.hideCollapsedContent ? "OverContent" : "UnderContent";
+        } else if (styledItem.expansion.hideCollapsedContent) {
+            result += "ContentHidden";
+        }
 
-//        result += (listItemStyle.flickable) ? "WithFlickable" : "NoFlickable";
+        result += (listItemStyle.flickable) ? "WithFlickable" : "NoFlickable";
 
         return result;
     }
-    // states will get flickable contentY control if the ListItem is in a Flickable
     states: [
         State {
-            name: "expanded"
+            name: "expandedNoFlickable"
             PropertyChanges {
                 target: styledItem
                 height: styledItem.expansion.height
+            }
+        },
+        State {
+            name: "expandedWithFlickable"
+            PropertyChanges {
+                target: styledItem
+                height: styledItem.expansion.height
+            }
+            PropertyChanges {
+                target: listItemStyle.flickable
+                // we do not need to restore the original values
+                restoreEntryValues: false
+                // and we should not get any binding updates even
+                explicit: true
+                contentY: {
+                    var bottom = styledItem.y + styledItem.expansion.height - listItemStyle.flickable.contentY + listItemStyle.flickable.originY;
+                    var dy = bottom - listItemStyle.flickable.height;
+                    if (dy > 0) {
+                        return listItemStyle.flickable.contentY + dy - listItemStyle.flickable.originY;
+                    } else {
+                        return listItemStyle.flickable.contentY;
+                    }
+                }
             }
         }
     ]
     transitions: [
         Transition {
             from: ""
-            to: "expanded"
+            to: "expandedWithFlickable"
             reversible: true
             enabled: listItemStyle.animatePanels
             UbuntuNumberAnimation {

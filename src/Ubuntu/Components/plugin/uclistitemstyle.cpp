@@ -22,28 +22,6 @@
 #include <QtQml/QQmlInfo>
 #include <QtQuick/private/qquickanimation_p.h>
 #include <QtQuick/private/qquickflickable_p.h>
-#include <QtQuick/private/qquickstate_p.h>
-#define foreach Q_FOREACH
-#include <QtQuick/private/qquickpropertychanges_p.h>
-#undef foreach
-
-const QByteArray flickableContentYChange = QByteArray(
-//"import QtQuick 2.4\n"
-"PropertyChanges {\n"
-"    target: listItemStyle.flickable\n"
-"    restoreEntryValues: false\n"
-"    explicit: true\n"
-"    contentY: {\n"
-"        var bottom = styledItem.y + styledItem.expansion.height - listItemStyle.flickable.contentY + listItemStyle.flickable.originY\n"
-"        var dy = bottom - listItemStyle.flickable.height;\n"
-"        if (dy > 0) {\n"
-"            return listItemStyle.flickable.contentY + dy - listItemStyle.flickable.originY\n"
-"        } else {\n"
-"            return listItemStyle.flickable.contentY;\n"
-"        }\n"
-"    }\n"
-"}"
-);
 
 /*!
  * \qmltype ListItemStyle
@@ -57,12 +35,6 @@ const QByteArray flickableContentYChange = QByteArray(
  * drag handler delegates, and snap animation via its properties.
  * ListItem treats the style differently compared to the other components,
  * as it loads the style only when needed and not upon component creation.
- *
- * ListItem provides the following pre-defined state names which can be used to
- * implement animations when these states are reached. These are the following:
- * \list
- *  \li \b expanded - the ListItem is going to be expanded
- * \endlist
  */
 UCListItemStyle::UCListItemStyle(QQuickItem *parent)
     : QQuickItem(parent)
@@ -94,12 +66,6 @@ void UCListItemStyle::componentComplete()
 {
     QQuickItem::componentComplete();
 
-    updateStates();
-
-    UCListItemPrivate *listItem = UCListItemPrivate::get(m_listItem);
-    if (listItem->expansion && listItem->expansion->m_expandCollapse) {
-        updateExpandCollapseTransition(listItem->expansion->m_expandCollapse);
-    }
     // look for overridden slots
     for (int i = metaObject()->methodOffset(); i < metaObject()->methodCount(); i++) {
         const QMetaMethod method = metaObject()->method(i);
@@ -118,38 +84,6 @@ void UCListItemStyle::componentComplete()
 
     Q_EMIT completedChanged();
 }
-
-void UCListItemStyle::updateStates()
-{
-    UCListItemPrivate *listItem = UCListItemPrivate::get(m_listItem);
-    QQmlListProperty<QQuickState> states = QQuickItemPrivate::get(this)->states();
-    if (listItem->flickable && (states.count)) {
-        QQmlComponent contentYChange(qmlEngine(this));
-        contentYChange.setData(flickableContentYChange, QUrl());
-        // append flickable contentY property change to each state "expanded" related state
-        qDebug() << "STATES=" << states.count(&states) << " STATE=" << state() << contentYChange.errorString();
-        for (int i = 0; i < states.count(&states); i++) {
-            QQuickState *aState = states.at(&states, i);
-            if (aState->name().startsWith("expanded")) {
-                QQmlContext *newContext = new QQmlContext(qmlContext(this));
-                QObject *object = contentYChange.create(newContext);
-                qDebug() << object;
-                QQuickPropertyChanges *change = static_cast<QQuickPropertyChanges*>(object);
-                if (change) {
-                    (*aState) << change;
-                }
-            }
-        }
-    }
-
-}
-
-void UCListItemStyle::updateExpandCollapseTransition(QQuickTransition *transition, bool add)
-{
-    Q_UNUSED(transition);
-    Q_UNUSED(add);
-}
-
 
 /*!
  * \qmlproperty in ListItemStyle::listItemIndex
@@ -284,10 +218,3 @@ void UCListItemStyle::setAnimatePanels(bool animate)
  * from. If not set, the ListItem will assume the dragging can be initiated from
  * the entire area of the ListItem.
  */
-
-/*!
- * \qmlproperty Transition ListItemStyle::expandInFlickable
- * \since Ubuntu.Components.Styles 1.3
- * The property holds the transition used .
- */
-

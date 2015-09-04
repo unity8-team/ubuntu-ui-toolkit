@@ -75,7 +75,6 @@ class UCListItemStyle : public QQuickItem
     Q_PROPERTY(bool completed READ completed NOTIFY completedChanged REVISION 1)
 public:
     explicit UCListItemStyle(QQuickItem *parent = 0);
-    void updateExpandCollapseTransition(QQuickTransition *transition, bool add);
 
     void invokeSwipeEvent(UCSwipeEvent *event);
     void invokeRebound();
@@ -102,7 +101,6 @@ public Q_SLOTS:
 protected:
     void classBegin();
     void componentComplete();
-    void updateStates();
 
 private:
 
@@ -115,7 +113,6 @@ private:
     QQuickFlickable *m_flickable;
     bool m_animatePanels:1;
 
-    friend class UCListItemExpansion;
     friend class UCListItemPrivate;
     friend class ListItemDragArea;
     friend class ListItemDragHandler;
