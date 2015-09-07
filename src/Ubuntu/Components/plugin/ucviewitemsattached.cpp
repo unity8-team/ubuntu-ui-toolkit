@@ -666,6 +666,9 @@ void UCViewItemsAttachedPrivate::expand(int index, UCListItem13 *listItem, bool 
     if (listItem && ((expansionFlags & UCViewItemsAttached::CollapseOnOutsidePress) == UCViewItemsAttached::CollapseOnOutsidePress)) {
         listItem->expansion()->enableClickFiltering(true);
     }
+    if (listItem) {
+        listItem->expansion()->updateContent(true);
+    }
     if (emitChangeSignal) {
         Q_EMIT static_cast<UCViewItemsAttached13*>(q_func())->expandedIndicesChanged(expansionList.keys());
     }
@@ -678,6 +681,9 @@ void UCViewItemsAttachedPrivate::collapse(int index, bool emitChangeSignal)
     bool wasExpanded = item && item->expansion()->expanded();
     if (item && ((expansionFlags & UCViewItemsAttached::CollapseOnOutsidePress) == UCViewItemsAttached::CollapseOnOutsidePress)) {
         item->expansion()->enableClickFiltering(false);
+    }
+    if (item) {
+        item->expansion()->updateContent(false);
     }
     if (emitChangeSignal && wasExpanded) {
         Q_EMIT static_cast<UCViewItemsAttached13*>(q_func())->expandedIndicesChanged(expansionList.keys());

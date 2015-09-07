@@ -61,6 +61,7 @@ public:
     void _q_syncDragMode();
     int index();
     bool canHighlight();
+    void blockHighlighting(bool block);
     void setHighlighted(bool pressed);
     void listenToRebind(bool listen);
     void lockContentItem(bool lock);
@@ -73,6 +74,7 @@ public:
 
     quint16 defaultThemeVersion;
     bool highlighted:1;
+    bool highlightBlocked:1;
     bool contentMoved:1;
     bool swiped:1;
     bool suppressClick:1;

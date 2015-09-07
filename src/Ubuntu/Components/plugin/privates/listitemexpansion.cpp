@@ -16,6 +16,7 @@
 
 #include "uclistitem.h"
 #include "uclistitem_p.h"
+#include <QtQuick/private/qquickflickable_p.h>
 
 UCListItemExpansion::UCListItemExpansion(QObject *parent)
     : QObject(parent)
@@ -35,6 +36,8 @@ void UCListItemExpansion::createOrUpdateContentItem()
         m_contentItem->setParentItem(m_listItem);
         m_contentItem->setOpacity(0.0);
         m_listItem->setClip(true);
+        // cal update to handle ListItem restrictions
+        updateContent(expanded());
     }
 
     // adjust expanded contentItem anchoring
@@ -71,6 +74,21 @@ void UCListItemExpansion::enableClickFiltering(bool enable)
         m_listItem->window()->removeEventFilter(this);
     }
 }
+
+// called when ViewItems expands/collapses the content
+void UCListItemExpansion::updateContent(bool expanded)
+{
+    if (!m_contentItem) {
+        return;
+    }
+    m_contentItem->setEnabled(expanded);
+    // if contentItem is a Flickable, lock ListItem from being highlighted
+    if (qobject_cast<QQuickFlickable*>(m_contentItem)) {
+        UCListItemPrivate *listItem = UCListItemPrivate::get(m_listItem);
+        listItem->blockHighlighting(expanded);
+    }
+}
+
 
 // event filter for external mouse presses to collapse when pressed outside
 bool UCListItemExpansion::eventFilter(QObject *target, QEvent *event)

@@ -186,6 +186,7 @@ UCListItemPrivate::UCListItemPrivate()
     : UCStyledItemBasePrivate()
     , defaultThemeVersion(0)
     , highlighted(false)
+    , highlightBlocked(false)
     , contentMoved(false)
     , swiped(false)
     , suppressClick(false)
@@ -383,10 +384,19 @@ bool UCListItemPrivate::canHighlight()
    return (isClickedConnected() || isPressAndHoldConnected() || mainAction || leadingActions || trailingActions);
 }
 
+void UCListItemPrivate::blockHighlighting(bool block)
+{
+    if (block) {
+        setHighlighted(false);
+        listenToRebind(false);
+    }
+    highlightBlocked = block;
+}
+
 // set highlighted flag and update contentItem
 void UCListItemPrivate::setHighlighted(bool highlighted)
 {
-    if (this->highlighted != highlighted) {
+    if (this->highlighted != highlighted && !highlightBlocked) {
         this->highlighted = highlighted;
         suppressClick = false;
         Q_Q(UCListItem);
@@ -1239,7 +1249,7 @@ void UCListItem::mouseReleaseEvent(QMouseEvent *event)
     Q_D(UCListItem);
     d->ungrabLeftButtonEvents(event);
     // make sure we ungrab the mouse!
-    ungrabMouse();
+    setKeepMouseGrab(false);
 }
 
 void UCListItem13::mouseReleaseEvent(QMouseEvent *event)
@@ -1323,7 +1333,7 @@ bool UCListItem::childMouseEventFilter(QQuickItem *child, QEvent *event)
     } else if (type == QEvent::MouseMove) {
         QMouseEvent *mouse = static_cast<QMouseEvent*>(event);
         const QPointF localPos = mapFromItem(child, mouse->localPos());
-        if ((mouse->buttons() & Qt::LeftButton) && d->swipedOverThreshold(localPos, d->pressedPos) && !d->highlighted) {
+        if ((mouse->buttons() & Qt::LeftButton) && d->swipedOverThreshold(localPos, d->pressedPos) && !d->highlighted && !d->highlightBlocked) {
             // grab the event from the child, so the click doesn't happen anymore, and initiate swiping
             QMouseEvent pressed(QEvent::MouseButtonPress, localPos, mouse->windowPos(), mouse->screenPos(),
                                     Qt::LeftButton, mouse->buttons(), mouse->modifiers());
@@ -1331,7 +1341,7 @@ bool UCListItem::childMouseEventFilter(QQuickItem *child, QEvent *event)
             // stop click and pressAndHold, then grab the mouse so children do not get the mouse events anymore
             d->suppressClick = true;
             d->pressAndHoldTimer.stop();
-            grabMouse();
+            setKeepMouseGrab(true);
         }
     }
     return UCStyledItemBase::childMouseEventFilter(child, event);

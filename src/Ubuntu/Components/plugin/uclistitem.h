@@ -249,6 +249,7 @@ public:
 
     bool expandedLocked();
     void enableClickFiltering(bool enable);
+    void updateContent(bool expanded);
 
     bool expanded();
     void setExpanded(bool expanded);

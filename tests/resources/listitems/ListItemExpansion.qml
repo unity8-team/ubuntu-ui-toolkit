@@ -55,14 +55,8 @@ MainView {
 
                 model: ListModel {
                     Component.onCompleted: {
-                        for (var i = 0; i < 3; i++) {
-                            append({label: "List item #"+i, sectionData: "Locked"});
-                        }
-                        for (i = 3; i < 11; i++) {
-                            append({label: "List item #"+i, sectionData: "Limited, live move"});
-                        }
-                        for (i = 11; i < 25; i++) {
-                            append({label: "List item #"+i, sectionData: "Unlimited, drag'n'drop"});
+                        for (var i = 0; i < 25; i++) {
+                            append({label: "List item #"+i});
                         }
                     }
                 }
@@ -78,11 +72,17 @@ MainView {
                     }
                     expansion {
                         height: units.gu(15)
-                        content: Rectangle {
-                            color: UbuntuColors.green
-                            width: parent.width
-                            height: units.gu(8)
-                            radius: units.gu(1)
+                        content: UbuntuListView {
+                            model: 5
+                            delegate: Button {
+                                height: units.gu(7)
+                                width: parent.width - units.gu(5)
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                text: i18n.tr("Sub-item #%1").arg(modelData)
+                                onClicked: {
+                                    item.expansion.expanded = false;
+                                }
+                            }
                         }
                     }
                     expansion.overlapListItem: true

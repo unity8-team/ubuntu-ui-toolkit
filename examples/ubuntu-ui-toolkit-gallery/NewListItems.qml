@@ -251,6 +251,7 @@ Template {
         title: "Expansion - content under collapsed layout"
 
         UbuntuListView {
+            id: view
             width: parent.width
             height: units.gu(28)
             clip: true
@@ -264,6 +265,7 @@ Template {
 
             delegate: ListItemWithLabel {
                 id: mainItem
+                property int itemIndex: index
                 text: label
                 onPressAndHold: expansion.expanded = !expansion.expanded
                 expansion {
@@ -277,7 +279,53 @@ Template {
                         delegate: ListItemWithLabel {
                             text: i18n.tr("Sub-item #%1").arg(modelData)
                             onClicked: {
-                                mainItem.model.get(mainItem.index).label = "Replaced with " + modelData
+                                view.model.get(mainItem.itemIndex).label = "Replaced with " + text;
+                                mainItem.expansion.expanded = false;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    TemplateSection {
+        className: "ListItem"
+        title: "Expansion - content over ListItem"
+
+        UbuntuListView {
+            id: view2
+            width: parent.width
+            height: units.gu(28)
+            clip: true
+            model: ListModel {
+                Component.onCompleted: {
+                    for (var i = 0; i < 5; i++) {
+                        append({label: i18n.tr("Item #%1: pressAndHold to expand/collapse").arg(i)})
+                    }
+                }
+            }
+            ViewItems.expansionFlags: ViewItems.CollapseOnOutsidePress
+
+            delegate: ListItemWithLabel {
+                id: mainItem2
+                property int itemIndex: index
+                text: label
+                onPressAndHold: { print(1); expansion.expanded = !expansion.expanded}
+                expansion {
+                    height: units.gu(21)
+                    overlapListItem: true
+                    content: UbuntuListView {
+                        clip: true
+                        anchors.right: parent.right
+                        width: parent.width - units.gu(4)
+                        height: units.gu(14)
+                        model: 5
+                        delegate: ListItemWithLabel {
+                            text: i18n.tr("Sub-item #%1").arg(modelData)
+                            onClicked: {
+                                view2.model.get(mainItem2.itemIndex).label = "Replaced with " + text;
+                                mainItem2.expansion.expanded = false;
                             }
                         }
                     }
