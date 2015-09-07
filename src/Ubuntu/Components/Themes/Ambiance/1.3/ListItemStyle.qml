@@ -578,12 +578,8 @@ Styles.ListItemStyle {
             reversible: true
             enabled: listItemStyle.animatePanels
             UbuntuNumberAnimation {
-                target: listItemStyle.flickable
-                property: "contentY"
-            }
-            UbuntuNumberAnimation {
-                target: styledItem
-                property: "height"
+                targets: [listItemStyle.flickable, styledItem]
+                properties: "contentY, height"
             }
         },
         Transition {
@@ -592,16 +588,8 @@ Styles.ListItemStyle {
             reversible: true
             enabled: listItemStyle.animatePanels
             UbuntuNumberAnimation {
-                target: styledItem.expansion.contentItem
-                property: "opacity"
-            }
-            UbuntuNumberAnimation {
-                target: listItemStyle.flickable
-                property: "contentY"
-            }
-            UbuntuNumberAnimation {
-                target: styledItem
-                property: "height"
+                targets: [styledItem.expansion.contentItem, listItemStyle.flickable, styledItem]
+                properties: "opacity, contentY, height"
             }
         },
         Transition {
@@ -610,16 +598,8 @@ Styles.ListItemStyle {
             reversible: true
             enabled: listItemStyle.animatePanels
             UbuntuNumberAnimation {
-                targets: [styledItem.contentItem, styledItem.expansion.contentItem]
-                property: "opacity"
-            }
-            UbuntuNumberAnimation {
-                target: listItemStyle.flickable
-                property: "contentY"
-            }
-            UbuntuNumberAnimation {
-                target: styledItem
-                property: "height"
+                targets: [styledItem.contentItem, styledItem.expansion.contentItem, listItemStyle.flickable, styledItem]
+                properties: "opacity, contentY, height"
             }
         },
         Transition {
@@ -638,12 +618,8 @@ Styles.ListItemStyle {
             reversible: true
             enabled: listItemStyle.animatePanels
             UbuntuNumberAnimation {
-                target: styledItem.expansion.contentItem
-                property: "opacity"
-            }
-            UbuntuNumberAnimation {
-                target: styledItem
-                property: "height"
+                targets: [styledItem.expansion.contentItem, styledItem]
+                properties: "opacity, height"
             }
         },
         Transition {
@@ -652,12 +628,8 @@ Styles.ListItemStyle {
             reversible: true
             enabled: listItemStyle.animatePanels
             UbuntuNumberAnimation {
-                targets: [styledItem.expansion.contentItem, styledItem.contentItem]
-                property: "opacity"
-            }
-            UbuntuNumberAnimation {
-                target: styledItem
-                property: "height"
+                targets: [styledItem.expansion.contentItem, styledItem.contentItem, styledItem]
+                properties: "opacity, height"
             }
         }
     ]
