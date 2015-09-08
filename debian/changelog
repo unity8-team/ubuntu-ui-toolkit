@@ -1,7 +1,7 @@
-ubuntu-ui-toolkit-gles (1.3.1627+15.10.20150907.1-0ubuntu2) UNRELEASED; urgency=medium
+ubuntu-ui-toolkit-gles (1.3.1627+15.10.20150908-0ubuntu2) UNRELEASED; urgency=medium
 
   [ Zoltán Balogh ]
-  * Sync with main 1.3.1627+15.10.20150907.1-0ubuntu1
+  * Sync with main 1.3.1627+15.10.20150908-0ubuntu1
 
 
  -- Zoltán Balogh <zoltan@bakter.hu>  Fri, 04 Sep 2015 19:44:01 +0300
