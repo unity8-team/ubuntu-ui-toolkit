@@ -714,7 +714,8 @@ void UCViewItemsAttachedPrivate::collapseAll()
  *  \li When set, only one ListItem can be expanded at a time. \b {Set by default}.
  * \row
  *  \li ViewItems.UnlockExpanded
- *  \li When set, the ListItem's leading/trailing actions can be swiped in.
+ *  \li When set, the ListItem's leading/trailing actions can be swiped in. The
+ *      flag has no effect when the expanded content is a Flickable.
  * \row
  *  \li ViewItems.CollapseOnOutsidePress
  *  \li When set, the active expaned ListItem collapses automatically when clicked

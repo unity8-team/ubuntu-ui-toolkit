@@ -384,6 +384,8 @@ bool UCListItemPrivate::canHighlight()
    return (isClickedConnected() || isPressAndHoldConnected() || mainAction || leadingActions || trailingActions);
 }
 
+// block the highlight mechanism (and swiping) on the ListItem; called when the ListItem
+// is expanded and the content specified is a Flickable
 void UCListItemPrivate::blockHighlighting(bool block)
 {
     if (block) {
@@ -1135,6 +1137,9 @@ QSGNode *UCListItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *data
 // swipe events; child items should no longer get mouse events
 void UCListItemPrivate::grabLeftButtonEvents(QMouseEvent *event)
 {
+    if (highlightBlocked) {
+        return;
+    }
     Q_Q(UCListItem);
     button = event->button();
     // create style instance
@@ -1785,6 +1790,43 @@ void UCListItem13::itemChange(ItemChange change, const ItemChangeData &data)
  * ListItem. Setting \c overlapListItem will hide the \l ListItem::contentItem
  * and will fill the entire ListItem with the \c content. Setting \c overlapListItem
  * without a valid \c content component will have no effect.
+ * /note Setting \e ViewItems.UnlockExpanded flag to a view of ListItems where the
+ * expanded content is a Flickable derivate will have no effect.
+ * Example:
+ * \qml
+ * import QtQuick 2.4
+ * import Ubuntu.Components 1.3
+ *
+ * UbuntuListView {
+ *     width: units.gu(40)
+ *     height: units.gu(71)
+ *     ViewItems.expansionFlags: ViewItems.CollapseOnOutsidePress
+ *
+ *     model: 50
+ *     delegate: ListItem {
+ *         id: listItem
+ *         contentItem.anchors.margins: units.gu(1.5)
+ *         Label { text: "List Item #" + modelData }
+ *         onPressAndHold: expansion.expanded = true
+ *         expansion {
+ *             height: units.gu(21)
+ *             overlapListItem: true
+ *             content: UbuntuListView {
+ *                 anchors {
+ *                     leftMargin: units.gu(2)
+ *                     rightMargin: units.gu(2)
+ *                 }
+ *                 model: 5
+ *                 delegate: ListItem {
+ *                     contentItem.anchors.margins: units.gu(1.5)
+ *                     Label { text: "Expanded item # + modelData }
+ *                     onClicked: listItem.expansion.expanded = false
+ *                 }
+ *             }
+ *         }
+ *     }
+ * }
+ * \endqml
  */
 UCListItemExpansion *UCListItem13::expansion()
 {

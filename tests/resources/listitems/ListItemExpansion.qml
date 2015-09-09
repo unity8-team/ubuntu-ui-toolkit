@@ -51,7 +51,7 @@ MainView {
                 height: parent.height / 2
                 clip: true
                 ViewItems.onExpandedIndicesChanged: print(ViewItems.expandedIndices)
-                ViewItems.expansionFlags: ViewItems.CollapseOnOutsidePress
+                ViewItems.expansionFlags: ViewItems.CollapseOnOutsidePress | ViewItems.UnlockExpanded
 
                 model: ListModel {
                     Component.onCompleted: {
@@ -72,20 +72,18 @@ MainView {
                     }
                     expansion {
                         height: units.gu(15)
+                        overlapListItem: true
                         content: UbuntuListView {
                             model: 5
-                            delegate: Button {
-                                height: units.gu(7)
-                                width: parent.width - units.gu(5)
-                                anchors.horizontalCenter: parent.horizontalCenter
-                                text: i18n.tr("Sub-item #%1").arg(modelData)
+                            delegate: ListItem {
+                                contentItem.anchors.margins: units.gu(1)
+                                Label { text: i18n.tr("Sub-item #%1").arg(modelData) }
                                 onClicked: {
                                     item.expansion.expanded = false;
                                 }
                             }
                         }
                     }
-                    expansion.overlapListItem: true
 
                     RowLayout {
                         anchors {
