@@ -573,7 +573,10 @@ PageTreeNode {
             id: holder
             active: false
             objectName: "ColumnHolder" + column
-            property PageWrapper pageWrapper
+            property var pageWrapper:  {
+                var loc_component = Qt.createComponent("PageWrapper.qml");
+                return loc_component.createObject(pageHolderComponent);
+            }
             property int column
             property alias config: subHeader.config
             property PageColumn metrics: getDefaultMetrics()

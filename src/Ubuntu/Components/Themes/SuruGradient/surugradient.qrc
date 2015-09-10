@@ -1,5 +1,5 @@
 <RCC>
-    <qresource prefix="/ Ubuntu/Components/Themes/SuruGradient">
+    <qresource prefix="/Ubuntu/Components/Themes/SuruGradient">
         <file>artwork/chevron@27.png</file>
         <file>artwork/chevron_down@30.png</file>
         <file>artwork/tick@30.png</file>
