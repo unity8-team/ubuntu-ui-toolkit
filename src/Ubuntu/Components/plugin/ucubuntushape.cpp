@@ -74,8 +74,8 @@ void ShapeShader::initialize()
 
     m_functions = QOpenGLContext::currentContext()->functions();
     m_matrixId = program()->uniformLocation("matrix");
-    m_dfdtFactorsId = program()->uniformLocation("dfdtFactors");
     m_opacityFactorsId = program()->uniformLocation("opacityFactors");
+    m_dfdtFactorId = program()->uniformLocation("dfdtFactor");
     m_sourceOpacityId = program()->uniformLocation("sourceOpacity");
     m_distanceAAId = program()->uniformLocation("distanceAA");
     m_texturedId = program()->uniformLocation("textured");
@@ -138,13 +138,9 @@ void ShapeShader::updateState(
     const float distanceAA = (shapeTextureDistanceAA * distanceAApx) / (2.0 * 255.0f);
     program()->setUniformValue(m_distanceAAId, data->distanceAAFactor * distanceAA);
 
-    // Send screen-space derivative factors. Note that when rendering is redirected to a
-    // ShaderEffectSource (FBO), dFdy() sign is flipped.
-    const float orientation = static_cast<float>(data->dfdtFactors & 0x4);
-    const float flip = static_cast<float>(data->dfdtFactors & 0x3) - 1.0f;
-    const bool flipped = orientation != 1.0f && state.projectionMatrix()(1, 3) < 0.0f;
-    const QVector2D dfdtFactors(orientation, flipped ? -flip : flip);
-    program()->setUniformValue(m_dfdtFactorsId, dfdtFactors);
+    // When rendering is redirected to a ShaderEffectSource (FBO), dFdy() sign is flipped.
+    const float dfdtFactor = (state.projectionMatrix()(1, 3) < 0.0f) ? -1.0f : 1.0f;
+    program()->setUniformValue(m_dfdtFactorId, dfdtFactor);
 
     // Update QtQuick engine uniforms.
     if (state.isMatrixDirty()) {
@@ -252,7 +248,6 @@ const int maxShapeTextures = 16;
 
 static struct { QOpenGLContext* openglContext; quint32 textureId[shapeTextureCount]; }
     shapeTextures[maxShapeTextures];
-static bool isPrimaryOrientationLandscape = false;
 
 static int getShapeTexturesIndex(const QOpenGLContext* openglContext);
 
@@ -296,8 +291,8 @@ UCUbuntuShape::UCUbuntuShape(QQuickItem* parent)
     , m_sourceScale(1.0f, 1.0f)
     , m_sourceTranslation(0.0f, 0.0f)
     , m_sourceTransform(1.0f, 1.0f, 0.0f, 0.0f)
-    , m_radius(Small)
     , m_relativeRadius(0)
+    , m_radius(Small)
     , m_aspect(Inset)
     , m_imageHorizontalAlignment(AlignHCenter)
     , m_imageVerticalAlignment(AlignVCenter)
@@ -310,24 +305,10 @@ UCUbuntuShape::UCUbuntuShape(QQuickItem* parent)
     , m_sourceOpacity(255)
     , m_flags(Stretched)
 {
-    static bool once = true;
-    if (once) {
-        // Stored statically as the primary orientation is fixed and we don't support multiple
-        // screens for now.
-        if (QGuiApplication::primaryScreen()->primaryOrientation() &
-            (Qt::LandscapeOrientation | Qt::InvertedLandscapeOrientation)) {
-            isPrimaryOrientationLandscape = true;
-        }
-        once = false;
-    }
-
     setFlag(ItemHasContents);
     QObject::connect(&UCUnits::instance(), SIGNAL(gridUnitChanged()), this,
                      SLOT(_q_gridUnitChanged()));
-    const float gridUnit = UCUnits::instance().gridUnit();
-    setImplicitWidth(implicitWidthGU * gridUnit);
-    setImplicitHeight(implicitHeightGU * gridUnit);
-    update();
+    _q_gridUnitChanged();
 }
 
 /*! \qmlproperty string UbuntuShape::radius
@@ -382,15 +363,14 @@ void UCUbuntuShape::setAspect(Aspect aspect)
     \since Ubuntu.Components 1.3
 
     This property defines a radius relative to the size of the UbuntuShape. It is specified as a
-    number between 0.0 (0%) and 0.5 (50%) corresponding to the proportion of the radius with regards
-    to the smallest side (divided by 2 since a side has 2 angles). The default value is 0.0.
+    number between 0.0 (0%) and 0.75 (75%) corresponding to the proportion of the radius with
+    regards to the smallest side (divided by 2 since a side has 2 angles). The default value is 0.0.
 
     \note Setting a non-zero value takes over the \l radius property.
 */
 void UCUbuntuShape::setRelativeRadius(qreal relativeRadius)
 {
-    // m_relativeRadius is on 6 bits, increasing the higher bound might require higher precision.
-    const quint8 relativeRadiusPacked = qRound(qBound(0.0, relativeRadius, 0.5) * 100.0);
+    const quint8 relativeRadiusPacked = qRound(qBound(0.0, relativeRadius, 0.75) * 100.0);
     if (m_relativeRadius != relativeRadiusPacked) {
         m_relativeRadius = relativeRadiusPacked;
         update();
@@ -810,8 +790,12 @@ void UCUbuntuShape::setBorderSource(const QString& borderSource)
 */
 void UCUbuntuShape::setColor(const QColor& color)
 {
-    qmlInfo(this) << "'color' is deprecated. Use 'backgroundColor', 'secondaryBackgroundColor' and "
-        "'backgroundMode' instead.";
+    static bool deprecationNoteShown = false;
+    if (!deprecationNoteShown) {
+        deprecationNoteShown = true;
+        qmlInfo(this) << "'color' is deprecated. Use 'backgroundColor', 'secondaryBackgroundColor' and "
+            "'backgroundMode' instead.";
+    }
 
     if (!(m_flags & BackgroundApiSet)) {
         const QRgb colorRgb = qRgba(color.red(), color.green(), color.blue(), color.alpha());
@@ -839,8 +823,12 @@ void UCUbuntuShape::setColor(const QColor& color)
 */
 void UCUbuntuShape::setGradientColor(const QColor& gradientColor)
 {
-    qmlInfo(this) << "'gradientColor' is deprecated. Use 'backgroundColor', "
-        "'secondaryBackgroundColor' and 'backgroundMode' instead.";
+    static bool deprecationNoteShown = false;
+    if (!deprecationNoteShown) {
+        deprecationNoteShown = true;
+        qmlInfo(this) << "'gradientColor' is deprecated. Use 'backgroundColor', "
+            "'secondaryBackgroundColor' and 'backgroundMode' instead.";
+    }
 
     if (!(m_flags & BackgroundApiSet)) {
         m_flags |= GradientColorSet;
@@ -866,7 +854,11 @@ void UCUbuntuShape::setGradientColor(const QColor& gradientColor)
 */
 void UCUbuntuShape::setImage(const QVariant& image)
 {
-    qmlInfo(this) << "'image' is deprecated. Use 'source' instead.";
+    static bool deprecationNoteShown = false;
+    if (!deprecationNoteShown) {
+        deprecationNoteShown = true;
+        qmlInfo(this) << "'image' is deprecated. Use 'source' instead.";
+    }
 
     if (!(m_flags & SourceApiSet)) {
         QQuickItem* newImage = qobject_cast<QQuickItem*>(qvariant_cast<QObject*>(image));
@@ -895,7 +887,11 @@ void UCUbuntuShape::setImage(const QVariant& image)
 // maintain it for a while for compatibility reasons.
 void UCUbuntuShape::setStretched(bool stretched)
 {
-    qmlInfo(this) << "'stretched' is deprecated. Use 'sourceFillMode' instead";
+    static bool deprecationNoteShown = false;
+    if (!deprecationNoteShown) {
+        deprecationNoteShown = true;
+        qmlInfo(this) << "'stretched' is deprecated. Use 'sourceFillMode' instead";
+    }
 
     if (!(m_flags & SourceApiSet)) {
         if (!!(m_flags & Stretched) != stretched) {
@@ -914,7 +910,11 @@ void UCUbuntuShape::setStretched(bool stretched)
 // Deprecation layer. Same comment as setStretched().
 void UCUbuntuShape::setHorizontalAlignment(HAlignment horizontalAlignment)
 {
-    qmlInfo(this) << "'horizontalAlignment' is deprecated. Use 'sourceHorizontalAlignment' instead";
+    static bool deprecationNoteShown = false;
+    if (!deprecationNoteShown) {
+        deprecationNoteShown = true;
+        qmlInfo(this) << "'horizontalAlignment' is deprecated. Use 'sourceHorizontalAlignment' instead";
+    }
 
     if (!(m_flags & SourceApiSet)) {
         if (m_imageHorizontalAlignment != horizontalAlignment) {
@@ -929,7 +929,11 @@ void UCUbuntuShape::setHorizontalAlignment(HAlignment horizontalAlignment)
 // Deprecation layer. Same comment as setStretched().
 void UCUbuntuShape::setVerticalAlignment(VAlignment verticalAlignment)
 {
-    qmlInfo(this) << "'horizontalAlignment' is deprecated. Use 'sourceVerticalAlignment' instead";
+    static bool deprecationNoteShown = false;
+    if (!deprecationNoteShown) {
+        deprecationNoteShown = true;
+        qmlInfo(this) << "'horizontalAlignment' is deprecated. Use 'sourceVerticalAlignment' instead";
+    }
 
     if (!(m_flags & SourceApiSet)) {
         if (m_imageVerticalAlignment != verticalAlignment) {
@@ -1004,20 +1008,11 @@ void UCUbuntuShape::_q_imagePropertiesChanged()
     updateFromImageProperties(qobject_cast<QQuickItem*>(sender()));
 }
 
-void UCUbuntuShape::_q_openglContextDestroyed()
-{
-    // Delete the shape textures that are stored per context and shared by all the shape items.
-    const int index = getShapeTexturesIndex(qobject_cast<QOpenGLContext*>(sender()));
-    Q_ASSERT(index >= 0);
-    shapeTextures[index].openglContext = NULL;
-    glDeleteTextures(shapeTextureCount, shapeTextures[index].textureId);
-}
-
 void UCUbuntuShape::_q_gridUnitChanged()
 {
-    const float gridUnit = UCUnits::instance().gridUnit();
-    setImplicitWidth(implicitWidthGU * gridUnit);
-    setImplicitHeight(implicitHeightGU * gridUnit);
+    const float gridUnitInDevicePixels = UCUnits::instance().gridUnit() / qGuiApp->devicePixelRatio();
+    setImplicitWidth(implicitWidthGU * gridUnitInDevicePixels);
+    setImplicitHeight(implicitHeightGU * gridUnitInDevicePixels);
     update();
 }
 
@@ -1165,8 +1160,10 @@ QSGNode* UCUbuntuShape::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData* d
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, shapeTextureSize, shapeTextureSize, 0, GL_RGBA,
                          GL_UNSIGNED_BYTE, shapeTextureData[i]);
         }
-        QObject::connect(openglContext, SIGNAL(aboutToBeDestroyed()), this,
-                         SLOT(_q_openglContextDestroyed()), Qt::DirectConnection);
+        connect(openglContext, &QOpenGLContext::aboutToBeDestroyed, [index] {
+            shapeTextures[index].openglContext = NULL;
+            glDeleteTextures(shapeTextureCount, shapeTextures[index].textureId);
+        } );
     }
     const quint32 shapeTextureId = shapeTextures[index].textureId[m_aspect != DropShadow ? 0 : 1];
 
@@ -1179,13 +1176,15 @@ QSGNode* UCUbuntuShape::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData* d
             sourceTextureRect = sourceTexture->normalizedTextureSubRect();
         }
         if (m_flags & DirtySourceTransform) {
+            const float dpr = qGuiApp->devicePixelRatio();
+
             if (m_flags & SourceApiSet) {
-                updateSourceTransform(itemSize.width(), itemSize.height(), m_sourceFillMode,
+                updateSourceTransform(itemSize.width() * dpr, itemSize.height() * dpr, m_sourceFillMode,
                                       m_sourceHorizontalAlignment, m_sourceVerticalAlignment,
                                       sourceTexture->textureSize());
             } else {
                 FillMode imageFillMode = (m_flags & Stretched) ? Stretch : PreserveAspectCrop;
-                updateSourceTransform(itemSize.width(), itemSize.height(), imageFillMode,
+                updateSourceTransform(itemSize.width() * dpr, itemSize.height() * dpr, imageFillMode,
                                       m_imageHorizontalAlignment, m_imageVerticalAlignment,
                                       sourceTexture->textureSize());
             }
@@ -1215,13 +1214,15 @@ QSGNode* UCUbuntuShape::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData* d
         // accordingly. The shape was using a fixed image for the corner before switching to a
         // distance field, since the corner wasn't taking the whole image (ending at ~80%) we need
         // to take that into account when the size is scaled down.
-        radius = UCUnits::instance().gridUnit() * radiusGuMap[m_radius];
+        radius = UCUnits::instance().gridUnit() * radiusGuMap[m_radius]
+                     / qGuiApp->devicePixelRatio();
         const float scaledDownRadius = qMin(itemSize.width(), itemSize.height()) * 0.5f * 0.8f;
         if (radius > scaledDownRadius) {
             radius = scaledDownRadius;
         }
     } else {
-        radius = qMin(itemSize.width(), itemSize.height()) * 0.5f * (m_relativeRadius * 0.01f);
+        radius = qMin(itemSize.width(), itemSize.height()) * 0.5f * (m_relativeRadius * 0.01f)
+                     / qGuiApp->devicePixelRatio();
     }
 
     updateMaterial(node, radius, shapeTextureId, sourceTexture && m_sourceOpacity);
@@ -1301,35 +1302,19 @@ void UCUbuntuShape::updateMaterial(
         materialData->sourceOpacity = 0;
     }
 
+    const float physicalRadius = radius * qGuiApp->devicePixelRatio();
+
     // Mapping of radius size range from [0, 4] to [0, 1] with clamping, plus quantization.
     const float start = 0.0f + radiusSizeOffset;
     const float end = 4.0f + radiusSizeOffset;
-    materialData->distanceAAFactor =
-        qMin((radius / (end - start)) - (start / (end - start)), 1.0f) * 255.0f;
 
-    // Screen-space derivatives factors for fragment shaders depend on the primary orientation and
-    // content orientation. A flag indicating a 90° rotation around the primary orientation is
-    // stored on the 3rd bit of dfdtFactors, the flip factor is stored on the first 2 bits as 0 for
-    // -1 and as 2 for 1 (efficiently converted using: float(x & 0x3) - 1.0f).
-    const Qt::ScreenOrientation contentOrientation = window()->contentOrientation();
-    if (isPrimaryOrientationLandscape) {
-        const quint8 portraitMask = Qt::PortraitOrientation | Qt::InvertedPortraitOrientation;
-        const quint8 flipMask = Qt::InvertedLandscapeOrientation | Qt::InvertedPortraitOrientation;
-        quint8 factors = contentOrientation & portraitMask ? 0x4 : 0x0;
-        factors |= contentOrientation & flipMask ? 0x0 : 0x2;
-        materialData->dfdtFactors = factors;
-    } else {
-        const quint8 landscapeMask = Qt::LandscapeOrientation | Qt::InvertedLandscapeOrientation;
-        const quint8 flipMask = Qt::InvertedPortraitOrientation | Qt::LandscapeOrientation;
-        quint8 factors = contentOrientation & landscapeMask ? 0x4 : 0x0;
-        factors |= contentOrientation & flipMask ? 0x0 : 0x2;
-        materialData->dfdtFactors = factors;
-    }
+    materialData->distanceAAFactor =
+        qMin((physicalRadius / (end - start)) - (start / (end - start)), 1.0f) * 255.0f;
 
     // When the radius is equal to radiusSizeOffset (which means radius size is 0), no aspect is
     // flagged so that a dedicated (statically flow controlled) shaved off shader can be used for
     // optimal performance.
-    if (radius > radiusSizeOffset) {
+    if (physicalRadius > radiusSizeOffset) {
         const quint8 aspectFlags[] = {
             ShapeMaterial::Data::Flat, ShapeMaterial::Data::Inset, ShapeMaterial::Data::DropShadow,
             ShapeMaterial::Data::Inset | ShapeMaterial::Data::Pressed

@@ -200,6 +200,7 @@ UCListItemPrivate::UCListItemPrivate()
     , leadingActions(0)
     , trailingActions(0)
     , mainAction(0)
+    , expansion(Q_NULLPTR)
 {
 }
 UCListItemPrivate::~UCListItemPrivate()
@@ -325,7 +326,7 @@ void UCListItemPrivate::preStyleChanged()
 bool UCListItemPrivate::loadStyleItem(bool animated)
 {
     // the style should be loaded only if one of the condition is satisfied
-    if (!swiped && !selectMode() && !dragMode()) {
+    if (!swiped && !selectMode() && !dragMode() && !(expansion && expansion->expanded())) {
         return false;
     }
 
@@ -339,6 +340,7 @@ bool UCListItemPrivate::loadStyleItem(bool animated)
         preStyleChanged();
         return false;
     }
+    myStyle->updateFlickable(flickable);
     // bring the panels foreground
     styleItem->setZ(0);
     listItemStyle()->setAnimatePanels(true);
@@ -372,23 +374,13 @@ int UCListItemPrivate::index()
                 (parentItem ? QQuickItemPrivate::get(parentItem)->childItems.indexOf(q) : -1);
 }
 
-// returns true if the highlight is possible
-bool UCListItemPrivate::canHighlight(QMouseEvent *event)
+// returns true if the highlight is possible; the highlight is possible if the
+// list item has at least one action, leading/trailing actions set, onClicked
+// or onPressAndHold signal handlers set
+bool UCListItemPrivate::canHighlight()
 {
-    // if automatic, the highlight should not happen if we clicked on an active component;
-    // localPos is a position relative to ListItem which will give us a child from
-    // from the original coordinates; therefore we must map the position to the contentItem
    Q_Q(UCListItem);
-   QPointF myPos = q->mapToItem(contentItem, event->localPos());
-   QQuickItem *child = contentItem->childAt(myPos.x(), myPos.y());
-   bool activeComponent = child && (child->acceptedMouseButtons() & event->button()) &&
-           child->isEnabled() && !qobject_cast<QQuickText*>(child);
-   // do highlight if not pressed above the active component, and the component has either
-   // action, leading or trailing actions list or at least an active child component declared
-   QQuickMouseArea *ma = q->findChild<QQuickMouseArea*>();
-   bool activeMouseArea = ma && ma->isEnabled();
-   return !activeComponent && (isClickedConnected() || isPressAndHoldConnected() ||
-                               mainAction || leadingActions || trailingActions || activeMouseArea);
+   return (isClickedConnected() || isPressAndHoldConnected() || mainAction || leadingActions || trailingActions);
 }
 
 // set highlighted flag and update contentItem
@@ -876,8 +868,74 @@ void UCListItemPrivate::swipeEvent(const QPointF &localPos, UCSwipeEvent::Status
  *
  * \sa ViewItems::dragMode, ViewItems::dragUpdated
  *
+ * \section2 Expansion
+ * Since Ubuntu.Components 1.3, ListItem supports expansion. ListItems declared
+ * in a view can expand exclusively, having leading and trailing panes locked
+ * when expanded and to be collapsed when tapping outside of the expanded area.
+ * The expansion is driven by the \l expansion group property, and the behavior
+ * by the \l ViewItems::expansionFlags and \l ViewItems::expandedIndices
+ * attached properties. Each ListItem which is required to expand should set a
+ * proper height in the \l expansion.height property, which should be bigger
+ * than the collapsed height of the ListItem is. The expansion itself is driven
+ * by the \l expansion.expanded property, which can be set freely depending on
+ * the use case, on click, on long press, etc.
+ *
+ * The default expansion behavior is set to be exclusive and locked, meaning
+ * there can be only one ListItem expanded within a view and neither leading
+ * nor trailing action panels cannot be swiped in. Expanding an other ListItem
+ * will collapse the previosuly expanded one. There can be cases when tapping
+ * outside of the expanded area of a ListItem we woudl need the expanded one
+ * to collapse automatically. This can be achieved by setting \c ViewItems.CollapseOnOutsidePress
+ * flag to \l ViewItems::expansionFlags. This flag will also turn on \c ViewItems.Exclusive
+ * flag, as tapping outside practicly forbids more than one item to be expanded
+ * at a time.
+ * \qml
+ * import QtQuick 2.4
+ * import Ubuntu.Components 1.3
+ *
+ * ListView {
+ *     width: units.gu(40)
+ *     height: units.gu(71)
+ *     model: ListModel {
+ *         Component.onCompleted: {
+ *             for (var i = 0; i < 50; i++) {
+ *                 append({data: i});
+ *             }
+ *         }
+ *     }
+ *     ViewItems.expansionFlags: ViewItems.CollapseOnOutsidePress
+ *     delegate: ListItem {
+ *         Label {
+ *             text: "Model item #" + modelData
+ *         }
+ *         trailingActions: ListItemActions {
+ *             actions: [
+ *                 Action {
+ *                     icon: "search"
+ *                 },
+ *                 Action {
+ *                     icon: "edit"
+ *                 },
+ *                 Action {
+ *                     icon: "copy"
+ *                 }
+ *             ]
+ *         }
+ *         expansion.height: units.gu(15)
+ *         onClicked: expansion.expanded = true
+ *     }
+ * }
+ * \endqml
+ * The example above collapses the expanded item whenever it is tapped or mouse
+ * pressed outside of the expanded list item.
+ * \note Set 0 to \l ViewItems::expansionFlags if no restrictions on expanded items
+ * is required (i.e multiple expanded items are allowed, swiping leading/trailing
+ * actions when expanded).
+ * \note Do not bind \l expansion.height to the ListItem's height as is will cause
+ * binding loops.
+ *
  * \section2 Note on styling
- * ListItem's styling differs from the other component sstyling, as ListItem loads
+ * ListItem's styling differs from the other components styling, as ListItem loads
  * the style only when either of the leadin/trailing panels are swiped, or when the
  * item enters in select- or drag mode. The component does not assume any visuals
  * to be present in the style.
@@ -912,6 +970,11 @@ UCListItem::UCListItem(QQuickItem *parent)
 
 UCListItem::~UCListItem()
 {
+}
+
+QObject *UCListItem::attachedViewItems(QObject *object, bool create)
+{
+    return qmlAttachedPropertiesObject<UCViewItemsAttached>(object, create);
 }
 
 void UCListItem::classBegin()
@@ -966,7 +1029,7 @@ void UCListItem::componentComplete()
                 this, SLOT(_q_syncDragMode()));
 
         // if selection or drag mode is on, initialize style, with animations turned off
-        if (d->parentAttached->selectMode() || d->parentAttached->dragMode()) {
+        if (d->parentAttached->selectMode() || d->parentAttached->dragMode() || (d->expansion && d->expansion->expanded())) {
             d->loadStyleItem(false);
         }
         // set the object name for testing purposes
@@ -996,15 +1059,20 @@ void UCListItem::itemChange(ItemChange change, const ItemChangeData &data)
         QQuickItem *parentAttachee = data.item;
         if (d->flickable && d->flickable->inherits("QQuickListView")) {
             // attach to ListView
-            d->parentAttached = static_cast<UCViewItemsAttached*>(qmlAttachedPropertiesObject<UCViewItemsAttached>(d->flickable));
+            d->parentAttached = static_cast<UCViewItemsAttached*>(attachedViewItems(d->flickable, true));
             parentAttachee = d->flickable;
         } else if (data.item) {
-            d->parentAttached = static_cast<UCViewItemsAttached*>(qmlAttachedPropertiesObject<UCViewItemsAttached>(data.item));
+            d->parentAttached = static_cast<UCViewItemsAttached*>(attachedViewItems(data.item, true));
         } else {
             // mark as not ready, so no action should be performed which depends on readyness
             d->ready = false;
             // about to be deleted or reparented, disable attached
             d->parentAttached = 0;
+        }
+
+        if (d->styleItem) {
+            UCListItemStyle * myStyle = static_cast<UCListItemStyle*>(d->styleItem);
+            myStyle->updateFlickable(d->flickable);
         }
 
         if (parentAttachee) {
@@ -1053,6 +1121,25 @@ QSGNode *UCListItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *data
     return oldNode;
 }
 
+// grabs the left mouse button event by turning highlight on, and triggering
+// swipe events; child items should no longer get mouse events
+void UCListItemPrivate::grabLeftButtonEvents(QMouseEvent *event)
+{
+    Q_Q(UCListItem);
+    button = event->button();
+    // create style instance
+    loadStyleItem();
+    setHighlighted(true);
+    lastPos = pressedPos = event->localPos();
+    // connect the Flickable to know when to rebound
+    listenToRebind(true);
+    if (swiped && parentAttached) {
+        parentAttached->disableInteractive(q, true);
+    }
+    // stop any ongoing animation!
+    swipeEvent(event->localPos(), UCSwipeEvent::Started);
+}
+
 void UCListItem::mousePressEvent(QMouseEvent *event)
 {
     UCStyledItemBase::mousePressEvent(event);
@@ -1062,18 +1149,8 @@ void UCListItem::mousePressEvent(QMouseEvent *event)
         // while moving, we cannot select any items
         return;
     }
-    if (d->canHighlight(event) && !d->highlighted && event->button() == Qt::LeftButton) {
-        // create style instance
-        d->loadStyleItem();
-        d->setHighlighted(true);
-        d->lastPos = d->pressedPos = event->localPos();
-        // connect the Flickable to know when to rebound
-        d->listenToRebind(true);
-        if (d->swiped && d->parentAttached) {
-            d->parentAttached->disableInteractive(this, true);
-        }
-        // stop any ongoing animation!
-        d->swipeEvent(event->localPos(), UCSwipeEvent::Started);
+    if (d->canHighlight() && !d->highlighted && event->button() == Qt::LeftButton) {
+        d->grabLeftButtonEvents(event);
     }
     // accept the event so we get the rest of the events as well
     event->setAccepted(true);
@@ -1125,35 +1202,44 @@ void UCListItem13::popoverClosed()
     d->setHighlighted(false);
 }
 
+// ungrabs any previously grabbed left mouse button event
+void UCListItemPrivate::ungrabLeftButtonEvents(QMouseEvent *event)
+{
+    Q_Q(UCListItem);
+    // set released
+    if (highlighted) {
+        // unblock ascending Flickables
+        listenToRebind(false);
+        if (parentAttached) {
+            parentAttached->disableInteractive(q, false);
+        }
+
+        if (!suppressClick) {
+            // emit clicked only if not swiped
+            if (!swiped) {
+                Q_EMIT q->clicked();
+                if (mainAction) {
+                    Q_EMIT mainAction->trigger(index());
+                }
+            }
+            snapOut();
+        } else {
+            // inform style about mouse/touch release
+            swipeEvent(event->localPos(), UCSwipeEvent::Finished);
+            suppressClick = false;
+            setHighlighted(false);
+        }
+    }
+    button = Qt::NoButton;
+}
+
 void UCListItem::mouseReleaseEvent(QMouseEvent *event)
 {
     UCStyledItemBase::mouseReleaseEvent(event);
     Q_D(UCListItem);
-    d->button = Qt::NoButton;
-    // set released
-    if (d->highlighted) {
-        // unblock ascending Flickables
-        d->listenToRebind(false);
-        if (d->parentAttached) {
-            d->parentAttached->disableInteractive(this, false);
-        }
-
-        if (!d->suppressClick) {
-            // emit clicked only if not swiped
-            if (!d->swiped) {
-                Q_EMIT clicked();
-                if (d->mainAction) {
-                    Q_EMIT d->mainAction->trigger(d->index());
-                }
-            }
-            d->snapOut();
-        } else {
-            // inform style about mouse/touch release
-            d->swipeEvent(event->localPos(), UCSwipeEvent::Finished);
-            d->suppressClick = false;
-            d->setHighlighted(false);
-        }
-    }
+    d->ungrabLeftButtonEvents(event);
+    // make sure we ungrab the mouse!
+    ungrabMouse();
 }
 
 void UCListItem13::mouseReleaseEvent(QMouseEvent *event)
@@ -1162,12 +1248,21 @@ void UCListItem13::mouseReleaseEvent(QMouseEvent *event)
         UCListItem::mouseReleaseEvent(event);
 }
 
+// returns true if the mouse is swiped over the threshold value
+bool UCListItemPrivate::swipedOverThreshold(const QPointF &mousePos, const QPointF relativePos)
+{
+    qreal threshold = UCUnits::instance().gu(xAxisMoveThresholdGU);
+    qreal mouseX = mousePos.x();
+    qreal pressedX = relativePos.x();
+    return ((mouseX < (pressedX - threshold)) || (mouseX > (pressedX + threshold)));
+}
+
 void UCListItem::mouseMoveEvent(QMouseEvent *event)
 {
     Q_D(UCListItem);
     UCStyledItemBase::mouseMoveEvent(event);
 
-    if (d->selectMode() || d->dragMode()) {
+    if (d->selectMode() || d->dragMode() || (d->expansion && d->expansion->expandedLocked())) {
         // no move is allowed while selectable mode is on
         return;
     }
@@ -1177,16 +1272,14 @@ void UCListItem::mouseMoveEvent(QMouseEvent *event)
     if (d->button == Qt::LeftButton && d->highlighted && !d->swiped && (d->leadingActions || d->trailingActions)) {
         // check if we can initiate the drag at all
         // only X direction matters, if Y-direction leaves the threshold, but X not, the tug is not valid
-        qreal threshold = UCUnits::instance().gu(d->xAxisMoveThresholdGU);
-        qreal mouseX = event->localPos().x();
-        qreal pressedX = d->pressedPos.x();
-
-        if ((mouseX < (pressedX - threshold)) || (mouseX > (pressedX + threshold))) {
+        if (d->swipedOverThreshold(event->localPos(), d->pressedPos)) {
             // the press went out of the threshold area, enable move, if the direction allows it
             d->lastPos = event->localPos();
             if (d->parentAttached) {
                 d->parentAttached->disableInteractive(this, true);
             }
+            qreal mouseX = event->localPos().x();
+            qreal pressedX = d->pressedPos.x();
             bool doSwipe = (d->leadingActions && (mouseX > pressedX)) ||
                            (d->trailingActions && (mouseX < pressedX));
             d->setSwiped(doSwipe);
@@ -1208,20 +1301,38 @@ void UCListItem::mouseMoveEvent(QMouseEvent *event)
 bool UCListItem::childMouseEventFilter(QQuickItem *child, QEvent *event)
 {
     QEvent::Type type = event->type();
+    Q_D(UCListItem);
     if (type == QEvent::MouseButtonPress) {
         // suppress click event if pressed over an active area, except Text, which can also handle
         // mouse clicks when content is an URL
         QMouseEvent *mouse = static_cast<QMouseEvent*>(event);
         if (child->isEnabled() && (child->acceptedMouseButtons() & mouse->button()) && !qobject_cast<QQuickText*>(child)) {
-            Q_D(UCListItem);
             // suppress click
             d->suppressClick = true;
             // listen for flickable to be able to rebind if movement started there!
             d->listenToRebind(true);
+            // if left button pressed, remember the position
+            if (mouse->button() == Qt::LeftButton) {
+                d->pressedPos = mapFromItem(child, mouse->localPos());
+                d->button = mouse->button();
+            }
         }
     } else if (type == QEvent::MouseButtonRelease) {
         Q_D(UCListItem);
         d->suppressClick = false;
+    } else if (type == QEvent::MouseMove) {
+        QMouseEvent *mouse = static_cast<QMouseEvent*>(event);
+        const QPointF localPos = mapFromItem(child, mouse->localPos());
+        if ((mouse->buttons() & Qt::LeftButton) && d->swipedOverThreshold(localPos, d->pressedPos) && !d->highlighted) {
+            // grab the event from the child, so the click doesn't happen anymore, and initiate swiping
+            QMouseEvent pressed(QEvent::MouseButtonPress, localPos, mouse->windowPos(), mouse->screenPos(),
+                                    Qt::LeftButton, mouse->buttons(), mouse->modifiers());
+            d->grabLeftButtonEvents(&pressed);
+            // stop click and pressAndHold, then grab the mouse so children do not get the mouse events anymore
+            d->suppressClick = true;
+            d->pressAndHoldTimer.stop();
+            grabMouse();
+        }
     }
     return UCStyledItemBase::childMouseEventFilter(child, event);
 }
@@ -1627,6 +1738,50 @@ UCListItem13::UCListItem13(QQuickItem *parent)
 {
     Q_D(UCListItem);
     d->defaultThemeVersion = BUILD_VERSION(1, 3);
+}
+
+QObject *UCListItem13::attachedViewItems(QObject *object, bool create)
+{
+    return qmlAttachedPropertiesObject<UCViewItemsAttached13>(object, create);
+}
+
+void UCListItem13::itemChange(ItemChange change, const ItemChangeData &data)
+{
+    UCListItem::itemChange(change, data);
+
+    Q_D(UCListItem);
+    // ViewItems drives expansion
+    if (d->parentAttached) {
+        connect(d->parentAttached.data(), SIGNAL(expandedIndicesChanged(QList<int>)),
+                this, SLOT(_q_updateExpansion(QList<int>)), Qt::UniqueConnection);
+    }
+}
+
+/*!
+ * \qmlpropertygroup ::ListItem::expansion
+ * \qmlproperty bool ListItem::expansion.expanded
+ * \qmlproperty real ListItem::expansion.height
+ * \since Ubuntu.Components 1.3
+ * The group drefines the expansion state of the ListItem.
+ */
+UCListItemExpansion *UCListItem13::expansion()
+{
+    Q_D(UCListItem);
+    if (!d->expansion) {
+        d->expansion = new UCListItemExpansion(this);
+    }
+    return d->expansion;
+}
+
+void UCListItem13::_q_updateExpansion(const QList<int> &indices)
+{
+    Q_UNUSED(indices);
+    Q_D(UCListItem);
+    Q_EMIT expansion()->expandedChanged();
+    // make sure the style is loaded
+    if (indices.contains(d->index())) {
+        d->loadStyleItem();
+    }
 }
 
 #include "moc_uclistitem.cpp"

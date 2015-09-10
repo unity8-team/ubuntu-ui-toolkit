@@ -5,13 +5,13 @@ IMPORT_VERSION = 0.1
 
 include(plugin/plugin.pri)
 
-OTHER_FILES+= 1.3/CrossFadeImage.qdoc \
+OTHER_FILES+= qmldir \
+             1.3/CrossFadeImage.qdoc \
              1.3/UbuntuListView11.qdoc \
              1.3/Page.qdoc \
              1.3/PageHeadConfiguration.qdoc \
              1.3/MainView.qdoc \
-             1.3/Icon.qdoc \
-             qmldir
+             1.3/Icon.qdoc
 
 RESOURCES += \
     components.qrc
