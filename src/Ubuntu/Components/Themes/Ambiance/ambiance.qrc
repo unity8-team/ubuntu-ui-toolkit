@@ -108,5 +108,10 @@
         <file>artwork/stroke_button@27.png</file>
         <file>artwork/tick@30.png</file>
         <file>artwork/toolbar_dropshadow@20.png</file>
+        <file>artwork/bubble_shadow@8.sci</file>
+        <file>artwork/bubble_shadow@20.sci</file>
+        <file>artwork/bubble_shadow@30.sci</file>
+        <file>artwork/PageHeaderBaseDividerLight@18.sci</file>
+        <file>artwork/header_overflow_dropshadow@27.sci</file>
     </qresource>
 </RCC>
