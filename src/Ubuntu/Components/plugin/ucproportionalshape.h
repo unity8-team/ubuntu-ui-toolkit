@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Canonical Ltd.
+ * Copyright 2015 Canonical Ltd.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -12,28 +12,30 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Author: Loïc Molinari <loic.molinari@canonical.com>
  */
 
-import QtQuick 2.4
+#ifndef UCPROPORTIONALSHAPE_H
+#define UCPROPORTIONALSHAPE_H
 
-/*!
-    \qmltype Header
-    \internal
-    \deprecated
-*/
-AppHeader {
+#include "ucubuntushape.h"
 
-    /*!
-      \internal
-      We need this property so QML exposes this class as Header instead of
-      AppHeader. This way autopilot can select the deprecated header.
-    */
-    property string _for_autopilot
+class UCProportionalShape : public UCUbuntuShape
+{
+    Q_OBJECT
 
-    Component.onCompleted: {
-        print("WARNING: Header is an internal component of Ubuntu.Components and" +
-              "its API may change or be removed at any moment." +
-              "Please use MainView and Page instead."
-              );
-    }
-}
+public:
+    UCProportionalShape(QQuickItem* parent=0);
+
+private Q_SLOTS:
+    void _q_updateWidth();
+    void _q_updateHeight();
+
+private:
+    Q_DISABLE_COPY(UCProportionalShape)
+};
+
+QML_DECLARE_TYPE(UCProportionalShape)
+
+#endif  // UCPROPORTIONALSHAPE_H

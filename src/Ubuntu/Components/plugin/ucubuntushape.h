@@ -41,8 +41,8 @@ public:
 private:
     QOpenGLFunctions* m_functions;
     int m_matrixId;
-    int m_dfdtFactorsId;
     int m_opacityFactorsId;
+    int m_dfdtFactorId;
     int m_sourceOpacityId;
     int m_distanceAAId;
     int m_texturedId;
@@ -70,7 +70,6 @@ public:
         quint32 shapeTextureId;
         quint8 distanceAAFactor;
         quint8 sourceOpacity;
-        quint8 dfdtFactors;
         quint8 flags;
     };
 
@@ -297,7 +296,6 @@ protected:
 
 private Q_SLOTS:
     void _q_imagePropertiesChanged();
-    void _q_openglContextDestroyed();
     void _q_gridUnitChanged();
     void _q_providerDestroyed(QObject* object=0);
     void _q_textureChanged();
@@ -331,8 +329,8 @@ private:
     QVector2D m_sourceScale;
     QVector2D m_sourceTranslation;
     QVector4D m_sourceTransform;
+    quint8 m_relativeRadius;
     Radius m_radius : 2;
-    quint8 m_relativeRadius : 6;
     quint8 m_aspect : 3;
     HAlignment m_imageHorizontalAlignment : 2;
     VAlignment m_imageVerticalAlignment : 2;
@@ -342,6 +340,7 @@ private:
     FillMode m_sourceFillMode : 2;
     WrapMode m_sourceHorizontalWrapMode : 1;
     WrapMode m_sourceVerticalWrapMode : 1;
+    quint8 __explicit_padding : 6;
     quint8 m_sourceOpacity;
     quint8 m_flags;
 
