@@ -13,11 +13,18 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-//![0]
-import QtQuick 2.4
-import Ubuntu.Components.Themes.Ambiance 1.3
 
-MainViewStyle {
-    backgroundSource: ""
+import QtQuick 2.0
+import Ubuntu.Components 1.1
+
+Grid {
+    width: 800
+    height: 600
+    rows: 16
+    columns: 16
+    Repeater {
+        model: 16*16
+        AbstractButton {
+        }
+    }
 }
-//![0]

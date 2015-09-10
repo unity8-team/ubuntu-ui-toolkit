@@ -60,13 +60,16 @@ public:
     void _q_syncSelectMode();
     void _q_syncDragMode();
     int index();
-    bool canHighlight(QMouseEvent *event);
+    bool canHighlight();
     void setHighlighted(bool pressed);
     void listenToRebind(bool listen);
     void lockContentItem(bool lock);
     void update();
     void snapOut();
     void swipeEvent(const QPointF &localPos, UCSwipeEvent::Status status);
+    bool swipedOverThreshold(const QPointF &mousePos, const QPointF relativePos);
+    void grabLeftButtonEvents(QMouseEvent *event);
+    void ungrabLeftButtonEvents(QMouseEvent *event);
 
     quint16 defaultThemeVersion;
     bool highlighted:1;
@@ -92,6 +95,7 @@ public:
     UCListItemActions *leadingActions;
     UCListItemActions *trailingActions;
     UCAction *mainAction;
+    UCListItemExpansion *expansion;
 
     // getters/setters
     QQmlListProperty<QObject> data();
@@ -144,17 +148,25 @@ public:
     bool isDragUpdatedConnected();
     void updateSelectedIndices(int fromIndex, int toIndex);
 
-    QQuickFlickable *listView;
-    ListItemDragArea *dragArea;
-    bool globalDisabled:1;
-    bool selectable:1;
-    bool draggable:1;
-    bool ready:1;
+    // expansion
+    void expand(int index, UCListItem13 *listItem, bool emitChangeSignal = true);
+    void collapse(int index, bool emitChangeSignal = true);
+    void collapseAll();
+    void toggleExpansionFlags(bool enable);
+
     QSet<int> selectedList;
+    QMap<int, QPointer<UCListItem13> > expansionList;
     QList< QPointer<QQuickFlickable> > flickables;
     QList< PropertyChange* > changes;
     QPointer<UCListItem> boundItem;
     QPointer<UCListItem> disablerItem;
+    QQuickFlickable *listView;
+    ListItemDragArea *dragArea;
+    UCViewItemsAttached::ExpansionFlags expansionFlags;
+    bool globalDisabled:1;
+    bool selectable:1;
+    bool draggable:1;
+    bool ready:1;
 };
 
 #endif // UCVIEWITEM_P_H

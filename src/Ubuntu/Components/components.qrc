@@ -10,7 +10,6 @@
         <file>1.1/ProgressBar.qml</file>
         <file>1.1/UbuntuColors.qml</file>
         <file>1.2/AbstractButton.qml</file>
-        <file>1.2/ActionItem.qml</file>
         <file>1.2/ActionList.qml</file>
         <file>1.2/ActivityIndicator.qml</file>
         <file>1.2/AnimatedItem.qml</file>
@@ -64,9 +63,7 @@
         <file>1.2/UbuntuListView.qml</file>
         <file>1.2/UbuntuListView11.qml</file>
         <file>1.2/UbuntuNumberAnimation.qml</file>
-        <file>1.3/AbstractButton.qml</file>
         <file>1.3/ActionBar.qml</file>
-        <file>1.3/ActionItem.qml</file>
         <file>1.3/ActionList.qml</file>
         <file>1.3/ActivityIndicator.qml</file>
         <file>1.3/AnimatedItem.qml</file>
@@ -80,7 +77,6 @@
         <file>1.3/CrossFadeImage.qml</file>
         <file>1.3/dateUtils.js</file>
         <file>1.3/DraggingArea.qml</file>
-        <file>1.3/Header.qml</file>
         <file>1.3/InputHandler.qml</file>
         <file>1.3/Label.qml</file>
         <file>1.3/ListItemPopover.qml</file>
@@ -120,8 +116,10 @@
         <file>1.3/UbuntuListView11.qml</file>
         <file>1.3/UbuntuNumberAnimation.qml</file>
         <file>1.3/AdaptivePageLayout.qml</file>
-        <file>1.3/ColumnMetrics.qml</file>
+        <file>1.3/PageColumn.qml</file>
         <file>1.3/tree.js</file>
+        <file>1.3/PageColumnsLayout.qml</file>
+        <file>1.3/PageWrapperUtils.js</file>
         <file>artwork/back@18.png</file>
         <file>artwork/chevron@27.png</file>
         <file>artwork/delete@8.png</file>
