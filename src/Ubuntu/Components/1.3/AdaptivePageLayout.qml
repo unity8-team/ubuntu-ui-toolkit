@@ -615,9 +615,6 @@ PageTreeNode {
                 height: body.headerHeight
                 flickable: d.columns === 1 && page && page.hasOwnProperty("flickable") ?
                                page.flickable : null
-//                flickable: page ? page.flickable : null
-                onFlickableChanged: print("flickable = "+flickable)
-                Component.onCompleted: print("init flickable = "+flickable)
 
                 styleName: "PageHeadStyle"
                 theme.version: Ubuntu.toolkitVersion
