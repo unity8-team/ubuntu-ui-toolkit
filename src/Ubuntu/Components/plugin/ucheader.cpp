@@ -158,6 +158,7 @@ QQuickFlickable* UCHeader::flickable() {
 }
 
 void UCHeader::setFlickable(QQuickFlickable *flickable) {
+    qDebug() << "Set flickable";
     if (m_flickable != flickable) {
         if (!m_flickable.isNull()) {
             // Finish the current header movement in case the current
@@ -170,6 +171,7 @@ void UCHeader::setFlickable(QQuickFlickable *flickable) {
         Q_EMIT flickableChanged();
 
         if (!m_flickable.isNull()) {
+            qDebug()<<"Connecting flickable";
             connect(m_flickable, SIGNAL(contentYChanged()),
                     this, SLOT(q_scrolledContents()));
             connect(m_flickable, SIGNAL(movementEnded()),
@@ -274,6 +276,7 @@ bool UCHeader::moving() {
 // Called when moving due to user interaction with the flickable, or by
 // setting m_flickable.contentY programatically.
 void UCHeader::q_scrolledContents() {
+    qDebug() <<"SCROLLED";
     Q_ASSERT(!m_flickable.isNull());
     // Avoid moving the header when rebounding or being dragged over the bounds.
     if (!m_flickable->isAtYBeginning() && !m_flickable->isAtYEnd()) {

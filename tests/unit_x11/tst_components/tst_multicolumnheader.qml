@@ -20,8 +20,8 @@ import Ubuntu.Components 1.3
 
 MainView {
     id: root
-    width: units.gu(120)
-    height: units.gu(71)
+    width: units.gu(50) //units.gu(120)
+    height: units.gu(30)// units.gu(71)
 
     // 2 on desktop, 1 on phone.
     property int columns: width >= units.gu(80) ? 2 : 1
@@ -36,38 +36,45 @@ MainView {
             id: rootPage
             title: "Root"
 
-            Column {
-                anchors {
-                    top: parent.top
-                    left: parent.left
-                    right: parent.right
-                }
-                height: childrenRect.height
+            Flickable {
+                anchors.fill: parent
+                contentHeight: column.height
+                interactive: height < contentHeight
 
-                ListItemWithLabel {
-                    text: "Add page left"
-                    onClicked: layout.addPageToCurrentColumn(rootPage, leftPage)
-                }
-                ListItemWithLabel {
-                    text: "Add page right"
-                    onClicked: layout.addPageToNextColumn(rootPage, rightPage)
-                }
-                ListItemWithLabel {
-                    text: "Add sections page right"
-                    onClicked: layout.addPageToNextColumn(rootPage, sectionsPage)
-                }
-                ListItemWithLabel {
-                    text: "Add external page right"
-                    onClicked: layout.addPageToNextColumn(
-                                   rootPage, Qt.resolvedUrl("MyExternalPage.qml"))
-                }
-                ListItemWithLabel {
-                    text: "Add page with head contents left"
-                    onClicked: layout.addPageToCurrentColumn(rootPage, headContentsPage)
-                }
-                ListItemWithLabel {
-                    text: "Add page with head contents right"
-                    onClicked: layout.addPageToNextColumn(rootPage, headContentsPage)
+                Column {
+                    id: column
+                    anchors {
+                        top: parent.top
+                        left: parent.left
+                        right: parent.right
+                    }
+                    height: childrenRect.height
+
+                    ListItemWithLabel {
+                        text: "Add page left"
+                        onClicked: layout.addPageToCurrentColumn(rootPage, leftPage)
+                    }
+                    ListItemWithLabel {
+                        text: "Add page right"
+                        onClicked: layout.addPageToNextColumn(rootPage, rightPage)
+                    }
+                    ListItemWithLabel {
+                        text: "Add sections page right"
+                        onClicked: layout.addPageToNextColumn(rootPage, sectionsPage)
+                    }
+                    ListItemWithLabel {
+                        text: "Add external page right"
+                        onClicked: layout.addPageToNextColumn(
+                                       rootPage, Qt.resolvedUrl("MyExternalPage.qml"))
+                    }
+                    ListItemWithLabel {
+                        text: "Add page with head contents left"
+                        onClicked: layout.addPageToCurrentColumn(rootPage, headContentsPage)
+                    }
+                    ListItemWithLabel {
+                        text: "Add page with head contents right"
+                        onClicked: layout.addPageToNextColumn(rootPage, headContentsPage)
+                    }
                 }
             }
         }

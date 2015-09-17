@@ -591,29 +591,38 @@ PageTreeNode {
                 id: holderBody
                 objectName: parent.objectName + "Body"
                 anchors {
-                    top: subHeader.bottom
-                    bottom: parent.bottom
-                    left: parent.left
-                    right: parent.right
+//                    top: subHeader.flickable ? parent.top : subHeader.bottom
+//                    bottom: parent.bottom
+//                    left: parent.left
+//                    right: parent.right
+                    fill: parent
                     rightMargin: dividerThickness
+                    topMargin: subHeader.flickable ? 0 : subHeader.height
                 }
                 // we need to clip because the header does not have a background
                 clip: true
             }
 
             property alias head: subHeader
-            StyledItem {
+//            StyledItem {
+            Header {
                 id: subHeader
-                anchors {
-                    left: parent.left
-                    top: parent.top
-                    right: parent.right
-                }
+//                anchors {
+//                    left: parent.left
+//                    top: parent.top
+//                    right: parent.right
+//                }
                 height: body.headerHeight
+                flickable: d.columns === 1 && page && page.hasOwnProperty("flickable") ?
+                               page.flickable : null
+//                flickable: page ? page.flickable : null
+                onFlickableChanged: print("flickable = "+flickable)
+                Component.onCompleted: print("init flickable = "+flickable)
 
                 styleName: "PageHeadStyle"
                 theme.version: Ubuntu.toolkitVersion
                 objectName: "Header" + column
+
 
                 property real preferredHeight: subHeader.__styleInstance ?
                                                    subHeader.__styleInstance.implicitHeight :
