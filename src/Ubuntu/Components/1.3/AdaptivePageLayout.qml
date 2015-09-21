@@ -613,6 +613,8 @@ PageTreeNode {
 //                    right: parent.right
 //                }
                 height: body.headerHeight
+//                height: units.gu(8)
+                width: parent.width
                 flickable: d.columns === 1 && page && page.hasOwnProperty("flickable") ?
                                page.flickable : null
 
