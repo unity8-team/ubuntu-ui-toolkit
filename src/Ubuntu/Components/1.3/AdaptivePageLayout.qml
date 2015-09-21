@@ -591,13 +591,13 @@ PageTreeNode {
                 id: holderBody
                 objectName: parent.objectName + "Body"
                 anchors {
-//                    top: subHeader.flickable ? parent.top : subHeader.bottom
-//                    bottom: parent.bottom
-//                    left: parent.left
-//                    right: parent.right
-                    fill: parent
+                    top: subHeader.flickable ? parent.top : subHeader.bottom
+                    bottom: parent.bottom
+                    left: parent.left
+                    right: parent.right
+//                    fill: parent
                     rightMargin: dividerThickness
-                    topMargin: subHeader.flickable ? 0 : subHeader.height
+//                    topMargin: subHeader.flickable ? 0 : subHeader.height
                 }
                 // we need to clip because the header does not have a background
                 clip: true
@@ -606,6 +606,8 @@ PageTreeNode {
             property alias head: subHeader
 //            StyledItem {
             Header {
+                z: 1 // ensure the header overlays the contents
+                // FIXME: Give the headerStyle a background (in separate MR)
                 id: subHeader
 //                anchors {
 //                    left: parent.left

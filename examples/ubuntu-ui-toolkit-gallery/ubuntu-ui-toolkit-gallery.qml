@@ -62,6 +62,7 @@ MainView {
         Page {
             id: mainPage
             title: "Ubuntu UI Toolkit"
+            flickable: widgetList
 
             head.actions: [
                 Action {
@@ -78,7 +79,6 @@ MainView {
                 }
             ]
 
-            flickable: widgetList
             Rectangle {
                 color: Qt.rgba(0.0, 0.0, 0.0, 0.01)
                 anchors.fill: parent
