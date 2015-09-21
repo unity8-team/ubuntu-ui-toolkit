@@ -438,14 +438,10 @@ void UCStyledItemBasePrivate::_q_styleResized()
     if ((!w || !h) && !sender && (q->implicitWidth() || q->implicitHeight())) {
         return;
     }
-    // only update implicitWidth if the implicitWidth of styleItem
-    // was set (not 0) and it changed.
-    if (w != implicitWidth && w != 0) {
+    if (w != implicitWidth) {
         q->setImplicitWidth(w);
     }
-    // only update implicitHeight if the implicitHeight of styleItem
-    // was set (not 0) and it changed.
-    if (h != implicitHeight && h != 0) {
+    if (h != implicitHeight) {
         q->setImplicitHeight(h);
     }
 }
