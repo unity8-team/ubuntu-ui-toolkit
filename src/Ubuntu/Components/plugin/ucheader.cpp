@@ -282,7 +282,7 @@ bool UCHeader::moving() {
  * \qmlproperty bool Header::animate
  * Enable or disable animating of the header when exposing or hiding it
  * either by setting the \l exposed property, or when the user finishes
- * interaction with the \l flickable.
+ * interaction with the \l flickable. Default value: true.
  */
 void UCHeader::setAnimate(bool animate) {
     if (m_animate == animate) {
