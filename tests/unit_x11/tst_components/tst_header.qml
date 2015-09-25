@@ -82,9 +82,15 @@ Item {
             Label {
                 text: "header exposed"
             }
-            Item {
-                width: 1
-                height: 1
+            Switch {
+                id: animateSwitch
+                checked: header.animate
+                function trigger() {
+                    header.animate = !header.animate;
+                }
+            }
+            Label {
+                text: "animate header"
             }
         }
         Button {

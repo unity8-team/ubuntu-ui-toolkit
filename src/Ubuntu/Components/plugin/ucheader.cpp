@@ -87,6 +87,7 @@ UCHeader::UCHeader(QQuickItem *parent)
     , m_previous_contentY(0)
     , m_exposed(true)
     , m_moving(false)
+    , m_animate(true)
 {
     m_showHideAnimation->setParent(this);
     m_showHideAnimation->setTargetObject(this);
@@ -202,7 +203,7 @@ void UCHeader::show() {
             m_showHideAnimation->stop();
         }
     }
-    if (isComponentComplete()) {
+    if (m_animate && isComponentComplete()) {
         m_showHideAnimation->setFrom(y());
         m_showHideAnimation->setTo(0.0);
         m_showHideAnimation->start();
@@ -224,7 +225,7 @@ void UCHeader::hide() {
             m_showHideAnimation->stop();
         }
     }
-    if (isComponentComplete()) {
+    if (m_animate && isComponentComplete()) {
         m_showHideAnimation->setFrom(y());
         m_showHideAnimation->setTo(-1.0*height());
         m_showHideAnimation->start();
@@ -275,6 +276,32 @@ void UCHeader::setExposed(bool exposed) {
  */
 bool UCHeader::moving() {
     return m_moving;
+}
+
+/*!
+ * \qmlproperty bool Header::animate
+ * Enable or disable animating of the header when exposing or hiding it
+ * either by setting the \l exposed property, or when the user finishes
+ * interaction with the \l flickable.
+ */
+void UCHeader::setAnimate(bool animate) {
+    if (m_animate == animate) {
+        return;
+    }
+
+    m_animate = animate;
+    if (!m_animate && m_moving) {
+        m_showHideAnimation->stop();
+        // _q_showHideAnimationRunningChanged() will update m_moving.
+
+        // Finish showing/hiding:
+        if (m_exposed) {
+            show();
+        } else {
+            hide();
+        }
+    }
+    Q_EMIT animateChanged();
 }
 
 // Called when moving due to user interaction with the flickable, or by
