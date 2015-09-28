@@ -169,6 +169,7 @@ Item {
             // note: moving may be true briefly due to header height changes, but
             //  it does not change in the initialization after wait_for_exposed() above.
             compare(header.moving, false, "Header moving initially.");
+            compare(header.animate, true, "Header does not animate by default.");
         }
 
         function init() {
@@ -274,9 +275,11 @@ Item {
 
         function test_set_exposed_to_hide_and_show() {
             header.exposed = false;
-            wait_for_exposed(false, "Cannot hide header by setting visible to false.");
+            tryCompare(header, "moving", true, 1000, "Header does not start moving after setting exposed to false.");
+            wait_for_exposed(false, "Cannot hide header by setting exposed to false.");
             header.exposed = true;
-            wait_for_exposed(true, "Cannot show header by setting visible to true.");
+            tryCompare(header, "moving", true, 1000, "Header does not start moving after setting exposed to true.");
+            wait_for_exposed(true, "Cannot show header by setting exposed to true.");
 
             // change the value of exposed twice quickly:
             header.exposed = false;
@@ -355,6 +358,23 @@ Item {
             wait_for_exposed(true, "Scrolling up disconnected flickable hides header.");
 
             header.flickable = flickable;
+        }
+
+        function test_animate_off() {
+            header.animate = false;
+            compare(header.animate, false, "Cannot disable header animation.");
+            compare(header.moving, false, "Disabling animate sets moving.");
+            header.exposed = false;
+            compare(header.moving, false, "Header moves while animate is off.");
+            compare(header.exposed, false, "Header exposed is not unset instantly with animate off.");
+            compare(header.y, -header.height, "Header is not instantly hidden by setting exposed to false with animate off.");
+
+            header.exposed = true;
+            compare(header.moving, false, "Header moves after exposing it with animate off.");
+            compare(header.exposed, true, "Header exposed is not set instantly with animate off.");
+            compare(header.y, 0, "Header is not instantly shown by setting exposed with animate off.");
+
+            header.animate = true;
         }
     }
 }
