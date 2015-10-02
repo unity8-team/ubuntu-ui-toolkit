@@ -298,7 +298,7 @@ StyledItem {
       The property holds whether the component's pickers are moving.
       \sa Picker::moving
       */
-    readonly property alias moving: positioner.moving
+    readonly property alias moving: row.moving
 
     implicitWidth: units.gu(36)
     implicitHeight: units.gu(20)
@@ -306,20 +306,20 @@ StyledItem {
 
     /*! \internal */
     onMinimumChanged: {
-        if (internals.completed && !minimum.isValid()) {
+        if (minimum.isValid()) {
             // set the minimum to the date
             minimum = date;
         }
 
         // adjust date
-        if (date !== undefined && Date.prototype.isValid.call(minimum) && date < minimum && internals.completed) {
+        if (date !== undefined && Date.prototype.isValid.call(minimum) && date < minimum) {
             date = minimum;
         }
     }
     /*! \internal */
     onMaximumChanged: {
         // adjust date
-        if (date !== undefined && Date.prototype.isValid.call(maximum) && date > maximum && maximum > minimum  && internals.completed) {
+        if (date !== undefined && Date.prototype.isValid.call(maximum) && date > maximum && maximum > minimum) {
             date = maximum;
         }
     }
@@ -328,96 +328,167 @@ StyledItem {
         // use dayPicker narrowFormatLimit even if the dayPicker is hidden
         // and clamp the width so it cannot have less width that the sum of
         // the three tumblers' narrowFormatLimit
-        var minWidth = 0.0;
-        for (var i = 0; i < tumblerModel.count; i++) {
-            minWidth += tumblerModel.get(i).pickerModel.narrowFormatLimit;
-        }
+            return; // XXX
+        var narrowFormatLimit = textSizer.paintedWidth + 2 * units.gu(1.5);
+        var minWidth = row.modes.length * narrowFormatLimit;
         width = Math.max(width, minWidth);
     }
-    /*! \internal */
-    onModeChanged: internals.updatePickers()
-    /*! \internal */
-    onLocaleChanged: internals.updatePickers()
 
-    Component.onCompleted: {
-        if (minimum === undefined) {
-            minimum = date;
+    // tumbler positioner
+    Row {
+        id: row
+        /*anchors {
+            margins: units.gu(1.5)
+            top: parent.top
+            bottom: parent.bottom
+            horizontalCenter: parent.horizontalCenter
         }
-        internals.completed = true;
-        internals.updatePickers();
+        */
+        /*parent: (datePicker.__styleInstance && datePicker.__styleInstance.hasOwnProperty("tumblerHolder")) ?
+                    datePicker.__styleInstance.tumblerHolder : datePicker
+                    */
+        property bool moving
+        // FIXME: The js split(/\W/g) terminates the process on armhf with Qt 5.3 (v4 js) (https://bugreports.qt-project.org/browse/QTBUG-39255)
+        property var modes: mode.match(/\w+/g)
+        Repeater {
+            model: row.modes
+
+            Picker {
+                id: pickerUnit
+                model: {
+                    switch (modelData) {
+                    case "Years":
+                        var from = (minimum.getFullYear() <= 0) ? date.getFullYear() : minimum.getFullYear();
+                        var to = (maximum < minimum) ? -1 : maximum.getFullYear();
+                        var items = to - from, baseYear = from;
+                        if (items < 0)
+                            items = 50;
+                        var years = [];
+                        for (var i = baseYear; i <= baseYear + items; i++) {
+                            var year = new Date(date);
+                            year.setYear(i)
+                            years.push({'format': 'yyyy', 'date': year});
+                            if (year.getYear() == date.getYear())
+                                selectedIndex = i - baseYear;
+                        }
+                        return years;
+                    case "Months":
+                        var distance, from, to;
+                        distance = to = maximum.isValid() ? minimum.monthsTo(maximum) : 11;
+                        if (to < 0 || to > 11)
+                            to = 11;
+                        from = (to < 11) ? minimum.getMonth() : 0;
+                        var months = [];
+                        for (var i = from; i <= from + to; i++) {
+                            var month = new Date(date);
+                            month.setMonth(i)
+                            months.push({'format': 'MMM', 'date': month});
+                            if (month.getMonth() == date.getMonth())
+                                selectedIndex = i - from;
+                        }
+                        return months;
+                    case "Days":
+                        var days = [];
+                        for (var i = 1; i <= date.daysInMonth(year, month); i++) {
+                            var day = new Date(date);
+                            day.setDate(i);
+                            days.push({'format': 'ddd dd', 'date': day});
+                            if (day.getDate() == date.getDate())
+                                selectedIndex = i - 1;
+                        }
+                        return days;
+                    case "Hours":
+                        var from = minimum.getHours();
+                        var distance = (!Date.prototype.isValid.call(maximum) || (minimum.daysTo(maximum) > 1)) ? 24 : minimum.hoursTo(maximum);
+                        var hours = []
+                        for (var i = 0; i < distance; i++) {
+                            var hour = new Date(date);
+                            hour.setHours((from + i) % 24);
+                            hours.push({'format': 'hh', 'date': hour});
+                            if (hour.getHours() == date.getHours())
+                                selectedIndex = i;
+                        }
+                        return hours;
+                    case "Minutes":
+                        var from = minimum.getMinutes();
+                        var distance = (!maximum.isValid() || (minimum.daysTo(maximum) > 1) || (minimum.minutesTo(maximum) >= 60)) ? 60 : minimum.minutesTo(maximum);
+                        var minutes = [];
+                        for (var i = 0; i < distance; i++) {
+                            var minute = new Date(date);
+                            minute.setMinutes((from + i) % 60);
+                            minutes.push({'format': 'mm', 'date': minute});
+                            if (minute.getMinutes() == date.getMinutes())
+                                selectedIndex = i;
+                        }
+                        return minutes;
+                    case "Seconds":
+                        var from = minimum.getSeconds();
+                        var distance = (!maximum.isValid() || (minimum.daysTo(maximum) > 1) || (minimum.secondsTo(maximum) >= 60)) ? 59 : minimum.secondsTo(maximum);
+                        var seconds = [];
+                        for (var i = 0; i <= distance; i++) {
+                            var second = new Date(date);
+                            second.setSeconds((from + i) % 60);
+                            seconds.push({'format': 'ss', 'date': second});
+                            if (second.getSeconds() == date.getSeconds())
+                                selectedIndex = i;
+                        }
+                        return seconds;
+                    default:
+                        console.warn("Unhandled mode flag: " + modelData + ". Mode will not be set!");
+                    }
+                }
+                live: false
+                circular: modelData != 'Years'
+                width: datePicker.width / row.modes.length
+                height: datePicker.height
+                property Label longDay: Label {
+                    visible: false
+                    text: {
+                        var lldn = 0;
+                        for (var day = 1; day <= 7; day++)
+                            lldn = Math.max(lldn, datePicker.locale.dayName(day, Locale.LongFormat));
+                        return lldn;
+                    }
+                }
+                property Label shortDay: Label {
+                    visible: false
+                    text: {
+                        var lldn = 0;
+                        for (var day = 1; day <= 7; day++)
+                            lldn = Math.max(lldn, datePicker.locale.dayName(day, Locale.ShortFormat));
+                        return lldn;
+                    }
+                }
+                delegate: PickerDelegate {
+                    Label {
+                        text: {
+                            if (!modelData.hasOwnProperty('date'))
+                                return modelData;
+                            var format = modelData.format;
+                            if (format.indexOf('d') > -1 ||
+                                format.indexOf('M') > -1 ||
+                                format.indexOf('y') > -1)
+                                return Qt.formatDate(modelData.date, format);
+                            return Qt.formatTime(modelData.date, format)
+                        }
+                        anchors.fill: parent
+                        verticalAlignment: Text.AlignVCenter
+                        horizontalAlignment: Text.AlignHCenter
+                    }
+                }
+                style: Rectangle {
+                    anchors.fill: parent
+                    color: (pickerUnit.Positioner.index % 2) ? Qt.rgba(0, 0, 0, 0.03) : Qt.rgba(0, 0, 0, 0.07)
+                }
+            }
+        }
     }
 
-    // models
-    YearModel {
-        id: yearModel
-        mainComponent: datePicker
-        pickerCompleted: internals.completed && internals.showYearPicker
-        pickerWidth: (!pickerItem) ? 0 : narrowFormatLimit
-        function syncModels() {
-            dayModel.syncModels();
-        }
-    }
-    MonthModel {
-        id: monthModel
-        mainComponent: datePicker
-        pickerCompleted: internals.completed && internals.showMonthPicker
-        pickerWidth: {
-            if (!pickerItem) {
-                return 0;
-            }
-            return MathUtils.clamp(datePicker.width - yearModel.pickerWidth - dayModel.pickerWidth, narrowFormatLimit, longFormatLimit);
-        }
-        function syncModels() {
-            dayModel.syncModels();
-        }
-    }
-    DayModel {
-        id: dayModel
-        mainComponent: datePicker
-        pickerCompleted: internals.completed && internals.showDayPicker
-        pickerWidth: {
-            if (!pickerItem) {
-                return 0;
-            }
-            var w = Math.max(datePicker.width * internals.dayPickerRatio, narrowFormatLimit);
-            if (w < longFormatLimit && w >= shortFormatLimit) {
-                return shortFormatLimit;
-            }
-            return w;
-        }
-    }
-    HoursModel {
-        id: hoursModel
-        mainComponent: datePicker
-        pickerCompleted: internals.completed && internals.showHoursPicker
-        pickerWidth: {
-            if (!pickerItem) {
-                return 0;
-            }
-            return narrowFormatLimit;
-        }
-    }
-    MinutesModel {
-        id: minutesModel
-        mainComponent: datePicker
-        pickerCompleted: internals.completed && internals.showMinutesPicker
-        pickerWidth: {
-            if (!pickerItem) {
-                return 0;
-            }
-            return narrowFormatLimit;
-        }
-    }
-    SecondsModel {
-        id: secondsModel
-        mainComponent: datePicker
-        pickerCompleted: internals.completed && internals.showSecondsPicker
-        pickerWidth: {
-            if (!pickerItem) {
-                return 0;
-            }
-            return narrowFormatLimit;
-        }
+    // component to calculate text fitting
+    Label {
+        id: textSizer
+        visible: false
+        text: '9999'
     }
 
     theme.version: Ubuntu.toolkitVersion
@@ -425,249 +496,16 @@ StyledItem {
     Binding {
         target: __styleInstance
         property: "view"
-        value: positioner
+        value: row
     }
     Binding {
         target: __styleInstance
         property: "pickerModels"
-        value: tumblerModel
+        value: row.modes
     }
     Binding {
         target: __styleInstance
         property: "unitSeparator"
-        value: (internals.showHoursPicker || internals.showMinutesPicker || internals.showSecondsPicker) ?
-                   ":" : ""
-    }
-
-    // tumbler positioner
-    PickerRow {
-        id: positioner
-        parent: (datePicker.__styleInstance && datePicker.__styleInstance.hasOwnProperty("tumblerHolder")) ?
-                    datePicker.__styleInstance.tumblerHolder : datePicker
-        mainComponent: datePicker
-        model: tumblerModel
-        margins: internals.margin
-        anchors {
-            top: parent.top
-            bottom: parent.bottom
-            horizontalCenter: parent.horizontalCenter
-        }
-    }
-    // tumbler model
-    ListModel {
-        /*
-              Model to hold tumbler order for repeaters.
-              Roles:
-              - pickerModel
-              - pickerName
-              */
-        id: tumblerModel
-
-        /*
-          Signal triggered when the model is about to remove a picker. We cannot rely on
-          rowAboutToBeRemoved, as by the time the signal is called the list element is
-          already removed from the model.
-          */
-        signal pickerRemoved(int index)
-
-        // the function checks whether a pickerModel was added or not
-        // returns the index of the model object the pickerModel was found
-        // or -1 on error.
-        function pickerModelIndex(name) {
-            for (var i = 0; i < count; i++) {
-                if (get(i).pickerName === name) {
-                    return i;
-                }
-            }
-            return -1;
-        }
-
-        // the function checks whether a pickerModel is present in the list;
-        // moves the existing one to the given index or inserts it if not present
-        function setPickerModel(model, name, index) {
-            var idx = pickerModelIndex(name);
-            if (idx >= 0) {
-                move(idx, index, 1);
-            } else {
-                append({"pickerModel": model, "pickerName": name});
-            }
-        }
-
-        // removes the given picker
-        function removePicker(name) {
-            var idx = pickerModelIndex(name);
-            if (idx >= 0) {
-                pickerRemoved(idx);
-                remove(idx);
-            }
-        }
-    }
-
-    // component to calculate text fitting
-    Label { id: textSizer; visible: false }
-    QtObject {
-        id: internals
-        property bool completed: false
-        property real margin: units.gu(1.5)
-        property real dayPickerRatio: 0.1
-
-        property bool showYearPicker: true
-        property bool showMonthPicker: true
-        property bool showDayPicker: true
-
-        property bool showHoursPicker: false
-        property bool showMinutesPicker: false
-        property bool showSecondsPicker: false
-
-        /*
-          Update pickers.
-          */
-        function updatePickers() {
-            if (completed) {
-                // check mode flags first
-                // FIXME: The js split(/\W/g) terminates the process on armhf with Qt 5.3 (v4 js) (https://bugreports.qt-project.org/browse/QTBUG-39255)
-                var modes = datePicker.mode.match(/\w+/g);
-
-                showYearPicker = showMonthPicker = showDayPicker =
-                showHoursPicker = showMinutesPicker = showSecondsPicker = false;
-                while (modes.length > 0) {
-                    var modeFlag = modes.pop();
-                    switch (modeFlag) {
-                    case "Years":
-                        showYearPicker = true;
-                        break;
-                    case "Months":
-                        showMonthPicker = true;
-                        break;
-                    case "Days":
-                        showDayPicker = true;
-                        break;
-                    case "Hours":
-                        showHoursPicker = true;
-                        break;
-                    case "Minutes":
-                        showMinutesPicker = true;
-                        break;
-                    case "Seconds":
-                        showSecondsPicker = true;
-                        break;
-                    default:
-                        console.warn("Unhandled mode flag: " + modeFlag + ". Mode will not be set!");
-                        return;
-                    }
-                }
-
-                // filter unaccepted date picking mode
-                if (!showMonthPicker && showYearPicker && showDayPicker) {
-                    console.warn("Invalid DatePicker mode: " + datePicker.mode);
-                    return;
-                }
-
-                // filter unaccepted time picking mode
-                if (showHoursPicker && showSecondsPicker && !showMinutesPicker) {
-                    console.warn("Invalid DatePicker mode: " + datePicker.mode);
-                    return;
-                }
-
-                // date and time picking not allowed at the same time
-                if ((showYearPicker || showMonthPicker || showDayPicker) &&
-                        (showHoursPicker || showMinutesPicker || showSecondsPicker)) {
-                    console.warn("Date and Time picking not allowed at the same time.");
-                    return;
-                }
-
-                arrangeTumblers();
-                resetPickers();
-            }
-        }
-
-        /*
-          Resets the pickers. Pickers will update their models with the given date,
-          minimum and maximum values.
-          */
-        function resetPickers() {
-            if (!completed) return;
-            for (var i = 0; i < tumblerModel.count; i++) {
-                var pickerItem = tumblerModel.get(i).pickerModel.pickerItem;
-                pickerItem.resetPicker();
-            }
-
-            // calculate the ratio for the dayPicker
-            var maxWidth = 0.0;
-            maxWidth += showYearPicker ? yearModel.longFormatLimit : 0.0;
-            maxWidth += showMonthPicker ? monthModel.longFormatLimit : 0.0;
-            maxWidth += showDayPicker ? dayModel.longFormatLimit : 0.0;
-            if (showDayPicker && maxWidth > 0.0) {
-                dayPickerRatio = (dayModel.longFormatLimit / maxWidth).toPrecision(3);
-            }
-        }
-
-        /*
-            Detects the tumbler order from the date format of the locale
-          */
-        function arrangeTumblers() {
-            // disable completion so avoid accidental date changes
-            completed = false;
-
-            // use short format to exclude any extra characters
-            // FIXME: The js split(/\W/g) terminates the process on armhf with Qt 5.3 (v4 js) (https://bugreports.qt-project.org/browse/QTBUG-39255)
-            var format = datePicker.locale.dateFormat(Locale.ShortFormat).match(/\w+/g);
-            // loop through the format to decide the position of the tumbler
-            var formatIndex = 0;
-            for (var i in format) {
-                if (!format[i].length) continue;
-                // check the first two characters
-                switch (format[i].substr(0, 1).toLowerCase()) {
-                case 'y':
-                    if (showYearPicker) {
-                        tumblerModel.setPickerModel(yearModel, "YearPicker", formatIndex);
-                        formatIndex++;
-                    } else {
-                        tumblerModel.removePicker("YearPicker");
-                    }
-
-                    break;
-                case 'm':
-                    if (showMonthPicker) {
-                        tumblerModel.setPickerModel(monthModel, "MonthPicker", formatIndex);
-                        formatIndex++;
-                    } else {
-                        tumblerModel.removePicker("MonthPicker");
-                    }
-
-                    break;
-                case 'd':
-                    if (showDayPicker) {
-                        tumblerModel.setPickerModel(dayModel, "DayPicker", formatIndex);
-                        formatIndex++;
-                    } else {
-                        tumblerModel.removePicker("DayPicker");
-                    }
-                    break;
-                }
-            }
-            // check hms
-            if (showHoursPicker) {
-                tumblerModel.setPickerModel(hoursModel, "HoursPicker", formatIndex);
-                formatIndex++;
-            } else {
-                tumblerModel.removePicker("HoursPicker");
-            }
-            if (showMinutesPicker) {
-                tumblerModel.setPickerModel(minutesModel, "MinutesPicker", formatIndex);
-                formatIndex++;
-            } else {
-                tumblerModel.removePicker("MinutesPicker");
-            }
-            if (showSecondsPicker) {
-                tumblerModel.setPickerModel(secondsModel, "SecondsPicker", formatIndex);
-                formatIndex++;
-            } else {
-                tumblerModel.removePicker("SecondsPicker");
-            }
-
-            // re-enable completion
-            completed = true;
-        }
+        value: mode.indexOf('Minutes') > -1 ? ":" : ""
     }
 }
