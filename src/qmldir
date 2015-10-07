@@ -1,0 +1,5 @@
+module QuickPlus
+plugin quickplusplugin
+classname QuickPlusPlugin
+typeinfo plugins.qmltypes
+designersupported
