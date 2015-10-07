@@ -476,9 +476,9 @@ void UCStyledItemBase::componentComplete()
     bool imports13 = data->propertyCache->isAllowedInRevision(pdata) && (property("theme").type() != QVariant::String);
     if (!imports13) {
         // load 1.2 theme
-        UCTheme *theme = d->getTheme();
+        /* XXX: UCTheme *theme = d->getTheme();
         // FIXME: override the global theme version to be used when creating new themes!
-        theme->setVersion(BUILD_VERSION(1, 2));
+        theme->setVersion(BUILD_VERSION(1, 2)); */
     }
     // no animation at this time
     // prepare style context if not been done yet

@@ -298,7 +298,7 @@ StyledItem {
       The property holds whether the component's pickers are moving.
       \sa Picker::moving
       */
-    readonly property alias moving: row.moving
+    readonly property alias moving: positioner.moving
 
     implicitWidth: units.gu(36)
     implicitHeight: units.gu(20)
@@ -328,30 +328,115 @@ StyledItem {
         // use dayPicker narrowFormatLimit even if the dayPicker is hidden
         // and clamp the width so it cannot have less width that the sum of
         // the three tumblers' narrowFormatLimit
-            return; // XXX
-        var narrowFormatLimit = textSizer.paintedWidth + 2 * units.gu(1.5);
-        var minWidth = row.modes.length * narrowFormatLimit;
+        var minWidth = positioner.tumblerModel.length * positioner.narrowFormatLimit;
         width = Math.max(width, minWidth);
     }
 
     // tumbler positioner
     Row {
-        id: row
-        /*anchors {
-            margins: units.gu(1.5)
+        id: positioner
+        anchors {
             top: parent.top
             bottom: parent.bottom
             horizontalCenter: parent.horizontalCenter
         }
-        */
-        /*parent: (datePicker.__styleInstance && datePicker.__styleInstance.hasOwnProperty("tumblerHolder")) ?
-                    datePicker.__styleInstance.tumblerHolder : datePicker
-                    */
+        parent: (datePicker.__styleInstance && datePicker.__styleInstance.hasOwnProperty("tumblerHolder")) ?
+                 datePicker.__styleInstance.tumblerHolder : datePicker
         property bool moving
         // FIXME: The js split(/\W/g) terminates the process on armhf with Qt 5.3 (v4 js) (https://bugreports.qt-project.org/browse/QTBUG-39255)
         property var modes: mode.match(/\w+/g)
+        // use short format to exclude any extra characters
+        property var dateFormats: locale.dateFormat(Locale.ShortFormat).match(/\w+/g)
+        property var timeFormats: 'h:m:s'.match(/\w+/g)
+        property var map: {
+            'y': 'Years',
+            'M': 'Months',
+            'd': 'Days',
+            'h': 'Hours',
+            'm': 'Minutes',
+            's': 'Seconds',
+        }
+        property real narrowFormatLimit: textSizer.paintedWidth + 2 * units.gu(1.5)
+        property Label longMonth: Label {
+            visible: false
+            text: {
+                var lldn = 0;
+                for (var month = 0; month < 12; month++)
+                    lldn = Math.max(lldn, locale.monthName(month, Locale.LongFormat));
+                return lldn;
+            }
+        }
+         property Label longDay: Label {
+            visible: false
+            text: {
+                var lldn = 0;
+                for (var day = 1; day <= 7; day++)
+                    lldn = Math.max(lldn, datePicker.locale.dayName(day, Locale.LongFormat));
+                return lldn;
+            }
+        }
+        property Label shortDay: Label {
+            visible: false
+            text: {
+                var lldn = 0;
+                for (var day = 1; day <= 7; day++)
+                    lldn = Math.max(lldn, datePicker.locale.dayName(day, Locale.ShortFormat));
+                return lldn;
+            }
+        }
+        property real dayPickerRatio: {
+            var maxWidth = 0.0;
+            if (modes.indexOf('Years') > -1)
+                maxWidth += narrowFormatLimit.paintedWidth
+            if (modes.indexOf('Months') > -1)
+                maxWidth += longMonth.paintedWidth
+            if (modes.indexOf('Days') > -1) {
+                maxWidth += longDay.paintedWidth
+                return (longDay.paintedWidth / maxWidth).toPrecision(3);
+            }
+            return 0.1
+        }
+        property real daysWidth: {
+            var w = Math.max(datePicker.width * dayPickerRatio, narrowFormatLimit);
+            if (w < longDay.paintedWidth && w >= shortDay.paintedWidth)
+                return shortDay.paintedWidth;
+            return narrowFormatLimit;
+        }
+        property var pickerSizes: {
+        var sizes = [];
+            for (var i in tumblerModel) {
+                var mode = tumblerModel[i];
+                if (mode == 'Months')
+                    sizes.push(MathUtils.clamp(datePicker.width - narrowFormatLimit - daysWidth, narrowFormatLimit, longMonth.paintedWidth));
+                else if (mode == 'Days')
+                    sizes.push(daysWidth);
+                 else
+                sizes.push(narrowFormatLimit);
+            }
+            return sizes;
+        }
+        property var tumblerModel: {
+            var ordered = [];
+            for (var i in dateFormats) {
+                var format = dateFormats[i];
+                var mode = map[format[0]];
+                if (modes.indexOf(mode) > -1)
+                    ordered.push(mode);
+            }
+            if (ordered.length > 0) {
+                return ordered;
+            }
+            for (var i in timeFormats) {
+                var format = timeFormats[i];
+                var mode = map[format[0].toLowerCase()];
+                if (modes.indexOf(mode) > -1)
+                    ordered.push(mode);
+            }
+            return ordered;
+        }
+        // loop through the format to decide the position of the tumbler
         Repeater {
-            model: row.modes
+            model: positioner.tumblerModel
 
             Picker {
                 id: pickerUnit
@@ -392,7 +477,7 @@ StyledItem {
                         for (var i = 1; i <= date.daysInMonth(year, month); i++) {
                             var day = new Date(date);
                             day.setDate(i);
-                            days.push({'format': 'ddd dd', 'date': day});
+                            days.push({'format': 'dd ddd', 'date': day});
                             if (day.getDate() == date.getDate())
                                 selectedIndex = i - 1;
                         }
@@ -439,35 +524,15 @@ StyledItem {
                 }
                 live: false
                 circular: modelData != 'Years'
-                width: datePicker.width / row.modes.length
+                width: positioner.pickerSizes[index]
                 height: datePicker.height
-                property Label longDay: Label {
-                    visible: false
-                    text: {
-                        var lldn = 0;
-                        for (var day = 1; day <= 7; day++)
-                            lldn = Math.max(lldn, datePicker.locale.dayName(day, Locale.LongFormat));
-                        return lldn;
-                    }
-                }
-                property Label shortDay: Label {
-                    visible: false
-                    text: {
-                        var lldn = 0;
-                        for (var day = 1; day <= 7; day++)
-                            lldn = Math.max(lldn, datePicker.locale.dayName(day, Locale.ShortFormat));
-                        return lldn;
-                    }
-                }
                 delegate: PickerDelegate {
                     Label {
                         text: {
                             if (!modelData.hasOwnProperty('date'))
                                 return modelData;
                             var format = modelData.format;
-                            if (format.indexOf('d') > -1 ||
-                                format.indexOf('M') > -1 ||
-                                format.indexOf('y') > -1)
+                            if (format.match('[dMy]'))
                                 return Qt.formatDate(modelData.date, format);
                             return Qt.formatTime(modelData.date, format)
                         }
@@ -496,12 +561,17 @@ StyledItem {
     Binding {
         target: __styleInstance
         property: "view"
-        value: row
+        value: positioner
     }
     Binding {
         target: __styleInstance
         property: "pickerModels"
-        value: row.modes
+        value: positioner.tumblerModel
+    }
+    Binding {
+        target: __styleInstance
+        property: "pickerSizes"
+        value: positioner.pickerSizes
     }
     Binding {
         target: __styleInstance

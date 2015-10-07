@@ -53,7 +53,8 @@ Item {
     property string unitSeparator: ""
 
     property Item view: Item {}
-    property ListModel pickerModels: ListModel{}
+    property var/*FIXME: ListModel*/ pickerModels: []
+    property var pickerSizes: []
 
     anchors.fill: parent
 
@@ -137,13 +138,14 @@ Item {
             }
 
             Repeater {
-                model: pickerModels
+                id: pickers
+                model: pickerSizes
                 HighlightMagnifier {
                     anchors {
                         top: magnifierRow.top
                         bottom: magnifierRow.bottom
                     }
-                    width: pickerModel.pickerWidth
+                    width: modelData
                     scaleFactor: control.highlightScaleFactor
                     outputColor: control.highlightColor
                     source: effectSource
@@ -151,7 +153,7 @@ Item {
                                            width / source.sourceRect.width, 1.0);
 
                     Label {
-                        text: (index < (pickerModels.count - 1)) ? unitSeparator : ""
+                        text: (index < (pickers.count - 1)) ? unitSeparator : ""
                         anchors {
                             right: parent.right
                             verticalCenter: parent.verticalCenter
