@@ -13,7 +13,7 @@ CONFIGURE_SWITCHES = "-r" \
                      "ROOT_SOURCE_DIR=$(CURDIR)" \
                      "ROOT_BUILD_DIR=$(CURDIR)" 
 
-get-packaged-orig-source:
+get-orig-source:
 	cp -v ~/silos/$(SILONAME)/ubuntu-ui-toolkit_$(VERSION).orig.tar.gz \
 	      ~/silos/$(SILONAME)/ubuntu-ui-toolkit-gles_$(VERSION).orig.tar.gz
 
