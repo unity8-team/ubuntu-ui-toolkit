@@ -1,6 +1,7 @@
 #!/usr/bin/make -f
 
-SHELL=/bin/bash
+VERSION := $(shell dpkg-parsechangelog | sed -n -e's/^Version: \(.*\)-[^-]\+/\1/p')
+
 # Uncomment this to turn on verbose mode.
 # export DH_VERBOSE=1
 export DPKG_GENSYMBOLS_CHECK_LEVEL=4
@@ -13,7 +14,8 @@ CONFIGURE_SWITCHES = "-r" \
                      "ROOT_BUILD_DIR=$(CURDIR)" 
 
 get-packaged-orig-source:
-	cp -v ~/silos/$(SILONAME)/ubuntu-ui-toolkit{,-gles}_*.orig.tar*
+	cp -v ~/silos/$(SILONAME)/ubuntu-ui-toolkit_$(VERSION).orig.tar.gz \
+	      ~/silos/$(SILONAME)/ubuntu-ui-toolkit-gles_$(VERSION).orig.tar.gz
 
 %:
 	dh $@
