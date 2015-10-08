@@ -22,6 +22,7 @@ import Ubuntu.Components.Pickers 1.2 as NitPickers
 Template {
     objectName: "pickersTemplate"
     id: root
+    property real girth: units.gu(15)
 
     property var stringListModel: ["starred", "media-record", "like", "language-chooser", "go-home", "email", "contact-group", "notification", "active-call"]
     TemplateSection {
@@ -216,11 +217,12 @@ visible:false
             Loader { active: parent.visible
                 sourceComponent: Component {
             NitPickers.DatePicker {
-                width: units.gu(25)
+                width: root.girth
                 onDateChanged: print("picked date="+Qt.formatDate(date, "yyyy/MMMM/dd"))
             }
             } }
             DatePicker {
+                width: root.girth
                 onDateChanged: print("picked month="+Qt.formatDate(date, "yyyy/MMMM"))
             }
         }
@@ -229,12 +231,13 @@ visible:false
             Loader { active: parent.visible
                 sourceComponent: Component {
             NitPickers.DatePicker {
-                width: units.gu(25)
+                width: root.girth
                 mode: "Years|Months"
                 onDateChanged: print("picked month="+Qt.formatDate(date, "yyyy/MMMM"))
             }
             } }
             DatePicker {
+                width: root.girth
                 mode: "Years|Months"
                 onDateChanged: print("picked month="+Qt.formatDate(date, "yyyy/MMMM"))
             }
@@ -244,14 +247,14 @@ visible:false
             Loader { active: parent.visible
                 sourceComponent: Component {
             NitPickers.DatePicker {
-                width: units.gu(25)
+                width: root.girth
                 mode: "Hours|Minutes|Seconds"
                 date: new Date()
                 onDateChanged: print("picked time="+Qt.formatTime(date, "hh:mm:ss"))
             }
             } }
             DatePicker {
-                width: units.gu(25)
+                width: root.girth
                 mode: "Hours|Minutes|Seconds"
                 date: new Date()
                 onDateChanged: print("picked time="+Qt.formatTime(date, "hh:mm:ss"))

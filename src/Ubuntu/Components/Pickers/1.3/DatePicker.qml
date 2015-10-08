@@ -356,62 +356,73 @@ StyledItem {
             'm': 'Minutes',
             's': 'Seconds',
         }
-        property real narrowFormatLimit: textSizer.paintedWidth + 2 * units.gu(1.5)
-        property Label longMonth: Label {
-            visible: false
-            text: {
-                var lldn = 0;
-                for (var month = 0; month < 12; month++)
-                    lldn = Math.max(lldn, locale.monthName(month, Locale.LongFormat));
-                return lldn;
+        property real margin: 2 * units.gu(1.5)
+        property real narrowFormatLimit
+        property real shortYearLimit
+        property real longMonthLimit
+        property real shortMonthLimit
+        property real longDayLimit
+        property real shortDayLimit
+        Component.onCompleted: {
+            textSizer.text = '99';
+            narrowFormatLimit = textSizer.paintedWidth + margin;
+            textSizer.text = '9999';
+            shortYearLimit = textSizer.paintedWidth + margin;
+            var width = narrowFormatLimit;
+            for (var i = 0; i < 12; i++) {
+                textSizer.text = locale.monthName(i, Locale.LongFormat);
+                width = Math.max(width, textSizer.paintedWidth + margin);
             }
-        }
-         property Label longDay: Label {
-            visible: false
-            text: {
-                var lldn = 0;
-                for (var day = 1; day <= 7; day++)
-                    lldn = Math.max(lldn, datePicker.locale.dayName(day, Locale.LongFormat));
-                return lldn;
+            longMonthLimit = width;
+            width = narrowFormatLimit;
+            for (var i = 0; i < 12; i++) {
+                textSizer.text = locale.monthName(i, Locale.ShortFormat);
+                width = Math.max(width, textSizer.paintedWidth + margin);
             }
-        }
-        property Label shortDay: Label {
-            visible: false
-            text: {
-                var lldn = 0;
-                for (var day = 1; day <= 7; day++)
-                    lldn = Math.max(lldn, datePicker.locale.dayName(day, Locale.ShortFormat));
-                return lldn;
+            shortMonthLimit = width;
+            width = narrowFormatLimit;
+            for (var i = 0; i < 7; i++) {
+                textSizer.text = locale.dayName(i, Locale.LongFormat);
+                width = Math.max(width, textSizer.paintedWidth + margin);
             }
+            longDayLimit = width;
+            width = narrowFormatLimit;
+            for (var i = 0; i < 7; i++) {
+                textSizer.text = locale.dayName(i, Locale.ShortFormat);
+                width = Math.max(width, textSizer.paintedWidth + margin);
+            }
+            shortDayLimit = width;
         }
         property real dayPickerRatio: {
             var maxWidth = 0.0;
             if (modes.indexOf('Years') > -1)
-                maxWidth += narrowFormatLimit.paintedWidth
+                maxWidth += shortYearLimit;
             if (modes.indexOf('Months') > -1)
-                maxWidth += longMonth.paintedWidth
+                maxWidth += longMonthLimit;
             if (modes.indexOf('Days') > -1) {
-                maxWidth += longDay.paintedWidth
-                return (longDay.paintedWidth / maxWidth).toPrecision(3);
+                maxWidth += longDayLimit;
+                return (longDayLimit / maxWidth).toPrecision(3);
             }
             return 0.1
         }
         property real daysWidth: {
             var w = Math.max(datePicker.width * dayPickerRatio, narrowFormatLimit);
-            if (w < longDay.paintedWidth && w >= shortDay.paintedWidth)
-                return shortDay.paintedWidth;
+            if (w < longDayLimit && w >= shortDayLimit)
+                return shortDayLimit;
             return narrowFormatLimit;
         }
         property var pickerSizes: {
-        var sizes = [];
+            var sizes = [];
             for (var i in tumblerModel) {
                 var mode = tumblerModel[i];
                 if (mode == 'Months')
-                    sizes.push(MathUtils.clamp(datePicker.width - narrowFormatLimit - daysWidth, narrowFormatLimit, longMonth.paintedWidth));
+                    sizes.push(MathUtils.clamp(datePicker.width - narrowFormatLimit - daysWidth, narrowFormatLimit, longMonthLimit));
                 else if (mode == 'Days')
                     sizes.push(daysWidth);
-                 else
-                sizes.push(narrowFormatLimit);
+                else if (mode == 'Years')
+                    sizes.push(shortYearLimit);
+                else
+                    sizes.push(narrowFormatLimit);
             }
             return sizes;
         }
@@ -463,21 +474,32 @@ StyledItem {
                         if (to < 0 || to > 11)
                             to = 11;
                         from = (to < 11) ? minimum.getMonth() : 0;
+                        var format = datePicker.width >= positioner.longMonthLimit ? 'MMMM' : 'MMM';
+                        var format = 'MM';
+                        if (datePicker.width >= positioner.longMonthLimit)
+                           format = 'MMMM';
+                        else if (datePicker.width >= positioner.shortMonthLimit)
+                           format = 'MMM';
                         var months = [];
                         for (var i = from; i <= from + to; i++) {
                             var month = new Date(date);
                             month.setMonth(i)
-                            months.push({'format': 'MMM', 'date': month});
+                            months.push({'format': format, 'date': month});
                             if (month.getMonth() == date.getMonth())
                                 selectedIndex = i - from;
                         }
                         return months;
                     case "Days":
+                        var format = 'dd';
+                        if (datePicker.width >= positioner.longDayLimit)
+                           format += ' dddd';
+                        else if (datePicker.width >= positioner.shortDayLimit)
+                           format += ' ddd';
                         var days = [];
                         for (var i = 1; i <= date.daysInMonth(year, month); i++) {
                             var day = new Date(date);
                             day.setDate(i);
-                            days.push({'format': 'dd ddd', 'date': day});
+                            days.push({'format': format, 'date': day});
                             if (day.getDate() == date.getDate())
                                 selectedIndex = i - 1;
                         }
@@ -553,7 +575,6 @@ StyledItem {
     Label {
         id: textSizer
         visible: false
-        text: '9999'
     }
 
     theme.version: Ubuntu.toolkitVersion
