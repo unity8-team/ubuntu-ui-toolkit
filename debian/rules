@@ -13,7 +13,7 @@ CONFIGURE_SWITCHES = "-r" \
                      "ROOT_BUILD_DIR=$(CURDIR)" 
 
 get-packaged-orig-source:
-	cp -v /var/lib/jenkins/silos/$(SILONAME)/ubuntu-ui-toolkit{,-gles}_*.orig.tar*
+	cp -v ~/silos/$(SILONAME)/ubuntu-ui-toolkit{,-gles}_*.orig.tar*
 
 %:
 	dh $@
