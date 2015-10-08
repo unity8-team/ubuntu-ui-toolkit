@@ -311,7 +311,7 @@ void QuickPlusDropShadow::itemChange(ItemChange change, const ItemChangeData& da
     if (change == ItemOpacityHasChanged) {
         // The opacity is stored per vertex (together with the color) so that
         // drop shadows of different opacities (and colors) can be batched in
-        // the same draw call by the batched renderer. So we explicitely request
+        // the same draw call by the batched renderer. So we explicitly request
         // an update when it's changed.
         update();
     }
