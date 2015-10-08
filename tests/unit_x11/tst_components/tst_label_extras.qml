@@ -19,7 +19,7 @@ import QtTest 1.0
 import Ubuntu.Test 1.0
 import Ubuntu.Components 1.3
 
-MainView {
+Item {
     id: main
     width: units.gu(40)
     height: units.gu(70)
@@ -43,6 +43,7 @@ MainView {
         function test_label_with_button_bug1503901() {
             // this should SEGFAULT on error!
             var test = labelWithButton.createObject(main);
+            test.destroy();
         }
     }
 }
