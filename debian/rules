@@ -1,5 +1,6 @@
 #!/usr/bin/make -f
 
+SHELL=/bin/bash
 # Uncomment this to turn on verbose mode.
 # export DH_VERBOSE=1
 export DPKG_GENSYMBOLS_CHECK_LEVEL=4
@@ -10,6 +11,10 @@ DEB_HOST_ARCH ?= $(shell dpkg-architecture -qDEB_HOST_ARCH)
 CONFIGURE_SWITCHES = "-r" \
                      "ROOT_SOURCE_DIR=$(CURDIR)" \
                      "ROOT_BUILD_DIR=$(CURDIR)" 
+
+get-packaged-orig-source:
+	cp -v /var/lib/jenkins/silos/$(SILONAME)/ubuntu-ui-toolkit{,-gles}_*.orig.tar*
+
 %:
 	dh $@
 
