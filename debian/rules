@@ -1,5 +1,8 @@
 #!/usr/bin/make -f
 
+VERSION := $(shell dpkg-parsechangelog | sed -n -e's/^Version: \(.*\)-[^-]\+/\1/p')
+SOURCE := $(shell dpkg-parsechangelog | sed -n -e's/^Source: \(.*\)-gles/\1/p')
+
 # Uncomment this to turn on verbose mode.
 # export DH_VERBOSE=1
 export DPKG_GENSYMBOLS_CHECK_LEVEL=4
@@ -10,6 +13,12 @@ DEB_HOST_ARCH ?= $(shell dpkg-architecture -qDEB_HOST_ARCH)
 CONFIGURE_SWITCHES = "-r" \
                      "ROOT_SOURCE_DIR=$(CURDIR)" \
                      "ROOT_BUILD_DIR=$(CURDIR)" 
+
+# Don't try this at /home/: It will only work within https://ci-train.ubuntu.com
+get-orig-source:
+	cp -v ~/silos/$(SILONAME)/$(SOURCE)_$(VERSION).orig.tar.gz \
+	      $(CURDIR)/$(SOURCE)-gles_$(VERSION).orig.tar.gz
+
 %:
 	dh $@
 

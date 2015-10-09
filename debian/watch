@@ -1,3 +1,0 @@
-version=3
-opts=dversionmangle=s/\-gles// \
-http://ppa.launchpad.net/ci-train-ppa-service/landing-023/ubuntu/pool/main/u/ubuntu-ui-toolkit/ubuntu-ui-toolkit_([^-]*)\.orig.tar.gz
