@@ -13,9 +13,10 @@ CONFIGURE_SWITCHES = "-r" \
                      "ROOT_SOURCE_DIR=$(CURDIR)" \
                      "ROOT_BUILD_DIR=$(CURDIR)" 
 
-get-orig-source:
+override_dh_auto_clean:
 	cp -v ~/silos/$(SILONAME)/ubuntu-ui-toolkit_$(VERSION).orig.tar.gz \
 	      ~/silos/$(SILONAME)/ubuntu-ui-toolkit-gles_$(VERSION).orig.tar.gz
+	dh_auto_clean
 
 %:
 	dh $@
