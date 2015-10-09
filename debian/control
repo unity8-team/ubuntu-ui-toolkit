@@ -58,7 +58,6 @@ Build-Depends: debhelper (>= 9.0.0),
                libqt5quickwidgets5-gles,
                liblttng-ust-dev,
 Standards-Version: 3.9.4
-X-Auto-Uploader: no-rewrite-version
 Homepage: https://launchpad.net/ubuntu-ui-toolkit
 
 Package: qtdeclarative5-ubuntu-ui-toolkit-plugin-gles
