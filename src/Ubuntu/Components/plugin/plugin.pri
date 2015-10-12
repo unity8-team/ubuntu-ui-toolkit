@@ -9,6 +9,8 @@ equals(QT_MAJOR_VERSION, 5):lessThan(QT_MINOR_VERSION, 2) {
     QT += v8-private
 }
 
+QMAKE_CXXFLAGS_WARN_OFF -= -Wunused-parameter
+
 CONFIG += no_keywords
 
 # QOrganizer
