@@ -28,7 +28,7 @@ const int maxTextures = 16;
 
 static struct { QOpenGLContext* openglContext; quint32 textureId; } textures[maxTextures];
 
-class QuickPlusDropShadowMaterial : public QSGMaterial
+class DropShadowMaterial : public QSGMaterial
 {
 public:
     struct Data {
@@ -40,7 +40,7 @@ public:
         quint8 flags;
     };
 
-    QuickPlusDropShadowMaterial();
+    DropShadowMaterial();
     virtual QSGMaterialType* type() const;
     virtual QSGMaterialShader* createShader() const;
     virtual int compare(const QSGMaterial* other) const;
@@ -53,10 +53,10 @@ private:
 
 // --- Shader ---
 
-class QuickPlusDropShadowShader : public QSGMaterialShader
+class DropShadowShader : public QSGMaterialShader
 {
 public:
-    QuickPlusDropShadowShader();
+    DropShadowShader();
     virtual char const* const* attributeNames() const;
     virtual void initialize();
     virtual void updateState(
@@ -67,13 +67,13 @@ private:
     int m_opacityId;
 };
 
-QuickPlusDropShadowShader::QuickPlusDropShadowShader()
+DropShadowShader::DropShadowShader()
 {
     setShaderSourceFile(QOpenGLShader::Vertex, QStringLiteral(":/shaders/dropshadow.vert"));
     setShaderSourceFile(QOpenGLShader::Fragment, QStringLiteral(":/shaders/dropshadow.frag"));
 }
 
-char const* const* QuickPlusDropShadowShader::attributeNames() const
+char const* const* DropShadowShader::attributeNames() const
 {
     static char const* const attributes[] = {
         "positionAttrib", "shadowCoordAttrib", "colorAttrib", 0
@@ -81,7 +81,7 @@ char const* const* QuickPlusDropShadowShader::attributeNames() const
     return attributes;
 }
 
-void QuickPlusDropShadowShader::initialize()
+void DropShadowShader::initialize()
 {
     QSGMaterialShader::initialize();
     program()->bind();
@@ -90,15 +90,15 @@ void QuickPlusDropShadowShader::initialize()
     m_opacityId = program()->uniformLocation("opacity");
 }
 
-void QuickPlusDropShadowShader::updateState(
+void DropShadowShader::updateState(
     const RenderState& state, QSGMaterial* newEffect, QSGMaterial* oldEffect)
 {
     Q_UNUSED(oldEffect);
 
-    const QuickPlusDropShadowMaterial::Data* data =
-        static_cast<QuickPlusDropShadowMaterial*>(newEffect)->constData();
+    const DropShadowMaterial::Data* data =
+        static_cast<DropShadowMaterial*>(newEffect)->constData();
     glBindTexture(GL_TEXTURE_2D, data->textureId);
-    if (data->flags & QuickPlusDropShadowMaterial::Data::FilterDirty) {
+    if (data->flags & DropShadowMaterial::Data::FilterDirty) {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, data->filter);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, data->filter);
     }
@@ -113,27 +113,27 @@ void QuickPlusDropShadowShader::updateState(
 
 // --- Material ---
 
-QuickPlusDropShadowMaterial::QuickPlusDropShadowMaterial()
+DropShadowMaterial::DropShadowMaterial()
 {
     memset(&m_data, 0, sizeof(Data));
     setFlag(Blending, true);
 }
 
-QSGMaterialType* QuickPlusDropShadowMaterial::type() const
+QSGMaterialType* DropShadowMaterial::type() const
 {
     static QSGMaterialType type;
     return &type;
 }
 
-QSGMaterialShader* QuickPlusDropShadowMaterial::createShader() const
+QSGMaterialShader* DropShadowMaterial::createShader() const
 {
-    return new QuickPlusDropShadowShader;
+    return new DropShadowShader;
 }
 
-int QuickPlusDropShadowMaterial::compare(const QSGMaterial* other) const
+int DropShadowMaterial::compare(const QSGMaterial* other) const
 {
-    const QuickPlusDropShadowMaterial::Data* otherData =
-        static_cast<const QuickPlusDropShadowMaterial*>(other)->constData();
+    const DropShadowMaterial::Data* otherData =
+        static_cast<const DropShadowMaterial*>(other)->constData();
     return memcmp(&m_data, otherData, sizeof(m_data));
 }
 
@@ -152,11 +152,11 @@ public:
     static const QSGGeometry::AttributeSet& attributeSet();
 
     QuickPlusDropShadowNode();
-    QuickPlusDropShadowMaterial* material() { return &m_material; }
+    DropShadowMaterial* material() { return &m_material; }
     QSGGeometry* geometry() { return &m_geometry; }
 
 private:
-    QuickPlusDropShadowMaterial m_material;
+    DropShadowMaterial m_material;
     QSGGeometry m_geometry;
 };
 
@@ -391,7 +391,7 @@ QSGNode* QuickPlusDropShadow::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeD
 
     // Update node's material.
     const int filters[2] = { GL_LINEAR, GL_LINEAR_MIPMAP_LINEAR };
-    QuickPlusDropShadowMaterial::Data* materialData =
+    DropShadowMaterial::Data* materialData =
         static_cast<QuickPlusDropShadowNode*>(node)->material()->data();
     materialData->textureId = textures[index].textureId;
     materialData->filter = filters[m_quality];
