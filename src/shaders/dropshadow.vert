@@ -17,9 +17,9 @@
 
 uniform highp mat4 matrix;
 attribute highp vec4 positionAttrib;
-attribute lowp vec2 shadowCoordAttrib;
+attribute mediump vec2 shadowCoordAttrib;
 attribute lowp vec4 colorAttrib;
-varying lowp vec2 shadowCoord;
+varying mediump vec2 shadowCoord;
 varying lowp vec4 color;
 
 void main()

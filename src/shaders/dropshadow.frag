@@ -16,7 +16,7 @@
 // along with Quick+. If not, see <http://www.gnu.org/licenses/>.
 
 uniform sampler2D shadowTexture;
-varying lowp vec2 shadowCoord;
+varying mediump vec2 shadowCoord;
 varying lowp vec4 color;
 
 void main(void)
