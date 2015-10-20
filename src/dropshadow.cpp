@@ -140,7 +140,7 @@ int DropShadowMaterial::compare(const QSGMaterial* other) const
 
 // --- Node ---
 
-class QuickPlusDropShadowNode : public QSGGeometryNode
+class DropShadowNode : public QSGGeometryNode
 {
 public:
     struct Vertex {
@@ -152,7 +152,7 @@ public:
     static const unsigned short* indices();
     static const QSGGeometry::AttributeSet& attributeSet();
 
-    QuickPlusDropShadowNode();
+    DropShadowNode();
     DropShadowMaterial* material() { return &m_material; }
     QSGGeometry* geometry() { return &m_geometry; }
 
@@ -161,7 +161,7 @@ private:
     QSGGeometry m_geometry;
 };
 
-QuickPlusDropShadowNode::QuickPlusDropShadowNode()
+DropShadowNode::DropShadowNode()
     : QSGGeometryNode()
     , m_material()
     , m_geometry(attributeSet(), 16, 18, GL_UNSIGNED_SHORT)
@@ -178,7 +178,7 @@ QuickPlusDropShadowNode::QuickPlusDropShadowNode()
 }
 
 // static
-const unsigned short* QuickPlusDropShadowNode::indices()
+const unsigned short* DropShadowNode::indices()
 {
     // The geometry is made of 16 vertices indexed with a triangle strip mode.
     //     0 ---- 1 ---- 2
@@ -195,7 +195,7 @@ const unsigned short* QuickPlusDropShadowNode::indices()
 }
 
 // static
-const QSGGeometry::AttributeSet& QuickPlusDropShadowNode::attributeSet()
+const QSGGeometry::AttributeSet& DropShadowNode::attributeSet()
 {
     static const QSGGeometry::Attribute attributes[] = {
         QSGGeometry::Attribute::create(0, 2, GL_FLOAT, true),
@@ -390,20 +390,19 @@ QSGNode* QuickPlusDropShadow::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeD
             });
     }
 
-    QSGNode* node = oldNode ? oldNode : new QuickPlusDropShadowNode;
+    QSGNode* node = oldNode ? oldNode : new DropShadowNode;
 
     // Update node's material.
     const int filters[2] = { GL_LINEAR, GL_LINEAR_MIPMAP_LINEAR };
-    DropShadowMaterial::Data* materialData =
-        static_cast<QuickPlusDropShadowNode*>(node)->material()->data();
+    DropShadowMaterial::Data* materialData = static_cast<DropShadowNode*>(node)->material()->data();
     materialData->textureId = textures[index].textureId;
     materialData->filter = filters[m_quality];
     materialData->flags = (m_flags & FilterDirty);
     m_flags = 0;
 
     // Update node's geometry.
-    QuickPlusDropShadowNode::Vertex* v = reinterpret_cast<QuickPlusDropShadowNode::Vertex*>(
-        static_cast<QuickPlusDropShadowNode*>(node)->geometry()->vertexData());
+    DropShadowNode::Vertex* v = reinterpret_cast<DropShadowNode::Vertex*>(
+        static_cast<DropShadowNode*>(node)->geometry()->vertexData());
     const float halfWidth = itemSize.width() * 0.5f;
     const float halfHeight = itemSize.height() * 0.5f;
     const float size = qMin(qMin(halfWidth, halfHeight), unquantizeFromU16(m_size, maxSize));
