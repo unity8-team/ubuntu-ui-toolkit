@@ -62,6 +62,7 @@ public:
 
 private:
     int m_matrixId;
+    int m_opacityId;
 };
 
 QuickPlusDropShadowShader::QuickPlusDropShadowShader()
@@ -84,6 +85,7 @@ void QuickPlusDropShadowShader::initialize()
     program()->bind();
     program()->setUniformValue("texture", 0);
     m_matrixId = program()->uniformLocation("matrix");
+    m_opacityId = program()->uniformLocation("opacity");
 }
 
 void QuickPlusDropShadowShader::updateState(
@@ -101,6 +103,9 @@ void QuickPlusDropShadowShader::updateState(
 
     if (state.isMatrixDirty()) {
         program()->setUniformValue(m_matrixId, state.combinedMatrix());
+    }
+    if (state.isOpacityDirty()) {
+        program()->setUniformValue(m_opacityId, state.opacity());
     }
 }
 
@@ -306,18 +311,6 @@ void QuickPlusDropShadow::setQuality(Quality quality)
     }
 }
 
-void QuickPlusDropShadow::itemChange(ItemChange change, const ItemChangeData& data)
-{
-    if (change == ItemOpacityHasChanged) {
-        // The opacity is stored per vertex (together with the color) so that
-        // drop shadows of different opacities (and colors) can be batched in
-        // the same draw call by the batched renderer. So we explicitly request
-        // an update when it's changed.
-        update();
-    }
-    QQuickItem::itemChange(change, data);
-}
-
 // Gets the textures' slot used by the given context, or -1 if not stored.
 static int getTexturesIndex(const QOpenGLContext* openglContext)
 {
@@ -346,11 +339,10 @@ static int getEmptyTexturesIndex()
     return index;
 }
 
-// Pack a color and opacity in a premultiplied 32-bit ABGR value.
-static quint32 packColor(QRgb color, float opacity)
+// Pack a color in a premultiplied 32-bit ABGR value.
+static quint32 packColor(QRgb color)
 {
-    const quint32 quantizedOpacity = static_cast<quint32>((opacity * 255.0f) + 0.5f);
-    const quint32 a = ((qAlpha(color) * quantizedOpacity) + 0xff) >> 8;
+    const quint32 a = qAlpha(color);
     const quint32 b = ((qBlue(color) * a) + 0xff) >> 8;
     const quint32 g = ((qGreen(color) * a) + 0xff) >> 8;
     const quint32 r = ((qRed(color) * a) + 0xff) >> 8;
@@ -413,7 +405,7 @@ QSGNode* QuickPlusDropShadow::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeD
     const float size = qMin(qMin(halfWidth, halfHeight), unquantizeFromU16(m_size, maxSize));
     const float shadowMiddleS = (halfWidth + size) / (2.0f * size);
     const float shadowMiddleT = (halfHeight + size) / (2.0f * size);
-    const quint32 color = packColor(m_color, opacity());
+    const quint32 color = packColor(m_color);
     // 1st row
     v[0].position[0] = -size;
     v[0].position[1] = -size;

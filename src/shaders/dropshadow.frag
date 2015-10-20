@@ -16,10 +16,11 @@
 // along with Quick+. If not, see <http://www.gnu.org/licenses/>.
 
 uniform sampler2D shadowTexture;
+uniform lowp float opacity;
 varying mediump vec2 shadowCoord;
 varying lowp vec4 color;
 
 void main(void)
 {
-    gl_FragColor = texture2D(shadowTexture, shadowCoord).rrrr * color;
+    gl_FragColor = vec4(texture2D(shadowTexture, shadowCoord).r * opacity) * color;
 }

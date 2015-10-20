@@ -54,7 +54,6 @@ Q_SIGNALS:
     void qualityChanged();
 
 private:
-    virtual void itemChange(ItemChange change, const ItemChangeData& data);
     virtual QSGNode* updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData* data);
 
     QRgb m_color;

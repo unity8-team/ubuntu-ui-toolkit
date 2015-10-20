@@ -21,8 +21,9 @@ in vec2 shadowCoord;
 in vec4 color;
 out vec4 fragColor;
 uniform sampler2D shadowTexture;
+uniform float opacity;
 
 void main(void)
 {
-    fragColor = texture2D(shadowTexture, shadowCoord).rrrr * color;
+    fragColor = (texture2D(shadowTexture, shadowCoord).r * opacity) * color;
 }
