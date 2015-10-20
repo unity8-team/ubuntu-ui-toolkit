@@ -172,9 +172,7 @@ DropShadowNode::DropShadowNode()
     m_geometry.setVertexDataPattern(QSGGeometry::AlwaysUploadPattern);
     setMaterial(&m_material);
     setGeometry(&m_geometry);
-#ifdef QSG_RUNTIME_DESCRIPTION
     qsgnode_set_description(this, QLatin1String("dropshadow"));
-#endif
 }
 
 // static
