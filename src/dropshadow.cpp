@@ -21,6 +21,7 @@
 #include <QtQuick/QSGNode>
 #include <QtQuick/QSGMaterial>
 #include <QtGui/QOpenGLContext>
+#include <QtGui/QOpenGLFunctions>
 
 const float maxSize = 512.0f;
 const float maxDistance = 512.0f;
@@ -95,12 +96,12 @@ void DropShadowShader::updateState(
 {
     Q_UNUSED(oldEffect);
 
-    const DropShadowMaterial::Data* data =
-        static_cast<DropShadowMaterial*>(newEffect)->constData();
-    glBindTexture(GL_TEXTURE_2D, data->textureId);
+    QOpenGLFunctions* funcs = QOpenGLContext::currentContext()->functions();
+    const DropShadowMaterial::Data* data = static_cast<DropShadowMaterial*>(newEffect)->constData();
+    funcs->glBindTexture(GL_TEXTURE_2D, data->textureId);
     if (data->flags & DropShadowMaterial::Data::FilterDirty) {
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, data->filter);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, data->filter);
+        funcs->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, data->filter);
+        funcs->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, data->filter);
     }
 
     if (state.isMatrixDirty()) {
@@ -369,21 +370,23 @@ QSGNode* QuickPlusDropShadow::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeD
     Q_ASSERT(openglContext);
     int index = getTexturesIndex(openglContext);
     if (index < 0) {
+        QOpenGLFunctions* funcs = openglContext->functions();
         index = getEmptyTexturesIndex();
         textures[index].openglContext = openglContext;
-        glGenTextures(1, &textures[index].textureId);
-        glBindTexture(GL_TEXTURE_2D, textures[index].textureId);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        funcs->glGenTextures(1, &textures[index].textureId);
+        funcs->glBindTexture(GL_TEXTURE_2D, textures[index].textureId);
+        funcs->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        funcs->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         for (int i = 0; i < dropShadowMipmapCount; i++) {
-            glTexImage2D(GL_TEXTURE_2D, i, GL_LUMINANCE, dropShadowBaseLevelSize >> i,
-                         dropShadowBaseLevelSize >> i, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE,
-                         &dropShadowData[dropShadowOffsets[i]]);
+            funcs->glTexImage2D(GL_TEXTURE_2D, i, GL_LUMINANCE, dropShadowBaseLevelSize >> i,
+                                dropShadowBaseLevelSize >> i, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE,
+                                &dropShadowData[dropShadowOffsets[i]]);
         }
         connect(
             openglContext, &QOpenGLContext::aboutToBeDestroyed, [index] {
+                QOpenGLFunctions* funcs = textures[index].openglContext->functions();
+                funcs->glDeleteTextures(1, &textures[index].textureId);
                 textures[index].openglContext = NULL;
-                glDeleteTextures(1, &textures[index].textureId);
             });
     }
 
