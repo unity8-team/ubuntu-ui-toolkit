@@ -33,7 +33,7 @@ class QuickPlusDropShadow : public QQuickItem
 public:
     QuickPlusDropShadow(QQuickItem* parent = 0);
 
-    enum Quality { Low = 0, Medium = 1, High = 2 };
+    enum Quality { Low = 0, High = 1 };
 
     qreal size() const;
     void setSize(qreal size);
@@ -56,12 +56,15 @@ Q_SIGNALS:
 private:
     virtual QSGNode* updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData* data);
 
+    enum { FilterDirty = (1 << 0) };
+
     QRgb m_color;
     quint16 m_size;
     quint16 m_angle;
     quint16 m_distance;
-    quint8 m_quality : 2;
-    quint8 __padding : 6;
+    quint8 m_quality : 1;
+    quint8 __padding : 7;
+    quint8 m_flags;
 
     Q_DISABLE_COPY(QuickPlusDropShadow)
 };

@@ -7,7 +7,7 @@ Item {
     height: 600
     focus: true
 
-    property variant qualityTable: [ "Low", "Medium", "High" ]
+    property variant qualityTable: [ "Low", "High" ]
 
     property string textOverlayString:
         "size     (s/S): " + dropShadow.size.toFixed(1) + "\n" +
@@ -59,7 +59,7 @@ Item {
         } else if (event.key == Qt.Key_C) {
             dropShadow.color = Qt.rgba(Math.random(), Math.random(), Math.random(), 1.0);
         } else if (event.key == Qt.Key_Q) {
-            dropShadow.quality = dropShadow.quality = (dropShadow.quality + 1) % 3;
+            dropShadow.quality = dropShadow.quality = (dropShadow.quality + 1) % 2;
         } else if (event.key == Qt.Key_O) {
             dropShadow.opacity = dropShadow.opacity + (shift ? 0.02 : -0.02);
         }

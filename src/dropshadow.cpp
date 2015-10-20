@@ -32,10 +32,12 @@ class QuickPlusDropShadowMaterial : public QSGMaterial
 {
 public:
     struct Data {
+        // To be kept in sync with QuickPlusDropShadow flags.
+        enum { FilterDirty = (1 << 0) };
+
         quint32 textureId;
-        GLint baseLevel;
-        GLint maxLevel;
         GLint filter;
+        quint8 flags;
     };
 
     QuickPlusDropShadowMaterial();
@@ -96,10 +98,10 @@ void QuickPlusDropShadowShader::updateState(
     const QuickPlusDropShadowMaterial::Data* data =
         static_cast<QuickPlusDropShadowMaterial*>(newEffect)->constData();
     glBindTexture(GL_TEXTURE_2D, data->textureId);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, data->maxLevel);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, data->baseLevel);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, data->filter);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, data->filter);
+    if (data->flags & QuickPlusDropShadowMaterial::Data::FilterDirty) {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, data->filter);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, data->filter);
+    }
 
     if (state.isMatrixDirty()) {
         program()->setUniformValue(m_matrixId, state.combinedMatrix());
@@ -228,7 +230,8 @@ QuickPlusDropShadow::QuickPlusDropShadow(QQuickItem* parent)
     , m_size(quantizeToU16(30, maxSize))
     , m_angle(0)
     , m_distance(0)
-    , m_quality(Medium)
+    , m_quality(Low)
+    , m_flags(FilterDirty)
 {
     setOpacity(0.5);
     setFlag(ItemHasContents);
@@ -306,6 +309,7 @@ void QuickPlusDropShadow::setQuality(Quality quality)
 {
     if (m_quality != quality) {
         m_quality = quality;
+        m_flags |= FilterDirty;
         update();
         Q_EMIT qualityChanged();
     }
@@ -371,7 +375,7 @@ QSGNode* QuickPlusDropShadow::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeD
         glBindTexture(GL_TEXTURE_2D, textures[index].textureId);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        for (int i = 0; i <= dropShadowMaxLevel; i++) {
+        for (int i = 0; i < dropShadowMipmapCount; i++) {
             glTexImage2D(GL_TEXTURE_2D, i, GL_LUMINANCE, dropShadowBaseLevelSize >> i,
                          dropShadowBaseLevelSize >> i, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE,
                          &dropShadowData[dropShadowOffsets[i]]);
@@ -386,16 +390,13 @@ QSGNode* QuickPlusDropShadow::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeD
     QSGNode* node = oldNode ? oldNode : new QuickPlusDropShadowNode;
 
     // Update node's material.
-    const int baseLevels[3] = { dropShadowLowQualityLevel, dropShadowMediumQualityLevel, 0 };
-    const int maxLevels[3] =
-        { dropShadowLowQualityLevel, dropShadowMediumQualityLevel, dropShadowMaxLevel };
-    const int filters[3] = { GL_LINEAR, GL_LINEAR, GL_LINEAR_MIPMAP_LINEAR };
+    const int filters[2] = { GL_LINEAR, GL_LINEAR_MIPMAP_LINEAR };
     QuickPlusDropShadowMaterial::Data* materialData =
         static_cast<QuickPlusDropShadowNode*>(node)->material()->data();
     materialData->textureId = textures[index].textureId;
-    materialData->baseLevel = baseLevels[m_quality];
-    materialData->maxLevel = maxLevels[m_quality];
     materialData->filter = filters[m_quality];
+    materialData->flags = (m_flags & FilterDirty);
+    m_flags = 0;
 
     // Update node's geometry.
     QuickPlusDropShadowNode::Vertex* v = reinterpret_cast<QuickPlusDropShadowNode::Vertex*>(
