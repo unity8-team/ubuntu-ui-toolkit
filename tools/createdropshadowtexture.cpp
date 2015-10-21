@@ -27,13 +27,13 @@
 const int baseLevelSize = 256;
 const int mipmapCount = 9;  // There are 9 levels from 256 to 1.
 
-static quint8 data[baseLevelSize * baseLevelSize];
-static quint8 temp[baseLevelSize * baseLevelSize];
-static quint8 kernel[baseLevelSize];
+static double data[baseLevelSize * baseLevelSize];
+static double temp[baseLevelSize * baseLevelSize];
+static double kernel[baseLevelSize];
 
 Q_STATIC_ASSERT((baseLevelSize >= 16) && !((baseLevelSize - 1) & baseLevelSize));
 
-static void render(quint8* data, int size)
+static void render(double* data, int size)
 {
     Q_ASSERT(size >= 1);
 
@@ -42,34 +42,34 @@ static void render(quint8* data, int size)
     const int dataSize = width * height;
     const int kernelSize = size > 1 ? size - 1 : 2;
     const int halfKernelSize = kernelSize / 2;
-    int kernelSum = 0;
+    double kernelSum = 0.0;
 
     // Clear buffers.
-    memset(data, 0, baseLevelSize * baseLevelSize);
-    memset(temp, 0, baseLevelSize * baseLevelSize);
-    memset(kernel, 0, baseLevelSize);
+    memset(data, 0, baseLevelSize * baseLevelSize * sizeof(double));
+    memset(temp, 0, baseLevelSize * baseLevelSize * sizeof(double));
+    memset(kernel, 0, baseLevelSize * sizeof(double));
 
     // Generate the gaussian kernel.
-    const float std = 20.0 * (width / 128.0);
+    const double std = 20.0 * (width / 128.0);
     for (int i = 0; i < kernelSize; i++) {
-        int f = i - halfKernelSize;
-        kernel[i] = static_cast<int>(255.0 * exp(-f * f / (2.0 * std * std)));
+        const double f = i - halfKernelSize;
+        kernel[i] = exp(-f * f / (2.0 * std * std));
         kernelSum += kernel[i];
     }
 
     // Fill source buffer with a white rectangle at (width/2, height/2).
     for (int i = height / 2; i < height; i++) {
         for (int j = width / 2; j < width; j++) {
-            data[width * i + j] = 255;
+            data[width * i + j] = 1.0;
         }
     }
 
     // Compute the gaussian blur using separate horizontal and vertical passes.
     for (int i = 0; i < height; i++) {
-        quint8* src = &data[width * i];
-        quint8* dst = &temp[width * i];
+        double* src = &data[width * i];
+        double* dst = &temp[width * i];
         for (int j = 0; j < width; j++) {
-            int x = 0;
+            double x = 0;
             for (int k = 0; k < kernelSize; k++) {
                 x += src[qBound(0, j - halfKernelSize + k, width - 1)] * kernel[k];
             }
@@ -77,10 +77,10 @@ static void render(quint8* data, int size)
         }
     }
     for (int i = 0; i < height; i++) {
-        quint8* src = &temp[width * i];
-        quint8* dst = &data[width * i];
+        double* src = &temp[width * i];
+        double* dst = &data[width * i];
         for (int j = 0; j < width; j++) {
-            int x = 0;
+            double x = 0;
             for (int k = 0; k < kernelSize; k++) {
                 src = &temp[width * qBound(0, (i - halfKernelSize + k), height - 1)];
                 x += src[j] * kernel[k];
@@ -90,35 +90,23 @@ static void render(quint8* data, int size)
     }
 
     // Scale and clamp all the values so that once mapped on the scene graph
-    // geometry node, the highest mapped value is 255 (1.0) making shadow
-    // opacity changes a single multiplication.
-    const float scale = 255.0f / data[(width * (height / 2)) + (width - 1)];
+    // geometry, texels on the edge are set to 1.0, making shadow opacity
+    // changes a single multiplication.
+    const double scale = 1.0 / data[(width * (height / 2)) + (width - 1)];
     for (int i = 0; i < dataSize; i++) {
-        data[i] = static_cast<quint8>(qMin(255.0f, data[i] * scale));
+        data[i] = qMin(1.0, data[i] * scale);
     }
 }
 
-static void dump(QTextStream& cppOut, const quint8* data, int size)
+static void dump(QTextStream& cppOut, const double* data, int size)
 {
     cppOut.setIntegerBase(16);
-
-    const int squaredSize = size * size;
-    for (int i = 0; i < squaredSize; i++) {
-        if (i % 16 == 0) {
-            if (i != 0) {
-                cppOut << ",\n    ";
-            } else {
-                cppOut << "    ";
-            }
-        } else {
-            cppOut << ",";
-        }
-        cppOut << "0x"
+    for (int i = 0; i < size * size; i++) {
+        cppOut << ((i % 16 != 0) ? "," : ((i != 0) ? ",\n    " : "    ")) << "0x"
                << qSetFieldWidth(2) << qSetPadChar('0')
-               << data[i]
+               << static_cast<int>(data[i] * 255.0 + 0.5)  // Quantization.
                << qSetFieldWidth(0) << qSetPadChar(' ');
     }
-
     cppOut.setIntegerBase(10);
 }
 
