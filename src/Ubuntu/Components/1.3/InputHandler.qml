@@ -91,8 +91,8 @@ MultiPointTouchArea {
             return;
         if (flickable.contentX >= rect.x)
             flickable.contentX = rect.x;
-        else if (flickable.contentX + flickable.width <= rect.x + rect.width)
-            flickable.contentX = rect.x + rect.width - flickable.width;
+        else if (flickable.contentX + flickable.contentWidth <= rect.x + rect.width)
+            flickable.contentX = rect.x + rect.width - flickable.contentWidth;
         if (flickable.contentY >= rect.y)
             flickable.contentY = rect.y;
         else if (flickable.contentY + flickable.height <= rect.y + rect.height)

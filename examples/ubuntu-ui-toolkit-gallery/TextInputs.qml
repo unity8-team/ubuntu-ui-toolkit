@@ -87,6 +87,18 @@ Template {
         }
 
         TemplateRow {
+            title: i18n.tr("Website")
+
+            TextField {
+                objectName: "textfield_url"
+                text: 'http://max-skizzen-blog.blogspot.de/2009/10/hessen-eine-geschichte-von-robert.html?m=1'
+                width: parent.width
+                horizontalAlignment: TextInput.AlignHCenter
+                inputMethodHints: Qt.ImhUrlCharactersOnly
+            }
+        }
+
+        TemplateRow {
             title: i18n.tr("Disabled")
 
             TextField {
