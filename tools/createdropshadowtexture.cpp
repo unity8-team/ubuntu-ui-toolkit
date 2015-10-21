@@ -24,8 +24,8 @@
 #include <QtCore/QTextStream>
 #include <QtGui/QImage>
 
-const int baseLevelSize = 256;
-const int mipmapCount = 9;  // There are 9 levels from 256 to 1.
+const int baseLevelSize = 128;
+const int mipmapCount = 8;  // There are 8 levels from 128 to 1.
 
 static double data[baseLevelSize * baseLevelSize];
 static double temp[baseLevelSize * baseLevelSize];
