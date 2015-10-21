@@ -21,16 +21,16 @@ Item {
         id: scene
         anchors.fill: parent
 
+        DropShadow {
+            id: dropShadow
+            anchors.fill: parent
+            anchors.margins: 200.0
+        }
         Rectangle {
             id: rectangle
             anchors.fill: parent
             anchors.margins: 200.0
             color: "blue"
-        }
-        DropShadow {
-            id: dropShadow
-            anchors.fill: parent
-            anchors.margins: 200.0
         }
     }
 
