@@ -86,3 +86,4 @@ ListItemStyle 1.3 qrc:/Ubuntu/Components/Themes/Ambiance/1.3/ListItemStyle.qml
 internal SliderUtils qrc:/Ubuntu/Components/Themes/Ambiance/1.3/sliderUtils.js
 internal ScrollbarUtils qrc:/Ubuntu/Components/Themes/Ambiance/1.3/scrollbarUtils.js
 internal ColorUtils qrc:/Ubuntu/Components/Themes/Ambiance/1.3/colorUtils.js
+PageHeaderStyle 1.3 qrc:/Ubuntu/Components/Themes/Ambiance/1.3/PageHeaderStyle.qml

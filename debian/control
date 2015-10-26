@@ -8,6 +8,8 @@ Build-Depends: debhelper (>= 9.0.0),
                libglib2.0-dev,
                python3:any,
                qml-module-qtgraphicaleffects | libqt5qml-graphicaleffects,
+               libinput-dev,
+               libxkbcommon-dev,
                qtbase5-dev,
                qtbase5-private-dev,
                qttools5-dev-tools,
@@ -49,7 +51,8 @@ Build-Depends: debhelper (>= 9.0.0),
                libfreetype6-dev,
                libmtdev-dev,
                libudev-dev,
-               libxrender-dev
+               libxrender-dev,
+               liblttng-ust-dev
 Standards-Version: 3.9.4
 Homepage: https://launchpad.net/ubuntu-ui-toolkit
 # If you aren't a member of ~ubuntu-sdk-team but need to upload packaging
@@ -120,7 +123,7 @@ Description: Qt Components for Ubuntu - documentation
 Package: ubuntu-ui-toolkit-examples
 Section: devel
 Architecture: any
-Depends: qmlscene,
+Depends: ubuntu-ui-toolkit-tools (>= ${source:Version}),
          qtdeclarative5-ubuntu-ui-toolkit-plugin (= ${binary:Version}) | qtdeclarative5-ubuntu-ui-toolkit-plugin-gles,
          ubuntu-ui-toolkit-theme (= ${binary:Version}),
          qml-module-qtquick-xmllistmodel | qtdeclarative5-xmllistmodel-plugin,
@@ -157,6 +160,31 @@ Depends: ${misc:Depends},
          upstart,
          url-dispatcher-tools,
          qtdeclarative5-ubuntu-ui-toolkit-plugin (>= ${source:Version}) | qtdeclarative5-ubuntu-ui-toolkit-plugin-gles,
+         ubuntu-app-launch-profiler (>= ${source:Version}),
          qml-module-qttest | qtdeclarative5-test-plugin,
 Description: Test package for Ubuntu UI Toolkit
  Autopilot tests for the ubuntu-ui-toolkit package
+
+Package: ubuntu-app-launch-profiler
+Architecture: any
+Depends: ${misc:Depends},
+         ${shlibs:Depends},
+         lttng-tools,
+         python3-babeltrace
+Description: Qt Components for Ubuntu - startup time profiling tool
+ Qt Components for Ubuntu offers a set of reusable user interface
+ components for Qt Quick 2 / QML.
+ .
+ This package contains the application startup time profiling tools.
+
+Package: ubuntu-ui-toolkit-tools
+Architecture: any
+Depends: ${misc:Depends},
+         ${shlibs:Depends}
+Description: Qt Components for Ubuntu - productive tools
+ Qt Components for Ubuntu offers a set of reusable user interface
+ components for Qt Quick 2 / QML.
+ .
+ This package contains the application launcher, which is a drop-in
+ replacement for qmlscene, oxideqmlscene, qml and derivatives.
+

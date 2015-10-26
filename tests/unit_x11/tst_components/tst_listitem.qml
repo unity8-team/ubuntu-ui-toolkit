@@ -198,8 +198,8 @@ Item {
             signalName: "onTriggered"
         }
         SignalSpy {
-            id: interactiveSpy
-            signalName: "interactiveChanged"
+            id: flickableSpy
+            signalName: "movementStarted"
         }
 
         SignalSpy {
@@ -227,7 +227,7 @@ Item {
             actionSpy.clear();
             pressAndHoldSpy.clear();
             buttonSpy.clear();
-            interactiveSpy.clear();
+            flickableSpy.clear();
             listView.interactive = true;
             listView.ViewItems.selectMode = false;
             listView.ViewItems.dragMode = false;
@@ -235,8 +235,8 @@ Item {
             mouseClick(defaults, 0, 0)
             movingSpy.target = null;
             movingSpy.clear();
-            interactiveSpy.target = null;
-            interactiveSpy.clear();
+            flickableSpy.target = null;
+            flickableSpy.clear();
             trailing.delegate = null;
             listView.positionViewAtBeginning();
             // keep additional timeout for proper cleanup
@@ -434,6 +434,7 @@ Item {
             rebound(data.clickOn, data.item)
         }
 
+        // the function tests whether the Flickable/ListView moves when the ListItem is swiped
         function test_listview_not_interactive_while_tugged_data() {
             var item0 = findChild(listView, "listItem0");
             var item1 = findChild(listView, "listItem1");
@@ -446,17 +447,15 @@ Item {
         }
         function test_listview_not_interactive_while_tugged(data) {
             listView.positionViewAtBeginning();
-            interactiveSpy.target = listView;
+            flickableSpy.target = listView;
             compare(listView.interactive, true, "ListView is not interactive");
-            interactiveSpy.target = listView;
             if (data.mouse) {
-                swipe(data.item, data.pos.x, data.pos.y, data.dx, data.dy);
+                swipe(data.item, data.pos.x, data.pos.y, data.dx, units.gu(5));
             } else {
-                tug(data.item, data.pos.x, data.pos.y, data.dx, data.dy);
+                tug(data.item, data.pos.x, data.pos.y, data.dx, units.gu(5));
             }
             // animation should no longer be running!
-            compare(listView.interactive, true, "The ListView is still non-interactive!");
-            compare(interactiveSpy.count, 2, "Less/more times changed!");
+            compare(flickableSpy.count, 0, "Flickable moved!");
             // check if it snapped in
             verify(data.item.contentItem.x != 0.0, "Not snapped in!!");
             // dismiss
@@ -629,7 +628,7 @@ Item {
             wait(2000);
             verify(data.item.contentItem.x != data.item.contentItem.anchors.leftMargin, "Not snapped in");
 
-            var panel = panelItem(data.item, "Leading");
+            var panel = panelItem(data.item, true);
             var action = findChild(panel, "leading_2");
             verify(action, "actions panel cannot be reached");
             // we test the action closest to the list item's contentItem
@@ -724,11 +723,12 @@ Item {
         function test_listitem_blocks_ascendant_flickables() {
             var listItem = findChild(nestedListView, "listItem0");
             verify(listItem, "Cannot find test item");
-            interactiveSpy.target = testFlickable;
+            flickableSpy.target = testFlickable;
             // tug leading
             swipe(listItem, centerOf(listItem).x, centerOf(listItem).y, listItem.width / 2, 0);
             // check if interactive got changed
-            interactiveSpy.wait();
+            expectFailContinue("", "Flickable should not move");
+            flickableSpy.wait(200);
 
             // cleanup!!!
             rebound(listItem);
@@ -902,43 +902,52 @@ Item {
 
         function test_drag_data() {
             return [
-                {tag: "Live 0->1 OK", live: true, from: 0, to: 1, count: 1, accept: true, indices:[1,0,2,3,4]},
-                {tag: "Live 0->2 OK", live: true, from: 0, to: 2, count: 2, accept: true, indices:[1,2,0,3,4]},
-                {tag: "Live 0->3 OK", live: true, from: 0, to: 3, count: 3, accept: true, indices:[1,2,3,0,4]},
-                {tag: "Live 3->0 OK", live: true, from: 3, to: 0, count: 3, accept: true, indices:[3,0,1,2,4]},
+                // note: Live mode adds an extra drop event when the mouse/touch is released
+                {tag: "Live 0->1 OK", live: true, from: 0, to: 1, count: 1, dropCount: 1, accept: true, indices:[1,0,2,3,4]},
+                {tag: "Live 0->2 OK", live: true, from: 0, to: 2, count: 2, dropCount: 1, accept: true, indices:[1,2,0,3,4]},
+                {tag: "Live 0->3 OK", live: true, from: 0, to: 3, count: 3, dropCount: 1, accept: true, indices:[1,2,3,0,4]},
+                {tag: "Live 3->0 OK", live: true, from: 3, to: 0, count: 3, dropCount: 1, accept: true, indices:[3,0,1,2,4]},
                         // do not accept moves
-                {tag: "Live 0->1 NOK", live: true, from: 0, to: 1, count: 0, accept: false, indices:[0,1,2,3,4]},
-                {tag: "Live 0->2 NOK", live: true, from: 0, to: 2, count: 0, accept: false, indices:[0,1,2,3,4]},
-                {tag: "Live 0->3 NOK", live: true, from: 0, to: 3, count: 0, accept: false, indices:[0,1,2,3,4]},
-                {tag: "Live 3->0 NOK", live: true, from: 3, to: 0, count: 0, accept: false, indices:[0,1,2,3,4]},
+                {tag: "Live 0->1 NOK", live: true, from: 0, to: 1, count: 0, dropCount: 1, accept: false, indices:[0,1,2,3,4]},
+                {tag: "Live 0->2 NOK", live: true, from: 0, to: 2, count: 0, dropCount: 1, accept: false, indices:[0,1,2,3,4]},
+                {tag: "Live 0->3 NOK", live: true, from: 0, to: 3, count: 0, dropCount: 1, accept: false, indices:[0,1,2,3,4]},
+                {tag: "Live 3->0 NOK", live: true, from: 3, to: 0, count: 0, dropCount: 1, accept: false, indices:[0,1,2,3,4]},
 
                         // non-live updates
-                {tag: "Drop 0->1 OK", live: false, from: 0, to: 1, count: 1, accept: true, indices:[1,0,2,3,4]},
-                {tag: "Drop 0->2 OK", live: false, from: 0, to: 2, count: 1, accept: true, indices:[1,2,0,3,4]},
-                {tag: "Drop 0->3 OK", live: false, from: 0, to: 3, count: 1, accept: true, indices:[1,2,3,0,4]},
-                {tag: "Drop 3->0 OK", live: false, from: 3, to: 0, count: 1, accept: true, indices:[3,0,1,2,4]},
+                {tag: "Drop 0->1 OK", live: false, from: 0, to: 1, count: 1, dropCount: 1, accept: true, indices:[1,0,2,3,4]},
+                {tag: "Drop 0->2 OK", live: false, from: 0, to: 2, count: 1, dropCount: 1, accept: true, indices:[1,2,0,3,4]},
+                {tag: "Drop 0->3 OK", live: false, from: 0, to: 3, count: 1, dropCount: 1, accept: true, indices:[1,2,3,0,4]},
+                {tag: "Drop 3->0 OK", live: false, from: 3, to: 0, count: 1, dropCount: 1, accept: true, indices:[3,0,1,2,4]},
                         // do not accept moves
-                {tag: "Drop 0->1 NOK", live: false, from: 0, to: 1, count: 0, accept: false, indices:[0,1,2,3,4]},
-                {tag: "Drop 0->2 NOK", live: false, from: 0, to: 2, count: 0, accept: false, indices:[0,1,2,3,4]},
-                {tag: "Drop 0->3 NOK", live: false, from: 0, to: 3, count: 0, accept: false, indices:[0,1,2,3,4]},
-                {tag: "Drop 3->0 NOK", live: false, from: 3, to: 0, count: 0, accept: false, indices:[0,1,2,3,4]},
+                {tag: "Drop 0->1 NOK", live: false, from: 0, to: 1, count: 0, dropCount: 1, accept: false, indices:[0,1,2,3,4]},
+                {tag: "Drop 0->2 NOK", live: false, from: 0, to: 2, count: 0, dropCount: 1, accept: false, indices:[0,1,2,3,4]},
+                {tag: "Drop 0->3 NOK", live: false, from: 0, to: 3, count: 0, dropCount: 1, accept: false, indices:[0,1,2,3,4]},
+                {tag: "Drop 3->0 NOK", live: false, from: 3, to: 0, count: 0, dropCount: 1, accept: false, indices:[0,1,2,3,4]},
             ];
         }
 
         function test_drag(data) {
             var moveCount = 0;
+            var dropCount = 0;
             function liveUpdate(event) {
                 if (event.status == ListItemDrag.Started) {
                     return;
                 }
-                if (data.accept) {
-                    moveCount++;
-                    listView.model.move(event.from, event.to, 1);
+                if (event.status == ListItemDrag.Moving) {
+                    if (data.accept) {
+                        moveCount++;
+                        listView.model.move(event.from, event.to, 1);
+                    }
+                    event.accept = data.accept;
                 }
-                event.accept = data.accept;
+                if (event.status == ListItemDrag.Dropped) {
+                    dropCount++;
+                    event.accept = data.accept;
+                }
             }
             function singleDrop(event) {
                 if (event.status == ListItemDrag.Dropped) {
+                    dropCount++;
                     if (data.accept) {
                         moveCount++;
                         listView.model.move(event.from, event.to, 1);
@@ -959,6 +968,7 @@ Item {
             toggleDragMode(listView, true);
             drag(listView, data.from, data.to);
             compare(moveCount, data.count, "Move did not happen or more than one item was moved");
+            compare(dropCount, data.dropCount, "Dropped amount differs");
             // compare array indices
             for (var i in data.indices) {
                 compare(listView.model.get(i).data, data.indices[i], "data at index " + i + " is not the expected one");

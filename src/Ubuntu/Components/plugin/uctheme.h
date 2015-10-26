@@ -28,10 +28,13 @@
 #include <QtQml/QQmlParserStatus>
 #include <QtQml/QQmlProperty>
 
+#include <QtQml/private/qpodvector_p.h>
+
 #include "ucdefaulttheme.h"
 
 class UCStyledItemBase;
 class QQmlAbstractBinding;
+class QQuickItem;
 class UCTheme : public QObject, public QQmlParserStatus
 {
     Q_OBJECT
@@ -39,8 +42,9 @@ class UCTheme : public QObject, public QQmlParserStatus
     Q_PROPERTY(UCTheme *parentTheme READ parentTheme NOTIFY parentThemeChanged FINAL)
     Q_PROPERTY(QString name READ name WRITE setName RESET resetName NOTIFY nameChanged FINAL)
     Q_PROPERTY(QObject* palette READ palette WRITE setPalette RESET resetPalette NOTIFY paletteChanged FINAL)
-    Q_PROPERTY(quint16 version READ version WRITE setVersion NOTIFY versionChanged FINAL)
 public:
+
+    static quint16 previousVersion;
     struct ThemeRecord {
         ThemeRecord() :
             shared(false), deprecated(false), requiresImport(false), pluginLoaded(false)
@@ -70,17 +74,18 @@ public:
 
     // getter/setters
     UCTheme *parentTheme();
+    void setParentTheme(UCTheme *parentTheme); // not used as setter
     QString name() const;
     void setName(const QString& name);
     void resetName();
     QObject* palette();
     void setPalette(QObject *config);
-    quint16 version();
-    void setVersion(quint16 version);
+    static void checkMixedVersionImports(QQuickItem *item, quint16 version);
 
     // internal, used by the deprecated Theme.createStyledComponent()
     QQmlComponent* createStyleComponent(const QString& styleName, QObject* parent, quint16 version = 0);
     static void registerToContext(QQmlContext* context);
+    void attachItem(QQuickItem *item, bool attach);
 
     // helper functions
     QColor getPaletteColor(const char *profile, const char *color);
@@ -109,6 +114,7 @@ private:
     QUrl styleUrl(const QString& styleName, quint16 version, bool *isFallback = NULL);
     void loadPalette(bool notify = true);
     bool loadThemePlugin(const ThemeRecord &theme, quint16 version, const QString &component);
+    void updateThemedItems();
 
     class PaletteConfig
     {
@@ -154,13 +160,14 @@ private:
         QList<Data> configList;
     };
 
-    QString m_name;
-    QPointer<QObject> m_palette; // the palette might be from the default style if the theme doesn't define palette
-    QQmlEngine *m_engine;
     PaletteConfig m_config;
+    QString m_name;
+    QPointer<UCTheme> m_parentTheme;
+    QPointer<QObject> m_palette; // the palette might be from the default style if the theme doesn't define palette
     QList<ThemeRecord> m_themePaths;
     UCDefaultTheme m_defaultTheme;
-    quint16 m_version;
+    QPODVector<QQuickItem*, 4> m_attachedItems;
+    QQmlEngine *m_engine;
     bool m_defaultStyle:1;
     bool m_completed:1;
 

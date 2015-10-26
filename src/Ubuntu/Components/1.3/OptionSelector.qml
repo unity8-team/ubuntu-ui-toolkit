@@ -202,7 +202,7 @@ ListItem.Empty {
             right: parent.right
         }
 
-        Label {
+        Toolkit.Label {
             id : label
 
             text: optionSelector.text
@@ -225,7 +225,6 @@ ListItem.Empty {
                 right: parent.right
             }
             state: optionSelector.expanded ? "expanded" : "collapsed"
-            theme.version: Toolkit.Ubuntu.toolkitVersion
             styleName: "OptionSelectorStyle"
             states: [ State {
                     name: "expanded"
