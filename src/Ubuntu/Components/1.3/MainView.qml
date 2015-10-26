@@ -157,12 +157,10 @@ MainViewBase {
             objectName: "MainView_Header"
             id: headerItem
             property real bottomY: headerItem.y + headerItem.height
-            animate: true
             dividerColor: Qt.darker(mainView.headerColor, 1.1)
             panelColor: Qt.lighter(mainView.headerColor, 1.1)
 
             title: internal.activePage ? internal.activePage.title : ""
-            flickable: internal.activePage ? internal.activePage.flickable : null
             pageStack: internal.activePage ? internal.activePage.pageStack : null
 
             contents: internal.activePage &&
@@ -174,8 +172,16 @@ MainViewBase {
                 // Used when there is no active Page, or a Page 1.0 is used which
                 // does not have a PageHeadConfiguration.
             }
-            config: internal.activePage && internal.activePage.hasOwnProperty("head") ?
+            config: visible && internal.activePage &&
+                    internal.activePage.hasOwnProperty("head") ?
                         internal.activePage.head : defaultConfig
+
+            // don't show the application header if the page has its own header.
+            visible: !(internal.activePage &&
+                       internal.activePage.hasOwnProperty("header") &&
+                       internal.activePage.header)
+
+            height: visible ? implicitHeight : 0
 
             // 'window' is defined by QML between startup and showing on the screen.
             // There is no signal for when it becomes available and re-declaring it is not safe.
@@ -200,9 +206,7 @@ MainViewBase {
                     if (!(headerItem.config &&
                           headerItem.config.hasOwnProperty("locked") &&
                           headerItem.config.locked)) {
-                        headerItem.animate = false;
-                        headerItem.show();
-                        headerItem.animate = true;
+                        headerItem.exposed = true;
                     }
                 }
             }

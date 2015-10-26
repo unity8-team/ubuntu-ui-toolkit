@@ -55,13 +55,14 @@ public:
         UCTheme *rootTheme = globalTheme();
         QVERIFY(rootTheme);
         rootTheme->setName(theme);
-        QTest::waitForEvents();
+
     }
 
-    void setTheme(const QString &theme)
+    void setTheme(const QString &theme, QQuickItem *watchedItem)
     {
+        QSignalSpy spy(watchedItem, SIGNAL(themeChanged()));
         rootObject()->setProperty("themeName", theme);
-        QTest::waitForEvents();
+        waitForSignal(&spy);
     }
 
     UCTheme *theme()
@@ -94,6 +95,7 @@ private Q_SLOTS:
     {
         qputenv("UBUNTU_UI_TOOLKIT_THEMES_PATH", m_themesPath.toLatin1());
         qputenv("XDG_DATA_DIRS", m_xdgDataPath.toLocal8Bit());
+        UCTheme::previousVersion = 0;
     }
 
     void test_default_theme()
@@ -147,7 +149,7 @@ private Q_SLOTS:
         qputenv("UBUNTU_UI_TOOLKIT_THEMES_PATH", "./themes");
 
         QScopedPointer<ThemeTestCase> view(new ThemeTestCase(parentName));
-        view->setTheme("TestModule.TestTheme");
+        view->setTheme("TestModule.TestTheme", view->rootObject());
         view->rootObject()->setProperty("styleName", styleName);
         QQuickItem *testStyle = view->rootObject()->findChild<QQuickItem*>("TestStyle");
         QCOMPARE(testStyle != NULL, success);
@@ -202,7 +204,7 @@ private Q_SLOTS:
 
         QScopedPointer<ThemeTestCase> view(new ThemeTestCase("SimpleItem.qml"));
         if (!theme.isEmpty()) {
-            view->setTheme(theme);
+            view->setTheme(theme, view->rootObject());
         }
         view->rootObject()->setProperty("styleName", style);
         QQuickItem *styleItem = view->rootObject()->findChild<QQuickItem*>("TestStyle");
@@ -245,7 +247,7 @@ private Q_SLOTS:
         qputenv("QML2_IMPORT_PATH", "/no/plugins/here");
 
         QScopedPointer<ThemeTestCase> view(new ThemeTestCase("SimpleItem.qml"));
-        view->setTheme("CustomModule.TestTheme");
+        view->setTheme("CustomModule.TestTheme", view->rootObject());
     }
 
     void test_theme_not_root_theme()
@@ -253,7 +255,7 @@ private Q_SLOTS:
         qputenv("UBUNTU_UI_TOOLKIT_THEMES_PATH", ".");
 
         QScopedPointer<ThemeTestCase> view(new ThemeTestCase("SimpleItem.qml"));
-        view->setTheme("CustomModule.TestTheme");
+        view->setTheme("CustomModule.TestTheme", view->rootObject());
         UCTheme *theme = view->theme();
         UCTheme *globalTheme = view->globalTheme();
         QVERIFY(theme);
@@ -266,7 +268,7 @@ private Q_SLOTS:
         qputenv("UBUNTU_UI_TOOLKIT_THEMES_PATH", "./themes");
 
         QScopedPointer<ThemeTestCase> view(new ThemeTestCase("SimpleItem.qml"));
-        view->setTheme("TestModule.TestTheme");
+        view->setTheme("TestModule.TestTheme", view->rootObject());
         UCTheme *theme = view->theme();
         QCOMPARE(theme->name(), QString("TestModule.TestTheme"));
         // reset
@@ -282,26 +284,28 @@ private Q_SLOTS:
         UCStyledItemBase *mainItem = qobject_cast<UCStyledItemBase*>(view->rootObject());
 
         QSignalSpy parentChangeSpy(testSet, SIGNAL(parentThemeChanged()));
-        UCStyledItemBasePrivate::get(testItem)->setTheme(testSet);
+        testItem->setTheme(testSet);
         parentChangeSpy.wait(200);
         QCOMPARE(parentChangeSpy.count(), 1);
         // test if the parent is correct
-        QCOMPARE(testSet->parentTheme(), UCStyledItemBasePrivate::get(mainItem)->getTheme());
+        QCOMPARE(testSet->parentTheme(), mainItem->getTheme());
     }
 
     void test_parent_set_reset_triggers_parent_change()
     {
         QScopedPointer<ThemeTestCase> view(new ThemeTestCase("ParentChanges.qml"));
         UCTheme *testSet = view->findItem<UCTheme*>("testSet");
+        UCTheme *topTheme = view->findItem<UCTheme*>("top");
         UCStyledItemBase *mainItem = qobject_cast<UCStyledItemBase*>(view->rootObject());
+        QCOMPARE(testSet->parentTheme(), topTheme);
 
         // reset mainItem's theme should trigger parentChanged on testSet
         QSignalSpy parentChangeSpy(testSet, SIGNAL(parentThemeChanged()));
-        UCStyledItemBasePrivate::get(mainItem)->resetTheme();
+        mainItem->resetTheme();
         parentChangeSpy.wait(200);
         QCOMPARE(parentChangeSpy.count(), 1);
-        QCOMPARE(UCStyledItemBasePrivate::get(mainItem)->getTheme(), &UCTheme::defaultTheme());
-        QCOMPARE(testSet->parentTheme(), UCStyledItemBasePrivate::get(mainItem)->getTheme());
+        QCOMPARE(mainItem->getTheme(), &UCTheme::defaultTheme());
+        QCOMPARE(testSet->parentTheme(), mainItem->getTheme());
     }
 
     void test_parent_set_namechange_triggers_parent_change()
@@ -312,10 +316,12 @@ private Q_SLOTS:
 
         // change mainItem.theme.name should trigger parentChanged on testSet
         QSignalSpy parentChangeSpy(testSet, SIGNAL(parentThemeChanged()));
-        UCStyledItemBasePrivate::get(mainItem)->getTheme()->setName("Ubuntu.Components.Themes.SuruDark");
+        QSignalSpy themeChangeSpy(mainItem, SIGNAL(themeChanged()));
+        mainItem->getTheme()->setName("Ubuntu.Components.Themes.SuruDark");
+        UbuntuTestCase::waitForSignal(&themeChangeSpy);
         parentChangeSpy.wait(200);
         QCOMPARE(parentChangeSpy.count(), 1);
-        QCOMPARE(testSet->parentTheme(), UCStyledItemBasePrivate::get(mainItem)->getTheme());
+        QCOMPARE(testSet->parentTheme(), mainItem->getTheme());
     }
 
 
@@ -323,14 +329,16 @@ private Q_SLOTS:
     void test_set_global_theme_name()
     {
         QScopedPointer<ThemeTestCase> view(new ThemeTestCase("TestMain.qml"));
+        QSignalSpy themeChaneSpy(view->rootObject(), SIGNAL(themeChanged()));
         view->setGlobalTheme("Ubuntu.Components.Themes.SuruDark");
+        UbuntuTestCase::waitForSignal(&themeChaneSpy);
         // verify theme changes
         UCStyledItemBase *styled = qobject_cast<UCStyledItemBase*>(view->rootObject());
         QVERIFY(styled);
-        QCOMPARE(UCStyledItemBasePrivate::get(styled)->getTheme()->name(), QString("Ubuntu.Components.Themes.SuruDark"));
+        QCOMPARE(styled->getTheme()->name(), QString("Ubuntu.Components.Themes.SuruDark"));
         // a deeper item's style name
         styled = view->findItem<UCStyledItemBase*>("secondLevelStyled");
-        QCOMPARE(UCStyledItemBasePrivate::get(styled)->getTheme()->name(), QString("Ubuntu.Components.Themes.SuruDark"));
+        QCOMPARE(styled->getTheme()->name(), QString("Ubuntu.Components.Themes.SuruDark"));
     }
 
     // changing StyledItem.theme.name for different items within a tree where
@@ -348,8 +356,9 @@ private Q_SLOTS:
         QScopedPointer<ThemeTestCase> view(new ThemeTestCase("TestMain.qml"));
         // change theme name (theme)
         UCStyledItemBase *styled = view->findItem<UCStyledItemBase*>(itemName);
-        UCStyledItemBasePrivate::get(styled)->getTheme()->setName("Ubuntu.Components.Themes.SuruDark");
-        QTest::waitForEvents();
+        QSignalSpy themeChangeSpy(styled, SIGNAL(themeChanged()));
+        styled->getTheme()->setName("Ubuntu.Components.Themes.SuruDark");
+        UbuntuTestCase::waitForSignal(&themeChangeSpy);
         UCTheme *theme = view->globalTheme();
         QCOMPARE(theme->name(), QString("Ubuntu.Components.Themes.SuruDark"));
     }
@@ -394,19 +403,20 @@ private Q_SLOTS:
                     view->findItem<UCStyledItemBase*>(applyOnItem);
         QVERIFY(styledItem);
         // the theme is declared, but should not be set yet!!!
-        QVERIFY2(UCStyledItemBasePrivate::get(styledItem)->getTheme() != theme, "ThemeSettings should not be set yet!");
+        QVERIFY2(styledItem->getTheme() != theme, "ThemeSettings should not be set yet!");
         theme->setName(themeName);
         // set the style on the item
-        UCStyledItemBasePrivate::get(styledItem)->setTheme(theme);
-        QTest::waitForEvents();
+        QSignalSpy themeChangeSpy(styledItem, SIGNAL(themeChanged()));
+        styledItem->setTheme(theme);
+        UbuntuTestCase::waitForSignal(&themeChangeSpy);
         // test on the items
         for (int i = 0; i < testItems.count(); i++) {
             QString itemName = testItems[i];
             QString themeName = expectedStyleNames[i];
             bool success = sameTheme[i];
             styledItem = view->findItem<UCStyledItemBase*>(itemName);
-            QCOMPARE(UCStyledItemBasePrivate::get(styledItem)->getTheme() == theme, success);
-            QCOMPARE(UCStyledItemBasePrivate::get(styledItem)->getTheme()->name(), themeName);
+            QCOMPARE(styledItem->getTheme() == theme, success);
+            QCOMPARE(styledItem->getTheme()->name(), themeName);
         }
     }
 
@@ -443,14 +453,15 @@ private Q_SLOTS:
 
         QScopedPointer<ThemeTestCase> view(new ThemeTestCase("TestStyleChange.qml"));
         UCStyledItemBase *testItem = view->findItem<UCStyledItemBase*>(testStyledItem);
-        QCOMPARE(UCStyledItemBasePrivate::get(testItem)->getTheme()->name(), testStyledItemThemes[0]);
+        QCOMPARE(testItem->getTheme()->name(), testStyledItemThemes[0]);
 
         UCTheme *theme = view->findItem<UCTheme*>("Theme");
         theme->setName("Ubuntu.Components.Themes.SuruDark");
         UCStyledItemBase *suruItem = view->findItem<UCStyledItemBase*>(suruStyledItem);
-        UCStyledItemBasePrivate::get(suruItem)->setTheme(theme);
-        QTest::waitForEvents();
-        QCOMPARE(UCStyledItemBasePrivate::get(testItem)->getTheme()->name(), testStyledItemThemes[1]);
+        QSignalSpy themeChangeSpy(suruItem, SIGNAL(themeChanged()));
+        suruItem->setTheme(theme);
+        UbuntuTestCase::waitForSignal(&themeChangeSpy);
+        QCOMPARE(testItem->getTheme()->name(), testStyledItemThemes[1]);
 
         // get items and reparent
         QQuickItem *sourceItem = view->findItem<QQuickItem*>(sourceItemName);
@@ -461,7 +472,7 @@ private Q_SLOTS:
         QSignalSpy themeSpy(testItem, SIGNAL(themeChanged()));
         sourceItem->setParentItem(newParentItem);
         themeSpy.wait(200);
-        QCOMPARE(UCStyledItemBasePrivate::get(testItem)->getTheme()->name(), testStyledItemThemes[2]);
+        QCOMPARE(testItem->getTheme()->name(), testStyledItemThemes[2]);
         QCOMPARE(themeSpy.count(), 1);
     }
 
@@ -471,8 +482,8 @@ private Q_SLOTS:
         UCStyledItemBase *main = qobject_cast<UCStyledItemBase*>(view->rootObject());
         QVERIFY(main);
         UCStyledItemBase *test = view->findItem<UCStyledItemBase*>("firstLevelStyled");
-        QCOMPARE(UCStyledItemBasePrivate::get(main)->getTheme()->name(),
-                 UCStyledItemBasePrivate::get(test)->getTheme()->name());
+        QCOMPARE(main->getTheme()->name(),
+                 test->getTheme()->name());
     }
 
     void test_no_change_in_other_suru_dark()
@@ -490,8 +501,9 @@ private Q_SLOTS:
 
         QCOMPARE(firstTheme->getPaletteColor("normal", "background"), QColor("blue"));
         // change the theme
+        QSignalSpy themeChaneSpy(view->rootObject(), SIGNAL(themeChanged()));
         view->setGlobalTheme("Ubuntu.Components.Themes.SuruDark");
-        QTest::waitForEvents();
+        UbuntuTestCase::waitForSignal(&themeChaneSpy);
         QCOMPARE(firstTheme->getPaletteColor("normal", "background"), QColor("blue"));
     }
 
@@ -500,7 +512,7 @@ private Q_SLOTS:
         QScopedPointer<ThemeTestCase> view(new ThemeTestCase("ChangeDefaultPaletteInChildren.qml"));
         QQuickItem *loader = view->findItem<QQuickItem*>("loader");
         UCStyledItemBase *main = qobject_cast<UCStyledItemBase*>(view->rootObject());
-        UCTheme *mainSet = UCStyledItemBasePrivate::get(main)->getTheme();
+        UCTheme *mainSet = main->getTheme();
         QQuickItem *item = loader->property("item").value<QQuickItem*>();
         QVERIFY(item);
 
@@ -580,19 +592,20 @@ private Q_SLOTS:
         UCStyledItemBase *movableItem = view->findItem<UCStyledItemBase*>("movable");
 
         // verify movableItem's theme
-        QCOMPARE(UCStyledItemBasePrivate::get(root)->getTheme(), UCStyledItemBasePrivate::get(movableItem)->getTheme());
+        QCOMPARE(root->getTheme(), movableItem->getTheme());
 
         // set the theme for root
-        UCStyledItemBasePrivate::get(root)->setTheme(suruTheme);
-        QTest::waitForEvents();
-        QCOMPARE(UCStyledItemBasePrivate::get(root)->getTheme(), UCStyledItemBasePrivate::get(movableItem)->getTheme());
+        QSignalSpy themeChangeSpy(root, SIGNAL(themeChanged()));
+        root->setTheme(suruTheme);
+        UbuntuTestCase::waitForSignal(&themeChangeSpy);
+        QCOMPARE(root->getTheme(), movableItem->getTheme());
 
         // set the parent item of the test item to 0
         QSignalSpy spy(movableItem, SIGNAL(themeChanged()));
         movableItem->setParentItem(Q_NULLPTR);
         spy.wait(500);
         QCOMPARE(spy.count(), 1);
-        QCOMPARE(UCStyledItemBasePrivate::get(movableItem)->getTheme(), &UCTheme::defaultTheme());
+        QCOMPARE(movableItem->getTheme(), &UCTheme::defaultTheme());
     }
 
     void test_reparented_styleditem_special_case()
@@ -606,62 +619,40 @@ private Q_SLOTS:
         UCStyledItemBase *movableItem = view->findItem<UCStyledItemBase*>("movable");
 
         // check the themes
-        QCOMPARE(UCStyledItemBasePrivate::get(root)->getTheme()->name(), QString("Ubuntu.Components.Themes.Ambiance"));
-        QCOMPARE(UCStyledItemBasePrivate::get(customThemedItem)->getTheme()->name(), QString("CustomTheme"));
-        QCOMPARE(UCStyledItemBasePrivate::get(movableItem)->getTheme()->name(), QString("Ubuntu.Components.Themes.Ambiance"));
+        QCOMPARE(root->getTheme()->name(), QString("Ubuntu.Components.Themes.Ambiance"));
+        QCOMPARE(customThemedItem->getTheme()->name(), QString("CustomTheme"));
+        QCOMPARE(movableItem->getTheme()->name(), QString("Ubuntu.Components.Themes.Ambiance"));
 
         // move the movableItem under customThemedItem
         movableItem->setParentItem(customThemedItem);
-        QCOMPARE(UCStyledItemBasePrivate::get(movableItem)->getTheme()->name(), QString("CustomTheme"));
+        QCOMPARE(movableItem->getTheme()->name(), QString("CustomTheme"));
 
         // set a new theme for the root, and make sure our theme stays the same
-        UCStyledItemBasePrivate::get(root)->setTheme(suruTheme);
-        QTest::waitForEvents();
-        QCOMPARE(UCStyledItemBasePrivate::get(movableItem)->getTheme()->name(), QString("CustomTheme"));
+        QSignalSpy themeChangeSpy(root, SIGNAL(themeChanged()));
+        root->setTheme(suruTheme);
+        UbuntuTestCase::waitForSignal(&themeChangeSpy);
+        QCOMPARE(movableItem->getTheme()->name(), QString("CustomTheme"));
     }
 
     void test_theme_versions_data()
     {
         QTest::addColumn<QString>("document");
         QTest::addColumn<QString>("testValue");
-        QTest::addColumn<int>("row");
-        QTest::addColumn<int>("column");
-        QTest::addColumn<QString>("warning");
 
-        QTest::newRow("Theming version 1.2")
-                << "StyledItemV12.qml"
-                << ""
-                << 0 << 0 << "";
         QTest::newRow("Theming version 1.3")
                 << "StyledItemV13.qml"
-                << "version1.3"
-                << 0 << 0 << "";
-        QTest::newRow("Fall back to 1.3")
-                << "StyledItemFallback.qml"
-                << "version1.3"
-                << 19 << 1 << "QML StyledItem: Theme 'TestModule.TestTheme' has no 'TestStyle.qml' style for version 1.0, fall back to version 1.3.";
+                << "version1.3";
         QTest::newRow("App theme versioned")
                 << "StyledItemAppThemeVersioned.qml"
-                << "version1.3"
-                << 0 << 0 << "";
-        QTest::newRow("App theme fallback to non-versioned")
-                << "StyledItemAppThemeFallback.qml"
-                << ""
-                << 0 << 0 << "";
+                << "version1.3";
     }
     void test_theme_versions()
     {
         QFETCH(QString, document);
         QFETCH(QString, testValue);
-        QFETCH(int, row);
-        QFETCH(int, column);
-        QFETCH(QString, warning);
 
         qputenv("UBUNTU_UI_TOOLKIT_THEMES_PATH", "");
         qputenv("XDG_DATA_DIRS", "./themes:./themes/TestModule");
-        if (!warning.isEmpty()) {
-            ThemeTestCase::ignoreWarning(document, row, column, warning);
-        }
         QScopedPointer<ThemeTestCase> view(new ThemeTestCase(document));
         UCStyledItemBase *styledItem = qobject_cast<UCStyledItemBase*>(view->rootObject());
         QVERIFY(UCStyledItemBasePrivate::get(styledItem)->styleItem);
@@ -672,14 +663,21 @@ private Q_SLOTS:
         ThemeTestCase::ignoreWarning(document, 19, 1, "QML StyledItem: Warning: Style TestStyle.qml not found in theme Ubuntu.Components.Themes.Ambiance");
     }
 
+    void test_mixed_versions() {
+        ThemeTestCase::ignoreWarning("OtherVersion.qml", 19, 1, "QML StyledItem: Mixing of Ubuntu.Components module versions 1.3 and 1.2 detected!");
+        QScopedPointer<ThemeTestCase> view(new ThemeTestCase("OtherVersion.qml"));
+        QTest::waitForEvents();
+        UCStyledItemBase *newStyled = static_cast<UCStyledItemBase*>(view->rootObject());
+        UCStyledItemBase *otherStyled = view->findItem<UCStyledItemBase*>("otherStyled");
+        QCOMPARE(UCStyledItemBasePrivate::get(newStyled)->styleInstance()->objectName(), QString("OptionSelector13"));
+        QCOMPARE(UCStyledItemBasePrivate::get(otherStyled)->styleInstance()->objectName(), QString("OptionSelector12"));
+    }
+
     void test_deprecated_theme()
     {
         qputenv("UBUNTU_UI_TOOLKIT_THEMES_PATH", "");
         qputenv("XDG_DATA_DIRS", "./themes:./themes/TestModule:" + m_themesPath.toLatin1());
         QScopedPointer<ThemeTestCase> view(new ThemeTestCase("DeprecatedTheme.qml"));
-        // NOTE TestTheme resets the theme therefore the theming will look for the tested style version under Ambiance theme
-        // which will cause a warning; therefore we mark the warning to be ignored
-        ThemeTestCase::ignoreWarning("DeprecatedTheme.qml", 19, 1, "QML StyledItem: Theme 'Ubuntu.Components.Themes.Ambiance' has no 'OptionSelectorStyle.qml' style for version 1.0, fall back to version 1.3.");
     }
 
     void test_style_change_has_precedence()
@@ -724,7 +722,7 @@ private Q_SLOTS:
     {
         QScopedPointer<ThemeTestCase> view(new ThemeTestCase("StyleKept.qml"));
         UCStyledItemBase *button = view->findItem<UCStyledItemBase*>("TestButton");
-        UCTheme *theme = UCStyledItemBasePrivate::get(button)->getTheme();
+        UCTheme *theme = button->getTheme();
         QVERIFY(theme);
 
         QVERIFY(button->findChild<QQuickItem*>("TestStyle"));
@@ -737,8 +735,6 @@ private Q_SLOTS:
     void test_stylename_extension_failure()
     {
         ThemeTestCase::ignoreWarning("DeprecatedTheme.qml", 19, 1, "QML StyledItem: Warning: Style OptionSelectorStyle.qml.qml not found in theme Ubuntu.Components.Themes.SuruGradient");
-        // add also for Ambiance, as ThemeTestCase destructor resets the theme, which will cause style warning for the default theme
-        ThemeTestCase::ignoreWarning("DeprecatedTheme.qml", 19, 1, "QML StyledItem: Warning: Style OptionSelectorStyle.qml.qml not found in theme Ubuntu.Components.Themes.Ambiance");
         QScopedPointer<ThemeTestCase> view(new ThemeTestCase("DeprecatedTheme.qml"));
         view->rootObject()->setProperty("styleName", "OptionSelectorStyle.qml");
     }

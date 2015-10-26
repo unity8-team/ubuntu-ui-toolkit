@@ -60,9 +60,6 @@ ActionSelectionPopover {
         id: actionButton
         action: modelData
 
-        // These objectNames are used in the CPOs for header and tabs.
-        objectName: action.objectName + "_header_overflow_button"
-
         // close after triggering the action.
         onClicked: overflow.hide()
 
@@ -106,7 +103,7 @@ ActionSelectionPopover {
             }
             // In the tabs overflow panel there are no icons, and the font-size
             //  is medium as opposed to the small font-size in the actions overflow panel.
-            fontSize: actionIcon.visible ? "small" : "medium"
+            textSize: actionIcon.visible ? Label.Small : Label.Medium
             elide: Text.ElideRight
             text: action.text
             color: overflow.foregroundColor

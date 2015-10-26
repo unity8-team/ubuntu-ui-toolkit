@@ -12,13 +12,22 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Author: Benjamin Zeller <benjamin.zeller@canonical.com>
+ *         Zoltán Balogh <zoltan.balogh@canonical.com 
  */
-import QtQuick 2.4
-import Ubuntu.Components 1.3
 
-StyledItem {
-    id: item
-    theme.name: "themes.CustomTheme"
-    theme.version: Ubuntu.version(1, 0)
-    styleName: "TestStyle"
+#define TRACEPOINT_CREATE_PROBES
+/*
+ * The header containing our TRACEPOINT_EVENTs.
+ */
+#define TRACEPOINT_DEFINE
+#include "app-launch-tracepoints.h"
+
+//compile with gcc -o app-launch-tracepoints app-launch-tracepoints.cpp -llttng-ust -ldl -I.
+
+int main (int argc, char* argv[])
+{
+    tracepoint(app,invokeApplauncher);
+    return 0;
 }

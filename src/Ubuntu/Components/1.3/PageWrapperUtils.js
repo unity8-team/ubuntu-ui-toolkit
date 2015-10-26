@@ -14,6 +14,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/*!
+  \qmltype PageWrapperUtils
+  \inqmlmodule Ubuntu.Components 1.3
+  \ingroup ubuntu
+  \internal
+  \brief Internal book-keeping used by AdaptivePageLayout.
+ */
+
 //.pragma library // FIXME: cannot refer to Component.Error if I use this.
 // FIXME: ideally we would make this a stateless library, but that breaks applications
 //  that rely on accessing context variables in pages that were pushed on a PageStack
@@ -22,6 +30,7 @@
 
 /*!
   \internal
+  \qmlmethod PageWrapperUtils::Incubator(pageWrapper, pageComponent)
   Incubator wrapper object. Used when page is loaded asynchronously.
   */
 
@@ -45,36 +54,51 @@ function Incubator(pageWrapper, pageComponent) {
         pageWrapper.incubator.status = status;
         pageWrapper.incubator.object = pageWrapper.object = incubator.object;
 
-        // emit pageWrapper's pageLoaded signal to complete page activation and loading
-        if (status === Component.Ready) {
-            pageWrapper.pageLoaded();
-        }
-
         // forward state change to the user
         if (pageWrapper.incubator.onStatusChanged) {
             // call onStatusChanged
             pageWrapper.incubator.onStatusChanged(status);
         }
 
+        // emit pageWrapper's pageLoaded signal to complete page activation
+        if (status === Component.Ready) {
+            pageWrapper.pageLoaded();
+        }
+
         // cleanup of ready or error
         if (status !== Component.Loading) {
             pageWrapper.incubator = null;
-            incubator = null;
         }
     }
 
-    if (pageWrapper.properties) {
-        incubator = pageComponent.incubateObject(pageWrapper, pageWrapper.properties);
-    } else {
-        incubator = pageComponent.incubateObject(pageWrapper);
+    function incubatePage() {
+        if (pageComponent.status == Component.Loading) {
+            return;
+        }
+
+        if (pageWrapper.properties) {
+            incubator = pageComponent.incubateObject(pageWrapper, pageWrapper.properties);
+        } else {
+            incubator = pageComponent.incubateObject(pageWrapper);
+        }
+
+        if (!incubator) {
+            throw new Error("Error while loading page: " + pageComponent.errorString());
+        } else if (incubator.status != Component.Ready) {
+            pageWrapper.incubator.status = incubator.status;
+            incubator.onStatusChanged = incubatorStatusChanged;
+        } else {
+            incubatorStatusChanged(incubator.status);
+        }
     }
 
-    this.status = incubator.status;
-    if (incubator.status != Component.Ready) {
-        incubator.onStatusChanged = incubatorStatusChanged;
-    } else {
-        incubatorStatusChanged(incubator.status);
+    // main
+    pageWrapper.incubator = this;
+    if (pageComponent.status == Component.Loading) {
+        pageComponent.statusChanged.connect(incubatePage);
+        this.status = Component.Loading;
     }
+    incubatePage();
 }
 
 /*******************************************************
@@ -82,6 +106,7 @@ function Incubator(pageWrapper, pageComponent) {
  */
 /*!
   \internal
+  \qmlmethod PageWrapperUtils::initPage(pageWrapper)
   Initialize pageWrapper.object.
  */
 function initPage(pageWrapper) {
@@ -92,20 +117,27 @@ function initPage(pageWrapper) {
         pageComponent = pageWrapper.reference;
     } else if (typeof pageWrapper.reference == "string") {
         // page reference is a string (url)
-        pageComponent = Qt.createComponent(pageWrapper.reference);
+        if (pageWrapper.synchronous) {
+            pageComponent = Qt.createComponent(pageWrapper.reference);
+        } else {
+            pageComponent = Qt.createComponent(pageWrapper.reference, Component.Asynchronous);
+        }
     }
-
-    // PageWrapper can override the synchronous loading
-    var synchronous = pageWrapper.hasOwnProperty("synchronous") ? pageWrapper.synchronous : true;
 
     if (pageComponent) {
         if (pageComponent.status === Component.Error) {
             throw new Error("Error while loading page: " + pageComponent.errorString());
         } else {
             // create the object
-            pageWrapper.incubator = new Incubator(pageWrapper, pageComponent);
-            if (synchronous) {
-                pageWrapper.incubator.forceCompletion();
+            if (pageWrapper.synchronous) {
+                if (pageWrapper.properties) {
+                    // initialize the object with the given properties
+                    pageWrapper.object = pageComponent.createObject(pageWrapper, pageWrapper.properties);
+                } else {
+                    pageWrapper.object = pageComponent.createObject(pageWrapper);
+                }
+            } else {
+                pageWrapper.incubator = new Incubator(pageWrapper, pageComponent);
             }
             pageWrapper.canDestroy = true;
         }
@@ -128,6 +160,7 @@ function initPage(pageWrapper) {
 
 /*!
   \internal
+  \qmlmethod PageWrapperUtils::activate(pageWrapper)
   Create the page object if needed, and make the page object visible.
  */
 function activate(pageWrapper) {
@@ -147,6 +180,7 @@ function activate(pageWrapper) {
 
 /*!
   \internal
+  \qmlmethod PageWrapperUtils::deactivate(pageWrapper)
   Hide page object.
  */
 function deactivate(pageWrapper) {
@@ -155,6 +189,7 @@ function deactivate(pageWrapper) {
 
 /*!
   \internal
+  \qmlmethod PageWrapperUtils::destroyObject(pageWrapper)
   Destroy the page object if pageWrapper.canDestroy is true.
   Do nothing if pageWrapper.canDestroy is false.
  */

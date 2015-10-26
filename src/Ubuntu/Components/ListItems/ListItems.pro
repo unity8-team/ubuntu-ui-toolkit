@@ -17,5 +17,3 @@ RESOURCES += \
 OTHER_FILES += qmldir
 
 load(ubuntu_qml_plugin)
-
-

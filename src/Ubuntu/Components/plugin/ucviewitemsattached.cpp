@@ -105,7 +105,6 @@ UCViewItemsAttachedPrivate::UCViewItemsAttachedPrivate()
     , listView(0)
     , dragArea(0)
     , expansionFlags(UCViewItemsAttached::Exclusive)
-    , globalDisabled(false)
     , selectable(false)
     , draggable(false)
     , ready(false)
@@ -114,7 +113,6 @@ UCViewItemsAttachedPrivate::UCViewItemsAttachedPrivate()
 
 UCViewItemsAttachedPrivate::~UCViewItemsAttachedPrivate()
 {
-    clearChangesList();
     clearFlickablesList();
 }
 
@@ -150,33 +148,6 @@ void UCViewItemsAttachedPrivate::buildFlickablesList()
             QObject::connect(flickable, &QQuickFlickable::flickStarted,
                              q, &UCViewItemsAttached::unbindItem);
             flickables << flickable;
-        }
-        item = item->parentItem();
-    }
-}
-
-void UCViewItemsAttachedPrivate::clearChangesList()
-{
-    // clear property change objects
-    qDeleteAll(changes);
-    changes.clear();
-}
-
-void UCViewItemsAttachedPrivate::buildChangesList(const QVariant &newValue)
-{
-    // collect all ascendant flickables
-    Q_Q(UCViewItemsAttached);
-    QQuickItem *item = qobject_cast<QQuickItem*>(q->parent());
-    if (!item) {
-        return;
-    }
-    clearChangesList();
-    while (item) {
-        QQuickFlickable *flickable = qobject_cast<QQuickFlickable*>(item);
-        if (flickable) {
-            PropertyChange *change = new PropertyChange(item, "interactive");
-            PropertyChange::setValue(change, newValue);
-            changes << change;
         }
         item = item->parentItem();
     }
@@ -250,41 +221,6 @@ bool UCViewItemsAttached::isBoundTo(UCListItem *item)
 {
     Q_D(UCViewItemsAttached);
     return d->boundItem == item;
-}
-
-/*
- * Disable/enable interactive flag for the ascendant flickables. The item is used
- * to detect whether the same item is trying to enable the flickables which disabled
- * it before. The enabled/disabled states are not equivalent to the enabled/disabled
- * state of the interactive flag.
- * When disabled, always the last item disabling will be kept as active disabler,
- * and only the active disabler can enable (restore) the interactive flag state.
- */
-void UCViewItemsAttached::disableInteractive(UCListItem *item, bool disable)
-{
-    Q_D(UCViewItemsAttached);
-    if (disable) {
-        // disabling or re-disabling
-        d->disablerItem = item;
-        if (d->globalDisabled == disable) {
-            // was already disabled, leave
-            return;
-        }
-        d->globalDisabled = true;
-    } else if (d->globalDisabled && d->disablerItem == item) {
-        // the one disabled it will enable
-        d->globalDisabled = false;
-        d->disablerItem.clear();
-    } else {
-        // !disabled && (!globalDisabled || item != d->disablerItem)
-        return;
-    }
-    if (disable) {
-        // (re)build changes list with disabling the interactive value
-        d->buildChangesList(false);
-    } else {
-        d->clearChangesList();
-    }
 }
 
 void UCViewItemsAttached::unbindItem()
@@ -613,18 +549,6 @@ void UCViewItemsAttachedPrivate::updateSelectedIndices(int fromIndex, int toInde
     }
 }
 
-
-UCViewItemsAttached13::UCViewItemsAttached13(QObject *owner)
-    : UCViewItemsAttached(owner)
-{
-    d_ptr = UCViewItemsAttachedPrivate::get(this);
-}
-
-UCViewItemsAttached13 *UCViewItemsAttached13::qmlAttachedProperties(QObject *owner)
-{
-    return new UCViewItemsAttached13(owner);
-}
-
 /*!
  * \qmlattachedproperty list<int> ViewItems::expandedIndices
  * \since Ubuntu.Components 1.3
@@ -636,12 +560,12 @@ UCViewItemsAttached13 *UCViewItemsAttached13::qmlAttachedProperties(QObject *own
  * flags set, only the last item from the list will be considered and set as
  * expanded.
  */
-QList<int> UCViewItemsAttached13::expandedIndices() const
+QList<int> UCViewItemsAttached::expandedIndices() const
 {
     Q_D(const UCViewItemsAttached);
     return d->expansionList.keys();
 }
-void UCViewItemsAttached13::setExpandedIndices(QList<int> indices)
+void UCViewItemsAttached::setExpandedIndices(QList<int> indices)
 {
     Q_UNUSED(indices);
     Q_D(UCViewItemsAttached);
@@ -649,10 +573,10 @@ void UCViewItemsAttached13::setExpandedIndices(QList<int> indices)
     if (indices.size() > 0) {
         if (d->expansionFlags & UCViewItemsAttached::Exclusive) {
             // take only the last one from the list
-            d->expand(indices.last(), QPointer<UCListItem13>(), false);
+            d->expand(indices.last(), QPointer<UCListItem>(), false);
         } else {
             for (int i = 0; i < indices.size(); i++) {
-                d->expand(indices[i], QPointer<UCListItem13>(), false);
+                d->expand(indices[i], QPointer<UCListItem>(), false);
             }
         }
     }
@@ -660,27 +584,27 @@ void UCViewItemsAttached13::setExpandedIndices(QList<int> indices)
 }
 
 // insert listItem into the expanded indices map
-void UCViewItemsAttachedPrivate::expand(int index, UCListItem13 *listItem, bool emitChangeSignal)
+void UCViewItemsAttachedPrivate::expand(int index, UCListItem *listItem, bool emitChangeSignal)
 {
-    expansionList.insert(index, QPointer<UCListItem13>(listItem));
+    expansionList.insert(index, QPointer<UCListItem>(listItem));
     if (listItem && ((expansionFlags & UCViewItemsAttached::CollapseOnOutsidePress) == UCViewItemsAttached::CollapseOnOutsidePress)) {
         listItem->expansion()->enableClickFiltering(true);
     }
     if (emitChangeSignal) {
-        Q_EMIT static_cast<UCViewItemsAttached13*>(q_func())->expandedIndicesChanged(expansionList.keys());
+        Q_EMIT static_cast<UCViewItemsAttached*>(q_func())->expandedIndicesChanged(expansionList.keys());
     }
 }
 
 // collapse the item at index
 void UCViewItemsAttachedPrivate::collapse(int index, bool emitChangeSignal)
 {
-    UCListItem13 *item = expansionList.take(index).data();
+    UCListItem *item = expansionList.take(index).data();
     bool wasExpanded = item && item->expansion()->expanded();
     if (item && ((expansionFlags & UCViewItemsAttached::CollapseOnOutsidePress) == UCViewItemsAttached::CollapseOnOutsidePress)) {
         item->expansion()->enableClickFiltering(false);
     }
     if (emitChangeSignal && wasExpanded) {
-        Q_EMIT static_cast<UCViewItemsAttached13*>(q_func())->expandedIndicesChanged(expansionList.keys());
+        Q_EMIT static_cast<UCViewItemsAttached*>(q_func())->expandedIndicesChanged(expansionList.keys());
     }
 }
 
@@ -691,7 +615,7 @@ void UCViewItemsAttachedPrivate::collapseAll()
         collapse(expansionList.keys().last(), false);
     }
     if (emitChangedSignal) {
-        Q_EMIT static_cast<UCViewItemsAttached13*>(q_func())->expandedIndicesChanged(expansionList.keys());
+        Q_EMIT static_cast<UCViewItemsAttached*>(q_func())->expandedIndicesChanged(expansionList.keys());
     }
 }
 
@@ -715,12 +639,12 @@ void UCViewItemsAttachedPrivate::collapseAll()
  *      outside of its area. The flag also turns \c ViewItems.Exclusive flag on.
  * \endtable
  */
-int UCViewItemsAttached13::expansionFlags() const
+int UCViewItemsAttached::expansionFlags() const
 {
     Q_D(const UCViewItemsAttached);
     return d->expansionFlags;
 }
-void UCViewItemsAttached13::setExpansionFlags(int flags)
+void UCViewItemsAttached::setExpansionFlags(int flags)
 {
     Q_D(UCViewItemsAttached);
     if (d->expansionFlags == (ExpansionFlags)flags) {
@@ -741,9 +665,9 @@ void UCViewItemsAttachedPrivate::toggleExpansionFlags(bool enable)
     if (!hasClickOutsideFlag) {
         return;
     }
-    QMapIterator<int, QPointer<UCListItem13> > i(expansionList);
+    QMapIterator<int, QPointer<UCListItem> > i(expansionList);
     while (i.hasNext()) {
-        UCListItem13 *item = i.next().value().data();
+        UCListItem *item = i.next().value().data();
         // using expansion getter we will get the group created
         if (item && item->expansion()) {
             UCListItemPrivate *listItem = UCListItemPrivate::get(item);
