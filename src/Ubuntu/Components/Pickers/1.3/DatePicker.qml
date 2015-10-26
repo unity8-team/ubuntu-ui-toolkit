@@ -328,20 +328,29 @@ StyledItem {
         // use dayPicker narrowFormatLimit even if the dayPicker is hidden
         // and clamp the width so it cannot have less width that the sum of
         // the three tumblers' narrowFormatLimit
-        var minWidth = positioner.tumblerModel.length * positioner.narrowFormatLimit;
-        width = Math.max(width, minWidth);
+        var minWidth = 0.0;
+        for (var i = 0; i < positioner.pickerSizes.length; i++) {
+            minWidth += positioner.pickerSizes[i];
+        }
+        width = Math.max(width, positioner.narrowFormatLimit * 3);
+    }
+    /*! \internal */
+    Component.onCompleted: {
+        if (minimum == undefined) {
+            minimum = date;
+        }
     }
 
     // tumbler positioner
     Row {
         id: positioner
+        parent: (datePicker.__styleInstance && datePicker.__styleInstance.hasOwnProperty("tumblerHolder")) ?
+                 datePicker.__styleInstance.tumblerHolder : datePicker
         anchors {
             top: parent.top
             bottom: parent.bottom
             horizontalCenter: parent.horizontalCenter
         }
-        parent: (datePicker.__styleInstance && datePicker.__styleInstance.hasOwnProperty("tumblerHolder")) ?
-                 datePicker.__styleInstance.tumblerHolder : datePicker
         property bool moving
         // FIXME: The js split(/\W/g) terminates the process on armhf with Qt 5.3 (v4 js) (https://bugreports.qt-project.org/browse/QTBUG-39255)
         property var modes: mode.match(/\w+/g)
@@ -358,16 +367,20 @@ StyledItem {
         }
         property real margin: 2 * units.gu(1.5)
         property real narrowFormatLimit
-        property real shortYearLimit
+        property real longYearLimit
         property real longMonthLimit
         property real shortMonthLimit
         property real longDayLimit
         property real shortDayLimit
+        property bool shortDay: width >= shortMonthLimit + shortDayLimit + narrowFormatLimit
+        property bool longDay: width >= longMonthLimit + longDayLimit + narrowFormatLimit
+        property bool shortMonth: shortDay
+        property bool longMonth: longDay
         Component.onCompleted: {
             textSizer.text = '99';
             narrowFormatLimit = textSizer.paintedWidth + margin;
             textSizer.text = '9999';
-            shortYearLimit = textSizer.paintedWidth + margin;
+            longYearLimit = textSizer.paintedWidth + margin;
             var width = narrowFormatLimit;
             for (var i = 0; i < 12; i++) {
                 textSizer.text = locale.monthName(i, Locale.LongFormat);
@@ -382,47 +395,22 @@ StyledItem {
             shortMonthLimit = width;
             width = narrowFormatLimit;
             for (var i = 0; i < 7; i++) {
-                textSizer.text = locale.dayName(i, Locale.LongFormat);
+                textSizer.text = '99 ' + locale.dayName(i, Locale.LongFormat);
                 width = Math.max(width, textSizer.paintedWidth + margin);
             }
             longDayLimit = width;
             width = narrowFormatLimit;
             for (var i = 0; i < 7; i++) {
-                textSizer.text = locale.dayName(i, Locale.ShortFormat);
+                textSizer.text = '99 ' + locale.dayName(i, Locale.ShortFormat);
                 width = Math.max(width, textSizer.paintedWidth + margin);
             }
             shortDayLimit = width;
         }
-        property real dayPickerRatio: {
-            var maxWidth = 0.0;
-            if (modes.indexOf('Years') > -1)
-                maxWidth += shortYearLimit;
-            if (modes.indexOf('Months') > -1)
-                maxWidth += longMonthLimit;
-            if (modes.indexOf('Days') > -1) {
-                maxWidth += longDayLimit;
-                return (longDayLimit / maxWidth).toPrecision(3);
-            }
-            return 0.1
-        }
-        property real daysWidth: {
-            var w = Math.max(datePicker.width * dayPickerRatio, narrowFormatLimit);
-            if (w < longDayLimit && w >= shortDayLimit)
-                return shortDayLimit;
-            return narrowFormatLimit;
-        }
         property var pickerSizes: {
             var sizes = [];
             for (var i in tumblerModel) {
-                var mode = tumblerModel[i];
-                if (mode == 'Months')
-                    sizes.push(MathUtils.clamp(datePicker.width - narrowFormatLimit - daysWidth, narrowFormatLimit, longMonthLimit));
-                else if (mode == 'Days')
-                    sizes.push(daysWidth);
-                else if (mode == 'Years')
-                    sizes.push(shortYearLimit);
-                else
-                    sizes.push(narrowFormatLimit);
+                sizes.push(datePicker.width / 3);
+                continue;
             }
             return sizes;
         }
@@ -451,8 +439,9 @@ StyledItem {
 
             Picker {
                 id: pickerUnit
+                property string modeFlag: modelData
                 model: {
-                    switch (modelData) {
+                    switch (modeFlag) {
                     case "Years":
                         var from = (minimum.getFullYear() <= 0) ? date.getFullYear() : minimum.getFullYear();
                         var to = (maximum < minimum) ? -1 : maximum.getFullYear();
@@ -476,9 +465,9 @@ StyledItem {
                         from = (to < 11) ? minimum.getMonth() : 0;
                         var format = datePicker.width >= positioner.longMonthLimit ? 'MMMM' : 'MMM';
                         var format = 'MM';
-                        if (datePicker.width >= positioner.longMonthLimit)
+                        if (positioner.longMonth)
                            format = 'MMMM';
-                        else if (datePicker.width >= positioner.shortMonthLimit)
+                        else if (positioner.shortMonth)
                            format = 'MMM';
                         var months = [];
                         for (var i = from; i <= from + to; i++) {
@@ -491,9 +480,9 @@ StyledItem {
                         return months;
                     case "Days":
                         var format = 'dd';
-                        if (datePicker.width >= positioner.longDayLimit)
+                        if (positioner.longDay)
                            format += ' dddd';
-                        else if (datePicker.width >= positioner.shortDayLimit)
+                        else if (positioner.shortDay)
                            format += ' ddd';
                         var days = [];
                         for (var i = 1; i <= date.daysInMonth(year, month); i++) {
@@ -541,11 +530,11 @@ StyledItem {
                         }
                         return seconds;
                     default:
-                        console.warn("Unhandled mode flag: " + modelData + ". Mode will not be set!");
+                        console.warn("Unhandled mode flag: " + modeFlag + ". Mode will not be set!");
                     }
                 }
                 live: false
-                circular: modelData != 'Years'
+                circular: modeFlag != 'Years'
                 width: positioner.pickerSizes[index]
                 height: datePicker.height
                 delegate: PickerDelegate {
