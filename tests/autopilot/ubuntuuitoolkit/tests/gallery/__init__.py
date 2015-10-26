@@ -128,11 +128,12 @@ class GalleryTestCase(ubuntuuitoolkit.tests.QMLFileAppTestCase):
             the page.
 
         """
-        list_view = self.main_view.select_single(
-            ubuntuuitoolkit.QQuickListView, objectName="widgetList")
-        list_view.click_element(page)
-        element = self.main_view.select_single('Standard', objectName=page)
-        element.selected.wait_for(True)
+        list_view = self.main_view.select_single(objectName="widgetList")
+        element = list_view.click_element(page)
+        # Do not check the ListItem's highlight
+        # the actual highlight is implemented in the UbuntuListView
+        self.checkPageHeader(element.text)
+        return element
 
     def tearDown(self):
         super().tearDown()

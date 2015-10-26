@@ -14,25 +14,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import QtQuick 2.4
+import QtQuick 2.0
 import Ubuntu.Components 1.3
 
-Page {
-    TemplateSection {
-        title: "Bottom Edge Hint"
-        className: "BottomEdgeHint"
+MainView {
+    width: units.gu(48)
+    height: units.gu(60)
+    objectName: "mainView"
 
-        anchors {
-            top: parent.top
-            left: parent.left
-            right: parent.right
-            margins: units.gu(2)
+    Item {
+        TextField {
+            id: simpleTextField
+            objectName: "simple_text_field"
         }
-    }
-
-    BottomEdgeHint {
-        iconName: "stock_message"
-        text: "Compose a new message"
-        onClicked: state = "Hidden"
+        TextField {
+            id: textFieldWithoutClearButton
+            objectName: "text_field_without_clear_button"
+            hasClearButton: false
+            anchors.top: simpleTextField.bottom
+        }
     }
 }

@@ -34,6 +34,11 @@ logger = logging.getLogger(__name__)
 class AppHeader(_common.UbuntuUIToolkitCustomProxyObjectBase):
     """AppHeader Autopilot custom proxy object."""
 
+    def __init__(self, *args):
+        super().__init__(*args)
+        if not hasattr(self, 'useDeprecatedToolbar'):
+            self.useDeprecatedToolbar = None
+
     def ensure_visible(self):
         if not self._is_visible():
             self._show()
@@ -218,18 +223,23 @@ class AppHeader(_common.UbuntuUIToolkitCustomProxyObjectBase):
         if tabs_model_properties.selectedIndex == index:
             return
 
+        popover = self.get_root_instance().select_single(
+            objectName='tabsPopover')
+
         try:
-            tab_button = self.get_root_instance().select_single(
-                objectName='select_tab_' + str(index)
-                + '_header_overflow_button')
-        except dbus.StateNotFoundError:
+            # 1.3, using ActionSelectionPopover
+            action_name = 'select_tab_' + str(index)
+            popover.click_action_button(action_name)
+        except _common.ToolkitException:
             try:
+                # < 1.3 using custom popover
                 tab_button = self.get_root_instance().select_single(
                     objectName='tabButton' + str(index))
+                self.pointing_device.click_object(tab_button)
             except dbus.StateNotFoundError:
                 raise _common.ToolkitException(
                     "Tab button {0} not found.".format(index))
-        self.pointing_device.click_object(tab_button)
+
         self.wait_for_animation()
 
     def click_action_button(self, action_object_name):

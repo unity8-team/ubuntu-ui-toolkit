@@ -78,7 +78,6 @@
         <file>1.3/dateUtils.js</file>
         <file>1.3/DraggingArea.qml</file>
         <file>1.3/InputHandler.qml</file>
-        <file>1.3/Label.qml</file>
         <file>1.3/ListItemPopover.qml</file>
         <file>1.3/MainView.qml</file>
         <file>1.3/MainViewBase.qml</file>
@@ -90,12 +89,14 @@
         <file>1.3/PageHeadConfiguration.qml</file>
         <file>1.3/PageHeadSections.qml</file>
         <file>1.3/PageHeadState.qml</file>
+        <file>1.3/PageHeader.qml</file>
         <file>1.3/PageStack.qml</file>
         <file>1.3/PageTreeNode.qml</file>
         <file>1.3/pageUtils.js</file>
         <file>1.3/PageWrapper.qml</file>
         <file>1.3/Panel.qml</file>
         <file>1.3/ProgressBar.qml</file>
+        <file>1.3/ProgressionSlot.qml</file>
         <file>1.3/PullToRefresh.qml</file>
         <file>1.3/Scrollbar.qml</file>
         <file>1.3/Sections.qml</file>
@@ -127,5 +128,8 @@
         <file>Styles/1.2/ComboButtonStyle.qml</file>
         <file>Styles/1.2/PageHeadStyle.qml</file>
         <file>Styles/1.2/PullToRefreshStyle.qml</file>
+        <file>Styles/1.3/ActionBarStyle.qml</file>
+        <file>Styles/1.3/PageHeadStyle.qml</file>
+        <file>Styles/1.3/PageHeaderStyle.qml</file>
     </qresource>
 </RCC>

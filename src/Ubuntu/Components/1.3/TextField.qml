@@ -930,7 +930,7 @@ Ubuntu.ActionItem {
     }
 
     // hint text
-    Label {
+    Ubuntu.Label {
         id: hint
         verticalAlignment: Text.AlignVCenter
         horizontalAlignment: editor.horizontalAlignment
@@ -1013,6 +1013,5 @@ Ubuntu.ActionItem {
         cursorPosition = 0;
     }
 
-    theme.version: Ubuntu.Ubuntu.toolkitVersion
     styleName: "TextFieldStyle"
 }

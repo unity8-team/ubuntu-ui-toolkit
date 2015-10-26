@@ -16,7 +16,7 @@
 
 import QtQuick 2.4
 import Ubuntu.Components 1.3
-import Ubuntu.Components.ListItems 1.3 as ListItem
+//import Ubuntu.Components.ListItems 1.3 as ListItem
 
 MainView {
     id: gallery
@@ -29,13 +29,14 @@ MainView {
     width: units.gu(120)
     height: units.gu(75)
 
-    LayoutMirroring.enabled: Qt.application.layoutDirection == Qt.RightToLeft
+    LayoutMirroring.enabled: rtl
     LayoutMirroring.childrenInherit: true
+    property bool rtl: Qt.application.layoutDirection == Qt.RightToLeft
 
     AdaptivePageLayout {
         id: layout
         anchors.fill: parent
-        primaryPage: mainPage
+        primaryPageSource: Qt.resolvedUrl("MainPage.qml")
 
         layouts: [
             PageColumnsLayout {
@@ -58,55 +59,5 @@ MainView {
                 }
             }
         ]
-
-        Page {
-            id: mainPage
-            title: "Ubuntu UI Toolkit"
-
-            head.actions: [
-                Action {
-                    text: i18n.tr('Use dark theme')
-                    iconName: 'torch-on'
-                    visible: gallery.theme.name == 'Ubuntu.Components.Themes.Ambiance'
-                    onTriggered: gallery.theme.name = 'Ubuntu.Components.Themes.SuruDark'
-                },
-                Action {
-                    text: i18n.tr('Use light theme')
-                    iconName: 'torch-off'
-                    visible: gallery.theme.name == 'Ubuntu.Components.Themes.SuruDark'
-                    onTriggered: gallery.theme.name = 'Ubuntu.Components.Themes.Ambiance'
-                }
-            ]
-
-            Rectangle {
-                color: Qt.rgba(0.0, 0.0, 0.0, 0.01)
-                anchors.fill: parent
-
-                ListView {
-                    id: widgetList
-                    objectName: "widgetList"
-                    anchors.fill: parent
-                    model: widgetsModel
-                    currentIndex: -1
-                    delegate: ListItem.Standard {
-                        text: model.label
-                        objectName: model.objectName
-                        enabled: model.source != ""
-                        progression: true
-                        selected: index === widgetList.currentIndex
-                        onClicked: {
-                            var source = Qt.resolvedUrl(model.source);
-                            layout.addPageToNextColumn(mainPage, source, {title: model.label});
-
-                            widgetList.currentIndex = index;
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    WidgetsModel {
-        id: widgetsModel
     }
 }

@@ -59,6 +59,7 @@ public:
     void _q_contentMoving();
     void _q_syncSelectMode();
     void _q_syncDragMode();
+    void _q_updateExpansion(const QList<int> &indices);
     int index();
     bool canHighlight();
     void setHighlighted(bool pressed);
@@ -68,34 +69,37 @@ public:
     void snapOut();
     void swipeEvent(const QPointF &localPos, UCSwipeEvent::Status status);
     bool swipedOverThreshold(const QPointF &mousePos, const QPointF relativePos);
-    void grabLeftButtonEvents(QMouseEvent *event);
-    void ungrabLeftButtonEvents(QMouseEvent *event);
+    void handleLeftButtonPress(QMouseEvent *event);
+    void handleLeftButtonRelease(QMouseEvent *event);
+    bool sendMouseEvent(QQuickItem *item, QMouseEvent *event);
+    bool shouldShowContextMenu(QMouseEvent *event);
+    void _q_popoverClosed();
+    void showContextMenu();
 
-    quint16 defaultThemeVersion;
-    bool highlighted:1;
-    bool contentMoved:1;
-    bool swiped:1;
-    bool suppressClick:1;
-    bool ready:1;
-    bool customColor:1;
-    Qt::MouseButton button;
-    qreal xAxisMoveThresholdGU;
+    QPointer<QQuickItem> countOwner;
+    QPointer<QQuickFlickable> flickable;
+    QPointer<UCViewItemsAttached> parentAttached;
+    QPointer<ListItemDragHandler> dragHandler;
     QBasicTimer pressAndHoldTimer;
     QPointF lastPos;
     QPointF pressedPos;
     QPointF zeroPos;
     QColor color;
     QColor highlightColor;
-    QPointer<QQuickItem> countOwner;
-    QPointer<QQuickFlickable> flickable;
-    QPointer<UCViewItemsAttached> parentAttached;
-    QPointer<ListItemDragHandler> dragHandler;
     QQuickItem *contentItem;
     UCListItemDivider *divider;
     UCListItemActions *leadingActions;
     UCListItemActions *trailingActions;
     UCAction *mainAction;
     UCListItemExpansion *expansion;
+    qreal xAxisMoveThresholdGU;
+    Qt::MouseButton button;
+    bool highlighted:1;
+    bool contentMoved:1;
+    bool swiped:1;
+    bool suppressClick:1;
+    bool ready:1;
+    bool customColor:1;
 
     // getters/setters
     QQmlListProperty<QObject> data();
@@ -138,8 +142,6 @@ public:
 
     void clearFlickablesList();
     void buildFlickablesList();
-    void clearChangesList();
-    void buildChangesList(const QVariant &newValue);
     bool addSelectedItem(UCListItem *item);
     bool removeSelectedItem(UCListItem *item);
     bool isItemSelected(UCListItem *item);
@@ -149,21 +151,18 @@ public:
     void updateSelectedIndices(int fromIndex, int toIndex);
 
     // expansion
-    void expand(int index, UCListItem13 *listItem, bool emitChangeSignal = true);
+    void expand(int index, UCListItem *listItem, bool emitChangeSignal = true);
     void collapse(int index, bool emitChangeSignal = true);
     void collapseAll();
     void toggleExpansionFlags(bool enable);
 
     QSet<int> selectedList;
-    QMap<int, QPointer<UCListItem13> > expansionList;
+    QMap<int, QPointer<UCListItem> > expansionList;
     QList< QPointer<QQuickFlickable> > flickables;
-    QList< PropertyChange* > changes;
     QPointer<UCListItem> boundItem;
-    QPointer<UCListItem> disablerItem;
     QQuickFlickable *listView;
     ListItemDragArea *dragArea;
     UCViewItemsAttached::ExpansionFlags expansionFlags;
-    bool globalDisabled:1;
     bool selectable:1;
     bool draggable:1;
     bool ready:1;

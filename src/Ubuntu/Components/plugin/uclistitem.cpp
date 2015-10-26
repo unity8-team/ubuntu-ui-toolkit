@@ -61,7 +61,7 @@ public:
     QColor colorFrom;
     QColor colorTo;
     QGradientStops gradient;
-    UCListItemPrivate *listItem;
+    UCListItem *listItem;
 };
 
 UCListItemDivider::UCListItemDivider(UCListItem *parent)
@@ -77,14 +77,16 @@ void UCListItemDivider::init(UCListItem *listItem)
 {
     Q_D(UCListItemDivider);
     QQml_setParent_noEvent(this, listItem);
-    d->listItem = UCListItemPrivate::get(listItem);
+    d->listItem = listItem;
     setParentItem(listItem);
     // anchor to left/right/bottom of the ListItem
     QQuickAnchors *anchors = d->anchors();
-    anchors->setLeft(d->listItem->left());
-    anchors->setRight(d->listItem->right());
-    anchors->setBottom(d->listItem->bottom());
+    UCListItemPrivate *pListItem = UCListItemPrivate::get(listItem);
+    anchors->setLeft(pListItem->left());
+    anchors->setRight(pListItem->right());
+    anchors->setBottom(pListItem->bottom());
     // connect visible change so we relayout contentItem
+    // FIXME: do this with itemChange!!!
     connect(this, SIGNAL(visibleChanged()), listItem, SLOT(_q_relayout()));
 }
 
@@ -132,7 +134,8 @@ QSGNode *UCListItemDivider::updatePaintNode(QSGNode *node, UpdatePaintNodeData *
         dividerNode = d->sceneGraphContext()->createRectangleNode();
     }
 
-    bool lastItem = d->listItem->countOwner ? (d->listItem->index() == (d->listItem->countOwner->property("count").toInt() - 1)): false;
+    UCListItemPrivate *pListItem = UCListItemPrivate::get(d->listItem);
+    bool lastItem = pListItem->countOwner ? (pListItem->index() == (pListItem->countOwner->property("count").toInt() - 1)): false;
     if (!lastItem && (d->gradient.size() > 0) && ((d->colorFrom.alphaF() >= (1.0f / 255.0f)) || (d->colorTo.alphaF() >= (1.0f / 255.0f)))) {
         dividerNode->setRect(boundingRect());
         dividerNode->setGradientStops(d->gradient);
@@ -184,23 +187,22 @@ void UCListItemDivider::setColorTo(const QColor &color)
  */
 UCListItemPrivate::UCListItemPrivate()
     : UCStyledItemBasePrivate()
-    , defaultThemeVersion(0)
+    , color(Qt::transparent)
+    , highlightColor(Qt::transparent)
+    , contentItem(new QQuickItem)
+    , divider(new UCListItemDivider)
+    , leadingActions(Q_NULLPTR)
+    , trailingActions(Q_NULLPTR)
+    , mainAction(Q_NULLPTR)
+    , expansion(Q_NULLPTR)
+    , xAxisMoveThresholdGU(DEFAULT_SWIPE_THRESHOLD_GU)
+    , button(Qt::NoButton)
     , highlighted(false)
     , contentMoved(false)
     , swiped(false)
     , suppressClick(false)
     , ready(false)
     , customColor(false)
-    , xAxisMoveThresholdGU(DEFAULT_SWIPE_THRESHOLD_GU)
-    , color(Qt::transparent)
-    , highlightColor(Qt::transparent)
-    , parentAttached(0)
-    , contentItem(new QQuickItem)
-    , divider(new UCListItemDivider)
-    , leadingActions(0)
-    , trailingActions(0)
-    , mainAction(0)
-    , expansion(Q_NULLPTR)
 {
 }
 UCListItemPrivate::~UCListItemPrivate()
@@ -473,7 +475,7 @@ void UCListItemPrivate::snapOut()
     if (parentAttached) {
         Q_Q(UCListItem);
         // restore flickable's interactive and cleanup
-        parentAttached->disableInteractive(q, false);
+        q->setKeepMouseGrab(false);
         // no need to listen flickables any longer
         listenToRebind(false);
     }
@@ -964,7 +966,6 @@ UCListItem::UCListItem(QQuickItem *parent)
 {
     Q_D(UCListItem);
     d->init();
-    d->defaultThemeVersion = BUILD_VERSION(1, 2);
 }
 
 UCListItem::~UCListItem()
@@ -980,11 +981,6 @@ void UCListItem::classBegin()
 {
     UCStyledItemBase::classBegin();
     Q_D(UCListItem);
-    // initialize theme
-    UCTheme *theme = d->getTheme();
-    if (theme == &UCTheme::defaultTheme()) {
-        theme->setVersion(d->defaultThemeVersion);
-    }
     d->_q_themeChanged();
     d->divider->paletteChanged();
 }
@@ -1074,6 +1070,11 @@ void UCListItem::itemChange(ItemChange change, const ItemChangeData &data)
             myStyle->updateFlickable(d->flickable);
         }
 
+        if (d->parentAttached) {
+            connect(d->parentAttached.data(), SIGNAL(expandedIndicesChanged(QList<int>)),
+                    this, SLOT(_q_updateExpansion(QList<int>)), Qt::DirectConnection);
+        }
+
         if (parentAttachee) {
             QObject::connect(parentAttachee, SIGNAL(widthChanged()), this, SLOT(_q_updateSize()), Qt::DirectConnection);
             // update size
@@ -1122,7 +1123,7 @@ QSGNode *UCListItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *data
 
 // grabs the left mouse button event by turning highlight on, and triggering
 // swipe events; child items should no longer get mouse events
-void UCListItemPrivate::grabLeftButtonEvents(QMouseEvent *event)
+void UCListItemPrivate::handleLeftButtonPress(QMouseEvent *event)
 {
     Q_Q(UCListItem);
     button = event->button();
@@ -1132,11 +1133,15 @@ void UCListItemPrivate::grabLeftButtonEvents(QMouseEvent *event)
     lastPos = pressedPos = event->localPos();
     // connect the Flickable to know when to rebound
     listenToRebind(true);
-    if (swiped && parentAttached) {
-        parentAttached->disableInteractive(q, true);
+    if (swiped) {
+        // grab now, and ungrab in snapOut
+        q->setKeepMouseGrab(true);
+        q->grabMouse();
     }
     // stop any ongoing animation!
     swipeEvent(event->localPos(), UCSwipeEvent::Started);
+    // accept the event so we get the rest of the events as well
+    event->accept();
 }
 
 void UCListItem::mousePressEvent(QMouseEvent *event)
@@ -1149,68 +1154,71 @@ void UCListItem::mousePressEvent(QMouseEvent *event)
         return;
     }
     if (d->canHighlight() && !d->highlighted && event->button() == Qt::LeftButton) {
-        d->grabLeftButtonEvents(event);
+        d->handleLeftButtonPress(event);
     }
-    // accept the event so we get the rest of the events as well
-    event->setAccepted(true);
+    if (d->shouldShowContextMenu(event)) {
+        d->showContextMenu();
+    }
 }
 
-bool UCListItem13::shouldShowContextMenu(QMouseEvent *event)
+bool UCListItemPrivate::shouldShowContextMenu(QMouseEvent *event)
 {
     if (event->button() != Qt::RightButton)
         return false;
-    return leadingActions() || trailingActions();
+    return leadingActions || trailingActions;
 }
 
-void UCListItem13::mousePressEvent(QMouseEvent *event)
+void UCListItemPrivate::_q_popoverClosed()
 {
-    UCListItem::mousePressEvent(event);
-    if (shouldShowContextMenu(event)) {
-        Q_D(UCListItem);
+    setHighlighted(false);
+}
 
-        // Highlight the Item while the menu is showing
-        d->setHighlighted(true);
-        // Reset the timer which otherwise is started with highlighting
-        d->pressAndHoldTimer.stop();
-
-        quint16 version(d->getTheme()->version());
-        QString versionString(QStringLiteral("%1.%2").arg(MAJOR_VERSION(version)).arg(MINOR_VERSION(version)));
-        QUrl url(UbuntuComponentsPlugin::pluginUrl().resolved(versionString + "/ListItemPopover.qml"));
-
-        // Open Popover
-        QQmlEngine* engine = qmlEngine(this);
-        QQmlComponent* component = new QQmlComponent(engine, url, QQmlComponent::PreferSynchronous, this);
-        if (component->isError()) {
-            qmlInfo(this) << component->errorString();
-        } else {
-            QQmlEngine::setContextForObject(component, qmlContext(this));
-            QQuickItem* item = static_cast<QQuickItem*>(component->create(qmlContext(this)));
-            item->setProperty("caller", QVariant::fromValue(this));
-            item->setParentItem(QuickUtils::instance().rootItem(this));
-            QMetaObject::invokeMethod(item, "show");
-            connect(item, &QQuickItem::visibleChanged, this,
-                &UCListItem13::popoverClosed, Qt::DirectConnection);
-        }
-        delete component;
+void UCListItemPrivate::showContextMenu()
+{
+    Q_Q(UCListItem);
+    // themes 1.2 and below should not have context menu support, so leave
+    quint16 version(importVersion(q));
+    if (version <= BUILD_VERSION(1, 2)) {
+        return;
     }
-}
 
-void UCListItem13::popoverClosed()
-{
-    Q_D(UCListItem);
-    d->setHighlighted(false);
+    // Highlight the Item while the menu is showing
+    setHighlighted(true);
+    // Reset the timer which otherwise is started with highlighting
+    pressAndHoldTimer.stop();
+
+    QString versionString(QStringLiteral("%1.%2").arg(MAJOR_VERSION(version)).arg(MINOR_VERSION(version)));
+    const QString relativeUrl = versionString + "/ListItemPopover.qml";
+    QUrl url(UbuntuComponentsPlugin::pluginUrl().resolved(relativeUrl));
+
+    // Open Popover
+    QQmlEngine* engine = qmlEngine(q);
+    QQmlComponent* component = new QQmlComponent(engine, url, QQmlComponent::PreferSynchronous, q);
+    if (component->isError()) {
+        qmlInfo(q) << component->errorString();
+    } else {
+        QQmlEngine::setContextForObject(component, qmlContext(q));
+        QQuickItem* item = static_cast<QQuickItem*>(component->create(qmlContext(q)));
+        item->setProperty("caller", QVariant::fromValue(q));
+        item->setParentItem(QuickUtils::instance().rootItem(q));
+        QMetaObject::invokeMethod(item, "show");
+        QObject::connect(item, SIGNAL(visibleChanged()), q,
+            SLOT(_q_popoverClosed()), Qt::DirectConnection);
+    }
+    delete component;
 }
 
 // ungrabs any previously grabbed left mouse button event
-void UCListItemPrivate::ungrabLeftButtonEvents(QMouseEvent *event)
+void UCListItemPrivate::handleLeftButtonRelease(QMouseEvent *event)
 {
     Q_Q(UCListItem);
     // set released
     if (highlighted) {
         // unblock ascending Flickables
         listenToRebind(false);
-        if (parentAttached) {
-            parentAttached->disableInteractive(q, false);
+        q->setKeepMouseGrab(false);
+        if (window && window->mouseGrabberItem() == q) {
+            q->ungrabMouse();
         }
 
         if (!suppressClick) {
@@ -1230,21 +1238,18 @@ void UCListItemPrivate::ungrabLeftButtonEvents(QMouseEvent *event)
         }
     }
     button = Qt::NoButton;
+    event->accept();
 }
 
 void UCListItem::mouseReleaseEvent(QMouseEvent *event)
 {
-    UCStyledItemBase::mouseReleaseEvent(event);
     Q_D(UCListItem);
-    d->ungrabLeftButtonEvents(event);
-    // make sure we ungrab the mouse!
-    ungrabMouse();
-}
+    if (d->shouldShowContextMenu(event)) {
+        return;
+    }
 
-void UCListItem13::mouseReleaseEvent(QMouseEvent *event)
-{
-    if (!shouldShowContextMenu(event))
-        UCListItem::mouseReleaseEvent(event);
+    UCStyledItemBase::mouseReleaseEvent(event);
+    d->handleLeftButtonRelease(event);
 }
 
 // returns true if the mouse is swiped over the threshold value
@@ -1274,9 +1279,7 @@ void UCListItem::mouseMoveEvent(QMouseEvent *event)
         if (d->swipedOverThreshold(event->localPos(), d->pressedPos)) {
             // the press went out of the threshold area, enable move, if the direction allows it
             d->lastPos = event->localPos();
-            if (d->parentAttached) {
-                d->parentAttached->disableInteractive(this, true);
-            }
+            setKeepMouseGrab(true);
             qreal mouseX = event->localPos().x();
             qreal pressedX = d->pressedPos.x();
             bool doSwipe = (d->leadingActions && (mouseX > pressedX)) ||
@@ -1297,42 +1300,81 @@ void UCListItem::mouseMoveEvent(QMouseEvent *event)
     }
 }
 
-bool UCListItem::childMouseEventFilter(QQuickItem *child, QEvent *event)
+bool UCListItemPrivate::sendMouseEvent(QQuickItem *item, QMouseEvent *event)
 {
-    QEvent::Type type = event->type();
-    Q_D(UCListItem);
-    if (type == QEvent::MouseButtonPress) {
-        // suppress click event if pressed over an active area, except Text, which can also handle
-        // mouse clicks when content is an URL
-        QMouseEvent *mouse = static_cast<QMouseEvent*>(event);
-        if (child->isEnabled() && (child->acceptedMouseButtons() & mouse->button()) && !qobject_cast<QQuickText*>(child)) {
-            // suppress click
-            d->suppressClick = true;
-            // listen for flickable to be able to rebind if movement started there!
-            d->listenToRebind(true);
-            // if left button pressed, remember the position
-            if (mouse->button() == Qt::LeftButton) {
-                d->pressedPos = mapFromItem(child, mouse->localPos());
-                d->button = mouse->button();
+    Q_UNUSED(item);
+    Q_Q(UCListItem);
+    QQuickItem *grabber = window ? window->mouseGrabberItem() : Q_NULLPTR;
+    if (grabber == q) {
+        // already the grabber, return
+        return true;
+    }
+
+    bool consumed = false;
+    if (contentItem->contains(contentItem->mapFromScene(event->windowPos()))) {
+        QPointF localPos = q->mapFromScene(event->windowPos());
+
+        switch (event->type()) {
+        case QEvent::MouseButtonPress: {
+            // remember pressed point over active areas
+            if (event->button() == Qt::LeftButton) {
+                if (swiped) {
+                    // handle as full press and grab the event from the children
+                    QScopedPointer<QMouseEvent> mouseEvent(QQuickWindowPrivate::cloneMouseEvent(event, &localPos));
+                    handleLeftButtonPress(mouseEvent.data());
+                    consumed = true;
+                } else {
+                    // remember the position
+                    pressedPos = localPos;
+                    button = event->button();
+                }
             }
+            break;
         }
-    } else if (type == QEvent::MouseButtonRelease) {
-        Q_D(UCListItem);
-        d->suppressClick = false;
-    } else if (type == QEvent::MouseMove) {
-        QMouseEvent *mouse = static_cast<QMouseEvent*>(event);
-        const QPointF localPos = mapFromItem(child, mouse->localPos());
-        if ((mouse->buttons() & Qt::LeftButton) && d->swipedOverThreshold(localPos, d->pressedPos) && !d->highlighted) {
-            // grab the event from the child, so the click doesn't happen anymore, and initiate swiping
-            QMouseEvent pressed(QEvent::MouseButtonPress, localPos, mouse->windowPos(), mouse->screenPos(),
-                                    Qt::LeftButton, mouse->buttons(), mouse->modifiers());
-            d->grabLeftButtonEvents(&pressed);
-            // stop click and pressAndHold, then grab the mouse so children do not get the mouse events anymore
-            d->suppressClick = true;
-            d->pressAndHoldTimer.stop();
-            grabMouse();
+        case QEvent::MouseButtonRelease: {
+            QScopedPointer<QMouseEvent> mouseEvent(QQuickWindowPrivate::cloneMouseEvent(event, &localPos));
+            handleLeftButtonRelease(mouseEvent.data());
+            suppressClick = false;
+            break;
+        }
+        case QEvent::MouseMove: {
+            if ((button == Qt::LeftButton) && swipedOverThreshold(localPos, pressedPos) && !highlighted) {
+                // grab the event from the child, so the click doesn't happen anymore, and initiate swiping
+                QMouseEvent pressed(QEvent::MouseButtonPress, localPos, event->windowPos(), event->screenPos(),
+                                        Qt::LeftButton, event->buttons(), event->modifiers());
+                handleLeftButtonPress(&pressed);
+                // grab any further events so all land in the list item
+                q->setKeepMouseGrab(true);
+                q->grabMouse();
+                consumed = true;
+            }
+            break;
+        }
+        default: break;
         }
     }
+
+    return consumed;
+}
+
+bool UCListItem::childMouseEventFilter(QQuickItem *child, QEvent *event)
+{
+    if (!isVisible() || !isEnabled()) {
+        return UCStyledItemBase::childMouseEventFilter(child, event);
+    }
+
+    Q_D(UCListItem);
+    switch (event->type()) {
+    case QEvent::MouseButtonPress:
+    case QEvent::MouseMove:
+    case QEvent::MouseButtonRelease: {
+        if (d->sendMouseEvent(child, static_cast<QMouseEvent*>(event))) {
+            return true;
+        }
+    }
+    default: break;
+    }
+
     return UCStyledItemBase::childMouseEventFilter(child, event);
 }
 
@@ -1604,7 +1646,7 @@ void UCListItem::resetHighlightColor()
 {
     Q_D(UCListItem);
     d->customColor = false;
-    d->highlightColor = d->getTheme()->getPaletteColor("selected", "background");
+    d->highlightColor = getTheme()->getPaletteColor("selected", "background");
     update();
     Q_EMIT highlightColorChanged();
 }
@@ -1729,33 +1771,6 @@ QQmlListProperty<QQuickItem> UCListItemPrivate::children()
     return QQuickItemPrivate::get(contentItem)->children();
 }
 
-/******************************************************************************
- * Versioning
- */
-UCListItem13::UCListItem13(QQuickItem *parent)
-    : UCListItem(parent)
-{
-    Q_D(UCListItem);
-    d->defaultThemeVersion = BUILD_VERSION(1, 3);
-}
-
-QObject *UCListItem13::attachedViewItems(QObject *object, bool create)
-{
-    return qmlAttachedPropertiesObject<UCViewItemsAttached13>(object, create);
-}
-
-void UCListItem13::itemChange(ItemChange change, const ItemChangeData &data)
-{
-    UCListItem::itemChange(change, data);
-
-    Q_D(UCListItem);
-    // ViewItems drives expansion
-    if (d->parentAttached) {
-        connect(d->parentAttached.data(), SIGNAL(expandedIndicesChanged(QList<int>)),
-                this, SLOT(_q_updateExpansion(QList<int>)), Qt::UniqueConnection);
-    }
-}
-
 /*!
  * \qmlpropertygroup ::ListItem::expansion
  * \qmlproperty bool ListItem::expansion.expanded
@@ -1763,7 +1778,7 @@ void UCListItem13::itemChange(ItemChange change, const ItemChangeData &data)
  * \since Ubuntu.Components 1.3
  * The group drefines the expansion state of the ListItem.
  */
-UCListItemExpansion *UCListItem13::expansion()
+UCListItemExpansion *UCListItem::expansion()
 {
     Q_D(UCListItem);
     if (!d->expansion) {
@@ -1772,14 +1787,13 @@ UCListItemExpansion *UCListItem13::expansion()
     return d->expansion;
 }
 
-void UCListItem13::_q_updateExpansion(const QList<int> &indices)
+void UCListItemPrivate::_q_updateExpansion(const QList<int> &indices)
 {
-    Q_UNUSED(indices);
-    Q_D(UCListItem);
-    Q_EMIT expansion()->expandedChanged();
+    Q_Q(UCListItem);
+    Q_EMIT q->expansion()->expandedChanged();
     // make sure the style is loaded
-    if (indices.contains(d->index())) {
-        d->loadStyleItem();
+    if (indices.contains(index())) {
+        loadStyleItem();
     }
 }
 
