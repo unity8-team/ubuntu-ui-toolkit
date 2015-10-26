@@ -67,5 +67,4 @@ load(ubuntu_enable_testing)
 }
 
 QMAKE_CXXFLAGS += -Werror
-CONFIG += qtquickcompiler
 
