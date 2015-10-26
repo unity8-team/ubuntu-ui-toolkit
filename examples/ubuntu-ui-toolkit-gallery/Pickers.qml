@@ -17,16 +17,13 @@
 import QtQuick 2.4
 import Ubuntu.Components 1.3
 import Ubuntu.Components.Pickers 1.3
-import Ubuntu.Components.Pickers 1.2 as NitPickers
 
 Template {
     objectName: "pickersTemplate"
     id: root
-    property real girth: units.gu(15)
 
     property var stringListModel: ["starred", "media-record", "like", "language-chooser", "go-home", "email", "contact-group", "notification", "active-call"]
     TemplateSection {
-visible:false
         className: "Picker"
         documentation: "qml-ubuntu-components-pickers-picker.html"
 
@@ -133,7 +130,6 @@ visible:false
     }
 
     TemplateSection {
-visible:false
         className: "Dialer"
         documentation: "qml-ubuntu-components-pickers-dialer.html"
 
@@ -214,49 +210,28 @@ visible:false
         documentation: "qml-ubuntu-components-pickers-datepicker.html"
         TemplateRow {
             title: "Date"
-            Loader { active: parent.visible
-                sourceComponent: Component {
-            NitPickers.DatePicker {
-                width: root.girth
-                onDateChanged: print("picked date="+Qt.formatDate(date, "yyyy/MMMM/dd"))
-            }
-            } }
             DatePicker {
-                width: root.girth
+                // make sure we have the whole component in screen
+                width: Math.min(root.width - units.gu(16), units.gu(40))
                 onDateChanged: print("picked month="+Qt.formatDate(date, "yyyy/MMMM"))
             }
         }
         TemplateRow {
             title: "Month"
-            Loader { active: parent.visible
-                sourceComponent: Component {
-            NitPickers.DatePicker {
-                width: root.girth
-                mode: "Years|Months"
-                onDateChanged: print("picked month="+Qt.formatDate(date, "yyyy/MMMM"))
-            }
-            } }
             DatePicker {
-                width: root.girth
+                // make sure we have the whole component in screen
+                width: Math.min(root.width - units.gu(16), units.gu(40))
                 mode: "Years|Months"
                 onDateChanged: print("picked month="+Qt.formatDate(date, "yyyy/MMMM"))
             }
         }
         TemplateRow {
             title: "Time"
-            Loader { active: parent.visible
-                sourceComponent: Component {
-            NitPickers.DatePicker {
-                width: root.girth
-                mode: "Hours|Minutes|Seconds"
-                date: new Date()
-                onDateChanged: print("picked time="+Qt.formatTime(date, "hh:mm:ss"))
-            }
-            } }
             DatePicker {
-                width: root.girth
                 mode: "Hours|Minutes|Seconds"
                 date: new Date()
+                // make sure we have the whole component in screen
+                width: Math.min(root.width - units.gu(16), units.gu(40))
                 onDateChanged: print("picked time="+Qt.formatTime(date, "hh:mm:ss"))
             }
         }
