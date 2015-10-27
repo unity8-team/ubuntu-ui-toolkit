@@ -206,7 +206,7 @@ UCTheme::ThemeRecord pathFromThemeName(QString themeName)
 
                 if (!qmlDirFile.open(QIODevice::ReadOnly)) {
                     qmlInfo(0) << "Could not read qmldir file of "<<record.path<<" skipping";
-                    //@BUG return empty ThemeRecord if qmldir is not readable?
+                    //return empty ThemeRecord if qmldir is not readable
                     break;
                 }
 
@@ -214,7 +214,7 @@ UCTheme::ThemeRecord pathFromThemeName(QString themeName)
                 if (qmlDir.hasError()) {
                     qmlInfo(0) << "Error parsing file "<<qmlDirFileName
                                   << qmlDir.errors(record.name);
-                    //@BUG return empty ThemeRecord if qmldir is not valid?
+                    //return empty ThemeRecord if qmldir is not valid
                     break;
                 }
 
@@ -435,7 +435,7 @@ void UCTheme::_q_defaultThemeChanged()
 
 bool UCTheme::loadThemePlugin(const ThemeRecord &theme, quint16 version, const QString &component)
 {
-    //@BUG will this be a problem when the engine changes?
+    //In case we ever support changing the engine we need to add additional logic to handle it correctly
     if (theme.pluginLoaded)
         return true;
 
