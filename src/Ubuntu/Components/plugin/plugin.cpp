@@ -261,13 +261,13 @@ void UbuntuComponentsPlugin::initializeEngine(QQmlEngine *engine, const char *ur
     qmlRegisterType<UCListItemStyle, 1>(styleUri, 1, 3, "ListItemStyle");
 
     //register styles
-    qmlRegisterType(QUrl("qrc:/Ubuntu/Components/Styles/1.2/ComboButtonStyle.qml"),styleUri,1,1,"ComboButtonStyle");
-    qmlRegisterType(QUrl("qrc:/Ubuntu/Components/Styles/1.2/PullToRefreshStyle.qml"),styleUri,1,1,"PullToRefreshStyle");
-    qmlRegisterType(QUrl("qrc:/Ubuntu/Components/Styles/1.2/PageHeadStyle.qml"),styleUri,1,1,"PageHeadStyle");
+    qmlRegisterType(QUrl("qrc:/Ubuntu/Components/Styles/1.2/ComboButtonStyle.qml"), styleUri, 1, 1, "ComboButtonStyle");
+    qmlRegisterType(QUrl("qrc:/Ubuntu/Components/Styles/1.2/PullToRefreshStyle.qml"), styleUri, 1, 1, "PullToRefreshStyle");
+    qmlRegisterType(QUrl("qrc:/Ubuntu/Components/Styles/1.2/PageHeadStyle.qml"), styleUri, 1, 1, "PageHeadStyle");
 
-    qmlRegisterType(QUrl("qrc:/Ubuntu/Components/Styles/1.3/PageHeadStyle.qml") ,styleUri,1,3,"PageHeadStyle");
-    qmlRegisterType(QUrl("qrc:/Ubuntu/Components/Styles/1.3/ActionBarStyle.qml"),styleUri,1,3,"ActionBarStyle");
-    qmlRegisterType(QUrl("qrc:/Ubuntu/Components/Styles/1.3/PageHeaderStyle.qml"),styleUri,1,3,"PageHeaderStyle");
+    qmlRegisterType(QUrl("qrc:/Ubuntu/Components/Styles/1.3/PageHeadStyle.qml") , styleUri, 1, 3, "PageHeadStyle");
+    qmlRegisterType(QUrl("qrc:/Ubuntu/Components/Styles/1.3/ActionBarStyle.qml"), styleUri, 1, 3, "ActionBarStyle");
+    qmlRegisterType(QUrl("qrc:/Ubuntu/Components/Styles/1.3/PageHeaderStyle.qml"), styleUri, 1, 3, "PageHeaderStyle");
 
     QQmlExtensionPlugin::initializeEngine(engine, uri);
     QQmlContext* context = engine->rootContext();
