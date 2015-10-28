@@ -950,61 +950,55 @@ Ubuntu.ActionItem {
 
 
     // text input
-    Flickable {
-        id: flicker
-        objectName: "input_scroller"
+    TextInput {
+        id: editor
+        objectName: "text_input"
+        // FocusScope will forward focus to this component
+        focus: true
+        verticalAlignment: TextInput.AlignVCenter
+        cursorDelegate: TextCursor {
+            handler: inputHandler
+        }
+        color: control.__styleInstance.color
+        selectedTextColor: control.__styleInstance.selectedTextColor
+        selectionColor: control.__styleInstance.selectionColor
+        font.pixelSize: FontUtils.sizeToPixels("medium")
+        passwordCharacter: "\u2022"
+        // forward keys to the root element so it can be captured outside of it
+        // as well as to InputHandler to handle PageUp/PageDown keys
+        Keys.forwardTo: [control, inputHandler]
+
+        // overrides
+        selectByMouse: true
+        activeFocusOnPress: control.activeFocusOnPress
+        onActiveFocusChanged: if (!activeFocus && inputHandler.popover) PopupUtils.close(inputHandler.popover)
+        // Implement fake Flickable interface for InputHandler
+        property real contentX: x
+        property real contentY: y
+        property bool moving: false
+        property bool flicking: false
+        property bool interactive: autoScroll
+        signal flickStarted()
+        signal movementStarted()
+        signal movementEnded()
+
+        clip: true
         anchors {
             left: leftPane.right
             right: clearButton.left
-            top: parent.top
-            bottom: parent.bottom
+            verticalCenter: parent.verticalCenter
             margins: internal.spacing
         }
-        topMargin: internal.spacing
-        // do not allow rebounding
-        boundsBehavior: Flickable.StopAtBounds
-        // need to forward events as events occurred on topMargin area are not grabbed by the MouseArea.
+
+        // input selection and navigation handling
         Ubuntu.Mouse.forwardTo: [inputHandler]
-
-        clip: true
-        contentWidth: editor.contentWidth
-        contentHeight: editor.contentHeight
-
-        TextInput {
-            id: editor
-            objectName: "text_input"
-            // FocusScope will forward focus to this component
-            focus: true
-            anchors.verticalCenter: parent.verticalCenter
-            verticalAlignment: TextInput.AlignVCenter
-            width: flicker.width
-            height: flicker.height
-            cursorDelegate: TextCursor {
-                handler: inputHandler
-            }
-            color: control.__styleInstance.color
-            selectedTextColor: control.__styleInstance.selectedTextColor
-            selectionColor: control.__styleInstance.selectionColor
-            font.pixelSize: FontUtils.sizeToPixels("medium")
-            passwordCharacter: "\u2022"
-            // forward keys to the root element so it can be captured outside of it
-            // as well as to InputHandler to handle PageUp/PageDown keys
-            Keys.forwardTo: [control, inputHandler]
-
-            // overrides
-            selectByMouse: true
-            activeFocusOnPress: control.activeFocusOnPress
-            onActiveFocusChanged: if (!activeFocus && inputHandler.popover) PopupUtils.close(inputHandler.popover)
-
-            // input selection and navigation handling
-            Ubuntu.Mouse.forwardTo: [inputHandler]
-            InputHandler {
-                id: inputHandler
-                anchors.fill: parent
-                main: control
-                input: editor
-                flickable: flicker
-            }
+        InputHandler {
+            id: inputHandler
+            anchors.fill: parent
+            main: control
+            input: editor
+            flickable: editor
+            frameDistance: Qt.point(control.x, control.y)
         }
     }
 

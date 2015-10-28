@@ -31,12 +31,13 @@ MultiPointTouchArea {
     // the input instance
     property Item input
     // the Flickable holding the input instance
-    property Flickable flickable
+    property var flickable
 
     // item filling the visible text input area used to check handler visibility
     property Item visibleArea: Item {
         parent: flickable
         anchors.fill: parent
+        anchors.margins: -flickable.margins
     }
 
     // line size and spacing
@@ -81,8 +82,8 @@ MultiPointTouchArea {
     readonly property bool scrollingDisabled: main && main.hasOwnProperty("autoSize") ?
                                                   (main.autoSize && (main.maximumLineCount <= 0)) : false
     onScrollingDisabledChanged: if (state == "") flickable.interactive = !scrollingDisabled
-    readonly property Flickable grandScroller: firstFlickableParent(main)
-    readonly property Flickable scroller: (scrollingDisabled && grandScroller) ? grandScroller : flickable
+    readonly property var grandScroller: firstFlickableParent(main)
+    readonly property var scroller: (scrollingDisabled && grandScroller) ? grandScroller : flickable
 
     // ensures the text cursorRectangle is always in the internal Flickable's visible area
     function ensureVisible(rect)
