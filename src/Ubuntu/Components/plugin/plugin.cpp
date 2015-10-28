@@ -76,6 +76,8 @@
 #include <stdexcept>
 
 QUrl UbuntuComponentsPlugin::m_baseUrl = QUrl();
+bool UbuntuComponentsPlugin::m_searchFs = false;
+QUrl UbuntuComponentsPlugin::m_qrcRoot = QUrl(QStringLiteral("qrc:/Ubuntu/Components/"));
 
 /*
  * Type registration functions.
@@ -137,6 +139,10 @@ void UbuntuComponentsPlugin::initializeBaseUrl()
     if (!m_baseUrl.isValid()) {
         m_baseUrl = QUrl(baseUrl().toString() + '/');
     }
+
+    m_searchFs = QFile::exists(m_baseUrl
+                               .resolved(QStringLiteral("enable_fs_resolve"))
+                               .toLocalFile());
 }
 
 void UbuntuComponentsPlugin::registerWindowContextProperty()
@@ -317,4 +323,19 @@ void UbuntuComponentsPlugin::initializeEngine(QQmlEngine *engine, const char *ur
             Qt::InvertedLandscapeOrientation);
 
     registerWindowContextProperty();
+}
+
+QUrl UbuntuComponentsPlugin::componentPath(const QString &relativePath)
+{
+    if (m_searchFs) {
+        QUrl file = m_baseUrl.resolved(relativePath);
+        if (QFile::exists(file.toLocalFile()))
+            return file;
+    }
+
+    QUrl file = m_qrcRoot.resolved(relativePath);
+    if (QFile::exists(QStringLiteral(":")+file.path()))
+        return file;
+
+    return QUrl();
 }

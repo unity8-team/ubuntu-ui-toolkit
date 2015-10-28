@@ -154,7 +154,7 @@ void HapticsProxy::initialize()
         return;
     }
     // load haptics proxy from file system/qrc
-    QUrl path = UbuntuComponentsPlugin::pluginUrl().resolved(QUrl("qrc:/Ubuntu/Components/1.1/Haptics.qml"));
+    QUrl path = UbuntuComponentsPlugin::componentPath(QStringLiteral("1.1/Haptics.qml"));
     QQmlComponent component(m_engine, path, QQmlComponent::PreferSynchronous);
     if (!component.isError()) {
         m_proxyObject = component.create();

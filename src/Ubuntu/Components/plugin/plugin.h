@@ -36,6 +36,7 @@ public:
     {
         return m_baseUrl;
     }
+    static QUrl componentPath(const QString &relativePath);
 
 private Q_SLOTS:
     void registerWindowContextProperty();
@@ -43,6 +44,8 @@ private Q_SLOTS:
 
 private:
     static QUrl m_baseUrl;
+    static bool m_searchFs;
+    static QUrl m_qrcRoot;
     void initializeBaseUrl();
     void registerTypesToVersion(const char *uri, int major, int minor);
 };
