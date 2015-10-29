@@ -1,3 +1,41 @@
+ubuntu-ui-toolkit (1.3.1705+15.10.20151018.1-0ubuntu2) UNRELEASED; urgency=medium
+
+  [ Zsombor Egri ]
+  * Fixing CheckBox and Switch getting checked property altered after clicked() 
+    signal is emitted. Fixes LP: #1510919.
+  * Add ListItem.swipeEnabled property to block swiping when overlay MouseArea 
+    is used to drag content. Fixes swiping when leading/trailing actions list is
+    empty. Fixes: LP: #1500409, LP: #1500416.
+  * Follow the new design in BottomEdgeHint.
+  * Provide import version information for StyledItem and remove theme.version 
+    obsolete property.
+  * Use QQuickItemChangeListener to listen parent changes, skipping the meta 
+    object model. Convert UCThemingExtension into a Q_INTERFACE so object_cast<>
+    can work with it saving the need to memorise on an item whether it is an 
+    extended item or not.
+
+  [ Tim Peeters ]
+  * Use PageHeader in the UITK gallery.
+  * Ensure PageHeader style works properly with run-time theme changes.
+  * Add a back action to the Page.header automatically in PageStack and AdaptivePageLayout.
+  * Add a navigationActions property to PageHeader.
+  * Fix links to Page in the documentation.
+  * Sync the height of the Page header with the other subheaders in the AdaptivePageLayout.
+
+  [ Timo Jyrinki ]
+  * Change HandlerType from int[2] to QVector<int> to make it work with Qt 5.5 
+    Fixes LP: #1484004, LP: #1450346
+  * Workaround 'emit' declaration in Qt 5.5 Fixes LP: #1507910
+  * Build depend on libxkbcommon-dev Fixes LP: #1508447
+
+  [ Christian Dywan ]
+  * Special-case leaked QQuickImageBase properties. Fixes: LP: #1473890.
+  * Don't use UniqueConnection in the image extension. UniqueConnection is slow.
+    The equivalent units listener in UbuntuShape doesn't use the flag either so 
+    its need is questionable. 
+
+ -- Zoltán Balogh <zoltan@bakter.hu>  Thu, 29 Oct 2015 11:17:06 +0200
+
 ubuntu-ui-toolkit (1.3.1688+15.10.20151018.1-0ubuntu1) wily; urgency=medium
 
   [ Tim Peeters ] 
