@@ -3,7 +3,7 @@ TARGET  = UbuntuComponents
 TARGETPATH = Ubuntu/Components
 IMPORT_VERSION = 0.1
 
-CONFIG += build_default
+CONFIG += build_qrc
 
 include(plugin/plugin.pri)
 
