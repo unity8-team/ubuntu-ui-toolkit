@@ -45,7 +45,9 @@ private Q_SLOTS:
 private:
     static QUrl m_baseUrl;
     static bool m_searchFs;
+#ifdef QRC_BUILD_MODE
     static QUrl m_qrcRoot;
+#endif
     void initializeBaseUrl();
     void registerTypesToVersion(const char *uri, int major, int minor);
 };

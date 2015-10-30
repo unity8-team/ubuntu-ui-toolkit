@@ -23,3 +23,5 @@ tests/unit/tst_units/dpr*/dpr*
 tests/apicheck/apicheck
 ubuntu-ui-toolkit-launcher/ubuntu-ui-toolkit-launcher
 build_paths.inc
+src/Ubuntu/Components/qmldir
+src/Ubuntu/Components/qmltypes_resources.qrc

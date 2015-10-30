@@ -71,13 +71,19 @@
 #include "uclabel.h"
 #include "uclistitemlayout.h"
 
+#ifdef QRC_BUILD_MODE
+#include <qrc_typeregister.h>
+#endif
+
 #include <sys/types.h>
 #include <unistd.h>
 #include <stdexcept>
 
 QUrl UbuntuComponentsPlugin::m_baseUrl = QUrl();
-bool UbuntuComponentsPlugin::m_searchFs = false;
+
+#ifdef QRC_BUILD_MODE
 QUrl UbuntuComponentsPlugin::m_qrcRoot = QUrl(QStringLiteral("qrc:/Ubuntu/Components/"));
+#endif
 
 /*
  * Type registration functions.
@@ -139,10 +145,6 @@ void UbuntuComponentsPlugin::initializeBaseUrl()
     if (!m_baseUrl.isValid()) {
         m_baseUrl = QUrl(baseUrl().toString() + '/');
     }
-
-    m_searchFs = QFile::exists(m_baseUrl
-                               .resolved(QStringLiteral("enable_fs_resolve"))
-                               .toLocalFile());
 }
 
 void UbuntuComponentsPlugin::registerWindowContextProperty()
@@ -206,6 +208,10 @@ void UbuntuComponentsPlugin::registerTypes(const char *uri)
 {
     Q_ASSERT(uri == QLatin1String("Ubuntu.Components"));
     initializeBaseUrl();
+
+#ifdef QRC_BUILD_MODE
+    qrcRegisterTypes(uri);
+#endif
 
     // register 0.1 for backward compatibility
     registerTypesToVersion(uri, 0, 1);
@@ -327,14 +333,15 @@ void UbuntuComponentsPlugin::initializeEngine(QQmlEngine *engine, const char *ur
 
 QUrl UbuntuComponentsPlugin::componentPath(const QString &relativePath)
 {
-    if (m_searchFs) {
-        QUrl file = m_baseUrl.resolved(relativePath);
-        if (QFile::exists(file.toLocalFile()))
+#ifdef QRC_BUILD_MODE
+    {
+        QUrl file = m_qrcRoot.resolved(relativePath);
+        if (QFile::exists(QStringLiteral(":")+file.path()))
             return file;
     }
-
-    QUrl file = m_qrcRoot.resolved(relativePath);
-    if (QFile::exists(QStringLiteral(":")+file.path()))
+#endif
+    QUrl file = m_baseUrl.resolved(relativePath);
+    if (QFile::exists(file.toLocalFile()))
         return file;
 
     return QUrl();

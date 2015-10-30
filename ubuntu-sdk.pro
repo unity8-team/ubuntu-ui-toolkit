@@ -34,5 +34,7 @@ OTHER_FILES += \
     features/ubuntu_qml_module.prf \
     features/ubuntu_qml_plugin.prf \
     features/ubuntu_enable_testing.prf \
+    features/ubuntu_qrc_build.prf \
+    features/ubuntu_default_build.prf \
     features/coverage.prf \
     .qmake.conf

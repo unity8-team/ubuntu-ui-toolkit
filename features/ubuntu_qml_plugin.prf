@@ -1,3 +1,10 @@
+build_qrc {
+    load(ubuntu_qrc_build)
+} else:build_default {
+    load(ubuntu_default_build)
+}
+
+
 load(qml_plugin)
 CONFIG -= hide_symbols
 
