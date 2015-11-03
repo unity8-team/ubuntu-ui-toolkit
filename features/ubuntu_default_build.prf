@@ -1,0 +1,29 @@
+
+qmldir_template = \
+    "module $$replace(TARGETPATH, /, .)" \
+    "plugin $${TARGET}" \
+    " "
+
+for(qml_component, UBUNTU_QML_COMPONENTS) {
+
+    typeName= $$readVarByName($${qml_component}.typeName)
+    relPath = $$readVarByName($${qml_component}.relPath)
+    maj     = $$readVarByName($${qml_component}.major)
+    min     = $$readVarByName($${qml_component}.minor)
+
+    defined($${qml_component}.singleton, var) {
+        qmldir_template *= "singleton $${typeName} $${maj}.$${min} $${relPath}"
+    } else:defined($${qml_component}.internal, var) {
+        qmldir_template *= "internal $${typeName} $${relPath}"
+    } else:defined($${qml_component}.fileOnly, var) {
+        #do nothing
+    } else:defined($${qml_component}.jsType, var) {
+        qmldir_template *= "$${typeName} $${maj}.$${min} $${relPath}"
+    } else {
+        qmldir_template *= "$${typeName} $${maj}.$${min} $${relPath}"
+    }
+
+    QML_FILES *= $$_PRO_FILE_PWD_/$${relPath}
+}
+
+write_file($$_PRO_FILE_PWD_/qmldir, qmldir_template)

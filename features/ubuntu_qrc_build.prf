@@ -1,0 +1,66 @@
+
+qrc_template = \
+    "<RCC>" \
+    "    <qresource prefix=\"/$${TARGETPATH}\">"
+
+qmldir_template = \
+    "module $$replace(TARGETPATH, /, .)" \
+    "plugin $${TARGET}" \
+    " "
+
+qrc_loader_header_templ = \
+    "$${LITERAL_HASH}ifndef $$replace(TARGETPATH, /, _)_TYPEREGISTER_INCLUDED" \
+    "$${LITERAL_HASH}define $$replace(TARGETPATH, /, _)_TYPEREGISTER_INCLUDED" \
+    "void qrcRegisterTypes (const char *uri);" \
+    "$${LITERAL_HASH}endif"
+
+qrc_loader_impl_templ = \
+    "$${LITERAL_HASH}include <QtQml>" \
+    "$${LITERAL_HASH}include <QUrl>" \
+    " " \
+    "void qrcRegisterTypes (const char *uri)" \
+    "{"
+
+
+for(qml_component, UBUNTU_QML_COMPONENTS) {
+
+    typeName= $$readVarByName($${qml_component}.typeName)
+    relPath = $$readVarByName($${qml_component}.relPath)
+    maj     = $$readVarByName($${qml_component}.major)
+    min     = $$readVarByName($${qml_component}.minor)
+
+    qrc_template *= "        <file>$${relPath}</file>"
+
+    defined($${qml_component}.singleton, var) {
+        qrc_loader_impl_templ *= "    qmlRegisterSingletonType(QUrl(\"qrc:///$${TARGETPATH}/$${relPath}\"), uri, $${maj}, $${min}, \"$${typeName}\");"
+    } else:defined($${qml_component}.internal, var) {
+        qmldir_template *= "internal $${typeName} qrc:///$${TARGETPATH}/$${relPath}"
+    } else:defined($${qml_component}.fileOnly, var) {
+        #do nothing
+    } else:defined($${qml_component}.jsType, var) {
+        qmldir_template *= "$${typeName} $${maj}.$${min} qrc:///$${TARGETPATH}/$${relPath}"
+    } else {
+        qrc_loader_impl_templ *= "    qmlRegisterType(QUrl(\"qrc:///$${TARGETPATH}/$${relPath}\"), uri, $${maj}, $${min}, \"$${typeName}\");"
+    }
+
+    OTHER_FILES *= $$_PRO_FILE_PWD_/$${relPath}
+}
+
+qrc_template += \
+    "    </qresource>"\
+    "</RCC>"
+
+qrc_loader_impl_templ += \
+    "}"
+
+write_file($$OUT_PWD/qrc_typeregister.h, qrc_loader_header_templ)
+write_file($$OUT_PWD/qrc_typeregister.cpp, qrc_loader_impl_templ)
+write_file($$_PRO_FILE_PWD_/qmldir, qmldir_template)
+write_file($$_PRO_FILE_PWD_/qmltypes_resources.qrc, qrc_template)
+
+DEFINES += QRC_BUILD_MODE
+INCLUDEPATH *= $$OUT_PWD
+SOURCES += $$OUT_PWD/qrc_typeregister.cpp
+HEADERS += $$OUT_PWD/qrc_typeregister.h
+RESOURCES += $$_PRO_FILE_PWD_/qmltypes_resources.qrc
+
