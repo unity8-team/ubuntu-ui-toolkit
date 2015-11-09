@@ -8,6 +8,7 @@ CONFIG += dll no_keywords c++11
 INCLUDEPATH+=$$PWD
 
 DEFINES += UBUNTUGESTURES_LIBRARY
+CMAKE_MODULE_TESTS = -
 
 load(qt_build_config)
 load(ubuntu_qt_module)

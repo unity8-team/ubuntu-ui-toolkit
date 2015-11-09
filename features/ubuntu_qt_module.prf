@@ -5,8 +5,6 @@
 
 load(qt_module)
 
-CONFIG -= create_cmake
-
 # when building against the system Qt we pick up the CXX_FLAGS for a release build
 # reset them to the default debug build flags
 !build_with_qt: {
