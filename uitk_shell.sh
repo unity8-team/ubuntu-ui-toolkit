@@ -19,28 +19,26 @@
 # be run before in order to have the build_paths.inc file generated:
 #
 #  $ qmake
-#  $ ./uitk_uninstalled.sh
+#  $ ./uitk_shell.sh
 #  $ make
 #  $ qmlscene uitk_based_file.qml
 
 NAME='uitk'
 
-. `dirname $0`/build_paths.inc
-export QML_IMPORT_PATH=$BUILD_DIR/qml
-export QML2_IMPORT_PATH=$BUILD_DIR/qml
-export UBUNTU_UI_TOOLKIT_THEMES_PATH=$BUILD_DIR/qml
-export LD_LIBRARY_PATH=$BUILD_DIR/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
+source `dirname $0`/export_modules_dir.sh
 
-TMP=`mktemp -t bashrc.XXXXXXXX`
-echo source $HOME/.bashrc >> $TMP
-echo PS1=\'[$NAME] $PS1\' >> $TMP
-SHELL_OPTIONS="--init-file $TMP"
+export UITK_SHELL=1
+
+TEMP_FILE=`mktemp -t bashrc.XXXXXXXX`
+echo source $HOME/.bashrc >> $TEMP_FILE
+echo PS1=\'[$NAME] $PS1\' >> $TEMP_FILE
+SHELL_OPTIONS="--init-file $TEMP_FILE"
 
 echo Entering $NAME shell.
 $SHELL $SHELL_OPTIONS
 echo Leaving $NAME shell. Have a nice day!
 
-if test ! -z "$TMP"
+if test ! -z "$TEMP_FILE"
 then
-    rm $TMP
+    rm $TEMP_FILE
 fi

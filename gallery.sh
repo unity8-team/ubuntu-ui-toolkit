@@ -15,7 +15,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-source export_modules_dir.sh
+if [ -z ${UITK_SHELL+x} ]
+then
+    source export_modules_dir.sh
+fi
 
 if [ "$1" == "--autopilot" ]
 then
