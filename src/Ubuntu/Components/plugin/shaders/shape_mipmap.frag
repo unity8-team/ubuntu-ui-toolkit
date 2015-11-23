@@ -35,7 +35,7 @@ varying lowp vec4 backgroundColor;
 const mediump int FLAT         = 0x08;  // 1 << 3
 const mediump int INSET        = 0x10;  // 1 << 4
 const mediump int DROP_SHADOW  = 0x20;  // 1 << 5
-const mediump int INNER_SHADOW = 0x40;  // 1 << 5
+const mediump int INNER_SHADOW = 0x40;  // 1 << 6
 
 void main(void)
 {
