@@ -12,12 +12,12 @@ DEB_HOST_ARCH ?= $(shell dpkg-architecture -qDEB_HOST_ARCH)
 
 CONFIGURE_SWITCHES = "-r" \
                      "ROOT_SOURCE_DIR=$(CURDIR)" \
-                     "ROOT_BUILD_DIR=$(CURDIR)" 
+                     "ROOT_BUILD_DIR=$(CURDIR)"
 
 # Don't try this at /home/: It will only work within https://ci-train.ubuntu.com
 get-orig-source:
-	cp -v ~/silos/$(SILONAME)/$(SOURCE)_$(VERSION).orig.tar.gz \
-	      $(CURDIR)/$(SOURCE)-gles_$(VERSION).orig.tar.gz
+	find ~/silos/$(SILONAME) -name $(SOURCE)_$(VERSION).orig.tar.gz -exec \
+		cp \{} $(CURDIR)/$(SOURCE)-gles_$(VERSION).orig.tar.gz \;
 
 %:
 	dh $@
