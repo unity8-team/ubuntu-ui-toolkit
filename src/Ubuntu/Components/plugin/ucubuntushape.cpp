@@ -1210,9 +1210,8 @@ QSGNode* UCUbuntuShape::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData* d
             glDeleteTextures(shapeTextureCount, shapeTextures[index].textureId);
         } );
     }
-    const quint32 textureIdIndex =
-        (m_aspect == Flat || m_aspect == Inset) ? 0 : (m_aspect == DropShadow) ? 1 : 2;
-    const quint32 shapeTextureId = shapeTextures[index].textureId[textureIdIndex];
+    const quint32 textureIdIndex[] = { 0, 0, 1, 2, 0 };
+    const quint32 shapeTextureId = shapeTextures[index].textureId[textureIdIndex[m_aspect]];
 
     // Get the source texture info and update the source transform if needed.
     QSGTextureProvider* provider = m_source ? m_source->textureProvider() : NULL;
