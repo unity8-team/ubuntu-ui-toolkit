@@ -25,7 +25,7 @@ Item {
 
     // Enum to string tables.
     property variant aspectTable: [
-        "Flat", "Inset", "DropShadow"
+        "Flat", "Inset", "DropShadow", "InnerShadow"
     ]
     property variant backgroundModeTable: [
         "SolidColor", "VerticalGradient"
@@ -222,7 +222,7 @@ Item {
             shape.radius = (shape.radius == "large") ? "small" :
                 ((shape.radius == "small") ? "medium" : "large");
         } else if (event.key == Qt.Key_T) {
-            shape.aspect = (shape.aspect + 1) % 3;
+            shape.aspect = (shape.aspect + 1) % 4;
         } else if (event.key == Qt.Key_Y) {
             shape.relativeRadius = Math.max(0.0, Math.min(
                 1.0, shape.relativeRadius + ((event.modifiers & shift) ? 0.01 : -0.01)));

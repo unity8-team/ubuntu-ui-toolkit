@@ -35,9 +35,10 @@ varying mediump vec4 sourceCoord;
 varying lowp float yCoord;
 varying lowp vec4 backgroundColor;
 
-const mediump int FLAT        = 0x08;  // 1 << 3
-const mediump int INSET       = 0x10;  // 1 << 4
-const mediump int DROP_SHADOW = 0x20;  // 1 << 5
+const mediump int FLAT         = 0x08;  // 1 << 3
+const mediump int INSET        = 0x10;  // 1 << 4
+const mediump int DROP_SHADOW  = 0x20;  // 1 << 5
+const mediump int INNER_SHADOW = 0x40;  // 1 << 6
 
 void main(void)
 {
@@ -98,6 +99,16 @@ void main(void)
         // Mask the current color then blend the shadow over the resulting color. We simply use
         // additive blending since the shadow has already been masked.
         color = (color * vec4(mask)) + vec4(0.0, 0.0, 0.0, shadow);
+
+    } else if (aspect == INNER_SHADOW) {
+        // Blend the shape inner shadow over the current color. The shadow color is black, its
+        // translucency is stored in the texture.
+        color = vec4(1.0 - shapeData.a) * color + vec4(0.0, 0.0, 0.0, shapeData.g);
+        // Mask the current color with an anti-aliased and resolution independent shape mask built
+        // from distance fields.
+        lowp float distanceMin = abs(dist) * -distanceAA + 0.5;
+        lowp float distanceMax = abs(dist) * distanceAA + 0.5;
+        color *= smoothstep(distanceMin, distanceMax, shapeData.r);
     }
 
     gl_FragColor = color * opacityFactors.xxxy;

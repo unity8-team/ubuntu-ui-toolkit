@@ -357,6 +357,8 @@ void UCUbuntuShape::setRadius(const QString& radius)
     \list
     \li \b UbuntuShape.Flat - no effects applied
     \li \b UbuntuShape.Inset - inner shadow slightly moved downwards and bevelled bottom
+    \li \b UbuntuShape.DropShadow - drop shadow slightly moved downwards
+    \li \b UbuntuShape.InnerShadow - inner shadow
     \endlist
 */
 void UCUbuntuShape::setAspect(Aspect aspect)
@@ -1208,7 +1210,9 @@ QSGNode* UCUbuntuShape::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData* d
             glDeleteTextures(shapeTextureCount, shapeTextures[index].textureId);
         } );
     }
-    const quint32 shapeTextureId = shapeTextures[index].textureId[m_aspect != DropShadow ? 0 : 1];
+    const quint32 textureIdIndex =
+        (m_aspect == Flat || m_aspect == Inset) ? 0 : (m_aspect == DropShadow) ? 1 : 2;
+    const quint32 shapeTextureId = shapeTextures[index].textureId[textureIdIndex];
 
     // Get the source texture info and update the source transform if needed.
     QSGTextureProvider* provider = m_source ? m_source->textureProvider() : NULL;
@@ -1350,23 +1354,19 @@ void UCUbuntuShape::updateMaterial(
     // Mapping of radius size range from [0, 4] to [0, 1] with clamping, plus quantization.
     const float start = 0.0f + radiusSizeOffset;
     const float end = 4.0f + radiusSizeOffset;
-
     materialData->distanceAAFactor =
         qMin((physicalRadius / (end - start)) - (start / (end - start)), 1.0f) * 255.0f;
 
     // When the radius is equal to radiusSizeOffset (which means radius size is 0), no aspect is
     // flagged so that a dedicated (statically flow controlled) shaved off shader can be used for
     // optimal performance.
-    if (physicalRadius > radiusSizeOffset) {
-        const quint8 aspectFlags[] = {
-            ShapeMaterial::Data::Flat, ShapeMaterial::Data::Inset, ShapeMaterial::Data::DropShadow,
-            ShapeMaterial::Data::Inset | ShapeMaterial::Data::Pressed
-        };
-        flags |= aspectFlags[m_aspect];
-    } else {
-        const quint8 aspectFlags[] = { 0, 0, 0, ShapeMaterial::Data::Pressed };
-        flags |= aspectFlags[m_aspect];
-    }
+    const quint8 aspectFlags[2][5] = {
+        { ShapeMaterial::Data::Flat, ShapeMaterial::Data::Inset,
+          ShapeMaterial::Data::DropShadow, ShapeMaterial::Data::InnerShadow,
+          ShapeMaterial::Data::Inset | ShapeMaterial::Data::Pressed },
+        { 0, 0, 0, 0, ShapeMaterial::Data::Pressed }
+    };
+    flags |= aspectFlags[physicalRadius <= radiusSizeOffset][m_aspect];
 
     materialData->flags = flags;
 }

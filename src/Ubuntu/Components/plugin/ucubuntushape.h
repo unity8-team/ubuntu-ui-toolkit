@@ -64,8 +64,9 @@ public:
             Flat                 = (1 << 3),
             Inset                = (1 << 4),
             DropShadow           = (1 << 5),
-            AspectMask           = (Flat | Inset | DropShadow),
-            Pressed              = (1 << 6)
+            InnerShadow          = (1 << 6),
+            AspectMask           = (Flat | Inset | DropShadow | InnerShadow),
+            Pressed              = (1 << 7)
         };
         QSGTextureProvider* sourceTextureProvider;
         quint32 shapeTextureId;
@@ -183,7 +184,9 @@ public:
 
     static bool useDistanceFields(const QOpenGLContext* openglContext);
 
-    enum Aspect { Flat = 0, Inset = 1, DropShadow = 2 };  // Don't forget to update private enum.
+    enum Aspect {  // Don't forget to update private enum.
+        Flat = 0, Inset = 1, DropShadow = 2, InnerShadow = 3
+    };
     enum BackgroundMode { SolidColor = 0, VerticalGradient = 1 };
     enum HAlignment { AlignLeft = 0, AlignHCenter = 1, AlignRight = 2 };
     enum VAlignment { AlignTop = 0, AlignVCenter = 1, AlignBottom = 2 };
@@ -316,7 +319,7 @@ private:
         VAlignment verticalAlignment, const QSize& textureSize);
 
     enum Radius { Small = 0, Medium = 1, Large = 2 };
-    enum { Pressed = 3 };  // Aspect extension (to keep support for deprecated aspects).
+    enum { Pressed = 4 };  // Aspect extension (to keep support for deprecated aspects).
     enum {
         AspectSet            = (1 << 0),
         GradientColorSet     = (1 << 1),
