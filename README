@@ -27,21 +27,23 @@ Building & Setup
 ----------------
 
 You need Qt5 installed to proceed. To build this repository, run
-$ qmake
-$ make
+ $ qmake
+ $ make
 
 View the components gallery by running
-$ ./gallery.sh
+ $ ./gallery.sh
 
 To install these components, run
-$ make install
+ $ make install
 You may need to be root for this command to succeed.
 
-To use these components in QML without installing them, you need to set the 
-QML2_IMPORT_PATH environment variable. This is done by running
-$ source export_modules_dir.sh
-from the root directory of this repository, but is lost when you close your 
-shell.
+To use these components uninstalled, you need to have some environment
+variables correctly set. This is done by either running a dedicated
+(recursive) shell with
+ $ ./uitk_shell.sh
+or to export the variables in the current shell session with
+ $ source export_modules_dir.sh
+Note that qmake must be run before.
 
 
 Documentation
