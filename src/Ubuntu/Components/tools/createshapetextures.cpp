@@ -325,7 +325,7 @@ static void createTexture3(
     const double imageScale = 255.0 / width;
 
     if (useEdtaa3) {
-        // Render and store the distance field used for masking the top of the shape.
+        // Render and store the distance field used for masking the shape.
         clearRenderBuffer();
         painter->resetTransform();
         painter->translate(shapeOffset * width, shapeOffset * height);
@@ -350,7 +350,7 @@ static void createTexture3(
             data[i] = value << 0;  // Stored in channel B (R in shaders).
         }
     } else {
-        // Render and store the mask for the top of the shape.
+        // Render and store the mask.
         clearRenderBuffer();
         painter->resetTransform();
         painter->translate(shapeOffset * width, shapeOffset * height);
