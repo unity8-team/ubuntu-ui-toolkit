@@ -36,6 +36,7 @@ const mediump int FLAT         = 0x08;  // 1 << 3
 const mediump int INSET        = 0x10;  // 1 << 4
 const mediump int DROP_SHADOW  = 0x20;  // 1 << 5
 const mediump int INNER_SHADOW = 0x40;  // 1 << 6
+const mediump int STROKE       = 0x80;  // 1 << 7
 
 void main(void)
 {
@@ -88,9 +89,13 @@ void main(void)
     } else if (aspect == INNER_SHADOW) {
         // Blend the shape inner shadow over the current color. The shadow color is black, its
         // translucency is stored in the texture.
-        color = vec4(1.0 - shapeData.g) * color + vec4(0.0, 0.0, 0.0, shapeData.g);
+        color = vec4(1.0 - shapeData.b) * color + vec4(0.0, 0.0, 0.0, shapeData.b);
         // Mask the current color.
         color *= vec4(shapeData.r);
+
+    } else if (aspect == STROKE) {
+        // Mask the current color with the stroke.
+        color *= vec4((shapeData.r * -shapeData.g) + shapeData.r);  // -ab + a = a(1 - b)
     }
 
     gl_FragColor = color * opacityFactors.xxxy;

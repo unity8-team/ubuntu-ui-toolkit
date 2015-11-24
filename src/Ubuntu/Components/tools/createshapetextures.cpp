@@ -26,6 +26,8 @@
 // $ qmake && make
 // $ ./createshapetextures shape.svg ../plugin/ucubuntushapetexture.h
 
+// FIXME(loicm) Shadows should maybe generated using a proper gaussian blur instead of EDTAA3.
+
 #include <QtCore/QFile>
 #include <QtCore/QTextStream>
 #include <QtGui/QImage>
@@ -320,6 +322,7 @@ static void createTexture3(
     const double shadowT = -0.02;  // From shapeOffset.
     const double shadowScale = 8.5;
     const double shadowTranslucency = 0.4;
+    const double strokeScale = 0.75;
 
     const int size = width * height;
     const double imageScale = 255.0 / width;
@@ -349,6 +352,33 @@ static void createTexture3(
                 qBound(0, qRound(distance * distanceScale * imageScale + 127.5), 255);
             data[i] = value << 0;  // Stored in channel B (R in shaders).
         }
+
+        // Render and store the distance field used for masking the inner contour of the stroke.
+        clearRenderBuffer();
+        painter->resetTransform();
+        painter->translate(width, height);
+        painter->scale(strokeScale, strokeScale);
+        painter->translate(-width, -height);
+        svg->render(painter);
+        for (int i = 0; i < size; i++) {
+            renderBufferNormalized[i] = static_cast<double>(renderBuffer[i] >> 24) / 255.0;
+        }
+        computegradient(renderBufferNormalized, width, height, gradientX, gradientY);
+        edtaa3(renderBufferNormalized, gradientX, gradientY, width, height, distanceX, distanceY,
+               distanceOut);
+        for (int i = 0; i < size; i++) {
+            renderBufferNormalized[i] = 1.0 - renderBufferNormalized[i];
+        }
+        clearGradientBuffers();
+        computegradient(renderBufferNormalized, width, height, gradientX, gradientY);
+        edtaa3(renderBufferNormalized, gradientX, gradientY, width, height, distanceX, distanceY,
+               distanceIn);
+        for (int i = 0; i < size; i++) {
+            const double distance = qMax(0.0, distanceIn[i]) - qMax(0.0, distanceOut[i]);
+            const uint value =
+                qBound(0, qRound(distance * distanceScale * imageScale + 127.5), 255);
+            data[i] |= value << 8;  // Stored in channel G.
+        }
     } else {
         // Render and store the mask.
         clearRenderBuffer();
@@ -358,6 +388,18 @@ static void createTexture3(
         for (int i = 0; i < size; i++) {
             const uint value = renderBuffer[i] >> 24;
             data[i] = value << 0;  // Stored in channel B (R in shaders).
+        }
+
+        // Render and store the mask for inner contour of the stroke.
+        clearRenderBuffer();
+        painter->resetTransform();
+        painter->translate(width, height);
+        painter->scale(strokeScale, strokeScale);
+        painter->translate(-width, -height);
+        svg->render(painter);
+        for (int i = 0; i < size; i++) {
+            const uint value = renderBuffer[i] >> 24;
+            data[i] |= value << 8;  // Stored in channel G.
         }
     }
 
@@ -376,7 +418,7 @@ static void createTexture3(
         double shadow = qBound(0.0, (distanceIn[i] * shadowScale * imageScale) / 255.0, 1.0);
         shadow = (1.0 - (2.0 * shadow - shadow * shadow)) * 255.0;
         const uint value = qBound(0, qRound(shadow * shadowTranslucency), 255);
-        data[i] |= value << 8;  // Stored in channel G.
+        data[i] |= value << 16;  // Stored in channel R (B in shaders).
     }
 }
 

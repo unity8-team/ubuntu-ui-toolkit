@@ -44,8 +44,9 @@
 // Anti-aliasing distance of the contour in pixels.
 const float distanceAApx = 1.75f;
 
-// For cosmetic reasons, we add an offset to the radius size to avoid having values less than 2 to
-// look as if it has no rounded corners.
+// For cosmetic reasons, we add an offset to the radius size to avoid having values less than that
+// to look as if it has no rounded corners. That might be fixed by tweaking the distance field input
+// texture, but it's much easier to do it here.
 const float radiusSizeOffset = 2.0f;
 
 // Factor by which the final fragment RGB color must be multiplied for the pressed aspect.
@@ -359,6 +360,7 @@ void UCUbuntuShape::setRadius(const QString& radius)
     \li \b UbuntuShape.Inset - inner shadow slightly moved downwards and bevelled bottom
     \li \b UbuntuShape.DropShadow - drop shadow slightly moved downwards
     \li \b UbuntuShape.InnerShadow - inner shadow
+    \li \b UbuntuShape.Stroke - outline with masked out content
     \endlist
 */
 void UCUbuntuShape::setAspect(Aspect aspect)
@@ -1210,7 +1212,7 @@ QSGNode* UCUbuntuShape::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData* d
             glDeleteTextures(shapeTextureCount, shapeTextures[index].textureId);
         } );
     }
-    const quint32 textureIdIndex[] = { 0, 0, 1, 2, 0 };
+    const quint32 textureIdIndex[] = { 0, 0, 1, 2, 2, 0 };
     const quint32 shapeTextureId = shapeTextures[index].textureId[textureIdIndex[m_aspect]];
 
     // Get the source texture info and update the source transform if needed.
@@ -1330,7 +1332,7 @@ void UCUbuntuShape::updateMaterial(
     QSGNode* node, float radius, quint32 shapeTextureId, bool textured)
 {
     ShapeMaterial::Data* materialData = static_cast<ShapeNode*>(node)->material()->data();
-    quint8 flags = 0;
+    quint16 flags = 0;
 
     materialData->shapeTextureId = shapeTextureId;
     if (textured) {
@@ -1350,22 +1352,30 @@ void UCUbuntuShape::updateMaterial(
 
     const float physicalRadius = radius * qGuiApp->devicePixelRatio();
 
-    // Mapping of radius size range from [0, 4] to [0, 1] with clamping, plus quantization.
-    const float start = 0.0f + radiusSizeOffset;
-    const float end = 4.0f + radiusSizeOffset;
+    // Mapping of radius size range from [0+t, 4+t] to [0.005, 1] with clamping, plus quantization.
+    // If we map to [0, 1], stroking is broken at small sizes, it is still broken though since it
+    // displays just one pixel at the corners...
+    const float s0 = 0.0f + radiusSizeOffset;
+    const float e0 = 4.0f + radiusSizeOffset;
+    const float s1 = 0.005f;
+    const float e1 = 1.0f;
     materialData->distanceAAFactor =
-        qMin((physicalRadius / (end - start)) - (start / (end - start)), 1.0f) * 255.0f;
+        qBound(s1, s1 + (physicalRadius - s0) * (e1 - s1) / (e0 - s0), e1) * 255.0f;
 
     // When the radius is equal to radiusSizeOffset (which means radius size is 0), no aspect is
     // flagged so that a dedicated (statically flow controlled) shaved off shader can be used for
     // optimal performance.
-    const quint8 aspectFlags[2][5] = {
-        { ShapeMaterial::Data::Flat, ShapeMaterial::Data::Inset,
-          ShapeMaterial::Data::DropShadow, ShapeMaterial::Data::InnerShadow,
+    const quint16 aspectFlags[2][6] = {
+        { ShapeMaterial::Data::Flat, ShapeMaterial::Data::Inset, ShapeMaterial::Data::DropShadow,
+          ShapeMaterial::Data::InnerShadow, ShapeMaterial::Data::Stroke,
           ShapeMaterial::Data::Inset | ShapeMaterial::Data::Pressed },
-        { 0, 0, 0, 0, ShapeMaterial::Data::Pressed }
+        // Note that for now setting a custom radius is not exposed, so "physicalRadius >=
+        // radiusSizeOffset" is never reached. But (if we ever need to expose that) this is almost
+        // working apart from the Stroke case which should not render anything (or just transparent
+        // fragments).
+        { 0, 0, 0, 0, 0, ShapeMaterial::Data::Pressed }
     };
-    flags |= aspectFlags[physicalRadius <= radiusSizeOffset][m_aspect];
+    flags |= aspectFlags[physicalRadius < radiusSizeOffset][m_aspect];
 
     materialData->flags = flags;
 }
