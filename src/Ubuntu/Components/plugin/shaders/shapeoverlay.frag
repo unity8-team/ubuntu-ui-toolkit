@@ -66,12 +66,12 @@ void main(void)
     // texture coordinate. dFd*() functions have to be called outside of branches in order to work
     // correctly with VMware's "Gallium 0.4 on SVGA3D".
     lowp float dist = length(vec2(dFdx(shapeCoord.s), dFdy(shapeCoord.s)));
+    lowp float distanceMin = dist * -distanceAA + 0.5;
+    lowp float distanceMax = dist * distanceAA + 0.5;
 
     if (aspect == FLAT) {
         // Mask the current color with an anti-aliased and resolution independent shape mask built
         // from distance fields.
-        lowp float distanceMin = abs(dist) * -distanceAA + 0.5;
-        lowp float distanceMax = abs(dist) * distanceAA + 0.5;
         color *= smoothstep(distanceMin, distanceMax, shapeData.b);
 
     } else if (aspect == INSET) {
@@ -83,8 +83,6 @@ void main(void)
         lowp float shadow = shapeData[int(shapeSide)];
         color = vec4(1.0 - shadow) * color + vec4(0.0, 0.0, 0.0, shadow);
         // Get the anti-aliased and resolution independent shape mask using distance fields.
-        lowp float distanceMin = abs(dist) * -distanceAA + 0.5;
-        lowp float distanceMax = abs(dist) * distanceAA + 0.5;
         lowp vec2 mask = smoothstep(distanceMin, distanceMax, shapeData.ba);
         // Get the bevel color. The bevel is made of the top mask masked with the bottom mask. A
         // gradient from the bottom (1) to the middle (0) of the shape is used to factor out values
@@ -98,8 +96,6 @@ void main(void)
 
     } else if (aspect == DROP_SHADOW) {
         // Get the anti-aliased and resolution independent shape mask using distance fields.
-        lowp float distanceMin = abs(dist) * -distanceAA + 0.5;
-        lowp float distanceMax = abs(dist) * distanceAA + 0.5;
         lowp int shapeSide = yCoord <= 0.0 ? 0 : 1;
         lowp float mask = smoothstep(distanceMin, distanceMax, shapeData[shapeSide]);
         // Get the shadow color outside of the shape mask.
