@@ -99,9 +99,9 @@ void main(void)
     } else if (aspect == INNER_SHADOW) {
         // Blend the shape inner shadow over the current color. The shadow color is black, its
         // translucency is stored in the texture.
-        color = vec4(1.0 - shapeData.a) * color + vec4(0.0, 0.0, 0.0, shapeData.g);
+        color = vec4(1.0 - shapeData.g) * color + vec4(0.0, 0.0, 0.0, shapeData.g);
         // Mask the current color.
-        color *= shapeData.r;
+        color *= vec4(shapeData.r);
     }
 
     gl_FragColor = color * opacityFactors.xxxy;
