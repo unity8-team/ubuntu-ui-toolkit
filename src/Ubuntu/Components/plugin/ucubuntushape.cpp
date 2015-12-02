@@ -361,6 +361,7 @@ void UCUbuntuShape::setRadius(const QString& radius)
     \li \b UbuntuShape.DropShadow - drop shadow slightly moved downwards
     \li \b UbuntuShape.InnerShadow - inner shadow
     \li \b UbuntuShape.Stroke - outline with masked out content
+    \li \b UbuntuShape.Button - unpressed button
     \endlist
 */
 void UCUbuntuShape::setAspect(Aspect aspect)
@@ -1212,7 +1213,7 @@ QSGNode* UCUbuntuShape::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData* d
             glDeleteTextures(shapeTextureCount, shapeTextures[index].textureId);
         } );
     }
-    const quint32 textureIdIndex[] = { 0, 0, 1, 2, 2, 0 };
+    const quint32 textureIdIndex[] = { 0, 0, 1, 2, 2, 3, 0 };
     const quint32 shapeTextureId = shapeTextures[index].textureId[textureIdIndex[m_aspect]];
 
     // Get the source texture info and update the source transform if needed.
@@ -1365,15 +1366,15 @@ void UCUbuntuShape::updateMaterial(
     // When the radius is equal to radiusSizeOffset (which means radius size is 0), no aspect is
     // flagged so that a dedicated (statically flow controlled) shaved off shader can be used for
     // optimal performance.
-    const quint16 aspectFlags[2][6] = {
+    const quint16 aspectFlags[2][7] = {
         { ShapeMaterial::Data::Flat, ShapeMaterial::Data::Inset, ShapeMaterial::Data::DropShadow,
           ShapeMaterial::Data::InnerShadow, ShapeMaterial::Data::Stroke,
-          ShapeMaterial::Data::Inset | ShapeMaterial::Data::Pressed },
+          ShapeMaterial::Data::Button, ShapeMaterial::Data::Inset | ShapeMaterial::Data::Pressed },
         // Note that for now setting a custom radius is not exposed, so "physicalRadius >=
         // radiusSizeOffset" is never reached. But (if we ever need to expose that) this is almost
         // working apart from the Stroke case which should not render anything (or just transparent
         // fragments).
-        { 0, 0, 0, 0, 0, ShapeMaterial::Data::Pressed }
+        { 0, 0, 0, 0, 0, 0, ShapeMaterial::Data::Pressed }
     };
     flags |= aspectFlags[physicalRadius < radiusSizeOffset][m_aspect];
 

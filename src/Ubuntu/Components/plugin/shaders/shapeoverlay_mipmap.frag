@@ -41,6 +41,7 @@ const mediump int INSET        = 0x10;  // 1 << 4
 const mediump int DROP_SHADOW  = 0x20;  // 1 << 5
 const mediump int INNER_SHADOW = 0x40;  // 1 << 6
 const mediump int STROKE       = 0x80;  // 1 << 7
+const mediump int BUTTON       = 0x100; // 1 << 8
 
 void main(void)
 {
@@ -89,13 +90,14 @@ void main(void)
 
     } else if (aspect == DROP_SHADOW) {
         // Get the shape mask.
-        lowp int shapeSide = yCoord <= 0.0 ? 0 : 1;
-        lowp float mask = shapeData[shapeSide];
+        lowp float shapeSide = yCoord <= 0.0 ? 0.0 : 1.0;
+        lowp float mask = shapeData[int(shapeSide)];
         // Get the shadow color outside of the shape mask.
         lowp float shadow = (shapeData.b * -mask) + shapeData.b;  // -ab + a = a(1 - b)
+        lowp float gradient = clamp((shapeSide * -shapeCoord.t) + shapeSide, 0.0, 1.0);
         // Mask the current color then blend the shadow over the resulting color. We simply use
         // additive blending since the shadow has already been masked.
-        color = (color * vec4(mask)) + vec4(0.0, 0.0, 0.0, shadow);
+        color = (color * vec4(mask)) + vec4(0.0, 0.0, 0.0, shadow * gradient);
 
     } else if (aspect == INNER_SHADOW) {
         // Blend the shape inner shadow over the current color. The shadow color is black, its
@@ -107,6 +109,15 @@ void main(void)
     } else if (aspect == STROKE) {
         // Mask the current color with the stroke.
         color *= vec4((shapeData.r * -shapeData.g) + shapeData.r);  // -ab + a = a(1 - b)
+
+    } else if (aspect == BUTTON) {
+        lowp float shapeSide = yCoord <= 0.0 ? 0.0 : 1.0;
+        // Blend the shape inner shadow over the current color. The shadow color is black, its
+        // translucency is stored in the texture.
+        lowp float shadow = shapeData.b * (1.0 - shapeSide);
+        color = vec4(1.0 - shadow) * color + vec4(0.0, 0.0, 0.0, shadow);
+        // Get the anti-aliased and resolution independent shape mask using distance fields.
+        color *= shapeData[int(shapeSide)];
     }
 
     gl_FragColor = color * opacityFactors.xxxy;

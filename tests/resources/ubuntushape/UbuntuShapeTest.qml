@@ -25,7 +25,7 @@ Item {
 
     // Enum to string tables.
     property variant aspectTable: [
-        "Flat", "Inset", "DropShadow", "InnerShadow", "Stroke"
+        "Flat", "Inset", "DropShadow", "InnerShadow", "Stroke", "Button"
     ]
     property variant backgroundModeTable: [
         "SolidColor", "VerticalGradient"
@@ -85,12 +85,12 @@ Item {
         id: scene
         anchors.fill: parent
 
-        Image {
-            id: background
-            anchors.fill: parent
-            source: "background.jpg"
-            fillMode: Image.Tile
-        }
+        // Image {
+        //     id: background
+        //     anchors.fill: parent
+        //     source: "background.jpg"
+        //     fillMode: Image.Tile
+        // }
 
         // Put the UbuntuShape source image in the middle of a texture atlas. We use img1.
         Image { id: img1; visible: false; source: "img1.png"; }
@@ -105,6 +105,7 @@ Item {
             anchors.rightMargin: 100
             anchors.topMargin: 100
             anchors.bottomMargin: 100
+            aspect: UbuntuShape.Button
         }
     }
 
@@ -222,7 +223,9 @@ Item {
             shape.radius = (shape.radius == "large") ? "small" :
                 ((shape.radius == "small") ? "medium" : "large");
         } else if (event.key == Qt.Key_T) {
-            shape.aspect = (shape.aspect + 1) % 5;
+            //shape.aspect = (shape.aspect + 1) % 6;
+            shape.aspect = (shape.aspect ==
+                UbuntuShape.DropShadow) ? UbuntuShape.Button : UbuntuShape.DropShadow;
         } else if (event.key == Qt.Key_Y) {
             shape.relativeRadius = Math.max(0.0, Math.min(
                 1.0, shape.relativeRadius + ((event.modifiers & shift) ? 0.01 : -0.01)));
