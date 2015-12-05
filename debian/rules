@@ -17,7 +17,7 @@ CONFIGURE_SWITCHES = "-r" \
 # Don't try this at /home/: It will only work within https://ci-train.ubuntu.com
 get-orig-source:
 	find ~/silos/$(SILONAME) -name ubuntu-ui-toolkit_1.3.1740+16.04.20151205.1.orig.tar.gz -exec \
-		cp \{} $(CURDIR)/ubuntu-ui-toolkit_1.3.1740+16.04.20151205.2.orig.tar.gz \;
+		cp \{} $(CURDIR)/ubuntu-ui-toolkit_1.3.1740+16.04.20151205.1.orig.tar.gz \;
 
 %:
 	dh $@
