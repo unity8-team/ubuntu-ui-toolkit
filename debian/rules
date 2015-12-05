@@ -16,6 +16,7 @@ CONFIGURE_SWITCHES = "-r" \
 
 # Don't try this at /home/: It will only work within https://ci-train.ubuntu.com
 get-orig-source:
+	sed -i "1 s/20151205.2/20151205.1/" debian/changelog
 	find ~/silos/$(SILONAME) -name ubuntu-ui-toolkit_1.3.1740+16.04.20151205.1.orig.tar.gz -exec \
 		cp \{} $(CURDIR)/ubuntu-ui-toolkit_1.3.1740+16.04.20151205.1.orig.tar.gz \;
 
