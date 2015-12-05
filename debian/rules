@@ -16,7 +16,8 @@ CONFIGURE_SWITCHES = "-r" \
 
 # Don't try this at /home/: It will only work within https://ci-train.ubuntu.com
 get-orig-source:
-	find ~/silos/ubuntu/landing-031/
+	find ~/silos/$(SILONAME) -name $(SOURCE)_$(VERSION).orig.tar.gz -exec \
+		cp \{} $(CURDIR)/$(SOURCE)-gles_$(VERSION).orig.tar.gz \;
 %:
 	dh $@
 
