@@ -79,6 +79,7 @@ Depends: libqt5qml-graphicaleffects | libqt5graphicaleffects5,
          suru-icon-theme,
          ttf-ubuntu-font-family,
          ubuntu-ui-toolkit-theme,
+         libubuntugestures (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
 Description: Qt Components for Ubuntu - QML plugin - OpenGLES
