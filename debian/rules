@@ -13,7 +13,9 @@ DEB_HOST_ARCH ?= $(shell dpkg-architecture -qDEB_HOST_ARCH)
 CONFIGURE_SWITCHES = "-r" \
                      "ROOT_SOURCE_DIR=$(CURDIR)" \
                      "ROOT_BUILD_DIR=$(CURDIR)"
-
+get-orig-source:
+	 	find ~/silos/$(SILONAME) -name $(SOURCE)_$(VERSION).orig.tar.gz -exec \
+	 		cp \{} $(CURDIR)/$(SOURCE)-gles_$(VERSION).orig.tar.gz \;
 %:
 	dh $@
 
