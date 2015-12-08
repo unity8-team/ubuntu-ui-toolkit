@@ -32,22 +32,17 @@ Page {
     }
 
     ScrollView {
+        id: flickable
         anchors.fill: parent
         anchors.topMargin: template.header.flickable ? 0 : template.header.height
-        Flickable {
-            id: flickable
-            objectName: "TemplateFlickable"
-            anchors.fill: parent
-            contentHeight: column.height
-            contentWidth: column.width
-            interactive: contentHeight > height
-            Column {
-                id: column
-                spacing: units.gu(6)
-                width: flickable.width
-                height: childrenRect.height
-                //anchors.margins: units.gu(2)
-            }
+        objectName: "TemplateFlickable"
+        interactive: contentHeight > height
+        Column {
+            id: column
+            spacing: units.gu(6)
+            width: flickable.width
+            height: childrenRect.height
+            //anchors.margins: units.gu(2)
         }
     }
 

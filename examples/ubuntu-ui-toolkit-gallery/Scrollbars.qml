@@ -135,6 +135,7 @@ Template {
                 id: view
                 anchors.fill: parent
                 Image {
+                    id: img
                     source: "http://files.explosm.net/comics/Rob/sbTotal.png"
                 }
             }
