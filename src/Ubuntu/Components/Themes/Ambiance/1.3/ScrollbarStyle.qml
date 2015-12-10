@@ -112,7 +112,7 @@ Item {
 
     property real touchDragStartMargin: units.gu(2)
 
-    property bool draggingThumb: thumbArea.drag.active
+    property bool draggingThumb: slider.mouseDragging || slider.touchDragging
     property PropertyAnimation scrollbarThicknessAnimation: UbuntuNumberAnimation { duration: UbuntuAnimation.SnapDuration }
     //duration coming from the UX spec
     property PropertyAnimation scrollbarFadeInAnimation: UbuntuNumberAnimation { duration: 500/*UbuntuAnimation.SnapDuration*/}
@@ -342,7 +342,8 @@ Item {
                 //to the steppers (or thumb) state even when the mouse exits the area prematurely (e.g. when the mouse
                 //overshoots, without the .running check the scrollbar would stop the growing transition halfway and
                 //go back to hidden mode)
-                if (hoverTransformationFlag || (draggingThumb && slider.mouseDragging) || __overshootTimer.running) {
+                if (hoverTransformationFlag || (draggingThumb && slider.mouseDragging)
+                        || __overshootTimer.running || pressHoldTimer.running) {
                     return 'steppers'
                 } else if (thumbStyleFlag || (draggingThumb && slider.touchDragging) || __overshootTimer.running) {
                     return 'thumb'
@@ -791,7 +792,8 @@ Item {
             Rectangle {
                 id: slider
                 color: Qt.rgba(sliderColor.r, sliderColor.g, sliderColor.b, sliderColor.a *
-                               (thumbArea.drag.active || (thumbArea.pressed && slider.containsMouse && !pressHoldTimer.running) ? 1.0 : 0.6))
+                               (slider.mouseDragging || slider.touchDragging
+                                || (thumbArea.pressed && slider.containsMouse && !pressHoldTimer.running) ? 1.0 : 0.6))
                 anchors {
                     verticalCenter: (isVertical) ? undefined : trough.verticalCenter
                     horizontalCenter: (isVertical) ? trough.horizontalCenter : undefined
@@ -799,6 +801,16 @@ Item {
 
                 property bool containsMouse: contains(Qt.point(slider.mapFromItem(thumbArea, thumbArea.mouseX, thumbArea.mouseY).x,
                                                                slider.mapFromItem(thumbArea, thumbArea.mouseX, thumbArea.mouseY).y))
+
+                //relative to the area that starts the drag
+                property int dragStartX: 0
+                property int dragDeltaX: 0
+                property int dragStartY: 0
+                property int dragDeltaY: 0
+
+                //relative to the slider
+                property int dragTargetStartX: 0
+                property int dragTargetStartY: 0
 
                 //we just need to call this onPressed, so we shouldn't use a binding for it, which would get
                 //reevaluated any time one of the properties changes.
@@ -825,15 +837,27 @@ Item {
 
                 property bool mouseDragging: false
                 property bool touchDragging: false
+                property bool isInputLocked: false
 
                 //the proportional position of the thumb relative to the trough it can move into
                 //It is 0 when the thumb is at its minimum value, and 1 when it is at its maximum value
-                property real relThumbPosition : isVertical
-                                                 ? (slider.y - thumbsExtremesMargin) / (trough.height - 2*thumbsExtremesMargin - slider.height)
-                                                 : (slider.x - thumbsExtremesMargin) / (trough.width - 2*thumbsExtremesMargin - slider.width)
+                property real relThumbPosition: isVertical
+                                                ? (slider.y - thumbsExtremesMargin) / (trough.height - 2*thumbsExtremesMargin - slider.height)
+                                                : (slider.x - thumbsExtremesMargin) / (trough.width - 2*thumbsExtremesMargin - slider.width)
 
-                x: (isVertical) ? 0 : scrollbarUtils.sliderPos(styledItem, thumbsExtremesMargin, trough.width - slider.width - thumbsExtremesMargin)
-                y: (!isVertical) ? 0 : scrollbarUtils.sliderPos(styledItem, thumbsExtremesMargin, trough.height - slider.height - thumbsExtremesMargin)
+                Binding {
+                    when: (!slider.mouseDragging && !slider.touchDragging) || thumbArea.lockDrag
+                    target: slider
+                    property: "x"
+                    value: (isVertical) ? 0 : scrollbarUtils.sliderPos(styledItem, thumbsExtremesMargin, trough.width - slider.width - thumbsExtremesMargin)
+                }
+                Binding {
+                    when: (!slider.mouseDragging && !slider.touchDragging) || thumbArea.lockDrag
+                    target: slider
+                    property: "y"
+                    value: (!isVertical) ? 0 : scrollbarUtils.sliderPos(styledItem, thumbsExtremesMargin, trough.height - slider.height - thumbsExtremesMargin)
+                }
+
                 width: (isVertical) ? flowContainer.thumbThickness : scrollbarUtils.sliderSize(styledItem, units.gu(5), trough.width - 2 * thumbsExtremesMargin)
                 height: (!isVertical) ? flowContainer.thumbThickness : scrollbarUtils.sliderSize(styledItem, flowContainer.thumbThickness, trough.height - 2 * thumbsExtremesMargin)
                 radius: visuals.sliderRadius
@@ -848,7 +872,6 @@ Item {
 
             //we reuse the MouseArea for touch interactions as well, because MultiTouchPointArea doesn't handle
             //drag, we would have to rewrite the drag functionality if we were to use MTPointArea
-
             MouseArea {
                 id: thumbArea
 
@@ -865,41 +888,107 @@ Item {
                     topMargin: (isVertical || topAligned) ?  0 : units.dp(-2)
                     bottomMargin: (isVertical || bottomAligned) ?  0 : units.dp(-2)
                 }
-                enabled: isScrollable && interactive //&& alwaysOnScrollbars
+                enabled: isScrollable && interactive//&& alwaysOnScrollbars
                 onPressed: {
-                    //potentially we allow using touch to trigger mouse interactions, in case the
-                    //mouse has previously hovered over the area and activated the steppers style
-                    //checking for the value of visuals.state wouldn't be useful here, the value could be
-                    //"hidden" even if the values have only just started transitioning from "steppers" state
-                    if (trough.visible) {
-                        handlePress(mouse.x, mouse.y)
-                        //don't start the press and hold timer to avoid conflicts with the drag
-                        var mappedCoord = mapToItem(slider, mouseX, mouseY)
-                        if (!slider.contains(Qt.point(mappedCoord.x, mappedCoord.y))) {
-                            pressHoldTimer.startTimer(thumbArea)
-                        }
-                    } else if (visuals.veryLongContentItem && slider.containsTouch()){
-                        console.log("COULD DRAG TOUCH")
+                    //ignore if the user is already interacting using touch
+                    if (thumbTouchArea.touchPoint.pressed || slider.touchDragging
+                            || slider.isInputLocked || thumbArea.pressedButtons != Qt.LeftButton) {
+                        return
+                    }
+                    slider.isInputLocked = true
+
+                    var mappedCoord = mapToItem(slider, mouseX, mouseY)
+                    var isMouseInsideSlider = slider.contains(Qt.point(mappedCoord.x, mappedCoord.y))
+                    if (isMouseInsideSlider) {
+                        startDrag(mouse.x, mouse.y, true)
+                    } else if (trough.visible) {
+                        handlePress(mouse.x, mouse.y, true)
+                        //we pressed outside the slider, start the pressHoldTimer
+                        pressHoldTimer.startTimer(thumbArea)
                     } else {
                         //propagate otherwise
                         mouse.accepted = false
                     }
                 }
 
-                function handlePress(mouseX, mouseY) {
-                    if (!thumbArea.pressed) return
+                function startDrag(inputAreaX, inputAreaY, isMouse) {
+                    handlePress(inputAreaX, inputAreaY, isMouse)
+                    slider.mouseDragging = isMouse
+                    slider.touchDragging = !isMouse
+                    slider.dragStartX = inputAreaX
+                    slider.dragStartY = inputAreaY
+                    slider.dragTargetStartX = slider.x
+                    slider.dragTargetStartY = slider.y
+                    console.log("ACTIVATING DRAG!")
+                    thumbArea.saveFlickableScrollingState()
+                }
 
-                    //TODO: not worth initializing this at every press, move outside!
-                    var scrollingProp = isVertical ? "y" : "x"
-                    var sizeProp = isVertical ? "height" : "width"
-                    var mouseScrollingProp = isVertical ? mouseY : mouseX
-                    if (mouseScrollingProp < slider[scrollingProp]) {
-                        console.log("SCROLLING UP")
-                        slider.scroll(-pageSize*visuals.longScrollingRatio)
-                    } else if (mouseScrollingProp > slider[scrollingProp] + slider[sizeProp]) {
-                        console.log("SCROLL DOWN")
-                        slider.scroll(pageSize*visuals.longScrollingRatio)
+                function handlePress(x, y, isMouse) {
+                    if (((isMouse && thumbArea.pressedButtons != Qt.LeftButton)
+                         || (!isMouse && !thumbTouchArea.touchPoint.pressed))) {
+                        return
                     }
+
+                    //only handle the presses above and below the thumb when the trough is visible
+                    if (trough.visible) {
+                        //TODO: not worth initializing this at every press, move outside!
+                        var scrollingProp = isVertical ? "y" : "x"
+                        var sizeProp = isVertical ? "height" : "width"
+                        var mouseScrollingProp = isVertical ? y : x
+                        if (mouseScrollingProp < slider[scrollingProp]) {
+                            console.log("SCROLLING UP")
+                            slider.scroll(-pageSize*visuals.longScrollingRatio)
+                        } else if (mouseScrollingProp > slider[scrollingProp] + slider[sizeProp]) {
+                            console.log("SCROLL DOWN")
+                            slider.scroll(pageSize*visuals.longScrollingRatio)
+                        }
+                    }
+                }
+                function handleInputDeviceUpdate(x, y, isMouse) {
+                    if ((isMouse && thumbArea.pressedButtons !== Qt.LeftButton)
+                            || (!isMouse && !thumbTouchArea.touchPoint.pressed))
+                        return
+
+                    if ((isMouse && slider.mouseDragging) || (!isMouse && slider.touchDragging)) {
+                        console.log("DRAGGING")
+                        slider.dragDeltaX = x - slider.dragStartX
+                        slider.dragDeltaY = y - slider.dragStartY
+
+                        console.log("DELTA", slider.dragDeltaX, slider.dragDeltaY)
+                        //use thumbArea properties even for touch handling, to have consistent behaviour
+                        if ((isVertical && Math.abs(x - thumbArea.x) >= flowContainer.thickness * 10)
+                                || (!isVertical && Math.abs(y - thumbArea.y) >= flowContainer.thickness * 10)) {
+                            //don't reset it if the user is already scrolling the view (via keyboard or similar)
+                            if (!scrollAnimation.running) {
+                                thumbArea.lockDrag = true
+                                resetFlickableToPreDragState()
+                            }
+                        } else {
+                            //don't clash with scrolling animation
+                            if (scrollAnimation.running) scrollAnimation.stop()
+                            if (thumbArea.lockDrag) thumbArea.lockDrag = false
+
+                            if (isVertical) {
+                                slider.y = Math.max(thumbsExtremesMargin,
+                                                    Math.min(slider.dragTargetStartY + slider.dragDeltaY,
+                                                             trough.height - slider.height - thumbsExtremesMargin))
+                            } else {
+                                slider.x = Math.max(thumbsExtremesMargin,
+                                                    Math.min(slider.dragTargetStartX + slider.dragDeltaX,
+                                                             trough.width - slider.width - thumbsExtremesMargin))
+                            }
+
+                            scrollCursor.drag()
+                        }
+                    }
+                }
+                function handleInputDeviceRelease(x, y, isMouse) {
+                    pressHoldTimer.stop()
+                    if (slider.isInputLocked) slider.isInputLocked = false
+                    if (thumbArea.lockDrag) thumbArea.lockDrag = false
+
+                    if (isMouse) slider.mouseDragging = false
+                    else slider.touchDragging = false
                 }
 
                 function saveFlickableScrollingState() {
@@ -924,7 +1013,7 @@ Item {
                 //threshold, the drag has to resum without the need to release and pressHold again)
                 property bool lockDrag: false
 
-                drag {
+                /*drag {
                     //don't start a drag while we're scrolling using press and hold
                     target: pressHoldTimer.running ? undefined : slider
                     axis: (isVertical) ? Drag.YAxis : Drag.XAxis
@@ -932,59 +1021,24 @@ Item {
                     maximumY: lockDrag ? slider.y : trough.height - slider.height - thumbsExtremesMargin
                     minimumX: lockDrag ? slider.x : thumbsExtremesMargin
                     maximumX: lockDrag ? slider.x : trough.width - slider.width - thumbsExtremesMargin
-                    onActiveChanged: {
-                        if (drag.active) {
-                            console.log("ACTIVATING DRAG!")
-                            //we can't tell whether the drag is started from mouse or touch
-                            //(unless we add an additional multipointtoucharea and reimplement drag)
-                            //so we assume that it's a mouse drag if the mouse is within the proximity area
-                            //when the mouse is dragged
-                            slider.mouseDragging = proximityArea.containsMouseDevice
-                            slider.touchDragging = !slider.mouseDragging
-                            thumbArea.saveFlickableScrollingState()
-                            scrollCursor.drag()
-                        } else {
-                            if (thumbArea.lockDrag) thumbArea.lockDrag = false
-                            slider.mouseDragging = false
-                            slider.touchDragging = false
-                        }
-                    }
-
                     //NOTE: we need threshold to be 0, otherwise it will be impossible to drag
                     //contentItems which have a size so that "flickableItem.height - contentItem.height < threshold"!!!
                     threshold: 0
-                }
+                }*/
 
                 // drag slider and content to the proper position
                 onPositionChanged: {
-                    if (pressedButtons == Qt.LeftButton && drag.active) {
-                        console.log("DRAGGING")
-                        if ((isVertical && Math.abs(mouse.x - thumbArea.x) >= flowContainer.thickness * 10)
-                                || (!isVertical && Math.abs(mouse.y - thumbArea.y) >= flowContainer.thickness * 10)) {
-                            //don't reset it if the user is already scrolling the view (via keyboard or similar)
-                            if (!scrollAnimation.running) {
-                                resetFlickableToPreDragState()
-                                thumbArea.lockDrag = true
-                            }
-                        } else {
-                            //don't clash with scrolling animation
-                            if (scrollAnimation.running) scrollAnimation.stop()
+                    //FIXME: WE COULD BE USING TOUCH TO INTERACT WITH ABOVE/BELOW THE SCROLLBAR
+                    //AND IN THAT CASE TOUCHDRAGGING WOULD BE FALSE!
+                    if (slider.touchDragging)
+                        return
 
-                            if (thumbArea.lockDrag) thumbArea.lockDrag = false
-                            scrollCursor.drag()
-                        }
-                    }
+                    handleInputDeviceUpdate(mouse.x, mouse.y, true)
                 }
 
                 //onExited: pressHoldTimer.stop()
-                onCanceled: {
-                    if (thumbArea.lockDrag) thumbArea.lockDrag = false
-                    pressHoldTimer.stop()
-                }
-                onReleased: {
-                    if (thumbArea.lockDrag) thumbArea.lockDrag = false
-                    pressHoldTimer.stop()
-                }
+                onCanceled: handleInputDeviceRelease(0, 0, true)
+                onReleased: handleInputDeviceRelease(0, 0, true)
 
                 Timer {
                     id: pressHoldTimer
@@ -992,7 +1046,7 @@ Item {
                     //This var is needed to reuse the same timer to handle
                     //both thumb and steppers press-and-hold
                     //NOTE: the item MUST provide a handlePress method
-                    property MouseArea startedBy
+                    property Item startedBy
                     property bool firstTrigger: true
 
                     function startTimer(item) {
@@ -1004,7 +1058,8 @@ Item {
                     onTriggered: {
                         if (firstTrigger) firstTrigger = false
                         if (startedBy !== undefined) {
-                            startedBy.handlePress(startedBy.mouseX, startedBy.mouseY)
+                            //NOTE: this call is assuming thumbTouchArea is the only touch area that can start the timer!
+                            startedBy.handlePress(startedBy.mouseX, startedBy.mouseY, startedBy !== thumbTouchArea)
                         } else {
                             console.log("BUG! press and hold timer running without knowing the item that started it. Please report this.")
                         }
@@ -1017,7 +1072,44 @@ Item {
                         }
                     }
                 }
+            }
 
+
+            //UNTESTED ON TOUCH, DRAG ONLY TESTED VIA MOUSE ATM!
+            //NOTE: one of the problems of using the MPTArea is that we won't be
+            //able to propagate touch events underneath as currently there's no way!
+            MultiPointTouchArea {
+                id: thumbTouchArea
+                property alias touchPoint: inputPoint
+                anchors.fill: thumbArea
+                mouseEnabled: false
+                enabled: isScrollable && interactive //&& alwaysOnScrollbars
+                maximumTouchPoints: 1
+                touchPoints: TouchPoint { id: inputPoint }
+                onPressed: {
+                    if (slider.isInputLocked) {
+                        return
+                    }
+                    slider.isInputLocked = true
+
+                    var mappedCoord = mapToItem(slider, mouseX, mouseY)
+                    var isMouseInsideSlider = slider.contains(Qt.point(mappedCoord.x, mappedCoord.y))
+                    if (isMouseInsideSlider) {
+                        startDrag(mouse.x, mouse.y, false)
+                    } else {
+                        //it would be LOVELY if I could propagate the touch events!
+                    }
+                }
+                onUpdated: {
+                    //FIXME: WE COULD BE USING TOUCH TO INTERACT WITH ABOVE/BELOW THE SCROLLBAR
+                    //AND IN THAT CASE TOUCHDRAGGING WOULD BE FALSE!
+                    if (slider.mouseDragging)
+                        return
+
+                    thumbArea.handleInputDeviceUpdate(touchPoint.x, touchPoint.y, false)
+                }
+                onCanceled: thumbArea.handleInputDeviceRelease(0, 0, false)
+                onReleased: thumbArea.handleInputDeviceRelease(0, 0, false)
             }
         }
         MouseArea {
