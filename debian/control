@@ -79,7 +79,7 @@ Depends: libqt5qml-graphicaleffects | libqt5graphicaleffects5,
          suru-icon-theme,
          ttf-ubuntu-font-family,
          ubuntu-ui-toolkit-theme,
-         libubuntugestures-gles (= ${binary:Version}),
+         libubuntugestures5-gles (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
 Description: Qt Components for Ubuntu - QML plugin - OpenGLES
@@ -89,23 +89,24 @@ Description: Qt Components for Ubuntu - QML plugin - OpenGLES
  This package contains the Ubuntu Components QML plugin (built with
  the OpenGLES backend).
 
-Package: libubuntugestures-gles
+Package: libubuntugestures5-gles
 Architecture: i386 amd64
-Conflicts: libubuntugestures
-Replaces: libubuntugestures
-Provides: libubuntugestures
+Conflicts: libubuntugestures5
+Replaces: libubuntugestures5
+Provides: libubuntugestures5
 Multi-Arch: same
 Pre-Depends: dpkg (>= 1.15.6~), ${misc:Pre-Depends}
 Depends: ${misc:Depends},
          ${shlibs:Depends},
-Description: Ubuntu gestures library - SwipeArea - OpenGLES
- Ubuntu gestures library with SwipeArea
+Description: Gestures library for Ubuntu UI Toolkit - OpenGLES
+ Library supporting Gesture recognition for Ubuntu UI Toolkit
+ Classes for SwipeArea, and for Ubuntu Gestures in general.
 
-Package: libubuntugestures-gles-dev
+Package: libubuntugestures5-gles-dev
 Architecture: i386 amd64
-Conflicts: libubuntugestures-dev
-Replaces: libubuntugestures-dev
-Provides: libubuntugestures-dev
+Conflicts: libubuntugestures5-dev
+Replaces: libubuntugestures5-dev
+Provides: libubuntugestures5-dev
 Multi-Arch: same
 Pre-Depends: dpkg (>= 1.15.6~), ${misc:Pre-Depends}
 Depends: ${misc:Depends},
