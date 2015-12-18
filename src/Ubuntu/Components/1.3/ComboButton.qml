@@ -364,4 +364,6 @@ Button {
             return MathUtils.clamp(h, 0, max);
         }
     }
+
+    Keys.onSpacePressed: expanded = !expanded
 }
