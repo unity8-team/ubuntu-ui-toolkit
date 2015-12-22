@@ -110,7 +110,7 @@ Ubuntu.StyledItem {
 
         // if the cursor is out of the visible viewport, anchor the
         // contextual menu to the input field
-        var anchor = caret.visible ? draggedItem : handler.main
+        var anchor = cursorItem.visible ? draggedItem : handler.main
         var popup = PopupUtils.open(component, anchor, {
             "target": handler.main,
         });
@@ -126,6 +126,8 @@ Ubuntu.StyledItem {
 
     visible: handler.main.cursorVisible &&
      !(positionProperty === "cursorPosition" && handler.main.selectedText !== "")
+    // Use opacity so we can still anchor the contextual menu to it
+    opacity: (handler.touching || positionProperty === "cursorPosition") ? 1.0 : 0.01
 
     // cursor visual loader
     Loader {
@@ -143,7 +145,7 @@ Ubuntu.StyledItem {
         target: caret
         when: caret
         property: "visible"
-        value: QuickUtils.touchScreenAvailable
+        value: handler.touching
          && (contextMenuVisible || !typing)
          && handler.main.text !== ""
     }
@@ -311,7 +313,7 @@ Ubuntu.StyledItem {
         // manual clipping: the caret should be visible only while the cursor's
         // top/bottom falls into the text area
         visible: {
-            if (!caret || !cursorItem.visible || cursorItem.opacity < 1.0)
+            if (!caret || !cursorItem.visible || cursorItem.opacity < 0.01)
                 return false;
 
             var pos = handler.main.mapFromItem(fakeCursor.parent, fakeCursor.x, fakeCursor.y);

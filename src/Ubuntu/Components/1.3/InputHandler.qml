@@ -291,6 +291,7 @@ MultiPointTouchArea {
         target: main
         ignoreUnknownSignals: true
         onFocusChanged: {
+            touching = false;
             UbuntuApplication.inputMethod.commit()
             state = (main.focus) ? "" : "inactive";
             if (main.focus) {
@@ -333,6 +334,7 @@ MultiPointTouchArea {
 
     // PageUp and PageDown handling
     Keys.onPressed: {
+        touching = false;
         if (event.key === Qt.Key_PageUp && event.modifiers === Qt.NoModifier) {
             movePage(false);
         } else if (event.key === Qt.Key_PageDown && event.modifiers === Qt.NoModifier) {
@@ -342,6 +344,7 @@ MultiPointTouchArea {
 
     // touch and mous handling
     function handlePressed(event, touch) {
+        touching = touch;
         if (touch) {
             // we do not have longTap or double tap, therefore we need to generate those
             event.touch();
@@ -458,6 +461,8 @@ MultiPointTouchArea {
     }
     onPressed: handlePressed(touchPoints[0], true)
     onReleased: handleReleased(touchPoints[0], true)
+    // touch was used and not followed by mouse, keyboard or focus loss
+    property bool touching: false
 
     property Item cursorPositionCursor: null
     property Item selectionStartCursor: null
