@@ -498,6 +498,11 @@ Ubuntu.Components.Icon 1.0 0.1: Item
     property string name
 Ubuntu.Components.Icon 1.1: Icon
     property url source
+Ubuntu.Components.Icon 1.3: Item
+    property color color
+    property color keyColor
+    property string name
+    property url source
 Ubuntu.Components.InverseMouse 1.0 0.1 UCInverseMouse: Mouse
 Ubuntu.Components.InverseMouseArea 1.0 0.1 InverseMouseAreaType: MouseArea
     function bool contains(QPointF point)
@@ -830,8 +835,10 @@ Ubuntu.Components.Themes.Palette 0.1: QtObject
     property PaletteValues normal
     property PaletteValues selected
 Ubuntu.Components.Themes.Palette 1.3: QtObject
+    property PaletteValues inactive
     property PaletteValues normal
     property PaletteValues selected
+    property PaletteValues selectedInactive
 Ubuntu.Components.Themes.PaletteValues 0.1: QtObject
     property color background
     property color backgroundText
@@ -845,7 +852,11 @@ Ubuntu.Components.Themes.PaletteValues 0.1: QtObject
     property color overlayText
     property color selection
 Ubuntu.Components.Themes.PaletteValues 1.3: QtObject
+    property color activity
+    property color activityText
     property color background
+    property color backgroundSecondaryText
+    property color backgroundTertiaryText
     property color backgroundText
     property color base
     property color baseText
@@ -853,9 +864,18 @@ Ubuntu.Components.Themes.PaletteValues 1.3: QtObject
     property color fieldText
     property color foreground
     property color foregroundText
+    property color negative
+    property color negativeText
     property color overlay
+    property color overlaySecondaryText
     property color overlayText
+    property color positive
+    property color positiveText
+    property color raised
+    property color raisedSecondaryText
+    property color raisedText
     property color selection
+    property color selectionText
 Ubuntu.Components.Panel 1.0 0.1: Item
     property int align
     property bool animate
@@ -963,7 +983,10 @@ Ubuntu.Components.ProgressBar 1.3: AnimatedItem
     property bool onScreen
     property bool showProgressPercentage
     property double value
-Ubuntu.Components.ProgressionSlot 1.3: Icon
+Ubuntu.Components.ProgressionSlot 1.3: Item
+    property color color
+    property color keyColor
+    property string name
     property url source
 Ubuntu.Components.ProportionalShape 1.3 UCProportionalShape: UbuntuShape
 Ubuntu.Components.PullToRefresh 1.1: StyledItem
@@ -1555,6 +1578,26 @@ Ubuntu.Components.UbuntuColors 1.1: QtObject singleton
     readonly property color midAubergine
     readonly property color orange
     property Gradient orangeGradient
+    readonly property color purple
+    readonly property color red
+    readonly property color warmGrey
+Ubuntu.Components.UbuntuColors 1.3: QtObject singleton
+    readonly property color ash
+    readonly property color blue
+    readonly property color cinder
+    readonly property color coolGrey
+    readonly property color darkAubergine
+    readonly property color darkGrey
+    readonly property color green
+    property Gradient greyGradient
+    readonly property color lacquer
+    readonly property color lead
+    readonly property color lightAubergine
+    readonly property color lightGrey
+    readonly property color midAubergine
+    readonly property color orange
+    property Gradient orangeGradient
+    readonly property color porcelain
     readonly property color purple
     readonly property color red
     readonly property color warmGrey
