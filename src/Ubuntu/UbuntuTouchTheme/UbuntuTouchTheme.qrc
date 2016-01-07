@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+      <file>EditMenu.qml</file>
+    </qresource>
+</RCC>

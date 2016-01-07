@@ -13,8 +13,11 @@ src_performance_metrics.target = sub-performance-metrics
 src_gestures.subdir  = Ubuntu/UbuntuGestures
 src_gestures.target  = sub-gestures
 
+src_ubuntutouchtheme.subdir = Ubuntu/UbuntuTouchTheme
+src_ubuntutouchtheme.target = sub-ubuntutouchtheme
+
 src_test.subdir  = Ubuntu/Test
 src_test.target  = sub-test
 
 #order is important
-SUBDIRS += src_gestures src_components src_layouts src_performance_metrics src_test
+SUBDIRS += src_gestures src_ubuntutouchtheme src_components src_layouts src_performance_metrics src_test

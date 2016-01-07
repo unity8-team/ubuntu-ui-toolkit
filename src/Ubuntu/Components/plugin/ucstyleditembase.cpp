@@ -25,6 +25,12 @@
 #include <QtQml/QQmlEngine>
 #include <QtQuick/private/qquickanchors_p.h>
 
+#include <QtGui/private/qguiapplication_p.h>
+#include <qpa/qplatformintegration.h>
+#include <qpa/qplatformnativeinterface.h>
+#include <qpa/qplatformtheme.h>
+#include <qpa/qplatformmenu.h>
+
 UCStyledItemBasePrivate::UCStyledItemBasePrivate()
     : oldParentItem(Q_NULLPTR)
     , styleComponent(Q_NULLPTR)
@@ -508,6 +514,32 @@ void UCStyledItemBase::componentComplete()
     d->styleVersion = d->importVersion(this);
     UCTheme::checkMixedVersionImports(this, d->styleVersion);
     d->completeComponentInitialization();
+
+    // TEST: platform theme enumerations
+//    return;
+    QPlatformIntegration *platform = QGuiApplicationPrivate::platformIntegration();
+    QPlatformTheme *theme = QGuiApplicationPrivate::platformTheme();
+    if (theme) {
+        qDebug() << "FOUND THEME";
+        QPlatformMenu *menu = theme->createPlatformMenu();
+        delete menu;
+    } else {
+        QStringList themes = platform->themeNames();
+        qDebug() << "PLATFORM" << qApp->platformName();
+        qDebug() << "Platform Themes:" << themes;
+        Q_FOREACH(const QString &name, themes) {
+            theme = platform->createPlatformTheme(name);
+            if (theme) {
+                qDebug() << "CREATED THEME:" << name;
+                QPlatformMenu *menu = theme->createPlatformMenu();
+                if (menu) {
+                    qDebug() << "TADAAAM, we have a menu!!!" << theme;
+                }
+                delete menu;
+            }
+            delete theme;
+        }
+    }
 }
 
 void UCStyledItemBase::itemChange(ItemChange change, const ItemChangeData &data)

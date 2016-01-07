@@ -87,6 +87,16 @@ Description: Qt Components for Ubuntu - QML plugin
  This package contains the Ubuntu Components QML plugin.
 
 
+Package: libubuntutouchtheme5
+Architecture: any
+Multi-Arch: same
+Pre-Depends: dpkg (>= 1.15.6~), ${misc:Pre-Depends}
+Depends: ${misc:Depends},
+         ${shlibs:Depends},
+Description: Ubuntu Touch Platform Theme Library
+ This package contains the QPA theme plugin providing
+ menu support for Ubuntu Touch.
+
 Package: libubuntugestures5
 Architecture: any
 Multi-Arch: same
