@@ -553,3 +553,4 @@ if [[ ${NORMAL_USE} != true  && ${PPA} != "archive" ]]; then
    compare_results
 fi
 
+
