@@ -76,6 +76,7 @@
 #include "ucbottomedgeregion.h"
 #include "ucbottomedgestyle.h"
 #include "ucpagetreenode.h"
+#include "ucpopup.h"
 
 // From UbuntuGestures
 #include "private/ucswipearea_p.h"
@@ -263,6 +264,9 @@ void UbuntuComponentsPlugin::registerTypes(const char *uri)
     qmlRegisterType<UCBottomEdge>(uri, 1, 3, "BottomEdge");
     qmlRegisterType<UCBottomEdgeRegion>(uri, 1, 3, "BottomEdgeRegion");
     qmlRegisterType<UCPageTreeNode>(uri, 1, 3, "PageTreeNode");
+    qmlRegisterType<UCPopup>(uri, 1, 3, "Popup");
+    qmlRegisterType<UCPopupPositioning>(uri, 1, 3, "PopupPositioning");
+    qmlRegisterType<UCPopupPosition>(uri, 1, 3, "PopupPosition");
 }
 
 void UbuntuComponentsPlugin::initializeEngine(QQmlEngine *engine, const char *uri)

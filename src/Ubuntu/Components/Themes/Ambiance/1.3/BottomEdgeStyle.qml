@@ -118,6 +118,7 @@ BottomEdgeStyle {
                 target: bottomEdge
                 onCommitStarted: loader.asynchronous = false
                 onCommitCompleted: loader.asynchronous = true
+                onStatusChanged: print("BottomEdge.status", bottomEdge.status)
             }
         }
     }
