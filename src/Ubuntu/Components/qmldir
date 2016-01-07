@@ -116,6 +116,7 @@ TextField 1.3 1.3/TextField.qml
 TextArea 1.3 1.3/TextArea.qml
 Switch 1.3 1.3/Switch.qml
 CheckBox 1.3 1.3/CheckBox.qml
+RadioButton 1.3 1.3/RadioButton.qml
 Slider 1.3 1.3/Slider.qml
 Scrollbar 1.3 1.3/Scrollbar.qml
 OptionSelector 1.3 1.3/OptionSelector.qml

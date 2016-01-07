@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2015 Canonical Ltd.
+ * Copyright 2013-2016 Canonical Ltd.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -32,6 +32,11 @@ ListModel {
         objectName: "colorsElement"
         label: "Colors"
         source: "Colors.qml"
+    }
+    ListElement {
+        objectName: "radiosElement"
+        label: "Radios"
+        source: "Radios.qml"
     }
     ListElement {
         objectName: "togglesElement"
