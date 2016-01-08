@@ -31,9 +31,8 @@ Template {
                 spacing: units.gu(1)
                 RadioButton {
                     id: radio1
-                    // exclusiveGroup: mygroup
-                    anchors.verticalCenter: parent.verticalCenter
                     checked: true
+                    anchors.verticalCenter: parent.verticalCenter
                 }
                 Label {
                     id: label1
@@ -47,7 +46,6 @@ Template {
                 spacing: units.gu(1)
                 RadioButton {
                     id: radio2
-                    // exclusiveGroup: mygroup
                     anchors.verticalCenter: parent.verticalCenter
                 }
                 Label {
@@ -62,7 +60,6 @@ Template {
                 spacing: units.gu(1)
                 RadioButton {
                     id: radio3
-                    // exclusiveGroup: mygroup
                     enabled: false
                     anchors.verticalCenter: parent.verticalCenter
                 }
@@ -78,7 +75,6 @@ Template {
                 spacing: units.gu(1)
                 RadioButton {
                     id: radio4
-                    // exclusiveGroup: mygroup
                     enabled: false
                     checked: true
                     anchors.verticalCenter: parent.verticalCenter

@@ -41,7 +41,7 @@ Item {
 
     Rectangle {
 
-        // These values are calculated using the proportion between
+        // These values are calculated using the proportions between
         // the container and the inner shapes (from the design source files).
         property real indeterminateWidth: Math.round(root.width * .426470588)
         property real indeterminateHeight: Math.round(root.height * .088235294)
@@ -53,12 +53,10 @@ Item {
         x: (root.width - width) / 2
         y: (root.height - height) / 2
         radius: styledItem.indeterminate? 0 : width / 2
-        color: {
-            var palette = theme.palette.normal
-            if (!styledItem.enabled) {
-                return palette.backgroundTertiaryText
-            }
-            return palette.positiveText
-        }
+        color: (
+            styledItem.enabled
+            ? theme.palette.normal.positiveText
+            : theme.palette.normal.backgroundTertiaryText
+        )
     }
 }
