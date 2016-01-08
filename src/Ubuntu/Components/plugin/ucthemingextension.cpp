@@ -138,14 +138,14 @@ UCThemingExtension::UCThemingExtension(QQuickItem *extendedItem)
     , themedItem(extendedItem)
     , themeType(Inherited)
 {
-    theme->attachItem(themedItem, true);
+    theme->attachItem(this, true);
     themedItem->setUserData(xdata, new UCItemAttached(themedItem));
 }
 
 UCThemingExtension::~UCThemingExtension()
 {
     if (theme) {
-        theme->attachItem(themedItem, false);
+        theme->attachItem(this, false);
     }
 }
 
@@ -221,14 +221,14 @@ void UCThemingExtension::setTheme(UCTheme *newTheme, ThemeType type)
 
     // disconnect from the previous set
     if (theme) {
-        theme->attachItem(themedItem, false);
+        theme->attachItem(this, false);
     }
 
     theme = newTheme;
 
     // connect to the new set
     if (theme) {
-        theme->attachItem(themedItem, true);
+        theme->attachItem(this, true);
         // set the parent of the theme if custom
         setParentTheme();
     }

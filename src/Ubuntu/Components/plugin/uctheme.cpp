@@ -624,7 +624,7 @@ void UCTheme::registerToContext(QQmlContext* context)
                      listener, &ContextPropertyChangeListener::updateContextProperty);
 }
 
-void UCTheme::attachItem(QQuickItem *item, bool attach)
+void UCTheme::attachItem(UCThemingExtension *item, bool attach)
 {
     if (attach) {
         m_attachedItems.append(item);
@@ -636,7 +636,7 @@ void UCTheme::attachItem(QQuickItem *item, bool attach)
 void UCTheme::updateThemedItems()
 {
     for (int i = 0; i < m_attachedItems.count(); i++) {
-        UCThemingExtension *extension = qobject_cast<UCThemingExtension*>(m_attachedItems[i]);
+        UCThemingExtension *extension = m_attachedItems[i];
         if (extension) {
             extension->itemThemeReloaded(this);
         }
