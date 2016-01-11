@@ -65,11 +65,7 @@ public:
     };
 
     explicit UCTheme(QObject *parent = 0);
-    static UCTheme &defaultTheme()
-    {
-        static UCTheme instance(true);
-        return instance;
-    }
+    static UCTheme *defaultTheme(QQmlEngine *engine);
 
     // getter/setters
     UCTheme *parentTheme();
@@ -83,7 +79,7 @@ public:
 
     // internal, used by the deprecated Theme.createStyledComponent()
     QQmlComponent* createStyleComponent(const QString& styleName, QObject* parent, quint16 version = 0);
-    static void registerToContext(QQmlContext* context);
+    static void createDefaultTheme(QQmlEngine* engine);
     void attachItem(UCThemingExtension *item, bool attach);
 
     // helper functions
@@ -107,12 +103,12 @@ private Q_SLOTS:
     void _q_defaultThemeChanged();
 
 private:
-    UCTheme(bool defaultStyle, QObject *parent = 0);
+    void setupDefault();
     void init();
-    void updateEnginePaths();
+    void updateEnginePaths(QQmlEngine *engine);
     void updateThemePaths();
     QUrl styleUrl(const QString& styleName, quint16 version, bool *isFallback = NULL);
-    void loadPalette(bool notify = true);
+    void loadPalette(QQmlEngine *engine, bool notify = true);
     void updateThemedItems();
 
     class PaletteConfig
@@ -166,8 +162,6 @@ private:
     QList<ThemeRecord> m_themePaths;
     UCDefaultTheme m_defaultTheme;
     QPODVector<UCThemingExtension*, 4> m_attachedItems;
-    QQmlEngine *m_engine;
-    bool m_defaultStyle:1;
     bool m_completed:1;
 
     friend class UCDeprecatedTheme;
