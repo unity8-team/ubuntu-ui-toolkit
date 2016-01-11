@@ -39,10 +39,23 @@ AbstractButton {
     id: checkBox
 
     /*!
+      Set to `true` to make the checkbox appear indeterminate (or “mixed
+      state”). The `checked` value remain unchanged, it only affects the visual
+      representation. When the checkbox is clicked by the user, this value is
+      automatically set to `false`.
+    */
+    property bool indeterminate: false
+
+    /*!
       Specifies whether the checkbox is checked or not. By default the property
       is set to false.
     */
     property bool checked: false
+
+    /*!
+      \ internal
+    */
+    onCheckedChanged: indeterminate = false
 
     /*!
       \internal

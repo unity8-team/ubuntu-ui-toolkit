@@ -64,21 +64,54 @@ Item {
             fill: parent
             margins: checkBoxStyle.backgroundPadding
         }
-        property real iconSize: Math.min(width, height) - 2*checkBoxStyle.iconPadding
+
+        property real iconSize: (
+            Math.min(width, height) - 2 * checkBoxStyle.iconPadding
+        )
+
+        // These values are calculated using the proportion between
+        // the container and the inner shapes (from the design source files).
+        property real indeterminateWidth: Math.round(width * .426470588)
+        property real indeterminateHeight: Math.round(height * .088235294)
 
         Icon {
+            id: tick
             color: checkBoxStyle.iconColor
             width: background.iconSize
             height: background.iconSize
-            id: tick
             anchors.centerIn: parent
             smooth: true
             source: checkBoxStyle.iconSource
-            visible: styledItem.checked || transitionToChecked.running || transitionToUnchecked.running
+            visible: (
+                styledItem.checked ||
+                transitionToChecked.running ||
+                transitionToUnchecked.running
+            ) && !styledItem.indeterminate
         }
 
-        state: styledItem.checked ? "checked" : "unchecked"
+        Rectangle {
+            color: checkBoxStyle.iconColor
+            width: background.indeterminateWidth
+            height: background.indeterminateHeight
+            x: (parent.width - width) / 2
+            y: (parent.height - height) / 2
+            visible: styledItem.indeterminate
+        }
+
+        state: {
+            if (styledItem.indeterminate) {
+                return "indeterminate"
+            }
+            return styledItem.checked ? "checked" : "unchecked"
+        }
         states: [
+            State {
+                name: "indeterminate"
+                PropertyChanges {
+                    target: background
+                    backgroundColor: checkBoxStyle.checkedBackgroundColor
+                }
+            },
             State {
                 name: "checked"
                 PropertyChanges {

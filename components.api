@@ -263,6 +263,7 @@ Ubuntu.Components.CheckBox 1.0 0.1: AbstractButton
     property bool checked
 Ubuntu.Components.CheckBox 1.3: AbstractButton
     property bool checked
+    property bool indeterminate
 Ubuntu.Components.Clipboard 1.0 0.1: QtObject singleton
     readonly property MimeData data
     function push(var data)
@@ -1171,6 +1172,7 @@ Ubuntu.Components.Switch 1.0 0.1: AbstractButton
     property bool checked
 Ubuntu.Components.Switch 1.3: AbstractButton
     property bool checked
+    property bool indeterminate
 Ubuntu.Components.Tab 1.0 0.1: PageTreeNode
     property url iconSource
     readonly property int index

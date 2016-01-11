@@ -28,11 +28,15 @@ Template {
     }
 
     TemplateSection {
+
+        property real titleColWidth: units.gu(15)
+
         title: "Checkbox"
         className: "CheckBox"
 
         TemplateRow {
             title: i18n.tr("Unchecked")
+            titleWidth: parent.titleColWidth
             onClicked: toggleItem(content)
 
             CheckBox {
@@ -42,6 +46,7 @@ Template {
 
         TemplateRow {
             title: i18n.tr("Checked")
+            titleWidth: parent.titleColWidth
             onClicked: toggleItem(content)
 
             CheckBox {
@@ -51,7 +56,32 @@ Template {
         }
 
         TemplateRow {
+            title: i18n.tr("Indeterminate")
+            titleWidth: parent.titleColWidth
+            onClicked: toggleItem(content)
+
+            CheckBox {
+                id: checkbox_indeterminate
+                objectName: "checkbox_indeterminate"
+                indeterminate: true
+            }
+
+            Label {
+                visible: !checkbox_indeterminate.indeterminate
+                text: 'Set to indeterminate'
+                color: UbuntuColors.orange
+                font.underline: true
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: checkbox_indeterminate.indeterminate = true
+                }
+            }
+        }
+
+        TemplateRow {
             title: i18n.tr("Disabled")
+            titleWidth: parent.titleColWidth
 
             CheckBox {
                 objectName: "checkbox_disabled_unchecked"
