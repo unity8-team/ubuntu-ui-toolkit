@@ -20,12 +20,20 @@ import Ubuntu.Components 1.3
 Template {
     objectName: "togglesTemplate"
 
+    // Toggle the `checked` property of the first item found in `content`
+    function toggleItem(content) {
+        if (content[0] && typeof content[0].checked !== "undefined") {
+            content[0].checked = !content[0].checked;
+        }
+    }
+
     TemplateSection {
         title: "Checkbox"
         className: "CheckBox"
 
         TemplateRow {
             title: i18n.tr("Unchecked")
+            onClicked: toggleItem(content)
 
             CheckBox {
                 objectName: "checkbox_unchecked"
@@ -34,6 +42,7 @@ Template {
 
         TemplateRow {
             title: i18n.tr("Checked")
+            onClicked: toggleItem(content)
 
             CheckBox {
                 objectName: "checkbox_checked"
@@ -64,6 +73,7 @@ Template {
 
         TemplateRow {
             title: i18n.tr("Unchecked")
+            onClicked: toggleItem(content)
 
             Switch {
                 objectName: "switch_unchecked"
@@ -72,6 +82,7 @@ Template {
 
         TemplateRow {
             title: i18n.tr("Checked")
+            onClicked: toggleItem(content)
 
             Switch {
                 objectName: "switch_checked"

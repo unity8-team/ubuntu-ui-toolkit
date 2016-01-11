@@ -25,6 +25,8 @@ Item {
     property alias spacing: contentRow.spacing
     default property alias content: contentRow.children
 
+    signal clicked()
+
     height: Math.max(contentRow.height, label.height)
     width: parent ? parent.width : 0
 
@@ -36,6 +38,10 @@ Item {
         anchors.top: contentRow.top
         elide: Text.ElideRight
         font.weight: Font.Light
+        MouseArea {
+            anchors.fill: parent
+            onClicked: templateRow.clicked()
+        }
     }
 
     Row {
