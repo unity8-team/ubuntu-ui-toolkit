@@ -143,8 +143,6 @@ Item {
         function cleanup() {
             textField.focus = false;
             textArea.focus = false;
-            selectionEndSpy.clear();
-            selectedTextSpy.clear();
             popupSpy.clear();
             movementXSpy.clear();
             movementYSpy.clear();
