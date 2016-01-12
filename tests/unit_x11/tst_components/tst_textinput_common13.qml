@@ -426,7 +426,7 @@ Item {
             return [
                 { tag: 'popover', component: popoverComponent, target: popoverButton, offScreen: false },
                 { tag: 'popover', component: popoverComponent, target: null, offScreen: false },
-                { tag: 'dialog', component: dialogComponent, target: dialogButton, offScreen: true },
+                { tag: 'dialog', component: dialogComponent, target: null, offScreen: true },
             ]
         }
 
@@ -450,7 +450,7 @@ Item {
         }
 
         function test_osk_shrinks_dialog() {
-            var popover = PopupUtils.open(dialogComponent, dialogButton);
+            var popover = PopupUtils.open(dialogComponent);
             waitForRendering(popover);
             // Original height before showing OSK
             var originalHeight = popover.height;
