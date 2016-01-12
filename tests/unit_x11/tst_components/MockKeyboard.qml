@@ -30,10 +30,10 @@ Object {
         width: parent.width
         height: inputMethod.keyboardRectangle.height
         visible: inputMethod.visible
+        color: UbuntuColors.blue
 
         parent: QuickUtils.rootItem(inputMethod)
-        color: UbuntuColors.lightGrey
-        opacity: 0.5
+        opacity: 0.7
         // Always on top, even modal Dialog overlay
         z: 100
 
@@ -47,9 +47,10 @@ Object {
                          'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';',
                          'z', 'x', 'c', 'v', ' ', 'b', 'n', 'm', ',', '.'  ]
 
-                Button {
+                // No Button to avoid 1.2/1.3 version issues in tests
+                Text {
                     text: modelData
-                    color: UbuntuColors.blue
+                    color: '#fefefe'
                     height: (parent.height - units.dp(2)) / 4
                     width: (parent.width - units.dp(2)) / 10
                 }
