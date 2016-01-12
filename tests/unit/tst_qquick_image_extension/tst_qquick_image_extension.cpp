@@ -38,16 +38,16 @@ private Q_SLOTS:
 
     void scaledBorderIdentity() {
         UCQQuickImageExtension image;
-        QString border = "border: 13";
-        QString expected = "border: 13";
+        QString border = "border: 10";
+        QString expected = "border: 11";
         QString result = image.scaledBorder(border, "1");
         QCOMPARE(result, expected);
     }
 
     void scaledBorderHalf() {
         UCQQuickImageExtension image;
-        QString border = "border: 13";
-        QString expected = "border: 7";
+        QString border = "border: 5";
+        QString expected = "border: 9";
         QString result = image.scaledBorder(border, "0.5");
         QCOMPARE(result, expected);
     }
