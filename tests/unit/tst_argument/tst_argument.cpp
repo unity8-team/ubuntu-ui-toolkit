@@ -61,6 +61,7 @@ private Q_SLOTS:
         argument.setValueNames(valueNames);
 
         QCOMPARE(argument.syntax(), expectedSyntax);
+        verify(false);
     }
 
     void testSyntax_data() {
