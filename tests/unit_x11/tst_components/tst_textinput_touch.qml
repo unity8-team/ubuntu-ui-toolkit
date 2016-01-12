@@ -121,6 +121,7 @@ Item {
             ];
         }
         function test_has_caret_when_touchscreen(data) {
+            // cf. tst_textinput_common test_no_caret_when_no_touchscreen
             data.input.focus = true;
             waitForRendering(data.input);
 

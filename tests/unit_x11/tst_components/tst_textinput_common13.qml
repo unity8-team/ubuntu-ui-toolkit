@@ -136,22 +136,6 @@ Item {
     }
 
     SignalSpy {
-        id: cursorPositionSpy
-        signalName: "onCursorPositionChanged"
-    }
-    SignalSpy {
-        id: selectionStartSpy
-        signalName: "onSelectionStartChanged"
-    }
-    SignalSpy {
-        id: selectionEndSpy
-        signalName: "onSelectionEndChanged"
-    }
-    SignalSpy {
-        id: selectedTextSpy
-        signalName: "onSelectedTextChanged"
-    }
-    SignalSpy {
         id: popupSpy
         signalName: "pressAndHold"
     }
@@ -184,10 +168,6 @@ Item {
         function cleanup() {
             textField.focus = false;
             textArea.focus = false;
-            cursorPositionSpy.clear();
-            selectionStartSpy.clear();
-            selectionEndSpy.clear();
-            selectedTextSpy.clear();
             popupSpy.clear();
             movementXSpy.clear();
             movementYSpy.clear();
