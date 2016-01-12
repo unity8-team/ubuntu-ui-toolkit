@@ -386,26 +386,6 @@ Item {
             verify(data.input.selectedText !== "", "There's no text selected!");
         }
 
-        function test_no_caret_when_no_touchscreen_data() {
-            return [
-                {tag: "TextField", input: textField},
-                {tag: "TextArea", input: textArea},
-            ];
-        }
-        function test_no_caret_when_no_touchscreen(data) {
-            if (TestExtras.touchDevicePresent()) {
-                skip("This test cannot be executed in touch environment");
-            }
-
-            data.input.focus = true;
-            waitForRendering(data.input);
-
-            var cursor = findChild(data.input, "textCursor");
-            verify(cursor, "Cursor not accessible, FAIL");
-            verify(cursor.caret, "No caret is set");
-            compare(cursor.caret.visible, false, "Caret must not be visible!");
-        }
-
         function test_select_text_with_double_click_data() {
             return [
                 {tag: "TextField", input: textField},
