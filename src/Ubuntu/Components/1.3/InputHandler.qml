@@ -291,7 +291,8 @@ MultiPointTouchArea {
         target: main
         ignoreUnknownSignals: true
         onFocusChanged: {
-            touching = false;
+            if (!main.focus)
+                touching = false;
             UbuntuApplication.inputMethod.commit()
             state = (main.focus) ? "" : "inactive";
             if (main.focus) {
