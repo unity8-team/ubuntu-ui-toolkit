@@ -1,5 +1,5 @@
 #include( documentation/documentation.pri )
-         
+          
 BUILD_PATH_CONTENTS="SRC_DIR=\"$$PWD\"" \
                     "BUILD_DIR=\"$$OUT_PWD\""
 
