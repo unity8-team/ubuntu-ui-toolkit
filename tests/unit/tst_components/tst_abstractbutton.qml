@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 Canonical Ltd.
+ * Copyright 2011 Canonical Ltd.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -29,6 +29,7 @@ TestCase {
          absButton.clicked()
          compare(action1.triggerCount, numTriggers+1, "Button clicked triggers action")
          absButton.action = null
+         verify(false)
      }
 
      function test_hovered() {
