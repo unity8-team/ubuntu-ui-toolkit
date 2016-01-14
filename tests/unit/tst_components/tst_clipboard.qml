@@ -69,6 +69,7 @@ TestCase {
         compare(Clipboard.data.color, "#ff0000", "Color pushed");
         Clipboard.push(["application/x-color", "green"]);
         compare(Clipboard.data.color, standalone.color, "Color pushed");
+        verify(false);
     }
 
 

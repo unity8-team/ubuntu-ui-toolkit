@@ -27,7 +27,7 @@ private Q_SLOTS:
         UCUnits units;
 
         QCOMPARE(units.dp(1.0), 1.0f);
-        QCOMPARE(units.dp(1.32), 1.33333f);
+        QCOMPARE(units.dp(0.12), 1.53333f);
         QCOMPARE(units.dp(1.72), 1.66666f);
         QCOMPARE(units.dp(0.23), 0.333333f);
         QCOMPARE(units.dp(0.51), 0.666666f);
