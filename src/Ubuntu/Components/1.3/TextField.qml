@@ -858,7 +858,19 @@ Ubuntu.ActionItem {
         preventStealing: false
         // forward mouse events to input so we can handle those uniformly
         Ubuntu.Mouse.forwardTo: [inputHandler]
+        Ubuntu.Mouse.ignoreSynthesizedEvents: true
         cursorShape: Qt.IBeamCursor
+    }
+    MultiPointTouchArea {
+        onPressed: inputHandler.handlePressed(touchPoints[0], true)
+        onReleased: inputHandler.handleReleased(touchPoints[0], true)
+        anchors.fill: parent
+        touchPoints: TouchPoint {
+            function touch() { inputHandler.touchPoints[0].touch(); }
+            function untouch() { inputHandler.touchPoints[0].untouch(); }
+            function reset() { inputHandler.touchPoints[0].reset(); }
+        }
+        mouseEnabled: false
     }
 
     Text { id: fontHolder }
@@ -999,6 +1011,7 @@ Ubuntu.ActionItem {
         boundsBehavior: Flickable.StopAtBounds
         // need to forward events as events occurred on topMargin area are not grabbed by the MouseArea.
         Ubuntu.Mouse.forwardTo: [inputHandler]
+        Ubuntu.Mouse.ignoreSynthesizedEvents: true
 
         clip: true
         contentWidth: editor.contentWidth
@@ -1032,6 +1045,7 @@ Ubuntu.ActionItem {
 
             // input selection and navigation handling
             Ubuntu.Mouse.forwardTo: [inputHandler]
+            Ubuntu.Mouse.ignoreSynthesizedEvents: true
             InputHandler {
                 id: inputHandler
                 anchors.fill: parent
