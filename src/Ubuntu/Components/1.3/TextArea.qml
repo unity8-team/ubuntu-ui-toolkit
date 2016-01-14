@@ -752,7 +752,19 @@ Ubuntu.StyledItem {
         // activate input when pressed on the frame
         preventStealing: false
         Ubuntu.Mouse.forwardTo: [inputHandler]
+        Ubuntu.Mouse.ignoreSynthesizedEvents: true
         cursorShape: Qt.IBeamCursor
+    }
+    MultiPointTouchArea {
+        onPressed: inputHandler.handlePressed(touchPoints[0], true)
+        onReleased: inputHandler.handleReleased(touchPoints[0], true)
+        anchors.fill: parent
+        touchPoints: TouchPoint {
+            function touch() { inputHandler.touchPoints[0].touch(); }
+            function untouch() { inputHandler.touchPoints[0].untouch(); }
+            function reset() { inputHandler.touchPoints[0].reset(); }
+        }
+        mouseEnabled: false
     }
 
     //internals
@@ -887,6 +899,7 @@ Ubuntu.StyledItem {
 
             // input selection and navigation handling
             Ubuntu.Mouse.forwardTo: [inputHandler]
+            Ubuntu.Mouse.ignoreSynthesizedEvents: true
             InputHandler {
                 id: inputHandler
                 anchors.fill: parent
