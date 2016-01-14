@@ -40,8 +40,8 @@ private Q_SLOTS:
         values << "value1" << "value2";
         argument.setValues(values);
 
-        QCOMPARE(argument.at(-2).type(), QVariant::String);
-        QCOMPARE(argument.at(0).type(), QVariant::Invalid);
+        QCOMPARE(argument.at(-2).type(), QVariant::Invalid);
+        QCOMPARE(argument.at(0).type(), QVariant::String);
         QCOMPARE(argument.at(1).type(), QVariant::String);
         QCOMPARE(argument.at(2).type(), QVariant::Invalid);
 
@@ -61,7 +61,6 @@ private Q_SLOTS:
         argument.setValueNames(valueNames);
 
         QCOMPARE(argument.syntax(), expectedSyntax);
-        verify(false);
     }
 
     void testSyntax_data() {
@@ -73,7 +72,7 @@ private Q_SLOTS:
         QStringList valueNames;
         valueNames << "VALUE1" << "VALUE2";
 
-        QTest::newRow("no name, no valueNames, not required") << "" << QStringList() << true << "";
+        QTest::newRow("no name, no valueNames, not required") << "" << QStringList() << false << "";
         QTest::newRow("name, no valueNames, not required") << "argument" << QStringList() << false << "--argument";
         QTest::newRow("no name, 2 valueNames, not required") << "" << valueNames << false << "[VALUE1] [VALUE2]";
         QTest::newRow("name, 2 valueNames, not required") << "argument" << valueNames << false << "--argument=VALUE1 VALUE2";
