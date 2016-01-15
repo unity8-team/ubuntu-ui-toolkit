@@ -2,7 +2,7 @@
              
 BUILD_PATH_CONTENTS="SRC_DIR=\"$$PWD\"" \
                     "BUILD_DIR=\"$$OUT_PWD\""
-
+ 
 write_file($$PWD/build_paths.inc,BUILD_PATH_CONTENTS)
 
 requires(qtHaveModule(quick))
