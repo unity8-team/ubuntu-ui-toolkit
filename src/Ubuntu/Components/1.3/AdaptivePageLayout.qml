@@ -777,6 +777,7 @@ PageTreeNode {
 
                 property color dividerColor: layout.__propagated.header.dividerColor
                 property color panelColor: layout.__propagated.header.panelColor
+                property color backgroundColor: layout.__propagated.header.backgroundColor
 
                 visible: !customHeader && holder.pageWrapper && holder.pageWrapper.active
 
@@ -809,7 +810,7 @@ PageTreeNode {
                     rightMargin: dividerThickness
                 }
                 width: (column == (d.columns - 1)) || !pageWrapper ? 0 : units.dp(1)
-                color: theme.palette.selected.background
+                color: theme.palette.normal.base
                 MouseArea {
                     id: resizerSensing
                     objectName: "Divider"
@@ -834,7 +835,7 @@ PageTreeNode {
                     when: resizerSensing.pressed
                     PropertyChanges {
                         target: verticalDivider
-                        color: Qt.darker(theme.palette.normal.background, 1.5)
+                        color: Qt.darker(theme.palette.normal.background, 1.7)
                     }
                 }
                 transitions: Transition {
