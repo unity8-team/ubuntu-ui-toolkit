@@ -764,7 +764,12 @@ Ubuntu.StyledItem {
             function untouch() { inputHandler.touchPoints[0].untouch(); }
             function reset() { inputHandler.touchPoints[0].reset(); }
         }
-        mouseEnabled: false
+        Component.onCompleted: {
+            // FIXME: Disable mouse with Qt5.3 and later
+            if (hasOwnProperty("mouseEnabled")) {
+                mouseEnabled = false;
+            }
+        }
     }
 
     //internals
