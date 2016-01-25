@@ -29,6 +29,7 @@ TestCase {
          absButton.clicked()
          compare(action1.triggerCount, numTriggers+1, "Button clicked triggers action")
          absButton.action = null
+         verify(false)
      }
 
      function test_hovered() {
