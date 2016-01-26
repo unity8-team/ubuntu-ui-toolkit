@@ -96,6 +96,7 @@ QtObject {
     readonly property color orange: "#E95420"
 
     /*!
+      \deprecated
       Light grey. Recommended for neutral action buttons and
       secondary text.
       \since Ubuntu.Components 1.1
@@ -103,10 +104,24 @@ QtObject {
     readonly property color lightGrey: "#cdcdcd"
 
     /*!
+      Silk. Recommended for neutral action buttons and
+      secondary text.
+      \since Ubuntu.Components 1.3
+     */
+    readonly property color silk: "#cdcdcd"
+
+    /*!
+      \deprecated
       Dark grey. Recommended for text and action icons.
       \since Ubuntu.Components 1.1
      */
     readonly property color darkGrey: "#5d5d5d"
+
+    /*!
+      Slate. Recommended for text and action icons.
+      \since Ubuntu.Components 1.3
+     */
+    readonly property color slate: "#5d5d5d"
 
     /*!
       Red. Recommended for negative and irreversible action
@@ -147,20 +162,20 @@ QtObject {
     readonly property color ash: "#888888"
 
     /*!
-      Lead. Recommended for coloring dark themes' background.
+      Graphite. Recommended for coloring dark themes' background.
       \since Ubuntu.Components 1.3
       */
-    readonly property color lead: "#666666"
+    readonly property color graphite: "#666666"
 
     /*!
-      Cinder. Recommended for foreground colors in dark themes.
+      Inkstone. Recommended for foreground colors in dark themes.
       \since Ubuntu.Components 1.3
       */
-    readonly property color cinder: "#3b3b3b"
+    readonly property color inkstone: "#3b3b3b"
 
     /*!
-      Lacquer. Recommended for content coloring.
+      Jet. Recommended for content coloring.
       \since Ubuntu.Components 1.3
       */
-    readonly property color lacquer: "#292929"
+    readonly property color jet: "#292929"
 }

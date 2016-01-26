@@ -39,9 +39,9 @@ Template {
             }
         }
         TemplateRow {
-            title: i18n.tr("Light grey")
+            title: i18n.tr("Silk")
             UbuntuShape {
-                backgroundColor: UbuntuColors.lightGrey
+                backgroundColor: UbuntuColors.silk
             }
         }
         TemplateRow {
@@ -51,27 +51,27 @@ Template {
             }
         }
         TemplateRow {
-            title: i18n.tr("Lead")
+            title: i18n.tr("Graphite")
             UbuntuShape {
-                backgroundColor: UbuntuColors.lead
+                backgroundColor: UbuntuColors.graphite
             }
         }
         TemplateRow {
-            title: i18n.tr("Dark grey")
+            title: i18n.tr("Slate")
             UbuntuShape {
-                backgroundColor: UbuntuColors.darkGrey
+                backgroundColor: UbuntuColors.slate
             }
         }
         TemplateRow {
-            title: i18n.tr("Cinder")
+            title: i18n.tr("Inkstone")
             UbuntuShape {
-                backgroundColor: UbuntuColors.cinder
+                backgroundColor: UbuntuColors.inkstone
             }
         }
         TemplateRow {
-            title: i18n.tr("Lacquer")
+            title: i18n.tr("Jet")
             UbuntuShape {
-                backgroundColor: UbuntuColors.lacquer
+                backgroundColor: UbuntuColors.jet
             }
         }
         TemplateRow {
