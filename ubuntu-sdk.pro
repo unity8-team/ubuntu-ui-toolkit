@@ -34,3 +34,5 @@ OTHER_FILES += \
     features/ubuntu_enable_testing.prf \
     features/coverage.prf \
     .qmake.conf
+
+#no-op change
