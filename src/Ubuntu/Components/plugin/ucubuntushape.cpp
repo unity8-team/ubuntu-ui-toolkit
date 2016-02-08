@@ -1191,11 +1191,10 @@ QSGNode* UCUbuntuShape::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData* d
         index = getEmptyShapeTexturesIndex();
         shapeTextures[index].openglContext = openglContext;
         createShapeTextures(openglContext, index);
-        disconnect(window(), &QQuickWindow::sceneGraphInvalidated, 0, 0);
         connect(window(), &QQuickWindow::sceneGraphInvalidated, this, [index] {
             shapeTextures[index].openglContext = NULL;
             glDeleteTextures(shapeTextureCount, shapeTextures[index].textureId);
-        }, Qt::DirectConnection); // called in render thread
+        }, Qt::DirectConnection | Qt::UniqueConnection); // called in render thread
     }
     const quint32 shapeTextureId = shapeTextures[index].textureId[m_aspect != DropShadow ? 0 : 1];
 
