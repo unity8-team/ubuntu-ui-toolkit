@@ -111,6 +111,22 @@ Item {
     }
 
     SignalSpy {
+        id: cursorPositionSpy
+        signalName: "onCursorPositionChanged"
+    }
+    SignalSpy {
+        id: selectionStartSpy
+        signalName: "onSelectionStartChanged"
+    }
+    SignalSpy {
+        id: selectionEndSpy
+        signalName: "onSelectionEndChanged"
+    }
+    SignalSpy {
+        id: selectedTextSpy
+        signalName: "onSelectedTextChanged"
+    }
+    SignalSpy {
         id: popupSpy
         signalName: "pressAndHold"
     }
@@ -143,6 +159,10 @@ Item {
         function cleanup() {
             textField.focus = false;
             textArea.focus = false;
+            cursorPositionSpy.clear();
+            selectionStartSpy.clear();
+            selectionEndSpy.clear();
+            selectedTextSpy.clear();
             popupSpy.clear();
             movementXSpy.clear();
             movementYSpy.clear();
@@ -368,7 +388,6 @@ Item {
             ];
         }
         function test_no_caret_when_no_touchscreen(data) {
-            // cf. tst_textinput_touch test_has_caret_when_touchscreen
             if (TestExtras.touchDevicePresent()) {
                 skip("This test cannot be executed in touch environment");
             }

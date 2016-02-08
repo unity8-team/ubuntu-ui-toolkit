@@ -136,6 +136,22 @@ Item {
     }
 
     SignalSpy {
+        id: cursorPositionSpy
+        signalName: "onCursorPositionChanged"
+    }
+    SignalSpy {
+        id: selectionStartSpy
+        signalName: "onSelectionStartChanged"
+    }
+    SignalSpy {
+        id: selectionEndSpy
+        signalName: "onSelectionEndChanged"
+    }
+    SignalSpy {
+        id: selectedTextSpy
+        signalName: "onSelectedTextChanged"
+    }
+    SignalSpy {
         id: popupSpy
         signalName: "pressAndHold"
     }
@@ -168,6 +184,10 @@ Item {
         function cleanup() {
             textField.focus = false;
             textArea.focus = false;
+            cursorPositionSpy.clear();
+            selectionStartSpy.clear();
+            selectionEndSpy.clear();
+            selectedTextSpy.clear();
             popupSpy.clear();
             movementXSpy.clear();
             movementYSpy.clear();
@@ -384,6 +404,26 @@ Item {
             flick(data.input, 0, 0, data.input.width / 2, data.input.height / 2);
             waitForRendering(data.input);
             verify(data.input.selectedText !== "", "There's no text selected!");
+        }
+
+        function test_no_caret_when_no_touchscreen_data() {
+            return [
+                {tag: "TextField", input: textField},
+                {tag: "TextArea", input: textArea},
+            ];
+        }
+        function test_no_caret_when_no_touchscreen(data) {
+            if (TestExtras.touchDevicePresent()) {
+                skip("This test cannot be executed in touch environment");
+            }
+
+            data.input.focus = true;
+            waitForRendering(data.input);
+
+            var cursor = findChild(data.input, "textCursor");
+            verify(cursor, "Cursor not accessible, FAIL");
+            verify(cursor.caret, "No caret is set");
+            compare(cursor.caret.visible, false, "Caret must not be visible!");
         }
 
         function test_select_text_with_double_click_data() {
