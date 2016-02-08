@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Canonical Ltd.
+ * Copyright 2015-2016 Canonical Ltd.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -913,10 +913,13 @@ Ubuntu.ActionItem {
         onChildrenChanged: {
             // reparenting
             for (var i = 0; i < children.length; i++) {
-                children[i].parent = leftPane;
-                children[i].anchors.verticalCenter = verticalCenter;
-                children[i].activeFocusOnPress = false;
-                children[i].activeFocusOnTab = false;
+                var child = children[i];
+                child.parent = leftPane;
+                child.anchors.verticalCenter = verticalCenter;
+                if (child.hasOwnProperty("activeFocusOnPress")) {
+                    child.activeFocusOnPress = false;
+                }
+                child.activeFocusOnTab = false;
             }
         }
     }
@@ -937,10 +940,13 @@ Ubuntu.ActionItem {
         onChildrenChanged: {
             // reparenting
             for (var i = 0; i < children.length; i++) {
-                children[i].parent = rightPane;
-                children[i].anchors.verticalCenter = verticalCenter;
-                children[i].activeFocusOnPress = false;
-                children[i].activeFocusOnTab = false;
+                var child = children[i];
+                child.parent = rightPane;
+                child.anchors.verticalCenter = verticalCenter;
+                if (child.hasOwnProperty("activeFocusOnPress")) {
+                    child.activeFocusOnPress = false;
+                }
+                child.activeFocusOnTab = false;
             }
         }
     }
@@ -993,7 +999,7 @@ Ubuntu.ActionItem {
         }
         // hint is shown till user types something in the field
         visible: (editor.text == "") && !editor.inputMethodComposing
-        color: theme.palette.normal.base
+        color: theme.palette.normal.baseText
         font: editor.font
         elide: Text.ElideRight
     }

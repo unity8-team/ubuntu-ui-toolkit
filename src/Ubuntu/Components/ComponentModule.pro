@@ -31,7 +31,6 @@ QML_FILES += 1.2/AbstractButton.qml \
              1.2/AppHeader.qml \
              1.2/Captions.qml \
              1.2/CheckBox.qml \
-             1.2/colorUtils.js \
              1.2/ComboButton.qml \
              1.2/CrossFadeImage10.qml \
              1.2/CrossFadeImage11.qml \
@@ -92,7 +91,6 @@ QML_FILES += 1.3/ActionBar.qml \
              1.3/dateUtils.js \
              1.3/DraggingArea.qml \
              1.3/InputHandler.qml \
-             1.3/MainViewBase.qml \
              1.3/MainView.qml \
              1.3/OptionSelectorDelegate.qml \
              1.3/OptionSelector.qml \
