@@ -78,6 +78,7 @@
 #include "ucbottomedgestyle.h"
 #include "ucpagetreenode.h"
 #include "privates/frame.h"
+#include "privates/dropshadow.h"
 
 #include <sys/types.h>
 #include <unistd.h>
@@ -277,6 +278,7 @@ void UbuntuComponentsPlugin::initializeEngine(QQmlEngine *engine, const char *ur
 
     // Register private types.
     qmlRegisterType<UCFrame>("Ubuntu.Components.Private", 1, 3, "Frame");
+    qmlRegisterType<UCShadow>("Ubuntu.Components.Private", 1, 3, "Shadow");
 
     QQmlExtensionPlugin::initializeEngine(engine, uri);
     QQmlContext* context = engine->rootContext();

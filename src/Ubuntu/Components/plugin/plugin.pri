@@ -109,7 +109,9 @@ HEADERS += $$PWD/plugin.h \
     $$PWD/ucbottomedgeregion.h \
     $$PWD/ucpagetreenode.h \
     $$PWD/ucpagetreenode_p.h \
-    $$PWD/privates/frame.h
+    $$PWD/privates/frame.h \
+    $$PWD/privates/basedata.h \
+    $$PWD/privates/shadow.h
 
 SOURCES += $$PWD/plugin.cpp \
     $$PWD/uctheme.cpp \
@@ -181,7 +183,9 @@ SOURCES += $$PWD/plugin.cpp \
     $$PWD/ucbottomedgestyle.cpp \
     $$PWD/ucbottomedgeregion.cpp \
     $$PWD/ucpagetreenode.cpp \
-    $$PWD/privates/frame.cpp
+    $$PWD/privates/basedata.cpp \
+    $$PWD/privates/frame.cpp \
+    $$PWD/privates/shadow.cpp
 
 # adapters
 SOURCES += $$PWD/adapters/alarmsadapter_organizer.cpp
@@ -197,4 +201,6 @@ OTHER_FILES += \
     $$PWD/shaders/shapeoverlay.frag \
     $$PWD/shaders/shapeoverlay_no_dfdy.frag \
     $$PWD/privates/shaders/frame.vert \
-    $$PWD/privates/shaders/frame.frag
+    $$PWD/privates/shaders/frame.frag \
+    $$PWD/privates/shaders/shadow.vert \
+    $$PWD/privates/shaders/shadow.frag

@@ -8,5 +8,7 @@
         <file>shaders/shapeoverlay.vert</file>
         <file>privates/shaders/frame.frag</file>
         <file>privates/shaders/frame.vert</file>
+        <file>privates/shaders/shadow.frag</file>
+        <file>privates/shaders/shadow.vert</file>
     </qresource>
 </RCC>
