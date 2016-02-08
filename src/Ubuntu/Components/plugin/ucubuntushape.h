@@ -290,7 +290,6 @@ protected:
     virtual void componentComplete();
     virtual QSGNode* updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData* data);
     virtual void geometryChanged(const QRectF& newGeometry, const QRectF& oldGeometry);
-    virtual void releaseResources() override;
 
     // Virtual functions for extended shapes.
     virtual QSGNode* createSceneGraphNode() const;

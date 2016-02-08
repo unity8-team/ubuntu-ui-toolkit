@@ -241,20 +241,6 @@ const QSGGeometry::AttributeSet& ShapeNode::attributeSet()
     return attributeSet;
 }
 
-// --- Shape texture deleter job ---
-
-class UCUbuntuShapeReleaseResourcesJob : public QRunnable
-{
-public:
-    UCUbuntuShapeReleaseResourcesJob(GLsizei count, GLuint *ids) : count(count), textureIds(ids) {}
-    void run() {
-        glDeleteTextures(count, textureIds);
-    }
-private:
-    GLsizei count;
-    GLuint *textureIds;
-};
-
 // --- QtQuick item ---
 
 const float implicitWidthGU = 8.0f;
@@ -1055,20 +1041,6 @@ void UCUbuntuShape::geometryChanged(const QRectF& newGeometry, const QRectF& old
     m_flags |= DirtySourceTransform;
 }
 
-// Called by Qt before it destroys the GL context, called on GUI thread, cleanup must happen on renderer thread
-void UCUbuntuShape::releaseResources()
-{
-    Q_ASSERT(window());
-    QOpenGLContext* openglContext = window()->openglContext();
-    Q_ASSERT(openglContext);
-    int index = getShapeTexturesIndex(openglContext);
-    if (index >= 0) {
-        auto job = new UCUbuntuShapeReleaseResourcesJob(shapeTextureCount, shapeTextures[index].textureId);
-        window()->scheduleRenderJob(job, QQuickWindow::AfterSynchronizingStage);
-        shapeTextures[index].openglContext = NULL;
-    }
-}
-
 // Gets the shapeTextures' slot used by the given context, or -1 if not stored.
 static int getShapeTexturesIndex(const QOpenGLContext* openglContext)
 {
@@ -1219,6 +1191,10 @@ QSGNode* UCUbuntuShape::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData* d
         index = getEmptyShapeTexturesIndex();
         shapeTextures[index].openglContext = openglContext;
         createShapeTextures(openglContext, index);
+        connect(openglContext, &QOpenGLContext::aboutToBeDestroyed, [index] {
+            shapeTextures[index].openglContext = NULL;
+            glDeleteTextures(shapeTextureCount, shapeTextures[index].textureId);
+        } );
     }
     const quint32 shapeTextureId = shapeTextures[index].textureId[m_aspect != DropShadow ? 0 : 1];
 
