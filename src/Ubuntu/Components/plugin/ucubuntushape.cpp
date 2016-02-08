@@ -1192,6 +1192,7 @@ QSGNode* UCUbuntuShape::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData* d
         shapeTextures[index].openglContext = openglContext;
         createShapeTextures(openglContext, index);
         connect(window(), &QQuickWindow::sceneGraphInvalidated, this, [index] {
+            Q_ASSERT(shapeTextures[index].openglContext == QOpenGLContext::currentContext());
             shapeTextures[index].openglContext = NULL;
             glDeleteTextures(shapeTextureCount, shapeTextures[index].textureId);
         }, Qt::DirectConnection | Qt::UniqueConnection); // called in render thread
