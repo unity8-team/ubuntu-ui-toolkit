@@ -756,6 +756,7 @@ Ubuntu.StyledItem {
         cursorShape: Qt.IBeamCursor
     }
     MultiPointTouchArea {
+        maximumTouchPoints: 1
         onPressed: inputHandler.handlePressed(touchPoints[0], true)
         onReleased: inputHandler.handleReleased(touchPoints[0], true)
         anchors.fill: parent

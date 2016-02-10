@@ -457,6 +457,7 @@ MultiPointTouchArea {
             tapCount = running;
         }
     }
+    maximumTouchPoints: 1
     onPressed: handlePressed(touchPoints[0], true)
     onReleased: handleReleased(touchPoints[0], true)
     // touch was used and not followed by mouse, keyboard or focus loss
