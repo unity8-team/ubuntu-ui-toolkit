@@ -110,7 +110,8 @@ private Q_SLOTS:
         QTest::newRow("grid with Label 1.3") << "LabelGrid13.qml" << QUrl();
         QTest::newRow("grid with UbuntuShape") << "UbuntuShapeGrid.qml" << QUrl();
         QTest::newRow("grid with UbuntuShapePair") << "PairOfUbuntuShapeGrid.qml" << QUrl();
-        QTest::newRow("grid with Button") << "ButtonGrid.qml" << QUrl();
+        QTest::newRow("grid with Button 1.1") << "ButtonGrid.qml" << QUrl();
+        QTest::newRow("grid with Button 1.3") << "ButtonGrid13.qml" << QUrl();
         QTest::newRow("grid with Slider") << "SliderGrid.qml" << QUrl();
         QTest::newRow("list with QtQuick Item") << "ItemList.qml" << QUrl();
         QTest::newRow("list with new ListItem") << "ListItemList.qml" << QUrl();
@@ -131,7 +132,7 @@ private Q_SLOTS:
         QTest::newRow("list of Scrollbar 1.3") << "ListOfScrollbars_1_3.qml" << QUrl();
         QTest::newRow("list of ScrollView 1.3 with both Scrollbars") << "ListOfScrollView_bothScrollbars_1_3.qml" << QUrl();
         // disable this test as it takes >20 seconds. Kept still for measurements to be done during development
-        //        QTest::newRow("list with ListItems.Base (one icon, one label and one chevron)") << "ListItemsBaseList.qml" << QUrl();
+        // QTest::newRow("list with ListItems.Base (one icon, one label and one chevron)") << "ListItemsBaseList.qml" << QUrl();
         QTest::newRow("single MainView") << "MainView.qml" << QUrl();
     }
 

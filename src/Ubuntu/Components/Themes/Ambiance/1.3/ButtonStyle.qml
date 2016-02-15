@@ -18,164 +18,174 @@
 
 import QtQuick 2.4
 import Ubuntu.Components 1.3
+import Ubuntu.Components.Private 1.3
 
 Item {
     id: buttonStyle
 
     property var button: styledItem
-    property real minimumWidth: units.gu(10)
-    property real horizontalPadding: units.gu(1)
-    // FIXME: Add this color to the palette
-    property color defaultColor: "#b2b2b2"
-    property font defaultFont: Qt.font({family: "Ubuntu", pixelSize: FontUtils.sizeToPixels("medium")})
+    property real minimumWidth: button.iconName && button.text? 0 : units.gu(10)
+    property real horizontalPadding: units.gu(2)
+    property real iconSpacing: units.gu(1)
+
+    /*!
+      \deprecated
+      The property is deprecated, use the fillColor
+      and textColor properties instead.
+    */
+    property color defaultColor
+
+    property color fillColor: {
+        if (button.type === Button.Text) {
+            return theme.palette.normal.foreground
+        }
+        if (button.emphasis === Button.Positive) {
+            return theme.palette.normal.positive
+        }
+        if (button.emphasis === Button.Negative) {
+            return theme.palette.normal.negative
+        }
+        return theme.palette.normal.foreground
+    }
+
+    property color textColor: {
+        if (!button.enabled && button.type !== Button.Normal) {
+            return theme.palette.normal.foregroundText
+        }
+        if (button.emphasis === Button.Positive) {
+            return button.type !== Button.Normal
+                       ? theme.palette.normal.positive
+                       : theme.palette.normal.positiveText
+        }
+        if (button.emphasis === Button.Negative) {
+            return button.type !== Button.Normal
+                       ? theme.palette.normal.negative
+                       : theme.palette.normal.negativeText
+        }
+        return theme.palette.normal.foregroundText
+    }
+
+    property color outlineColor: textColor
+    property real outlineWidth: units.dp(1)
+    property real outlineRadius: units.gu(0.5)
+
+    property color overlayColor: theme.palette.normal.foregroundText
+
+    property font defaultFont: Qt.font({
+        family: "Ubuntu",
+        pixelSize: FontUtils.sizeToPixels("medium"),
+    })
+
     property Gradient defaultGradient
     property real buttonFaceOffset: 0
-    property bool stroke: button.hasOwnProperty("strokeColor") && button.strokeColor != Qt.rgba(0.0, 0.0, 0.0, 0.0)
+    property bool stroke: (
+        button.hasOwnProperty("strokeColor") &&
+        button.strokeColor !== Qt.rgba(0.0, 0.0, 0.0, 0.0)
+    )
     /*!
       The property overrides the button's default background with an item. This
       item can be used by derived styles to reuse the ButtonStyle and override
       the default coloured background with an image or any other drawing.
       The default value is null.
-      */
+    */
     property Item backgroundSource: null
 
     width: button.width
     height: button.height
-    implicitWidth: Math.max(minimumWidth, foreground.implicitWidth + 2*horizontalPadding)
+    implicitWidth: Math.max( minimumWidth, foreground.width + 2 * horizontalPadding)
     implicitHeight: units.gu(4)
 
-    LayoutMirroring.enabled: Qt.application.layoutDirection == Qt.RightToLeft
+    LayoutMirroring.enabled: Qt.application.layoutDirection === Qt.RightToLeft
     LayoutMirroring.childrenInherit: true
 
-    /*! \internal */
-    // Color properties in a JS ternary operator don't work as expected in
-    // QML because it overwrites alpha values with 1. A workaround is to use
-    // Qt.rgba(). For more information, see
-    // https://bugs.launchpad.net/ubuntu-ui-toolkit/+bug/1197802 and
-    // https://bugreports.qt-project.org/browse/QTBUG-32238.
-    function __colorHack(color) { return Qt.rgba(color.r, color.g, color.b, color.a); }
-
-
-    /* The proxy is necessary because Gradient.stops and GradientStop.color are
-       non-NOTIFYable properties. They cannot be written to so it is fine but
-       the proxy avoids the warnings.
-    */
-    property QtObject gradientProxy: gradientProxyObject
-    QtObject {
-        id: gradientProxyObject
-        property color topColor
-        property color bottomColor
-
-        function updateGradient() {
-            if (button.gradient) {
-                topColor = button.gradient.stops[0].color;
-                bottomColor = button.gradient.stops[1].color;
-            }
-        }
-
-        Component.onCompleted: {
-            updateGradient();
-            button.gradientChanged.connect(updateGradient);
-        }
-    }
-
-    // Use the gradient if it is defined and the color has not been set manually
-    // or the gradient has been set manually
-    property bool isGradient: button.gradient && (button.color == defaultColor ||
-                              button.gradient != defaultGradient)
-
-    FocusShape {
-    }
-
-    Image {
-        id: strokeBorder
-        anchors.fill: parent
-        anchors.margins: -units.gu(0.5)
-        // FIXME: this PNG is way too big (462x108) and do not scale properly
-        // ie. the corners are visually incorrect at most sizes
-        source: stroke ? Qt.resolvedUrl("../artwork/stroke_button.png") : ""
-        visible: false
-        cache: false
-        asynchronous: true
-    }
-
-    ShaderEffect {
-        id: colorizedImage
-
-        anchors.fill: parent
-        visible: stroke && strokeBorder.status == Image.Ready
-
-        property Item source: visible ? strokeBorder : null
-        property color keyColorOut: stroke ? button.strokeColor : Qt.rgba(0.0, 0.0, 0.0, 0.0)
-        property color keyColorIn: Qt.rgba(1.0, 1.0, 1.0, 1.0)
-        property real threshold: 1.0
-
-        fragmentShader: "
-            varying highp vec2 qt_TexCoord0;
-            uniform sampler2D source;
-            uniform highp vec4 keyColorOut;
-            uniform highp vec4 keyColorIn;
-            uniform lowp float threshold;
-            uniform lowp float qt_Opacity;
-            void main() {
-                lowp vec4 sourceColor = texture2D(source, qt_TexCoord0);
-                gl_FragColor = mix(vec4(keyColorOut.rgb, 1.0) * sourceColor.a, sourceColor, step(threshold, distance(sourceColor.rgb / sourceColor.a, keyColorIn.rgb))) * qt_Opacity;
-            }"
-    }
-
+    // Normal mode
     UbuntuShape {
         id: background
+        visible: (
+            (backgroundColor.a > 0 || backgroundSource) &&
+            button.type !== Button.Outline
+        )
         anchors.fill: parent
-        borderSource: "radius_idle.sci"  // Deprecated, use a dedicated shape.
-        visible: stroke ? false : ((backgroundColor.a != 0.0) || backgroundSource)
+        relativeRadius: units.gu(1)
+        aspect: {
+            if (button.pressed && button.enabled) {
+                return UbuntuShape.Inset
+            }
+            if (button.type === Button.Text) {
+                return UbuntuShape.Flat
+            }
+            if (button.type === Button.Normal && button.pressed) {
+                return UbuntuShape.Inset
+            }
+            if (button.type === Button.Normal && !button.enabled) {
+                return UbuntuShape.Flat
+            }
+            return UbuntuShape.DropShadow
+        }
+        opacity: (button.type !== Button.Text || button.hovered)? 1 : 0
         source: backgroundSource
-
-        backgroundColor: backgroundSource ? "#00000000" : (isGradient ? __colorHack(gradientProxy.topColor) : __colorHack(button.color))
-        secondaryBackgroundColor: backgroundSource ? "#00000000" : (isGradient ? __colorHack(gradientProxy.bottomColor) : __colorHack(button.color))
-        backgroundMode: isGradient ? UbuntuShape.VerticalGradient : UbuntuShape.SolidColor
-        opacity: styledItem.enabled ? 1.0 : 0.6
-    }
-
-    UbuntuShape {
-        id: backgroundPressed
-        anchors.fill: parent
-        backgroundColor: stroke ? button.strokeColor : background.backgroundColor
-        secondaryBackgroundColor: background.secondaryBackgroundColor
-        backgroundMode: stroke ? UbuntuShape.SolidColor : UbuntuShape.VerticalGradient
-        borderSource: "radius_pressed.sci"  // Deprecated, use a dedicated shape.
-        opacity: button.pressed ? 1.0 : 0.0
+        backgroundColor: fillColor
+        backgroundMode: UbuntuShape.SolidColor
         Behavior on opacity {
-            NumberAnimation {
+            UbuntuNumberAnimation {
                 duration: UbuntuAnimation.SnapDuration
-                easing.type: Easing.Linear
             }
         }
-        visible: stroke || background.visible
+        Behavior on backgroundColor {
+            ColorAnimation {
+                duration: UbuntuAnimation.SnapDuration
+            }
+        }
     }
 
+    // Outline mode
+    Frame {
+        id: outline
+        visible: button.type === Button.Outline
+        anchors.fill: parent
+        thickness: outlineWidth
+        radius: outlineRadius
+        color: outlineColor
+        opacity: button.enabled? 1 : 0.2
+    }
+
+    // Foreground (text and icon)
     ButtonForeground {
         id: foreground
-        width: parent.width - 2*horizontalPadding
         anchors {
             centerIn: parent
             horizontalCenterOffset: buttonFaceOffset
         }
         text: button.text
-        /* Pick either a clear or dark text color depending on the luminance of the
-           background color to maintain good contrast (works in most cases)
-        */
-        textColor: ColorUtils.luminance(button.color) <= 0.85 && !(stroke && !button.pressed) ? "#FFFFFF" : "#888888"
+        textColor: buttonStyle.textColor
         iconSource: button.iconSource
-        iconPosition: button.iconPosition
-        iconSize: units.gu(3)
+        iconInsertion: button.iconInsertion
+        iconSize: units.gu(2)
         font: button.font
-        spacing: horizontalPadding
+        spacing: iconSpacing
         transformOrigin: Item.Top
-        scale: button.pressed ? 0.98 : 1.0
-        Behavior on scale {
-            NumberAnimation {
+        opacity: button.enabled? 1 : 0.2
+    }
+
+    // Overlay (on hover)
+    UbuntuShape {
+        id: overlay
+        anchors.fill: parent
+        aspect: UbuntuShape.SolidColor
+        backgroundMode: UbuntuShape.SolidColor
+        relativeRadius: units.gu(1)
+        opacity: button.hovered && !button.pressed? 1 : 0
+        visible: button.type !== Button.Text
+        source: backgroundSource
+        backgroundColor: Qt.rgba(
+            overlayColor.r,
+            overlayColor.g,
+            overlayColor.b,
+            0.05
+        )
+        Behavior on opacity {
+            UbuntuNumberAnimation {
                 duration: UbuntuAnimation.SnapDuration
-                easing.type: Easing.Linear
             }
         }
     }

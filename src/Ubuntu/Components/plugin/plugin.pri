@@ -113,7 +113,8 @@ HEADERS += $$PWD/plugin.h \
     $$PWD/privates/ucpagewrapper.h \
     $$PWD/privates/ucpagewrapper_p.h \
     $$PWD/privates/ucpagewrapperincubator_p.h \
-    $$PWD/privates/appheaderbase.h
+    $$PWD/privates/appheaderbase.h \
+    $$PWD/ucbutton.h
 
 SOURCES += $$PWD/plugin.cpp \
     $$PWD/uctheme.cpp \
@@ -189,7 +190,8 @@ SOURCES += $$PWD/plugin.cpp \
     $$PWD/privates/frame.cpp \
     $$PWD/privates/ucpagewrapper.cpp \
     $$PWD/privates/ucpagewrapperincubator.cpp \
-    $$PWD/privates/appheaderbase.cpp
+    $$PWD/privates/appheaderbase.cpp \
+    $$PWD/ucbutton.cpp
 
 # adapters
 SOURCES += $$PWD/adapters/alarmsadapter_organizer.cpp

@@ -20,36 +20,40 @@ import QtQuick 2.4
 import Ubuntu.Components 1.3
 
 Item {
-    id: buttonForeground
+    id: root
 
     property alias text: label.text
     property alias textColor: label.color
     property alias iconSource: icon.source
-    property string iconPosition
     property real iconSize
     property real spacing
+    property alias font: label.font
+    property int iconInsertion
     property bool hasIcon: iconSource != ""
     property bool hasText: text != ""
-    property alias font: label.font
+    property bool hasBoth: hasIcon && hasText
 
-    opacity: enabled ? 1.0 : 0.5
+    state: hasBoth && iconInsertion === Button.After? "right" : "left"
+    implicitWidth: (
+        (hasText? label.width : 0) +
+        (hasBoth? spacing : 0) +
+        (hasIcon? icon.width : 0)
+    )
     implicitHeight: Math.max(icon.height, label.height)
-    state: hasIcon && hasText ? iconPosition : "center"
 
-    Image {
+    Icon {
         id: icon
+        visible: hasIcon
         anchors.verticalCenter: parent.verticalCenter
-        fillMode: Image.PreserveAspectFit
         width: iconSize
         height: iconSize
+        color: textColor
     }
 
     Label {
         id: label
-        anchors {
-            verticalCenter: parent.verticalCenter
-            verticalCenterOffset: units.dp(-1)
-        }
+        visible: hasText
+        anchors.verticalCenter: parent.verticalCenter
         elide: Text.ElideRight
     }
 
@@ -58,58 +62,30 @@ Item {
             name: "left"
             AnchorChanges {
                 target: icon
-                anchors.left: buttonForeground.left
+                anchors.left: root.left
             }
             AnchorChanges {
                 target: label
-                anchors.left: icon.right
+                anchors.left: hasIcon? icon.right : root.left
             }
             PropertyChanges {
                 target: label
-                anchors.leftMargin: spacing
-                width: buttonForeground.width - icon.width - spacing
-            }
-            PropertyChanges {
-                target: buttonForeground
-                implicitWidth: icon.implicitWidth + spacing + label.implicitWidth
+                anchors.leftMargin: hasIcon? units.gu(1) : 0
             }
         },
         State {
             name: "right"
             AnchorChanges {
                 target: icon
-                anchors.right: buttonForeground.right
+                anchors.right: root.right
             }
             AnchorChanges {
                 target: label
-                anchors.left: buttonForeground.left
+                anchors.right: icon.left
             }
             PropertyChanges {
                 target: label
-                width: buttonForeground.width - icon.width - spacing
-            }
-            PropertyChanges {
-                target: buttonForeground
-                implicitWidth: label.implicitWidth + spacing + icon.implicitWidth
-            }
-        },
-        State {
-            name: "center"
-            AnchorChanges {
-                target: icon
-                anchors.horizontalCenter: buttonForeground.horizontalCenter
-            }
-            AnchorChanges {
-                target: label
-                anchors.horizontalCenter: buttonForeground.horizontalCenter
-            }
-            PropertyChanges {
-                target: label
-                width: Math.min(label.implicitWidth, buttonForeground.width)
-            }
-            PropertyChanges {
-                target: buttonForeground
-                implicitWidth: hasText ? label.implicitWidth : icon.implicitWidth
+                anchors.rightMargin: units.gu(1)
             }
         }
     ]

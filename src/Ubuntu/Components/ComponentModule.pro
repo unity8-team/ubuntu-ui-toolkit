@@ -83,7 +83,6 @@ QML_FILES += 1.3/ActionBar.qml \
 	     1.3/AdaptivePageLayout.qml \
              1.3/AnimatedItem.qml \
              1.3/AppHeader.qml \
-             1.3/Button.qml \
              1.3/Captions.qml \
              1.3/CheckBox.qml \
              1.3/ComboButton.qml \
