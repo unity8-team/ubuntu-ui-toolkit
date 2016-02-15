@@ -67,7 +67,7 @@ Item {
 
     property color outlineColor: textColor
     property real outlineWidth: units.dp(1)
-    property real outlineRadius: units.gu(0.5)
+    property real outlineRadius: units.gu(1.3)
 
     property color overlayColor: theme.palette.normal.foregroundText
 
@@ -106,7 +106,7 @@ Item {
             button.type !== Button.Outline
         )
         anchors.fill: parent
-        relativeRadius: units.gu(1)
+        radius: "small"
         aspect: {
             if (button.pressed && button.enabled) {
                 return UbuntuShape.Inset
@@ -173,7 +173,7 @@ Item {
         anchors.fill: parent
         aspect: UbuntuShape.SolidColor
         backgroundMode: UbuntuShape.SolidColor
-        relativeRadius: units.gu(1)
+        radius: "small"
         opacity: button.hovered && !button.pressed? 1 : 0
         visible: button.type !== Button.Text
         source: backgroundSource
