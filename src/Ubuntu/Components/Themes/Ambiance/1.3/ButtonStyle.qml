@@ -78,10 +78,8 @@ Item {
 
     property Gradient defaultGradient
     property real buttonFaceOffset: 0
-    property bool stroke: (
-        button.hasOwnProperty("strokeColor") &&
-        button.strokeColor !== Qt.rgba(0.0, 0.0, 0.0, 0.0)
-    )
+    property bool stroke: false
+
     /*!
       The property overrides the button's default background with an item. This
       item can be used by derived styles to reuse the ButtonStyle and override
