@@ -44,6 +44,7 @@ Build-Depends: debhelper (>= 9.0.0),
                dbus-test-runner,
                accountsservice,
                xvfb,
+               gdb,
                locales,
                suru-icon-theme,
                uuid-runtime,
@@ -115,3 +116,22 @@ Description: Ubuntu gestures library development files - OpenGLES
  This package contains the development files for
  Ubuntu gestures library with SwipeArea
 
+Package: libubuntutoolkit5-gles
+Architecture: any
+Multi-Arch: same
+Pre-Depends: dpkg (>= 1.15.6~), ${misc:Pre-Depends}
+Depends: ${misc:Depends},
+         ${shlibs:Depends},
+Description: Ubuntu toolkit common library for Ubuntu UI Toolkit
+ Contains components and helper classes that are shared between the
+ Ubuntu QML plugins
+
+Package: libubuntutoolkit5-gles-dev
+Architecture: any
+Multi-Arch: same
+Pre-Depends: dpkg (>= 1.15.6~), ${misc:Pre-Depends}
+Depends: ${misc:Depends},
+         ${shlibs:Depends},
+Description: Ubuntu toolkit common library development files
+ This package contains the development files for
+ Ubuntu toolkit common library
