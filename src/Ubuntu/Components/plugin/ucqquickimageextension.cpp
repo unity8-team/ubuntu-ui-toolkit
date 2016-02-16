@@ -46,7 +46,7 @@ UCQQuickImageExtension::UCQQuickImageExtension(QObject *parent) :
     //     in Qt but we have not managed to identify it exactly. We work around
     //     it by using a queued connection for gridUnitChanged() signal for now.
     QObject::connect(&UCUnits::instance(), SIGNAL(gridUnitChanged()),
-                     this, SLOT(reloadSource()), Qt:QueuedConnection);
+                     this, SLOT(reloadSource()), Qt::QueuedConnection);
     // connect sourceChanged signal to extendedSourceChanged
     QObject::connect(m_image, &QQuickImageBase::sourceChanged,
                      this, &UCQQuickImageExtension::extendedSourceChanged);
