@@ -16,8 +16,8 @@
  * Author: Loïc Molinari <loic.molinari@canonical.com>
  */
 
-#ifndef FRAME_H
-#define FRAME_H
+#ifndef UCFRAME_H
+#define UCFRAME_H
 
 #include <QtQuick/QQuickItem>
 #include <QtQuick/QSGMaterial>
@@ -69,7 +69,7 @@ public:
     qreal radius() const { return m_radius; }
     void setRadius(qreal radius);
     QColor color() const {
-      return QColor(qRed(m_color), qGreen(m_color), qBlue(m_color), qAlpha(m_color)); }
+        return QColor(qRed(m_color), qGreen(m_color), qBlue(m_color), qAlpha(m_color)); }
     void setColor(const QColor& color);
 
 Q_SIGNALS:
@@ -89,4 +89,4 @@ private:
 
 QML_DECLARE_TYPE(UCFrame)
 
-#endif  // FRAME_H
+#endif  // UCFRAME_H

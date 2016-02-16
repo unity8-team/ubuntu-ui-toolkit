@@ -77,8 +77,9 @@
 #include "ucbottomedgeregion.h"
 #include "ucbottomedgestyle.h"
 #include "ucpagetreenode.h"
+#include "privates/color.h"
 #include "privates/frame.h"
-#include "privates/dropshadow.h"
+#include "privates/shadow.h"
 
 #include <sys/types.h>
 #include <unistd.h>
@@ -277,8 +278,9 @@ void UbuntuComponentsPlugin::initializeEngine(QQmlEngine *engine, const char *ur
     qmlRegisterType<UCBottomEdgeStyle>(styleUri, 1, 3, "BottomEdgeStyle");
 
     // Register private types.
-    qmlRegisterType<UCFrame>("Ubuntu.Components.Private", 1, 3, "Frame");
-    qmlRegisterType<UCShadow>("Ubuntu.Components.Private", 1, 3, "Shadow");
+    qmlRegisterType<UCColor>("Ubuntu.Components.Private", 1, 3, "ShapeColor");
+    qmlRegisterType<UCFrame>("Ubuntu.Components.Private", 1, 3, "ShapeFrame");
+    qmlRegisterType<UCShadow>("Ubuntu.Components.Private", 1, 3, "ShapeShadow");
 
     QQmlExtensionPlugin::initializeEngine(engine, uri);
     QQmlContext* context = engine->rootContext();

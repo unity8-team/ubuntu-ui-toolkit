@@ -109,8 +109,9 @@ HEADERS += $$PWD/plugin.h \
     $$PWD/ucbottomedgeregion.h \
     $$PWD/ucpagetreenode.h \
     $$PWD/ucpagetreenode_p.h \
+    $$PWD/privates/shapeutils.h \
+    $$PWD/privates/color.h \
     $$PWD/privates/frame.h \
-    $$PWD/privates/basedata.h \
     $$PWD/privates/shadow.h
 
 SOURCES += $$PWD/plugin.cpp \
@@ -183,7 +184,8 @@ SOURCES += $$PWD/plugin.cpp \
     $$PWD/ucbottomedgestyle.cpp \
     $$PWD/ucbottomedgeregion.cpp \
     $$PWD/ucpagetreenode.cpp \
-    $$PWD/privates/basedata.cpp \
+    $$PWD/privates/shapeutils.cpp \
+    $$PWD/privates/color.cpp \
     $$PWD/privates/frame.cpp \
     $$PWD/privates/shadow.cpp
 
@@ -200,7 +202,11 @@ OTHER_FILES += \
     $$PWD/shaders/shapeoverlay.vert \
     $$PWD/shaders/shapeoverlay.frag \
     $$PWD/shaders/shapeoverlay_no_dfdy.frag \
+    $$PWD/privates/shaders/color.vert \
+    $$PWD/privates/shaders/opaquecolor.frag \
+    $$PWD/privates/shaders/color.frag \
+    $$PWD/privates/shaders/texture.vert \
+    $$PWD/privates/shaders/luminance.frag \
+    $$PWD/privates/shaders/shadow.frag \
     $$PWD/privates/shaders/frame.vert \
-    $$PWD/privates/shaders/frame.frag \
-    $$PWD/privates/shaders/shadow.vert \
-    $$PWD/privates/shaders/shadow.frag
+    $$PWD/privates/shaders/frame.frag

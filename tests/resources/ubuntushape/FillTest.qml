@@ -14,8 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// FIXME(loicm) Clean up code to test texture sharing.
-
 import QtQuick 2.4
 import Ubuntu.Components 1.3
 import Ubuntu.Components.Private 1.3
@@ -41,40 +39,34 @@ Item {
         id: scene
         anchors.fill: parent
 
-        ShapeShadow {
+        Shadow {
             id: dropShadow
             anchors.fill: parent
             anchors.margins: 200.0
-            width: 100
-            height: 100
-            style: ShapeShadow.Inner
-            //z: 1
-            visible: true
         }
-        ShapeColor {
-            visible: false
-            id: color1
-            color: "black"
-            radius: dropShadow.radius
-            shape: dropShadow.shape
-            anchors.fill: parent
-            anchors.margins: 200.0
-        }
+        // Shadow {
+        //     id: dropShadow2
+        //     x: root.width - 150
+        //     y: root.height - 150
+        //     radius: dropShadow.radius
+        //     width: 100
+        //     height: 100
+        // }
     }
 
-    ZoomPan {
-        id: zoomPan
-        anchors.fill: parent
-        scene: scene
-        area: mouseArea
-    }
-    MouseArea {
-        id: mouseArea
-        anchors.fill: parent
-        enabled: true
-        hoverEnabled: true
-        acceptedButtons: Qt.AllButtons
-    }
+    // ZoomPan {
+    //     id: zoomPan
+    //     anchors.fill: parent
+    //     scene: scene
+    //     area: mouseArea
+    // }
+    // MouseArea {
+    //     id: mouseArea
+    //     anchors.fill: parent
+    //     enabled: true
+    //     hoverEnabled: true
+    //     acceptedButtons: Qt.AllButtons
+    // }
 
     Text {
         id: textOverlay

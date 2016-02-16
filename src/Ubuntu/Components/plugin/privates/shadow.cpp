@@ -25,13 +25,10 @@
 // - Should try using half-sized texture with bilinear filtering.
 
 #include "shadow.h"
-#include "basedata.h"
+#include "shapeutils.h"
 #include <QtCore/QMutex>
 #include <QtGui/QOpenGLContext>
 #include <QtGui/QOpenGLFunctions>
-
-// FIXME(loicm) Replace that with Q_ASSERT before shipping.
-#define DASSERT(x) do { if (!(x)) { qFatal("assertion failed at %d\n", __LINE__); } } while(0)
 
 // Use QSvgRenderer instead of a custom signed distance field algorithm. Better
 // quality but ~50% slower.
@@ -48,15 +45,8 @@
 #include <QtCore/QElapsedTimer>
 #endif
 
-#if defined(Q_CC_GNU)
-#define RESTRICT __restrict__
-#else
-#define RESTRICT
-#endif
-
 const UCShadow::Style defaultStyle = UCShadow::Drop;
 const UCShadow::Shape defaultShape = UCShadow::Squircle;
-const float defaultOpacity = 1.0f;
 const QRgb defaultColor = qRgba(0, 0, 0, 255);
 const int defaultShadow = 25;
 const int defaultRadius = 50;
@@ -90,7 +80,7 @@ ShadowShader::ShadowShader()
     : m_style(defaultStyle)
 {
     setShaderSourceFile(
-        QOpenGLShader::Vertex, QStringLiteral(":/uc/privates/shaders/shadow.vert"));
+        QOpenGLShader::Vertex, QStringLiteral(":/uc/privates/shaders/texture.vert"));
     setShaderSourceFile(
         QOpenGLShader::Fragment, QStringLiteral(":/uc/privates/shaders/shadow.frag"));
 }
@@ -160,6 +150,8 @@ UCShadowMaterial::UCShadowMaterial(UCShadow::Style style)
     if (!m_textureHash) {
         m_textureHash = new TextureHash();
         contextHash.insert(context, m_textureHash);
+        // FIXME(loicm) as greyback mentioned, this is broken since the context
+        //     is not bound when the signal is emitted...
         QObject::connect(context, &QOpenGLContext::aboutToBeDestroyed, [context] {
             // Remove and delete the texture hash associated to a context when
             // the context is about to be destroyed.
@@ -227,17 +219,6 @@ int UCShadowMaterial::compare(const QSGMaterial* other) const
     } else {
         return 1;
     }
-}
-
-// Get the stride of a buffer of the given width and bytes per pixel for a
-// specific alignment.
-static int getStride(int width, int bytesPerPixel, int alignment)
-{
-    DASSERT(width > 0);
-    DASSERT(!(bytesPerPixel & (bytesPerPixel - 1)));  // Power-of-two
-    DASSERT(!(alignment & (alignment - 1)));  // Power-of-two
-
-    return ((width * bytesPerPixel + alignment - 1) & ~(alignment - 1)) / bytesPerPixel;
 }
 
 static quint16* renderShape(int shadow, int radius, UCShadow::Shape shape)
@@ -460,9 +441,8 @@ void UCShadowMaterial::updateTexture(
 
     quint16* buffer = renderShape(newShadow, newRadius, newShape);
 
-    // Upload texture. The texture size is a multiple of textureStride for
-    // efficiency reasons to allow GPUs to speed up uploads and optimise
-    // storage.
+    // Upload texture. The texture size is a multiple of textureStride to allow
+    // GPUs to speed up uploads and optimise storage.
     funcs->glBindTexture(GL_TEXTURE_2D, m_textureId);
     const int newSize = 2 * newShadow + newRadius;
     const int newSizeRounded = getStride(newSize, 1, textureStride);
@@ -569,16 +549,6 @@ void UCShadowNode::setStyle(UCShadow::Style style)
     m_style = style;
 }
 
-// Pack a color in a premultiplied ABGR32 value.
-static quint32 packColor(QRgb color)
-{
-    const quint32 a = qAlpha(color);
-    const quint32 b = ((qBlue(color) * a) + 0xff) >> 8;
-    const quint32 g = ((qGreen(color) * a) + 0xff) >> 8;
-    const quint32 r = ((qRed(color) * a) + 0xff) >> 8;
-    return (a << 24) | ((b & 0xff) << 16) | ((g & 0xff) << 8) | (r & 0xff);
-}
-
 // FIXME(loicm) Clean up.
 void UCShadowNode::updateGeometry(
     const QSizeF& itemSize, float shadow, float radius, QRgb color)
@@ -589,6 +559,7 @@ void UCShadowNode::updateGeometry(
     // Rounded down since renderShape() doesn't support sub-pixel rendering.
     const float maxSize = floorf(qMin(w, h) * 0.5f);
     const float clampedShadow = qMin(shadow, maxSize);
+    // FIXME(loicm) The diagonal at rounded integers pos prevents rasterising pixels on a side.
     const float clampedRadius = qMin(radius, maxSize);
     const float textureSize = 2.0f * clampedShadow + clampedRadius;
     const float textureSizeRounded = getStride(static_cast<int>(textureSize), 1, textureStride);
@@ -829,6 +800,7 @@ void UCShadowNode::updateGeometry(
 
     markDirty(QSGNode::DirtyGeometry);
 
+    // Update data for the preprocess() call.
     if (m_shadow != static_cast<quint8>(clampedShadow)) {
         m_newShadow = static_cast<quint8>(clampedShadow);
     }
@@ -849,7 +821,6 @@ UCShadow::UCShadow(QQuickItem* parent)
     , m_flags(0)
 {
     setFlag(ItemHasContents);
-    setOpacity(defaultOpacity);
 }
 
 void UCShadow::setStyle(Style style)

@@ -16,7 +16,9 @@
  * Author: Loïc Molinari <loic.molinari@canonical.com>
  */
 
-#include "basedata.h"
+#include "shapeutils.h"
+
+// --- Shape data ---
 
 // Squircle SVG string.
 const char squircleSvg[] =
@@ -204,3 +206,96 @@ const float gaussianKernels[16769] = {
 const float gaussianSums[128] = {
     1.69973586f, 2.81117308f, 3.92613995f, 5.04269373f, 6.16003172f, 7.27780626f, 8.39584722f, 9.51406231f, 10.63239731f, 11.75081832f, 12.86930312f, 13.98783649f, 15.10640772f, 16.22500902f, 17.34363458f, 18.46228002f, 19.58094194f, 20.69961767f, 21.81830510f, 22.93700252f, 24.05570853f, 25.17442200f, 26.29314198f, 27.41186766f, 28.53059839f, 29.64933358f, 30.76807275f, 31.88681549f, 33.00556143f, 34.12431025f, 35.24306169f, 36.36181550f, 37.48057147f, 38.59932941f, 39.71808915f, 40.83685055f, 41.95561348f, 43.07437781f, 44.19314344f, 45.31191027f, 46.43067822f, 47.54944721f, 48.66821716f, 49.78698802f, 50.90575971f, 52.02453219f, 53.14330541f, 54.26207932f, 55.38085388f, 56.49962905f, 57.61840480f, 58.73718109f, 59.85595789f, 60.97473518f, 62.09351292f, 63.21229110f, 64.33106969f, 65.44984867f, 66.56862802f, 67.68740772f, 68.80618776f, 69.92496811f, 71.04374877f, 72.16252972f, 73.28131094f, 74.40009243f, 75.51887417f, 76.63765616f, 77.75643837f, 78.87522080f, 79.99400345f, 81.11278629f, 82.23156934f, 83.35035257f, 84.46913597f, 85.58791955f, 86.70670330f, 87.82548721f, 88.94427127f, 90.06305547f, 91.18183982f, 92.30062431f, 93.41940892f, 94.53819367f, 95.65697854f, 96.77576352f, 97.89454862f, 99.01333383f, 100.13211915f, 101.25090458f, 102.36969010f, 103.48847572f, 104.60726143f, 105.72604723f, 106.84483312f, 107.96361910f, 109.08240516f, 110.20119130f, 111.31997751f, 112.43876381f, 113.55755017f, 114.67633661f, 115.79512311f, 116.91390968f, 118.03269632f, 119.15148302f, 120.27026978f, 121.38905660f, 122.50784348f, 123.62663041f, 124.74541740f, 125.86420445f, 126.98299154f, 128.10177869f, 129.22056588f, 130.33935313f, 131.45814042f, 132.57692775f, 133.69571514f, 134.81450256f, 135.93329003f, 137.05207754f, 138.17086508f, 139.28965267f, 140.40844030f, 141.52722796f, 142.64601566f, 143.76480340f
 };
+
+// --- Shape code ---
+
+class OpaqueColorShader : public QSGMaterialShader
+{
+public:
+    OpaqueColorShader() {
+        setShaderSourceFile(
+            QOpenGLShader::Vertex, QStringLiteral(":/uc/privates/shaders/color.vert"));
+        setShaderSourceFile(
+            QOpenGLShader::Fragment, QStringLiteral(":/uc/privates/shaders/opaquecolor.frag"));
+    }
+    virtual char const* const* attributeNames() const {
+        static char const* const attributes[] = { "positionAttrib", "colorAttrib", 0 };
+        return attributes;
+    }
+    virtual void initialize() {
+        QSGMaterialShader::initialize();
+        m_matrixId = program()->uniformLocation("matrix");
+    }
+    virtual void updateState(
+        const RenderState& state, QSGMaterial* newEffect, QSGMaterial* oldEffect) {
+        Q_UNUSED(newEffect);
+        Q_UNUSED(oldEffect);
+        if (state.isMatrixDirty()) {
+            program()->setUniformValue(m_matrixId, state.combinedMatrix());
+        }
+    }
+
+private:
+    int m_matrixId;
+};
+
+class ColorShader : public OpaqueColorShader
+{
+public:
+    ColorShader() : OpaqueColorShader() {
+        setShaderSourceFile(
+            QOpenGLShader::Fragment, QStringLiteral(":/uc/privates/shaders/color.frag"));
+    }
+    virtual void initialize(){
+        OpaqueColorShader::initialize();
+        m_opacityId = program()->uniformLocation("opacity");
+    }
+    virtual void updateState(
+        const RenderState& state, QSGMaterial* newEffect, QSGMaterial* oldEffect) {
+        OpaqueColorShader::updateState(state, newEffect, oldEffect);
+        if (state.isOpacityDirty()) {
+            program()->setUniformValue(m_opacityId, state.opacity());
+        }
+    }
+
+private:
+    int m_opacityId;
+};
+
+UCOpaqueColorMaterial::UCOpaqueColorMaterial()
+{
+    setFlag(Blending, false);
+}
+
+QSGMaterialType* UCOpaqueColorMaterial::type() const
+{
+    static QSGMaterialType type;
+    return &type;
+}
+
+QSGMaterialShader* UCOpaqueColorMaterial::createShader() const
+{
+    return new OpaqueColorShader;
+}
+
+int UCOpaqueColorMaterial::compare(const QSGMaterial* other) const
+{
+    Q_UNUSED(other);
+    return 0;
+}
+
+UCColorMaterial::UCColorMaterial()
+{
+    setFlag(Blending, true);
+}
+
+QSGMaterialType* UCColorMaterial::type() const
+{
+    static QSGMaterialType type;
+    return &type;
+}
+
+QSGMaterialShader* UCColorMaterial::createShader() const
+{
+    return new ColorShader;
+}

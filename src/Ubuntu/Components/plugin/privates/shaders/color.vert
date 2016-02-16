@@ -16,19 +16,13 @@
  * Author: Loïc Molinari <loic.molinari@canonical.com>
  */
 
-// FIXME(loicm) Clean up code generators in the tools folder.
+uniform highp mat4 matrix;
+attribute highp vec4 positionAttrib;
+attribute lowp vec4 colorAttrib;
+varying lowp vec4 color;
 
-// Squircle SVG string.
-extern const char squircleSvg[];
-
-// Squircle signed distance field.
-const float squircleOffset = 1.0f;
-const int squircleSdfWidth = 32;
-extern const float squircleSdf[][squircleSdfWidth];
-
-// Gaussian kernels. Changing one field requires an update of the others, use
-// the appropriate tool in the tools folder.
-const int gaussianCount = 128;
-extern const int gaussianOffsets[];
-extern const float gaussianKernels[];
-extern const float gaussianSums[];
+void main()
+{
+    color = colorAttrib;
+    gl_Position = matrix * positionAttrib;
+}
