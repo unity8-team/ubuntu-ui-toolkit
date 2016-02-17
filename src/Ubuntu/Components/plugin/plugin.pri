@@ -28,7 +28,7 @@ HEADERS += $$PWD/plugin.h \
     $$PWD/ucunits.h \
     $$PWD/ucqquickimageextension.h \
     $$PWD/quickutils.h \
-    $$PWD/ucubuntushapetexture.h \
+    $$PWD/ucubuntushapetextures.h \
     $$PWD/ucubuntushape.h \
     $$PWD/ucubuntushapeoverlay.h \
     $$PWD/ucproportionalshape.h \
@@ -116,6 +116,7 @@ SOURCES += $$PWD/plugin.cpp \
     $$PWD/ucunits.cpp \
     $$PWD/ucqquickimageextension.cpp \
     $$PWD/quickutils.cpp \
+    $$PWD/ucubuntushapetextures.cpp \
     $$PWD/ucubuntushape.cpp \
     $$PWD/ucubuntushapeoverlay.cpp \
     $$PWD/ucproportionalshape.cpp \
