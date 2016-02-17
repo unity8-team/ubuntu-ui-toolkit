@@ -117,7 +117,7 @@ Description: Ubuntu gestures library development files - OpenGLES
  Ubuntu gestures library with SwipeArea
 
 Package: libubuntutoolkit5-gles
-Architecture: any
+Architecture: i386 amd64
 Multi-Arch: same
 Pre-Depends: dpkg (>= 1.15.6~), ${misc:Pre-Depends}
 Depends: ${misc:Depends},
@@ -127,7 +127,7 @@ Description: Ubuntu toolkit common library for Ubuntu UI Toolkit
  Ubuntu QML plugins
 
 Package: libubuntutoolkit5-gles-dev
-Architecture: any
+Architecture: i386 amd64
 Multi-Arch: same
 Pre-Depends: dpkg (>= 1.15.6~), ${misc:Pre-Depends}
 Depends: ${misc:Depends},
