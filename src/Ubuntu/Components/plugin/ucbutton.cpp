@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Canonical Ltd.
+ * Copyright 2016 Canonical Ltd.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -62,10 +62,10 @@
  */
 UCButton::UCButton(QQuickItem* parent)
     : UCAbstractButton(parent)
+    , m_iconPosition(Before)
     , m_type(Normal)
     , m_emphasis(None)
     , m_font(QFont())
-    , m_iconInsertion(Before)
     , m_color(QColor())
     , m_strokeColor(QColor())
     , m_gradient(QGradient())
@@ -86,6 +86,7 @@ UCButton::UCButton(QQuickItem* parent)
    blank for a text-only button.
    If \l action is set, the default iconSource is that of the action.
 */
+
 /*!
    \qmlproperty string Button::text
    The text to display in the button. If an icon was defined, the text will be
@@ -93,22 +94,26 @@ UCButton::UCButton(QQuickItem* parent)
    icon-only button.
    If \l action is set, the default text is that of the action.
 */
+
 /*!
  \qmlsignal Button::clicked()
  This handler is called when there is a mouse click on the button and the
  button is not disabled. If \l {ActionItem::action}{action} is defined, the
  action will be triggered.
  */
+
 /*!
  *
  * \qmlsignal Button::pressAndHold()
  * This handler is called when there is a long press.
  */
+
 /*!
    \qmlproperty Action Button::action
    An \l Action to specify the \l clicked, \l iconSource and \l text
    properties.
 */
+
 /*!
   \qmlproperty enumeration Button::type
   The type defines the button style. The default value is \c Button.Normal.
@@ -118,6 +123,7 @@ UCButton::UCButton(QQuickItem* parent)
   \li \b Button.Outline - The button shape is transparent but a border is present.
   \endlist
 */
+
 /*!
   \qmlproperty enumeration Button::emphasis
   The emphasis desired for the button. The default value is \c Button.None.
@@ -128,71 +134,25 @@ UCButton::UCButton(QQuickItem* parent)
   \li \b Button.Negative - The action is negative.
   \endlist
 */
+
 /*!
   \qmlproperty string Button::font
   The font used for the button's text.
 */
-/*!
-  \qmlproperty string Button::iconPosition
-  \deprecated
-  The property is deprecated, use \l iconInsertion instead.
-
-  The position of the icon relative to the text. Options are "left" and
-  "right". The default value is "left".
-
-  If only text or only an icon is defined, this property is ignored and the
-  text or icon is centered horizontally and vertically in the button.
-
-  Currently this is a string value. We are waiting for support for enums:
-  https://bugreports.qt-project.org/browse/QTBUG-14861
-*/
-QString UCButton::iconPosition()
-{
-    return m_iconInsertion == After? "right" : "left";
-}
-void UCButton::setIconPosition(QString &newIconPosition)
-{
-    IconInsertion iconInsertion = newIconPosition == "right"? After : Before;
-    if (iconInsertion == m_iconInsertion) {
-        return;
-    }
-    m_iconInsertion = iconInsertion;
-
-    static bool logged = false;
-    if (!logged) {
-        logged = true;
-        if (QuickUtils::showDeprecationWarnings()) {
-            qmlInfo(this) << "WARNING: `iconPosition` is deprecated. "
-                             "Use `iconInsertion` instead.";
-        }
-    }
-
-    Q_EMIT iconPositionChanged();
-    Q_EMIT iconInsertionChanged();
-}
 
 /*!
-  \qmlproperty enumeration Button::iconInsertion
-  Where to insert the icon in the button. The default value is \c Button.Before.
+  \qmlproperty enumeration Button::iconPosition
+
+  Where to position the icon in the button. The default value is \c Button.Before.
 
   \note If only text or only an icon is defined, this property is ignored and the
   text or icon is centered horizontally and vertically in the button.
 
   \list
-  \li \b Button.Before - The icon is inserted before the text.
-  \li \b Button.After - The icon is inserted after the text.
+  \li \b Button.Before - The icon is positioned before the text.
+  \li \b Button.After - The icon is positioned after the text.
   \endlist
 */
-void UCButton::setIconInsertion(IconInsertion &iconInsertion)
-{
-    if (m_iconInsertion == iconInsertion) {
-        return;
-    }
-    m_iconInsertion = iconInsertion;
-
-    Q_EMIT iconPositionChanged();
-    Q_EMIT iconInsertionChanged();
-}
 
 /*!
   \qmlproperty string Button::color

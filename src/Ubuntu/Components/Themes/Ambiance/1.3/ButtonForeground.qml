@@ -28,12 +28,12 @@ Item {
     property real iconSize
     property real spacing
     property alias font: label.font
-    property int iconInsertion
+    property int iconPosition
     property bool hasIcon: iconSource != ""
     property bool hasText: text != ""
     property bool hasBoth: hasIcon && hasText
 
-    state: hasBoth && iconInsertion === Button.After? "right" : "left"
+    state: hasBoth && iconPosition === Button.After? "right" : "left"
     implicitWidth: (
         (hasText? label.width : 0) +
         (hasBoth? spacing : 0) +

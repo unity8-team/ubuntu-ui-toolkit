@@ -246,17 +246,18 @@ Ubuntu.Components.Button 1.3 UCButton: AbstractButton
     property Emphasis emphasis
     property QFont font
     property QGradient gradient
-    property IconInsertion iconInsertion
-    property string iconPosition
+    property IconPosition iconPosition
     property color strokeColor
     property Type type
 Ubuntu.Components.Button.Emphasis: Enum
     Negative
     None
     Positive
-Ubuntu.Components.Button.IconInsertion: Enum
+Ubuntu.Components.Button.IconPosition: Enum
     After
     Before
+    left
+    right
 Ubuntu.Components.Button.Type: Enum
     Normal
     Outline

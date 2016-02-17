@@ -25,7 +25,7 @@ class UCButton : public UCAbstractButton
 {
     Q_OBJECT
 
-    Q_ENUMS(IconInsertion)
+    Q_ENUMS(IconPosition)
     Q_ENUMS(Type)
     Q_ENUMS(Emphasis)
 
@@ -45,18 +45,12 @@ class UCButton : public UCAbstractButton
         NOTIFY fontChanged
     )
     Q_PROPERTY(
-        IconInsertion iconInsertion
-        MEMBER m_iconInsertion
-        NOTIFY iconInsertionChanged
+        IconPosition iconPosition
+        MEMBER m_iconPosition
+        NOTIFY iconPositionChanged
     )
 
     // deprecated
-    Q_PROPERTY(
-        QString iconPosition
-        READ iconPosition
-        WRITE setIconPosition
-        NOTIFY iconPositionChanged
-    )
     Q_PROPERTY(
         QColor color
         MEMBER m_color
@@ -79,37 +73,33 @@ class UCButton : public UCAbstractButton
 public:
     UCButton(QQuickItem* parent=0);
 
-    enum IconInsertion { Before, After };
+    enum IconPosition { Before, left = Before, After, right = After };
     enum Type { Normal, Text, Outline };
     enum Emphasis { None, Positive, Negative };
 
     // deprecated
-    void setIconPosition(QString &newIconPosition);
-    void setIconInsertion(IconInsertion &iconInsertion);
     void setColor(QColor &color);
     void setStrokeColor(QColor &strokeColor);
     void setGradient(QGradient &gradient);
 
 Q_SIGNALS:
+    void iconPositionChanged();
     void typeChanged();
     void emphasisChanged();
     void fontChanged();
-    void iconInsertionChanged();
 
     // deprecated
-    void iconPositionChanged();
     void colorChanged();
     void strokeColorChanged();
     void gradientChanged();
 
 private:
+    IconPosition m_iconPosition;
     Type m_type;
     Emphasis m_emphasis;
     QFont m_font;
-    IconInsertion m_iconInsertion;
 
     // deprecated
-    QString iconPosition();
     QColor m_color;
     QColor m_strokeColor;
     QGradient m_gradient;

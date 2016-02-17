@@ -154,7 +154,7 @@ Template {
                 text: i18n.tr("Call")
                 iconName: "call-start"
                 emphasis: Button.Positive
-                iconInsertion: Button.After
+                iconPosition: Button.After
                 StyleHints {
                     minimumWidth: 0
                 }
