@@ -29,13 +29,6 @@ Item {
     property real horizontalPadding: units.gu(2)
     property real iconSpacing: units.gu(1)
 
-    /*!
-      \deprecated
-      The property is deprecated, use the fillColor
-      and textColor properties instead.
-    */
-    property color defaultColor
-
     property QtObject palette: (
         button.enabled? theme.palette.normal : theme.palette.disabled
     )
