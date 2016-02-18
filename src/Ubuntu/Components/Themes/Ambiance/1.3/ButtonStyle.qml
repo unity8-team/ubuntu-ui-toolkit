@@ -36,41 +36,42 @@ Item {
     */
     property color defaultColor
 
+    property QtObject palette: (
+        button.enabled? theme.palette.normal : theme.palette.disabled
+    )
+
     property color fillColor: {
         if (button.type === Button.Text) {
-            return theme.palette.normal.foreground
+            return palette.foreground // hover effect only
         }
         if (button.emphasis === Button.Positive) {
-            return theme.palette.normal.positive
+            return palette.positive
         }
         if (button.emphasis === Button.Negative) {
-            return theme.palette.normal.negative
+            return palette.negative
         }
-        return theme.palette.normal.foreground
+        return palette.foreground
     }
 
     property color textColor: {
-        if (!button.enabled && button.type !== Button.Normal) {
-            return theme.palette.normal.foregroundText
-        }
         if (button.emphasis === Button.Positive) {
             return button.type !== Button.Normal
-                       ? theme.palette.normal.positive
-                       : theme.palette.normal.positiveText
+                       ? palette.positive
+                       : palette.positiveText
         }
         if (button.emphasis === Button.Negative) {
             return button.type !== Button.Normal
-                       ? theme.palette.normal.negative
-                       : theme.palette.normal.negativeText
+                       ? palette.negative
+                       : palette.negativeText
         }
-        return theme.palette.normal.foregroundText
+        return palette.foregroundText
     }
 
     property color outlineColor: textColor
     property real outlineWidth: units.dp(1)
-    property real outlineRadius: units.gu(1.3)
+    property real shapeRadius: units.gu(0.6)
 
-    property color overlayColor: theme.palette.normal.foregroundText
+    property color overlayColor: palette.foregroundText
 
     property font defaultFont: Qt.font({
         family: "Ubuntu",
@@ -97,55 +98,29 @@ Item {
     LayoutMirroring.enabled: Qt.application.layoutDirection === Qt.RightToLeft
     LayoutMirroring.childrenInherit: true
 
-    // Normal mode
-    UbuntuShape {
+    // Background
+    Frame {
         id: background
-        visible: (
-            (backgroundColor.a > 0 || backgroundSource) &&
-            button.type !== Button.Outline
-        )
+        visible: background.color.a > 0 || !!backgroundSource
         anchors.fill: parent
-        radius: "small"
-        aspect: {
-            if (button.pressed && button.enabled) {
-                return UbuntuShape.Inset
-            }
-            if (button.type === Button.Text) {
-                return UbuntuShape.Flat
-            }
-            if (button.type === Button.Normal && button.pressed) {
-                return UbuntuShape.Inset
-            }
-            if (button.type === Button.Normal && !button.enabled) {
-                return UbuntuShape.Flat
-            }
-            return UbuntuShape.DropShadow
-        }
+        radius: shapeRadius
+        thickness: (
+            button.type === Button.Outline
+             ? outlineWidth
+             : Math.max(width, height)
+        )
         opacity: (button.type !== Button.Text || button.hovered)? 1 : 0
-        source: backgroundSource
-        backgroundColor: fillColor
-        backgroundMode: UbuntuShape.SolidColor
+        color: button.type === Button.Outline? outlineColor : fillColor
         Behavior on opacity {
             UbuntuNumberAnimation {
                 duration: UbuntuAnimation.SnapDuration
             }
         }
-        Behavior on backgroundColor {
+        Behavior on color {
             ColorAnimation {
                 duration: UbuntuAnimation.SnapDuration
             }
         }
-    }
-
-    // Outline mode
-    Frame {
-        id: outline
-        visible: button.type === Button.Outline
-        anchors.fill: parent
-        thickness: outlineWidth
-        radius: outlineRadius
-        color: outlineColor
-        opacity: button.enabled? 1 : 0.2
     }
 
     // Foreground (text and icon)
@@ -158,31 +133,20 @@ Item {
         text: button.text
         textColor: buttonStyle.textColor
         iconSource: button.iconSource
-        // iconInsertion: button.iconInsertion
         iconPosition: button.iconPosition
         iconSize: units.gu(2)
         font: button.font
         spacing: iconSpacing
         transformOrigin: Item.Top
-        opacity: button.enabled? 1 : 0.2
     }
 
     // Overlay (on hover)
-    UbuntuShape {
-        id: overlay
+    Frame {
         anchors.fill: parent
-        aspect: UbuntuShape.SolidColor
-        backgroundMode: UbuntuShape.SolidColor
-        radius: "small"
+        radius: shapeRadius
         opacity: button.hovered && !button.pressed? 1 : 0
         visible: button.type !== Button.Text
-        source: backgroundSource
-        backgroundColor: Qt.rgba(
-            overlayColor.r,
-            overlayColor.g,
-            overlayColor.b,
-            0.05
-        )
+        color: Qt.rgba(overlayColor.r, overlayColor.g, overlayColor.b, 0.05)
         Behavior on opacity {
             UbuntuNumberAnimation {
                 duration: UbuntuAnimation.SnapDuration
