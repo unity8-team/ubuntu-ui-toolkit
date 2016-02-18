@@ -25,7 +25,7 @@ Template {
         className: "Button"
 
         TemplateFlow {
-            title: i18n.tr("Standard")
+            title: i18n.tr("Normal")
 
             Button {
                 objectName: "button_fill_neutral"
@@ -41,9 +41,24 @@ Template {
                 text: i18n.tr("Negative")
                 emphasis: Button.Negative
             }
+        }
+
+        TemplateFlow {
             Button {
-                objectName: "button_fill_disabled"
-                text: i18n.tr("Disabled")
+                objectName: "button_fill_neutral_disabled"
+                text: i18n.tr("Neutral")
+                enabled: false
+            }
+            Button {
+                objectName: "button_fill_positive_disabled"
+                text: i18n.tr("Positive")
+                emphasis: Button.Positive
+                enabled: false
+            }
+            Button {
+                objectName: "button_fill_negative_disabled"
+                text: i18n.tr("Negative")
+                emphasis: Button.Negative
                 enabled: false
             }
         }
@@ -67,9 +82,25 @@ Template {
                 type: Button.Text
                 emphasis: Button.Negative
             }
+        }
+
+        TemplateFlow {
             Button {
-                objectName: "button_text_disabled"
-                text: i18n.tr("Disabled")
+                objectName: "button_text_neutral_disabled"
+                text: i18n.tr("Neutral")
+                type: Button.Text
+                enabled: false
+            }
+            Button {
+                objectName: "button_text_positive_disabled"
+                text: i18n.tr("Positive")
+                type: Button.Text
+                emphasis: Button.Positive
+                enabled: false
+            }
+            Button {
+                objectName: "button_text_negative_disabled"
+                text: i18n.tr("Negative")
                 type: Button.Text
                 emphasis: Button.Negative
                 enabled: false
@@ -95,9 +126,25 @@ Template {
                 type: Button.Outline
                 emphasis: Button.Negative
             }
+        }
+
+        TemplateFlow {
             Button {
                 objectName: "button_stroke_disabled"
-                text: i18n.tr("Disabled")
+                text: i18n.tr("Neutral")
+                type: Button.Outline
+                enabled: false
+            }
+            Button {
+                objectName: "button_stroke_positive_disabled"
+                text: i18n.tr("Positive")
+                type: Button.Outline
+                emphasis: Button.Positive
+                enabled: false
+            }
+            Button {
+                objectName: "button_stroke_negative_disabled"
+                text: i18n.tr("Negative")
                 type: Button.Outline
                 emphasis: Button.Negative
                 enabled: false
@@ -158,16 +205,6 @@ Template {
                 StyleHints {
                     minimumWidth: 0
                 }
-            }
-        }
-
-        TemplateFlow {
-            title: i18n.tr("Disabled")
-
-            Button {
-                objectName: "button_text_disabled"
-                text: i18n.tr("Call")
-                enabled: false
             }
         }
     }
