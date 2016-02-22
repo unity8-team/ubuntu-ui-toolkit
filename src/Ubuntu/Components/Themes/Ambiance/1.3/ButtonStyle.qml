@@ -49,12 +49,12 @@ Item {
     property color textColor: {
         if (button.emphasis === Button.Positive) {
             return button.type !== Button.Normal
-                       ? palette.positive
+                       ? palette.backgroundPositiveText
                        : palette.positiveText
         }
         if (button.emphasis === Button.Negative) {
             return button.type !== Button.Normal
-                       ? palette.negative
+                       ? palette.backgroundNegativeText
                        : palette.negativeText
         }
         return palette.foregroundText
