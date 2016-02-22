@@ -16,12 +16,14 @@
  * Author: Pierre Bertet <pierre.bertet@canonical.com>
  */
 
-#ifndef UCBUTTONBASE_H
-#define UCBUTTONBASE_H
+#ifndef BUTTONBASE_H
+#define BUTTONBASE_H
 
 #include "ucabstractbutton.h"
 
-class UCButton : public UCAbstractButton
+namespace UbuntuToolkit {
+
+class Button : public UCAbstractButton
 {
     Q_OBJECT
 
@@ -71,7 +73,7 @@ class UCButton : public UCAbstractButton
     )
 
 public:
-    UCButton(QQuickItem* parent=0);
+    explicit Button(QQuickItem* parent=0);
 
     enum IconPosition { Before, left = Before, After, right = After };
     enum Type { Normal, Text, Outline };
@@ -105,6 +107,8 @@ private:
     QGradient m_gradient;
 };
 
-QML_DECLARE_TYPE(UCButton)
+}
 
-#endif  // UCBUTTONBASE_H
+QML_DECLARE_TYPE(UbuntuToolkit::Button)
+
+#endif  // BUTTONBASE_H

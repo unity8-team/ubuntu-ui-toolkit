@@ -16,14 +16,15 @@
  * Author: Pierre Bertet <pierre.bertet@canonical.com>
  */
 
+#include "button.h"
+
 #include "ucstyleditembase_p.h"
-#include "ucbutton.h"
 #include "uctheme.h"
 #include "quickutils.h"
 
 /*!
  * \qmltype Button
- * \instantiates UCButton
+ * \instantiates Button
  * \inqmlmodule Ubuntu.Components 1.3
  * \ingroup ubuntu
  * \brief Standard Ubuntu button.
@@ -32,6 +33,7 @@
  *
  * Examples:
  * \qml
+ 
  *     Column {
  *         Button {
  *             text: "Send"
@@ -60,7 +62,10 @@
  *    }
  * \endqml
  */
-UCButton::UCButton(QQuickItem* parent)
+
+namespace UbuntuToolkit {
+
+Button::Button(QQuickItem* parent)
     : UCAbstractButton(parent)
     , m_iconPosition(Before)
     , m_type(Normal)
@@ -73,11 +78,11 @@ UCButton::UCButton(QQuickItem* parent)
     /*
      * From ucbottomedgehint.cpp:
      * we cannot use setStyleName as that will trigger style loading
-     * and the qmlEngine is not known at this phase of the of the initialization
-     * Therefore we simply set the style name default. Style loading will
-     * happen during component completion.
+     * and the qmlEngine is not known at this phase of the of the
+     * initialization. Therefore we simply set the style name default. Style
+     * loading will happen during component completion.
      */
-    UCStyledItemBasePrivate::get(this)->styleDocument = "ButtonStyle";
+    UCStyledItemBasePrivate::get(this)->styleDocument = QStringLiteral("ButtonStyle");
 }
 
 /*!
@@ -159,7 +164,7 @@ UCButton::UCButton(QQuickItem* parent)
   \deprecated
   The property is deprecated, use `emphasis` or a custom style instead.
 */
-void UCButton::setColor(QColor &color)
+void Button::setColor(QColor &color)
 {
     if (color == m_color) {
         return;
@@ -183,7 +188,7 @@ void UCButton::setColor(QColor &color)
   \deprecated
   The property is deprecated, set `type` to "outline" instead.
 */
-void UCButton::setStrokeColor(QColor &strokeColor)
+void Button::setStrokeColor(QColor &strokeColor)
 {
     if (strokeColor == m_strokeColor) {
         return;
@@ -208,7 +213,7 @@ void UCButton::setStrokeColor(QColor &strokeColor)
   \deprecated
   The property is deprecated, use `emphasis` or a custom style instead.
 */
-void UCButton::setGradient(QGradient &gradient)
+void Button::setGradient(QGradient &gradient)
 {
     if (gradient == m_gradient) {
         return;
@@ -225,4 +230,6 @@ void UCButton::setGradient(QGradient &gradient)
     }
 
     Q_EMIT gradientChanged();
+}
+
 }
