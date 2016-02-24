@@ -81,6 +81,7 @@ int main(int argc, const char *argv[])
     QCommandLineOption _frameless("frameless", "Run without borders");
     QCommandLineOption _engine("engine", "Use quick engine from quick view");
     QCommandLineOption _desktop_file_hint("desktop_file_hint", "Desktop file - ignored", "desktop_file");
+    QCommandLineOption _section("section", "Open a section on launch by specifying its name", "section_name");
 
     args.addOption(_import);
     args.addOption(_enableTouch);
@@ -88,6 +89,7 @@ int main(int argc, const char *argv[])
     args.addOption(_frameless);
     args.addOption(_engine);
     args.addOption(_desktop_file_hint);
+    args.addOption(_section);
     args.addPositionalArgument("filename", "Document to be viewed");
     args.setSingleDashWordOptionMode(QCommandLineParser::ParseAsLongOptions);
     args.addHelpOption();
@@ -145,6 +147,11 @@ int main(int argc, const char *argv[])
         }
     }
 
+    if (args.isSet(_section)) {
+        QString section = args.value(_section);
+        view->rootContext()->setContextProperty("startingSection", section);
+    }
+
     view->setResizeMode(QQuickView::SizeRootObjectToView);
     view->setTitle("UI Toolkit QQuickView");
     if (args.isSet(_frameless)) {
@@ -165,4 +172,3 @@ int main(int argc, const char *argv[])
 
     return application.exec();
 }
-

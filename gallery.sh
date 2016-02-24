@@ -20,6 +20,6 @@ then
 	tests/Gallery/gallery -testability &
 	autopilot vis
 else
-	tests/Gallery/gallery $@
+	tests/Gallery/gallery "$@"
 
 fi

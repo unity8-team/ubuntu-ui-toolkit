@@ -122,5 +122,18 @@ Page {
                 ProgressionSlot {}
             }
         }
+
+        Component.onCompleted: {
+            if (typeof startingSection === "undefined") {
+                return
+            }
+            for (var i = 0; i < model.count; i++) {
+                if (model.get(i).label === startingSection) {
+                    currentIndex = i
+                    positionViewAtIndex(i, ListView.Beginning)
+                    break
+                }
+            }
+        }
     }
 }
