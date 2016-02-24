@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
- * Copyright (C) 2015 Canonical
+ * Copyright (C) 2015-2016 Canonical
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -25,6 +25,7 @@
 #include <QtCore/QLibraryInfo>
 #include <QtCore/QDir>
 #include <QtCore/QFileInfo>
+#include <QtCore/QProcess>
 #include <QtCore/QSet>
 #include <QtCore/QStringList>
 #include <QtCore/QTimer>
@@ -696,6 +697,7 @@ void printUsage(const QString &appName)
                                 "Generate an API description file of one or multiple components.\n"
                                 "Example: %1 Ubuntu.Components\n"
                                 "         %1 --json Ubuntu.DownloadManager\n"
+                                "         %1 --qml Ubuntu.Content Ubuntu.Content.api > Ubuntu.Content.api.new\n"
                                 "\n"
                                 "The following rules apply for inclusion of public API:\n"
                                 "    - Types not declared as internal in qmldir\n"
@@ -758,10 +760,16 @@ int main(int argc, char *argv[])
 
     QLoggingCategory::setFilterRules(QStringLiteral("*=false"));
     QStringList modules;
+    QStringList apiFiles;
     bool relocatable = true;
     bool output_json = false, output_qml = false;
     Q_FOREACH (const QString &arg, args) {
         if (!arg.startsWith(QLatin1Char('-'))) {
+            QFile apiFile(arg);
+            if (apiFile.exists()) {
+                apiFiles << arg;
+                continue;
+            }
             modules << arg;
             continue;
         }
@@ -1060,10 +1068,12 @@ int main(int argc, char *argv[])
         }
     }
 
+    QString apiDescription;
+    QTextStream out(&apiDescription);
     if (output_json) {
         // write JSON representation of the API
         QJsonDocument jsonDoc(json);
-        std::cout << qPrintable(jsonDoc.toJson());
+        out << qPrintable(jsonDoc.toJson());
     }
 
     if (output_qml) {
@@ -1157,9 +1167,36 @@ int main(int argc, char *argv[])
                         signature += " " + QString(field["version"].toString());
                     signature += "\n";
                 }
-                std::cout << qPrintable(signature);
+                out << qPrintable(signature);
             }
             i++;
+        }
+    }
+
+    std::cout << qPrintable(apiDescription);
+
+    // If specified, compare existing API descriptions to new output
+    if (!apiFiles.empty()) {
+        QProcess diff;
+        QStringList args;
+        args << "-F" << "'[.0-9]'" << "-u";
+        Q_FOREACH (QString filename, apiFiles) {
+            args << filename;
+        }
+        args << "-";
+        diff.start("diff", args);
+        if (!diff.waitForStarted()) {
+            std::cerr << "Failed to start " << qPrintable(diff.program()) << ": " << qPrintable(diff.errorString()) << std::endl;
+            return 1;
+        }
+        if (diff.write(qPrintable(apiDescription)) < 0) {
+            std::cerr << qPrintable(diff.errorString()) << std::endl;
+            return diff.exitCode();
+        }
+        diff.closeWriteChannel();
+        if (!(diff.waitForFinished() && diff.exitCode() == 0)) {
+            std::cerr << qPrintable(diff.readAllStandardOutput()) << std::endl;
+            return 2;
         }
     }
 
