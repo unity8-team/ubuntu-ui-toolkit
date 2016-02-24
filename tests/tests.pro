@@ -7,7 +7,3 @@ autopilot_module.files = autopilot/ubuntuuitoolkit/*
 SUBDIRS += Gallery api
 
 INSTALLS += autopilot_module
-
-OTHER_FILES += qmlapicheck.sh
-
-check.commands += $$PWD/qmlapicheck.sh || exit 1;
