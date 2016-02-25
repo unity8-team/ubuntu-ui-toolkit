@@ -80,6 +80,7 @@ QML_FILES += 1.2/ActivityIndicatorStyle.qml \
              1.3/BubbleShape.qml \
              1.3/ButtonForeground.qml \
              1.3/ButtonStyle.qml \
+             1.3/TextButtonStyle.qml \
              1.3/CheckBoxStyle.qml \
              1.3/ComboButtonStyle.qml \
              1.3/DatePickerStyle.qml \

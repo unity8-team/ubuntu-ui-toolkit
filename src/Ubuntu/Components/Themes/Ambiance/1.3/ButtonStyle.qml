@@ -33,9 +33,11 @@ Item {
         button.enabled? theme.palette.normal : theme.palette.disabled
     )
 
-    property color fillColor: {
-        if (button.type === Button.Text) {
-            return palette.foreground // hover effect only
+    property color frameColor: {
+        if (button.type === Button.Outline) {
+            // In Outline mode, the border is always
+            // the same color than the button text
+            return textColor
         }
         if (button.emphasis === Button.Positive) {
             return palette.positive
@@ -48,21 +50,23 @@ Item {
 
     property color textColor: {
         if (button.emphasis === Button.Positive) {
-            return button.type !== Button.Normal
-                       ? palette.backgroundPositiveText
-                       : palette.positiveText
+            return button.type === Button.Outline
+                     ? palette.backgroundPositiveText
+                     : palette.positiveText
         }
         if (button.emphasis === Button.Negative) {
-            return button.type !== Button.Normal
-                       ? palette.backgroundNegativeText
-                       : palette.negativeText
+            return button.type === Button.Outline
+                     ? palette.backgroundNegativeText
+                     : palette.negativeText
         }
         return palette.foregroundText
     }
 
-    property color outlineColor: textColor
-    property real outlineWidth: units.dp(1)
-    property real shapeRadius: units.gu(0.6)
+    property real frameThickness: (
+        button.type === Button.Outline? units.dp(1) : Math.max(width, height)
+    )
+
+    property real radius: units.gu(0.6)
 
     property color overlayColor: palette.foregroundText
 
@@ -71,9 +75,7 @@ Item {
         pixelSize: FontUtils.sizeToPixels("medium"),
     })
 
-    property Gradient defaultGradient
     property real buttonFaceOffset: 0
-    property bool stroke: false
 
     /*!
       The property overrides the button's default background with an item. This
@@ -96,14 +98,10 @@ Item {
         id: background
         visible: background.color.a > 0 || !!backgroundSource
         anchors.fill: parent
-        radius: shapeRadius
-        thickness: (
-            button.type === Button.Outline
-             ? outlineWidth
-             : Math.max(width, height)
-        )
+        radius: buttonStyle.radius
+        thickness: frameThickness
         opacity: (button.type !== Button.Text || button.hovered)? 1 : 0
-        color: button.type === Button.Outline? outlineColor : fillColor
+        color: frameColor
         Behavior on opacity {
             UbuntuNumberAnimation {
                 duration: UbuntuAnimation.SnapDuration
@@ -126,9 +124,13 @@ Item {
         text: button.text
         textColor: buttonStyle.textColor
         iconSource: button.iconSource
-        iconPosition: button.iconPosition
+        iconPosition: (
+            button.iconPosition !== undefined
+                ? button.iconPosition
+                : Button.Before
+        )
         iconSize: units.gu(2)
-        font: button.font
+        font: button.font || defaultFont
         spacing: iconSpacing
         transformOrigin: Item.Top
     }
@@ -136,7 +138,7 @@ Item {
     // Overlay (on hover)
     Frame {
         anchors.fill: parent
-        radius: shapeRadius
+        radius: buttonStyle.radius
         opacity: button.hovered && !button.pressed? 1 : 0
         visible: button.type !== Button.Text
         color: Qt.rgba(overlayColor.r, overlayColor.g, overlayColor.b, 0.05)

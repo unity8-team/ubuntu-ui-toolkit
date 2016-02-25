@@ -23,45 +23,44 @@
 #include "quickutils.h"
 
 /*!
- * \qmltype Button
- * \instantiates Button
- * \inqmlmodule Ubuntu.Components 1.3
- * \ingroup ubuntu
- * \brief Standard Ubuntu button.
- *
- * \l {http://design.ubuntu.com/apps/building-blocks/buttons}{See also the Design Guidelines on Buttons}.
- *
- * Examples:
- * \qml
- 
- *     Column {
- *         Button {
- *             text: "Send"
- *             onClicked: print("clicked text-only Button")
- *         }
- *         Button {
- *             iconName: "compose"
- *             onClicked: print("clicked icon-only Button")
- *         }
- *     }
- * \endqml
- *
- * An \l Action can be used to specify \b clicked, iconSource and text. Example:
- * \qml
- *     Item {
- *         Action {
- *             id: action1
- *             text: "Click me"
- *             onTriggered: print("action!")
- *             iconName: "compose"
- *         }
- *         Button {
- *             anchors.centerIn: parent
- *             action: action1
- *         }
- *    }
- * \endqml
- */
+\qmltype Button
+\instantiates UbuntuToolkit::Button
+\inqmlmodule Ubuntu.Components 1.3
+\ingroup ubuntu
+\brief Standard Ubuntu button.
+\l {http://design.ubuntu.com/apps/building-blocks/buttons}{See also the
+Design Guidelines on Buttons}.
+
+Example:
+\qml
+     Column {
+         Button {
+             text: "Send"
+             onClicked: print("clicked text-only Button")
+         }
+         Button {
+             iconName: "compose"
+             onClicked: print("clicked icon-only Button")
+         }
+     }
+\endqml
+
+An \l Action can be used to specify \b clicked, iconSource and text:
+\qml
+      Item {
+          Action {
+              id: action1
+              text: "Click me"
+              onTriggered: print("action!")
+              iconName: "compose"
+          }
+          Button {
+              anchors.centerIn: parent
+              action: action1
+          }
+     }
+\endqml
+*/
 
 namespace UbuntuToolkit {
 

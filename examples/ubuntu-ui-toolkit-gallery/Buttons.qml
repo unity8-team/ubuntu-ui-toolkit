@@ -42,7 +42,6 @@ Template {
                 emphasis: Button.Negative
             }
         }
-
         TemplateFlow {
             Button {
                 objectName: "button_fill_neutral_disabled"
@@ -62,48 +61,58 @@ Template {
                 enabled: false
             }
         }
-
         TemplateFlow {
-            title: i18n.tr("Text")
+            title: i18n.tr("Color")
             Button {
-                objectName: "button_text_neutral"
-                text: i18n.tr("Neutral")
-                type: Button.Text
-            }
-            Button {
-                objectName: "button_text_positive"
-                text: i18n.tr("Positive")
-                type: Button.Text
-                emphasis: Button.Positive
-            }
-            Button {
-                objectName: "button_text_negative"
-                text: i18n.tr("Negative")
-                type: Button.Text
-                emphasis: Button.Negative
+                id: buttonColor
+                objectName: "button_color"
+                action: Action {
+                    text: i18n.tr("Switch (%1)").arg(shortcut)
+                    shortcut: 'Ctrl+C'
+                    property bool flipped
+                    onTriggered: flipped = !flipped
+                }
+                StyleHints {
+                    textColor: "white"
+                    frameColor: (
+                        buttonColor.action.flipped? "#3EB34F" : "#19B6EE"
+                    )
+                }
             }
         }
 
         TemplateFlow {
+            title: i18n.tr("Icon")
             Button {
-                objectName: "button_text_neutral_disabled"
-                text: i18n.tr("Neutral")
-                type: Button.Text
-                enabled: false
-            }
-            Button {
-                objectName: "button_text_positive_disabled"
-                text: i18n.tr("Positive")
-                type: Button.Text
+                objectName: "button_icon"
                 emphasis: Button.Positive
-                enabled: false
+                iconName: "call-start"
+                StyleHints {
+                    minimumWidth: 0
+                }
+            }
+        }
+
+        TemplateFlow {
+            title: i18n.tr("Icon + Text")
+            Button {
+                objectName: "button_icon_right_text"
+                text: i18n.tr("Delete")
+                emphasis: Button.Negative
+                iconName: "delete"
+                StyleHints {
+                    minimumWidth: 0
+                }
             }
             Button {
-                objectName: "button_text_negative_disabled"
-                text: i18n.tr("Negative")
-                type: Button.Text
-                emphasis: Button.Negative
-                enabled: false
+                objectName: "button_icon_left_text"
+                text: i18n.tr("Call")
+                iconName: "call-start"
+                emphasis: Button.Positive
+                iconPosition: Button.After
+                StyleHints {
+                    minimumWidth: 0
+                }
             }
         }
 
@@ -111,7 +120,7 @@ Template {
             title: i18n.tr("Outline")
             Button {
                 objectName: "button_stroke"
-                text: i18n.tr("Neutral")
+                text: i18n.tr("Normal")
                 type: Button.Outline
             }
             Button {
@@ -129,6 +138,7 @@ Template {
         }
 
         TemplateFlow {
+            title: i18n.tr("Disabled")
             Button {
                 objectName: "button_stroke_disabled"
                 text: i18n.tr("Neutral")
@@ -150,66 +160,41 @@ Template {
                 enabled: false
             }
         }
+    }
+
+    TemplateSection {
+        className: "TextButton"
 
         TemplateFlow {
-            title: i18n.tr("Color")
-
-            Button {
-                id: buttonColor
-                objectName: "button_color"
-                action: Action {
-                    text: i18n.tr("Switch (%1)").arg(shortcut)
-                    shortcut: 'Ctrl+C'
-                    property bool flipped
-                    onTriggered: flipped = !flipped
-                }
-                StyleHints {
-                    textColor: "white"
-                    fillColor: (
-                        buttonColor.action.flipped? "#3EB34F" : "#19B6EE"
-                    )
-                }
+            title: i18n.tr("Text")
+            TextButton {
+                objectName: "textbutton_normal"
+                text: i18n.tr("Normal")
+            }
+            TextButton {
+                objectName: "textbutton_strong"
+                text: i18n.tr("Strong")
+                strong: true
             }
         }
 
         TemplateFlow {
-            title: i18n.tr("Icon")
-            Button {
-                objectName: "button_icon"
-                emphasis: Button.Positive
-                iconName: "call-start"
-                StyleHints {
-                    minimumWidth: 0
-                }
+            TextButton {
+                objectName: "textbutton_normal_disabled"
+                text: i18n.tr("Normal")
+                enabled: false
             }
-        }
-
-        TemplateFlow {
-            title: i18n.tr("Icon+Text")
-            Button {
-                objectName: "button_icon_right_text"
-                text: i18n.tr("Delete")
-                emphasis: Button.Negative
-                iconName: "delete"
-                type: Button.Text
-                StyleHints {
-                    minimumWidth: 0
-                }
-            }
-            Button {
-                objectName: "button_icon_left_text"
-                text: i18n.tr("Call")
-                iconName: "call-start"
-                emphasis: Button.Positive
-                iconPosition: Button.After
-                StyleHints {
-                    minimumWidth: 0
-                }
+            TextButton {
+                objectName: "textbutton_strong_disabled"
+                text: i18n.tr("Strong")
+                strong: true
+                enabled: false
             }
         }
     }
 
     TemplateSection {
+        visible: false
         className: "ComboButton"
 
         TemplateFlow {
@@ -240,7 +225,6 @@ Template {
                 }
             }
         }
-
         TemplateFlow {
             title: i18n.tr("Icon+Text")
             ComboButton {

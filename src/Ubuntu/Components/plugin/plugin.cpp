@@ -82,6 +82,7 @@
 #include "privates/ucpagewrapper.h"
 #include "privates/appheaderbase.h"
 #include "button.h"
+#include "textbutton.h"
 
 // From UbuntuGestures
 #include "private/ucswipearea_p.h"
@@ -236,6 +237,7 @@ void UbuntuComponentsPlugin::registerTypes(const char *uri)
     qmlRegisterType<UCPopupContext>(uri, 1, 3, "PopupContext");
     qmlRegisterType<UCMainViewBase>(uri, 1, 3, "MainViewBase");
     qmlRegisterType<UbuntuToolkit::Button>(uri, 1, 3, "Button");
+    qmlRegisterType<UbuntuToolkit::TextButton>(uri, 1, 3, "TextButton");
 }
 
 void UbuntuComponentsPlugin::initializeContextProperties(QQmlEngine *engine)

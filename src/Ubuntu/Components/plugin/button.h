@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Canonical Ltd.
+ * Copyright 2016 Canonical Ltd.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -76,7 +76,7 @@ public:
     explicit Button(QQuickItem* parent=0);
 
     enum IconPosition { Before, left = Before, After, right = After };
-    enum Type { Normal, Text, Outline };
+    enum Type { Normal, Outline };
     enum Emphasis { None, Positive, Negative };
 
     // deprecated
