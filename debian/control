@@ -8,7 +8,7 @@ Build-Depends: debhelper (>= 9.0.0),
                libglib2.0-dev,
                python3:any,
                python:any,
-               qml-module-qtgraphicaleffects | libqt5qml-graphicaleffects,
+               qml-module-qtgraphicaleffects,
                libinput-dev,
                libxkbcommon-dev,
                qtbase5-gles-dev,
@@ -19,14 +19,14 @@ Build-Depends: debhelper (>= 9.0.0),
                libqt5sql5-sqlite,
                qtdeclarative5-dev-tools,
                qtdeclarative5-private-dev,
-               qml-module-qtquick2 | qtdeclarative5-qtquick2-plugin,
-               qml-module-qttest | qtdeclarative5-test-plugin,
-               qml-module-qtquick-window2 | qtdeclarative5-window-plugin,
-               qml-module-qt-labs-settings | qtdeclarative5-settings-plugin,
+               qml-module-qtquick2,
+               qml-module-qttest,
+               qml-module-qtquick-window2,
+               qml-module-qt-labs-settings,
                qml-module-qtquick-layouts,
                qtdeclarative5-qtfeedback-plugin,
                qtdeclarative5-unity-action-plugin (>= 1.1.0),
-               qml-module-qtquick-localstorage | qtdeclarative5-localstorage-plugin,
+               qml-module-qtquick-localstorage,
                qml-module-qtqml-models2,
                qtdeclarative5-doc-html,
                qtwebkit5-doc-html,
@@ -60,22 +60,34 @@ Build-Depends: debhelper (>= 9.0.0),
                libqt5quickparticles5-gles,
                libqt5quickwidgets5-gles,
                liblttng-ust-dev,
-Standards-Version: 3.9.4
+Standards-Version: 3.9.7
 Homepage: https://launchpad.net/ubuntu-ui-toolkit
 
 Package: qtdeclarative5-ubuntu-ui-toolkit-plugin-gles
+Section: oldlibs
 Architecture: i386 amd64
+Multi-Arch: same
+Depends: qml-module-ubuntu-components
+Description: Transitional package for Qt Components for Ubuntu - OpenGLES
+ Qt Components for Ubuntu offers a set of reusable user interface
+ components for Qt Quick 2 / QML.
+ .
+ This is a transitional package that is safe to remove.
+
+Package: qml-module-ubuntu-components-gles
+Architecture: i386 amd64
+Breaks: qtdeclarative5-ubuntu-ui-toolkit-plugin-gles (<< ${source:Version})
 Conflicts: qtdeclarative5-ubuntu-ui-toolkit-plugin
-Replaces: qtdeclarative5-ubuntu-ui-toolkit-plugin
-Provides: qtdeclarative5-ubuntu-ui-toolkit-plugin
+Replaces: qtdeclarative5-ubuntu-ui-toolkit-plugin-gles (<< ${source:Version}), qtdeclarative5-ubuntu-ui-toolkit-plugin
+Provides: qml-module-ubuntu-components
 Multi-Arch: same
 Pre-Depends: dpkg (>= 1.15.6~), ${misc:Pre-Depends}
-Depends: libqt5qml-graphicaleffects | libqt5graphicaleffects5,
+Depends: qml-module-qtgraphicaleffects,
          libqt5svg5,
-         qml-module-qtquick2 | qtdeclarative5-qtquick2-plugin,
-         qml-module-qtquick-window2 | qtdeclarative5-window-plugin,
+         qml-module-qtquick2,
+         qml-module-qtquick-window2,
          qml-module-qtquick-layouts,
-         qtdeclarative5-qtfeedback-plugin,
+         qml-module-qtfeedback,
          qtdeclarative5-unity-action-plugin (>= 1.1.0),
          suru-icon-theme,
          ttf-ubuntu-font-family,
