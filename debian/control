@@ -123,6 +123,7 @@ Conflicts: libubuntugestures5-dev,
 Replaces: libubuntugestures5-dev,
 Provides: libubuntugestures5-dev,
 Multi-Arch: same
+Section: libdevel
 Pre-Depends: dpkg (>= 1.15.6~),
              ${misc:Pre-Depends},
 Depends: ${misc:Depends},
@@ -145,6 +146,7 @@ Description: Ubuntu toolkit common library for Ubuntu UI Toolkit
 Package: libubuntutoolkit5-gles-dev
 Architecture: amd64 i386
 Multi-Arch: same
+Section: libdevel
 Pre-Depends: dpkg (>= 1.15.6~),
              ${misc:Pre-Depends},
 Depends: ${misc:Depends},
