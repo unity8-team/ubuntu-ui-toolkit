@@ -66,7 +66,7 @@ Package: qtdeclarative5-ubuntu-ui-toolkit-plugin-gles
 Section: oldlibs
 Architecture: amd64 i386
 Multi-Arch: same
-Depends: qml-module-ubuntu-components,
+Depends: qml-module-ubuntu-components-gles,
 Description: Transitional package for Qt Components for Ubuntu - OpenGLES
  Qt Components for Ubuntu offers a set of reusable user interface
  components for Qt Quick 2 / QML.
