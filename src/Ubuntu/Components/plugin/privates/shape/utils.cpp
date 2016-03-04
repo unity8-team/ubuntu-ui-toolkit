@@ -16,7 +16,7 @@
  * Author: Loïc Molinari <loic.molinari@canonical.com>
  */
 
-#include "shapeutils.h"
+#include "utils.h"
 
 // --- Shape data ---
 
@@ -213,10 +213,10 @@ class OpaqueColorShader : public QSGMaterialShader
 {
 public:
     OpaqueColorShader() {
-        setShaderSourceFile(
-            QOpenGLShader::Vertex, QStringLiteral(":/uc/privates/shaders/color.vert"));
-        setShaderSourceFile(
-            QOpenGLShader::Fragment, QStringLiteral(":/uc/privates/shaders/opaquecolor.frag"));
+        setShaderSourceFile(QOpenGLShader::Vertex,
+                            QStringLiteral(":/uc/privates/shape/shaders/color.vert"));
+        setShaderSourceFile(QOpenGLShader::Fragment,
+                            QStringLiteral(":/uc/privates/shape/shaders/opaquecolor.frag"));
     }
     virtual char const* const* attributeNames() const {
         static char const* const attributes[] = { "positionAttrib", "colorAttrib", 0 };
@@ -243,8 +243,8 @@ class ColorShader : public OpaqueColorShader
 {
 public:
     ColorShader() : OpaqueColorShader() {
-        setShaderSourceFile(
-            QOpenGLShader::Fragment, QStringLiteral(":/uc/privates/shaders/color.frag"));
+        setShaderSourceFile(QOpenGLShader::Fragment,
+                            QStringLiteral(":/uc/privates/shape/shaders/color.frag"));
     }
     virtual void initialize(){
         OpaqueColorShader::initialize();

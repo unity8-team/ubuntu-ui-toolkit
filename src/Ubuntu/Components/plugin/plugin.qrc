@@ -6,13 +6,13 @@
         <file>shaders/shapeoverlay.frag</file>
         <file>shaders/shapeoverlay_mipmap.frag</file>
         <file>shaders/shapeoverlay.vert</file>
-        <file>privates/shaders/color.vert</file>
-        <file>privates/shaders/opaquecolor.frag</file>
-        <file>privates/shaders/color.frag</file>
-        <file>privates/shaders/texture.vert</file>
-        <file>privates/shaders/luminance.frag</file>
-        <file>privates/shaders/shadow.frag</file>
-        <file>privates/shaders/frame.vert</file>
-        <file>privates/shaders/frame.frag</file>
+        <file>privates/shape/shaders/color.vert</file>
+        <file>privates/shape/shaders/opaquecolor.frag</file>
+        <file>privates/shape/shaders/color.frag</file>
+        <file>privates/shape/shaders/texture.vert</file>
+        <file>privates/shape/shaders/luminance.frag</file>
+        <file>privates/shape/shaders/shadow.frag</file>
+        <file>privates/shape/shaders/frame.vert</file>
+        <file>privates/shape/shaders/frame.frag</file>
     </qresource>
 </RCC>

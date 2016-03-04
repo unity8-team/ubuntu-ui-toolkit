@@ -50,10 +50,10 @@ private:
 
 CornerShader::CornerShader()
 {
-    setShaderSourceFile(
-        QOpenGLShader::Vertex, QStringLiteral(":/uc/privates/shaders/texture.vert"));
-    setShaderSourceFile(
-        QOpenGLShader::Fragment, QStringLiteral(":/uc/privates/shaders/luminance.frag"));
+    setShaderSourceFile(QOpenGLShader::Vertex,
+                        QStringLiteral(":/uc/privates/shape/shaders/texture.vert"));
+    setShaderSourceFile(QOpenGLShader::Fragment,
+                        QStringLiteral(":/uc/privates/shape/shaders/luminance.frag"));
 }
 
 char const* const* CornerShader::attributeNames() const

@@ -25,7 +25,7 @@
 // - Should try using half-sized texture with bilinear filtering.
 
 #include "shadow.h"
-#include "shapeutils.h"
+#include "utils.h"
 #include <QtCore/QMutex>
 #include <QtGui/QOpenGLContext>
 #include <QtGui/QOpenGLFunctions>
@@ -76,10 +76,10 @@ private:
 ShadowShader::ShadowShader()
     : m_style(defaultStyle)
 {
-    setShaderSourceFile(
-        QOpenGLShader::Vertex, QStringLiteral(":/uc/privates/shaders/texture.vert"));
-    setShaderSourceFile(
-        QOpenGLShader::Fragment, QStringLiteral(":/uc/privates/shaders/shadow.frag"));
+    setShaderSourceFile(QOpenGLShader::Vertex,
+                        QStringLiteral(":/uc/privates/shape/shaders/texture.vert"));
+    setShaderSourceFile(QOpenGLShader::Fragment,
+                        QStringLiteral(":/uc/privates/shape/shaders/shadow.frag"));
 }
 
 char const* const* ShadowShader::attributeNames() const

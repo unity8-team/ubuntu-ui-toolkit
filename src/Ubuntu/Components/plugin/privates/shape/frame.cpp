@@ -50,10 +50,10 @@ private:
 
 FrameCornerShader::FrameCornerShader()
 {
-    setShaderSourceFile(
-        QOpenGLShader::Vertex, QStringLiteral(":/uc/privates/shaders/frame.vert"));
-    setShaderSourceFile(
-        QOpenGLShader::Fragment, QStringLiteral(":/uc/privates/shaders/frame.frag"));
+    setShaderSourceFile(QOpenGLShader::Vertex,
+                        QStringLiteral(":/uc/privates/shape/shaders/frame.vert"));
+    setShaderSourceFile(QOpenGLShader::Fragment,
+                        QStringLiteral(":/uc/privates/shape/shaders/frame.frag"));
 }
 
 char const* const* FrameCornerShader::attributeNames() const

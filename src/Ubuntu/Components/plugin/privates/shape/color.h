@@ -16,52 +16,37 @@
  * Author: Loïc Molinari <loic.molinari@canonical.com>
  */
 
-#ifndef UCFRAME_H
-#define UCFRAME_H
+#ifndef UCCOLOR_H
+#define UCCOLOR_H
 
-#include "shapeutils.h"
+#include "utils.h"
 #include <QtQuick/QQuickItem>
 #include <QtQuick/QSGNode>
 
-// Renders the frame (border) of a shape.
-class UCFrame : public QQuickItem
+class UCColor : public QQuickItem
 {
     Q_OBJECT
+
     Q_ENUMS(Shape)
-
-    // Shape to use at corners.
     Q_PROPERTY(Shape shape READ shape WRITE setShape NOTIFY shapeChanged)
-
-    // Thickness of the frame in pixels.
-    Q_PROPERTY(qreal thickness READ thickness WRITE setThickness NOTIFY thicknessChanged)
-
-    // Radius of the shape in pixels. A rectangle frame could be obtained using
-    // a radius of 0 but it's recommended to use a Ractangle with a border for
-    // that as it is a bit more efficient in term of rendering speed (reason is
-    // we don't bother to specify a dedicated mesh and shader when radius is 0).
     Q_PROPERTY(qreal radius READ radius WRITE setRadius NOTIFY radiusChanged)
-
-    // Color of the frame. Translucent colors are supported too.
     Q_PROPERTY(QColor color READ color WRITE setColor NOTIFY colorChanged)
 
 public:
-    UCFrame(QQuickItem* parent = 0);
+    UCColor(QQuickItem* parent = 0);
 
     enum Shape { Squircle = 0, Circle = 1 };
 
     Shape shape() const { return static_cast<Shape>(m_shape); }
     void setShape(Shape shape);
-    qreal thickness() const { return m_thickness; }
-    void setThickness(qreal thickness);
     qreal radius() const { return m_radius; }
     void setRadius(qreal radius);
     QColor color() const {
-        return QColor(qRed(m_color), qGreen(m_color), qBlue(m_color), qAlpha(m_color)); }
+      return QColor(qRed(m_color), qGreen(m_color), qBlue(m_color), qAlpha(m_color)); }
     void setColor(const QColor& color);
 
 Q_SIGNALS:
     void shapeChanged();
-    void thicknessChanged();
     void radiusChanged();
     void colorChanged();
 
@@ -71,16 +56,15 @@ private:
     enum { DirtyShape = (1 << 0), DirtyCornerVisibility = (1 << 1) };
 
     QRgb m_color;
-    quint16 m_thickness;
     quint8 m_radius;
     quint8 m_shape : 1;
     quint8 __padding : 7;
     quint8 m_flags;
 
-    Q_DISABLE_COPY(UCFrame)
+    Q_DISABLE_COPY(UCColor)
 };
 
-class UCFrameCornerMaterial : public QSGMaterial
+class UCCornerMaterial : public QSGMaterial
 {
 public:
     class Texture {
@@ -97,56 +81,54 @@ public:
 
     typedef QHash<quint32, Texture> TextureHash;
 
-    static Q_CONSTEXPR quint32 makeTextureHashKey(UCFrame::Shape shape, quint8 radius) {
+    static Q_CONSTEXPR quint32 makeTextureHashKey(UCColor::Shape shape, quint8 radius) {
         return static_cast<quint32>(shape) << 8  // 1 bit
             | static_cast<quint32>(radius);      // 8 bit
     }
 
-    UCFrameCornerMaterial();
-    ~UCFrameCornerMaterial();
+    UCCornerMaterial();
+    ~UCCornerMaterial();
     virtual QSGMaterialType* type() const;
     virtual QSGMaterialShader* createShader() const;
     virtual int compare(const QSGMaterial* other) const;
 
-    quint32 outerTextureId() const { return m_textureId[0]; }
-    quint32 innerTextureId() const { return m_textureId[1]; }
-    void updateTexture(
-        int index, UCFrame::Shape shape, int radius, UCFrame::Shape newShape, int newRadius);
+    quint32 textureId() const { return m_textureId; }
+    void updateTexture(UCColor::Shape shape, int radius, UCColor::Shape newShape, int newRadius);
 
 private:
     TextureHash* m_textureHash;
-    quint32 m_textureId[2];
-    quint32 m_key[2];
+    quint32 m_textureId;
+    quint32 m_key;
 };
 
-class UCFrameCornerNode : public QSGGeometryNode
+class UCCornerNode : public QSGGeometryNode
 {
 public:
-    struct Vertex { float x, y, outerS, outerT, innerS, innerT; quint32 color; };
+    struct Vertex { float x, y, s, t; quint32 color; };
 
-    static const unsigned short* indices();
+    static const quint16* indices();
     static const QSGGeometry::AttributeSet& attributeSet();
 
-    UCFrameCornerNode(UCFrame::Shape shape, bool visible);
+    UCCornerNode(UCColor::Shape shape, bool visible);
     virtual void preprocess();
     virtual bool isSubtreeBlocked() const { return m_visible == 0; }
 
     void setVisible(bool visible);
-    void setShape(UCFrame::Shape shape) { m_newShape = shape; }
-    void updateGeometry(const QSizeF& itemSize, float thickness, float radius, QRgb color);
+    void setShape(UCColor::Shape shape) { m_newShape = shape; }
+    void updateGeometry(const QSizeF& itemSize, float radius, QRgb color);
 
 private:
-    UCFrameCornerMaterial m_material;
+    UCCornerMaterial m_material;
     QSGGeometry m_geometry;
-    quint8 m_radius[2];
-    quint8 m_newRadius[2];
+    quint8 m_radius;
+    quint8 m_newRadius;
     quint8 m_shape : 1;
     quint8 m_newShape : 1;
     quint8 m_visible : 1;
     quint8 __padding : 5;
 };
 
-class UCFrameNode : public QSGGeometryNode
+class UCColorNode : public QSGGeometryNode
 {
 public:
     struct Vertex { float x, y; quint32 color; };
@@ -154,8 +136,8 @@ public:
     static const quint16* indices();
     static const QSGGeometry::AttributeSet& attributeSet();
 
-    UCFrameNode();
-    void updateGeometry(const QSizeF& itemSize, float thickness, float radius, QRgb color);
+    UCColorNode();
+    void updateGeometry(const QSizeF& itemSize, float radius, QRgb color);
 
 private:
     UCOpaqueColorMaterial m_opaqueMaterial;
@@ -163,6 +145,6 @@ private:
     QSGGeometry m_geometry;
 };
 
-QML_DECLARE_TYPE(UCFrame)
+QML_DECLARE_TYPE(UCColor)
 
-#endif  // UCFRAME_H
+#endif  // UCCOLOR_H
