@@ -2,72 +2,71 @@ Source: ubuntu-ui-toolkit-gles
 Priority: optional
 Section: libs
 Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
-Build-Depends: debhelper (>= 9.0.0),
-               devscripts,
-               libgles2-mesa-dev,
-               libglib2.0-dev,
-               python3:any,
-               python:any,
-               qml-module-qtgraphicaleffects,
-               libinput-dev,
-               libxkbcommon-dev,
-               qtbase5-gles-dev,
-               qtbase5-dev-tools,
-               libqt5organizer5,
-               qt5-default,
-               qtbase5-private-gles-dev,
-               libqt5sql5-sqlite,
-               qtdeclarative5-dev-tools,
-               qtdeclarative5-private-dev,
-               qml-module-qtquick2,
-               qml-module-qttest,
-               qml-module-qtquick-window2,
-               qml-module-qt-labs-settings,
-               qml-module-qtquick-layouts,
-               qtdeclarative5-qtfeedback-plugin,
-               qtdeclarative5-unity-action-plugin (>= 1.1.0),
-               qml-module-qtquick-localstorage,
-               qml-module-qtqml-models2,
-               qtdeclarative5-doc-html,
-               qtwebkit5-doc-html,
-               qtsvg5-doc-html,
-               libqt5svg5-dev,
-               qtscript5-doc-html,
-               qtmultimedia5-doc-html,
-               unity-action-doc,
-               devscripts,
-               qtpim5-dev,
-               language-pack-en-base,
-               libdbus-1-dev,
-               libnih-dbus-dev,
+Build-Depends: accountsservice,
                dbus,
                dbus-test-runner,
-               accountsservice,
-               xvfb,
+               debhelper (>= 9.0.0),
+               devscripts,
                gdb,
-               locales,
-               suru-icon-theme,
-               uuid-runtime,
-               python-autopilot (>= 1.4),
-               python3-sphinx,
+               language-pack-en-base,
+               libdbus-1-dev,
                libfontconfig1-dev,
                libfreetype6-dev,
+               libgles2-mesa-dev,
+               libglib2.0-dev,
+               libinput-dev,
+               liblttng-ust-dev,
                libmtdev-dev,
-               libudev-dev,
-               libxrender-dev,
+               libnih-dbus-dev,
                libqt5gui5-gles,
+               libqt5organizer5,
                libqt5quick5-gles,
                libqt5quickparticles5-gles,
                libqt5quickwidgets5-gles,
-               liblttng-ust-dev,
+               libqt5sql5-sqlite,
+               libqt5svg5-dev,
+               libudev-dev,
+               libxkbcommon-dev,
+               libxrender-dev,
+               locales,
+               python-autopilot (>= 1.4),
+               python3-sphinx,
+               python3:any,
+               python:any,
+               qml-module-qt-labs-settings,
+               qml-module-qtgraphicaleffects,
+               qml-module-qtqml-models2,
+               qml-module-qtquick-layouts,
+               qml-module-qtquick-localstorage,
+               qml-module-qtquick-window2,
+               qml-module-qtquick2,
+               qml-module-qttest,
+               qt5-default,
+               qtbase5-dev-tools,
+               qtbase5-gles-dev,
+               qtbase5-private-gles-dev,
+               qtdeclarative5-dev-tools,
+               qtdeclarative5-doc-html,
+               qtdeclarative5-private-dev,
+               qtdeclarative5-qtfeedback-plugin,
+               qtdeclarative5-unity-action-plugin (>= 1.1.0),
+               qtmultimedia5-doc-html,
+               qtpim5-dev,
+               qtscript5-doc-html,
+               qtsvg5-doc-html,
+               qtwebkit5-doc-html,
+               suru-icon-theme,
+               unity-action-doc,
+               uuid-runtime,
+               xvfb,
 Standards-Version: 3.9.7
 Homepage: https://launchpad.net/ubuntu-ui-toolkit
 
 Package: qtdeclarative5-ubuntu-ui-toolkit-plugin-gles
 Section: oldlibs
-Architecture: i386 amd64
+Architecture: amd64 i386
 Multi-Arch: same
-Depends: qml-module-ubuntu-components
+Depends: qml-module-ubuntu-components,
 Description: Transitional package for Qt Components for Ubuntu - OpenGLES
  Qt Components for Ubuntu offers a set of reusable user interface
  components for Qt Quick 2 / QML.
@@ -75,24 +74,26 @@ Description: Transitional package for Qt Components for Ubuntu - OpenGLES
  This is a transitional package that is safe to remove.
 
 Package: qml-module-ubuntu-components-gles
-Architecture: i386 amd64
-Breaks: qtdeclarative5-ubuntu-ui-toolkit-plugin-gles (<< ${source:Version})
-Conflicts: qtdeclarative5-ubuntu-ui-toolkit-plugin
-Replaces: qtdeclarative5-ubuntu-ui-toolkit-plugin-gles (<< ${source:Version}), qtdeclarative5-ubuntu-ui-toolkit-plugin
-Provides: qml-module-ubuntu-components
+Architecture: amd64 i386
+Breaks: qtdeclarative5-ubuntu-ui-toolkit-plugin-gles (<< ${source:Version}),
+Conflicts: qtdeclarative5-ubuntu-ui-toolkit-plugin,
+Replaces: qtdeclarative5-ubuntu-ui-toolkit-plugin,
+          qtdeclarative5-ubuntu-ui-toolkit-plugin-gles (<< ${source:Version}),
+Provides: qml-module-ubuntu-components,
 Multi-Arch: same
-Pre-Depends: dpkg (>= 1.15.6~), ${misc:Pre-Depends}
-Depends: qml-module-qtgraphicaleffects,
-         libqt5svg5,
-         qml-module-qtquick2,
-         qml-module-qtquick-window2,
-         qml-module-qtquick-layouts,
+Pre-Depends: dpkg (>= 1.15.6~),
+             ${misc:Pre-Depends},
+Depends: libqt5svg5,
+         libubuntugestures5-gles (= ${binary:Version}),
          qml-module-qtfeedback,
+         qml-module-qtgraphicaleffects,
+         qml-module-qtquick-layouts,
+         qml-module-qtquick-window2,
+         qml-module-qtquick2,
          qtdeclarative5-unity-action-plugin (>= 1.1.0),
          suru-icon-theme,
          ttf-ubuntu-font-family,
          ubuntu-ui-toolkit-theme,
-         libubuntugestures5-gles (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
 Description: Qt Components for Ubuntu - QML plugin - OpenGLES
@@ -103,12 +104,13 @@ Description: Qt Components for Ubuntu - QML plugin - OpenGLES
  the OpenGLES backend).
 
 Package: libubuntugestures5-gles
-Architecture: i386 amd64
-Conflicts: libubuntugestures5
-Replaces: libubuntugestures5
-Provides: libubuntugestures5
+Architecture: amd64 i386
+Conflicts: libubuntugestures5,
+Replaces: libubuntugestures5,
+Provides: libubuntugestures5,
 Multi-Arch: same
-Pre-Depends: dpkg (>= 1.15.6~), ${misc:Pre-Depends}
+Pre-Depends: dpkg (>= 1.15.6~),
+             ${misc:Pre-Depends},
 Depends: ${misc:Depends},
          ${shlibs:Depends},
 Description: Gestures library for Ubuntu UI Toolkit - OpenGLES
@@ -116,12 +118,13 @@ Description: Gestures library for Ubuntu UI Toolkit - OpenGLES
  Classes for SwipeArea, and for Ubuntu Gestures in general.
 
 Package: libubuntugestures5-gles-dev
-Architecture: i386 amd64
-Conflicts: libubuntugestures5-dev
-Replaces: libubuntugestures5-dev
-Provides: libubuntugestures5-dev
+Architecture: amd64 i386
+Conflicts: libubuntugestures5-dev,
+Replaces: libubuntugestures5-dev,
+Provides: libubuntugestures5-dev,
 Multi-Arch: same
-Pre-Depends: dpkg (>= 1.15.6~), ${misc:Pre-Depends}
+Pre-Depends: dpkg (>= 1.15.6~),
+             ${misc:Pre-Depends},
 Depends: ${misc:Depends},
          ${shlibs:Depends},
 Description: Ubuntu gestures library development files - OpenGLES
@@ -129,9 +132,10 @@ Description: Ubuntu gestures library development files - OpenGLES
  Ubuntu gestures library with SwipeArea
 
 Package: libubuntutoolkit5-gles
-Architecture: i386 amd64
+Architecture: amd64 i386
 Multi-Arch: same
-Pre-Depends: dpkg (>= 1.15.6~), ${misc:Pre-Depends}
+Pre-Depends: dpkg (>= 1.15.6~),
+             ${misc:Pre-Depends},
 Depends: ${misc:Depends},
          ${shlibs:Depends},
 Description: Ubuntu toolkit common library for Ubuntu UI Toolkit
@@ -139,9 +143,10 @@ Description: Ubuntu toolkit common library for Ubuntu UI Toolkit
  Ubuntu QML plugins
 
 Package: libubuntutoolkit5-gles-dev
-Architecture: i386 amd64
+Architecture: amd64 i386
 Multi-Arch: same
-Pre-Depends: dpkg (>= 1.15.6~), ${misc:Pre-Depends}
+Pre-Depends: dpkg (>= 1.15.6~),
+             ${misc:Pre-Depends},
 Depends: ${misc:Depends},
          ${shlibs:Depends},
 Description: Ubuntu toolkit common library development files
