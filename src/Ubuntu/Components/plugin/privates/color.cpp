@@ -31,9 +31,6 @@
 
 const UCColor::Shape defaultShape = UCColor::Squircle;
 const QRgb defaultColor = qRgba(255, 255, 255, 255);
-const int defaultRadius = 50;
-const int maxRadius = 128;
-const int textureStride = 32;
 
 // --- Shaders ---
 
@@ -216,8 +213,6 @@ static quint8* renderShape(int radius, UCColor::Shape shape)
             dataU8[i * stride + j] = ((quint32*)dataU8)[i * width + j] & 0xff;
         }
     }
-
-    qDebug() << "renderShape" << radius;
 
     return dataU8;
 }

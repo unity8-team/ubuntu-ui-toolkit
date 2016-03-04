@@ -24,24 +24,6 @@
 
 // FIXME(loicm) Add and clean up code generators in the tools folder.
 
-/* Color */
-/*  ColorNode */
-/*   ColorMaterial ColorShader */
-/*   OpaqueColorMaterial OpaqueColorShader */
-/*  CornerNode */
-/*   CornerMaterial CornerShader */
-
-/* Shadow */
-/*  ShadowNode */
-/*   ShadowMaterial ShadowShader */
-
-/* Frame */
-/*  FrameNode */
-/*   ColorMaterial ColorShader */
-/*   OpaqueColorMaterial OpaqueColorShader */
-/*  FrameCornerNode */
-/*   FrameCornerMaterial FrameCornerShader */
-
 #if defined(Q_CC_GNU)
 #define RESTRICT __restrict__
 #elif defined(Q_CC_MSVC)
@@ -54,6 +36,10 @@
 #define DASSERT(x) do { if (!(x)) { qFatal("assertion failed at %d\n", __LINE__); } } while(0)
 
 // --- Shared data ---
+
+const int defaultRadius = 50;
+const int maxRadius = 128;
+const int textureStride = 32;
 
 // Squircle SVG string.
 extern const char squircleSvg[];
@@ -94,10 +80,8 @@ public:
 // FIXME(loicm) The bytesPerPixel thing seems broken.
 static inline int getStride(int width, int bytesPerPixel, int alignment)
 {
-    DASSERT(width > 0);
     DASSERT(!(bytesPerPixel & (bytesPerPixel - 1)));  // Power-of-two
-    DASSERT(!(alignment & (alignment - 1)));  // Power-of-two
-
+    DASSERT(!(alignment & (alignment - 1)));          // Power-of-two
     return ((width * bytesPerPixel + alignment - 1) & ~(alignment - 1)) / bytesPerPixel;
 }
 

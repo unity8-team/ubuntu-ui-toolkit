@@ -49,10 +49,7 @@ const UCShadow::Style defaultStyle = UCShadow::Drop;
 const UCShadow::Shape defaultShape = UCShadow::Squircle;
 const QRgb defaultColor = qRgba(0, 0, 0, 255);
 const int defaultShadow = 25;
-const int defaultRadius = 50;
 const int maxShadow = 128;
-const int maxRadius = 128;
-const int textureStride = 32;
 #if !QT_SVG_RENDERER
 const float aaDistance = 1.75f;
 #endif

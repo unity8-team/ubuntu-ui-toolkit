@@ -46,9 +46,9 @@ public:
     void setColor(const QColor& color);
 
 Q_SIGNALS:
+    void shapeChanged();
     void radiusChanged();
     void colorChanged();
-    void shapeChanged();
 
 private:
     virtual QSGNode* updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData* data);

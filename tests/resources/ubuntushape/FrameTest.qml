@@ -24,7 +24,10 @@ Item {
     height: 600
     focus: true
 
+    property variant shapes: [ "Squircle", "Circle" ]
+
     property string textOverlayString:
+        "shape       (y): " + shapes[frame.shape] + "\n" +
         "thickness (t/T): " + frame.thickness.toFixed(1) + "\n" +
         "radius    (r/R): " + frame.radius.toFixed(1) + "\n" +
         "color       (c): " + frame.color + "\n" +
@@ -34,7 +37,7 @@ Item {
         id: scene
         anchors.fill: parent
 
-        Frame {
+        ShapeFrame {
             id: frame
             anchors.fill: parent
             anchors.margins: 100.0
@@ -58,7 +61,9 @@ Item {
 
     Keys.onPressed: {
         var shift = event.modifiers & Qt.ShiftModifier;
-        if (event.key == Qt.Key_T) {
+        if (event.key == Qt.Key_Y) {
+            frame.shape = (frame.shape + 1) % 2;
+        } else if (event.key == Qt.Key_T) {
             frame.thickness = frame.thickness + (shift ? 1.0 : -1.0);
         } else if (event.key == Qt.Key_R) {
             frame.radius = frame.radius + (shift ? 1.0 : -1.0);
