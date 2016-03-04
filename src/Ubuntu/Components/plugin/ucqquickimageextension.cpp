@@ -40,11 +40,18 @@ UCQQuickImageExtension::UCQQuickImageExtension(QObject *parent) :
     QObject(parent),
     m_image(static_cast<QQuickImageBase*>(parent))
 {
-    QObject::connect(&UCUnits::instance(), SIGNAL(gridUnitChanged()),
-                     this, SLOT(reloadSource()));
-    // connect sourceChanged signal to extendedSourceChanged
-    QObject::connect(m_image, &QQuickImageBase::sourceChanged,
-                     this, &UCQQuickImageExtension::extendedSourceChanged);
+    // FIXME(loicm) When the grid unit is changed following a QPA plugin scale
+    //     notification, we experienced a crash in reloadSource() while setting
+    //     the QQuickImageBase source. It seems like a resource handling issue
+    //     in Qt but we have not managed to identify it exactly. We work around
+    //     it by using a queued connection for gridUnitChanged() signal for now.
+    QObject::connect(UCUnits::instance(), SIGNAL(gridUnitChanged()),
+                     this, SLOT(reloadSource()), Qt::QueuedConnection);
+
+    if (m_image) {
+        QObject::connect(m_image, &QQuickImageBase::sourceChanged,
+                         this, &UCQQuickImageExtension::extendedSourceChanged);
+    }
 }
 
 QUrl UCQQuickImageExtension::source() const
@@ -62,12 +69,16 @@ void UCQQuickImageExtension::setSource(const QUrl& url)
 
 void UCQQuickImageExtension::reloadSource()
 {
+    if (!m_image) {
+        // nothing to do, we don't have the image instance
+        return;
+    }
     if (m_source.isEmpty()) {
         m_image->setSource(m_source);
         return;
     }
 
-    QString resolved = UCUnits::instance().resolveResource(m_source);
+    QString resolved = UCUnits::instance()->resolveResource(m_source);
 
     if (resolved.isEmpty()) {
         m_image->setSource(m_source);
@@ -77,16 +88,19 @@ void UCQQuickImageExtension::reloadSource()
     int separatorPosition = resolved.indexOf("/");
     QString scaleFactor = resolved.left(separatorPosition);
     QString selectedFilePath = resolved.mid(separatorPosition+1);
+    QString fragment(m_source.hasFragment() ? "#" + m_source.fragment() : QString(""));
 
     if (scaleFactor == "1") {
         if (qFuzzyCompare(qGuiApp->devicePixelRatio(), (qreal)1.0)
                 || selectedFilePath.endsWith(".svg") || selectedFilePath.endsWith(".svgz")) {
-            // No scaling necessary. Just pass the file as is.
-            m_image->setSource(QUrl::fromLocalFile(selectedFilePath));
+            // Take care to pass the original fragment
+            QUrl selectedFileUrl(QUrl::fromLocalFile(selectedFilePath));
+            selectedFileUrl.setFragment(fragment);
+            m_image->setSource(selectedFileUrl);
         } else {
             // Need to scale the pixel-based image to suit the devicePixelRatio setting ourselves.
             // If we let Qt do it, Qt will not choose the UITK-supported "@gu" scaled images.
-            m_image->setSource(QUrl("image://scaling/1/" + selectedFilePath));
+            m_image->setSource(QUrl("image://scaling/1/" + selectedFilePath + fragment));
             // explicitly set the source size in the QQuickImageBase, this persuades it that the
             // supplied image is suitable for the current devicePixelRatio.
             m_image->setSourceSize(m_image->sourceSize());
@@ -95,7 +109,7 @@ void UCQQuickImageExtension::reloadSource()
         // Prepend "image://scaling" for the image to be loaded by UCScalingImageProvider.
         if (!m_source.path().endsWith(".sci")) {
             // Regular image file
-            m_image->setSource(QUrl("image://scaling/" + resolved));
+            m_image->setSource(QUrl("image://scaling/" + resolved + fragment));
         } else {
             // .sci image file. Rewrite the .sci file into a temporary file.
             bool rewritten = true;
@@ -124,7 +138,10 @@ void UCQQuickImageExtension::reloadSource()
             }
 
             if (rewritten) {
-                m_image->setSource(QUrl::fromLocalFile(rewrittenSciFile->fileName()));
+                // Take care to pass the original fragment
+                QUrl rewrittenSciFileUrl(QUrl::fromLocalFile(rewrittenSciFile->fileName()));
+                rewrittenSciFileUrl.setFragment(fragment);
+                m_image->setSource(rewrittenSciFileUrl);
             } else {
                 m_image->setSource(m_source);
             }

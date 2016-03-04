@@ -18,17 +18,16 @@
 
 uniform sampler2D texture[2];
 uniform lowp float opacity;
-varying mediump vec2 texCoord1;
-varying mediump vec2 texCoord2;
+varying mediump vec2 outerCoord;
+varying mediump vec2 innerCoord;
 varying lowp vec4 color;
 
 void main(void)
 {
-    lowp float outerShape = texture2D(texture[0], texCoord1).r;
-    lowp float innerShape = texture2D(texture[1], texCoord2).r;
-    //innerShape *= clamp(sign(texCoord2.s) + sign(texCoord2.t), 0.0, 1.0);
-    // FMA'd outerShape * (1.0 - innerShape)
+    lowp float outerShape = texture2D(texture[0], outerCoord).r;
+    lowp float innerShape = texture2D(texture[1], innerCoord).r;
+    // Fused multiply-add friendly version of (outerShape * (1.0 - innerShape))
     lowp float shape = (outerShape * -innerShape) + outerShape;
-    // shape is squared to make thinner corners (particularly visible at stroke 1).
+    // Squared to make thinner corners (particularly visible at stroke 1).
     gl_FragColor = vec4(shape * shape * opacity) * color;
 }

@@ -21,7 +21,6 @@
 //     code.
 
 #include "frame.h"
-#include "shapeutils.h"
 #include <QtCore/QMutex>
 #include <QtGui/QOpenGLContext>
 #include <QtGui/QOpenGLFunctions>
@@ -60,7 +59,7 @@ FrameCornerShader::FrameCornerShader()
 char const* const* FrameCornerShader::attributeNames() const
 {
     static char const* const attributes[] = {
-        "positionAttrib", "texCoord1Attrib", "texCoord2Attrib", "colorAttrib", 0
+        "positionAttrib", "outerCoordAttrib", "innerCoordAttrib", "colorAttrib", 0
     };
     return attributes;
 }
@@ -392,7 +391,7 @@ void UCFrameCornerNode::setVisible(bool visible)
         markDirty(DirtySubtreeBlocked);
     }
 }
-//#include <float.h>
+
 void UCFrameCornerNode::updateGeometry(
     const QSizeF& itemSize, float thickness, float radius, QRgb color)
 {
