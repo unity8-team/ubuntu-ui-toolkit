@@ -16,8 +16,8 @@
  * Author: Loïc Molinari <loic.molinari@canonical.com>
  */
 
-#ifndef SHAPEUTILS_H
-#define SHAPEUTILS_H
+#ifndef SHAPE_H
+#define SHAPE_H
 
 #include <QtQuick/QSGMaterial>
 #include <QtGui/QColor>
@@ -95,4 +95,4 @@ static inline quint32 packColor(QRgb color)
     return (a << 24) | ((b & 0xff) << 16) | ((g & 0xff) << 8) | (r & 0xff);
 }
 
-#endif  // SHAPEUTILS_H
+#endif  // SHAPE_H
