@@ -23,13 +23,19 @@
 #include <QtQuick/QQuickItem>
 #include <QtQuick/QSGNode>
 
+// Renders a colored fill shape.
 class UCFill : public QQuickItem
 {
     Q_OBJECT
-
     Q_ENUMS(Shape)
+
+    // Shape to use at corners.
     Q_PROPERTY(Shape shape READ shape WRITE setShape NOTIFY shapeChanged)
+
+    // Radius of the shape in pixels.
     Q_PROPERTY(qreal radius READ radius WRITE setRadius NOTIFY radiusChanged)
+
+    // Fill color. Translucent colors are supported.
     Q_PROPERTY(QColor color READ color WRITE setColor NOTIFY colorChanged)
 
 public:

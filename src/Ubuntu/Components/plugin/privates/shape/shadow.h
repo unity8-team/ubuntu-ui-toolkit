@@ -26,13 +26,22 @@
 class UCShadow : public QQuickItem
 {
     Q_OBJECT
-
     Q_ENUMS(Style)
     Q_ENUMS(Shape)
+
+    // Specifies whether the rendered shadow is outer (drop) or inner.
     Q_PROPERTY(Style style READ style WRITE setStyle NOTIFY styleChanged)
+
+    // Shape to use at corners.
     Q_PROPERTY(Shape shape READ shape WRITE setShape NOTIFY shapeChanged)
+
+    // Size of the shadow in pixels from the shape edge.
     Q_PROPERTY(qreal size READ size WRITE setSize NOTIFY sizeChanged)
+
+    // Radius of the shape in pixels.
     Q_PROPERTY(qreal radius READ radius WRITE setRadius NOTIFY radiusChanged)
+
+    // Shadow color. Translucent colors are supported.
     Q_PROPERTY(QColor color READ color WRITE setColor NOTIFY colorChanged)
 
 public:
