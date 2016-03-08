@@ -191,7 +191,7 @@ int UCFrameCornerMaterial::compare(const QSGMaterial* other) const
 
 static quint8* renderShape(int radius, UCFrame::Shape shape)
 {
-    DASSERT(radius >= 0);
+    DASSERT(radius > 0);
 
     const int border = 1;  // 1 pixel border around the edges for clamping reasons.
     const int width = getStride(radius + 2 * border, 1, textureStride);
@@ -244,7 +244,7 @@ static quint8* renderShape(int radius, UCFrame::Shape shape)
 void UCFrameCornerMaterial::updateTexture(
     int index, UCFrame::Shape shape, int radius, UCFrame::Shape newShape, int newRadius)
 {
-    DASSERT(newRadius > 0);
+    DASSERT(newRadius >= 0);
 
     QOpenGLFunctions* funcs = QOpenGLContext::currentContext()->functions();
     bool isNewTexture = false;
@@ -278,14 +278,22 @@ void UCFrameCornerMaterial::updateTexture(
         }
     }
 
-    quint8* buffer = renderShape(newRadius, newShape);
+    // Render the texture in memory.
+    const int border = 1;
+    const int newSize = newRadius + 2 * border;
+    const int newSizeRounded = getStride(newSize, 1, textureStride);
+    quint8* buffer;
+    if (newRadius > 0) {
+        buffer = renderShape(newRadius, newShape);
+    } else {
+        const int bufferSize = newSizeRounded * newSizeRounded;
+        buffer = (quint8*) malloc(bufferSize);
+        memset(buffer, 0, bufferSize);
+    }
 
     // Upload texture. The texture size is a multiple of textureStride to allow
     // GPUs to speed up uploads and optimise storage.
     funcs->glBindTexture(GL_TEXTURE_2D, m_textureId[index]);
-    const int border = 1;
-    const int newSize = newRadius + 2 * border;
-    const int newSizeRounded = getStride(newSize, 1, textureStride);
     if (isNewTexture) {
         funcs->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         funcs->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -418,8 +426,7 @@ void UCFrameCornerNode::updateGeometry(
     const float outerS2 = outerTextureFactor * (outerRadiusOffset + clampedThickness);
     const float outerS3 = outerTextureFactor * (outerRadiusOffset + clampedThickness + innerRadius);
 
-    const float innerRadiusOffset =
-        innerRadius > 0.0f ? innerRadiusRounded - innerRadius - border : -FLT_MAX;
+    const float innerRadiusOffset = innerRadiusRounded - innerRadius - border;
     const float innerTextureFactor = 1.0f / innerRadiusRounded;
     const float innerS0 = innerTextureFactor * innerRadiusOffset;
     const float innerS1 = innerTextureFactor * (innerRadiusOffset + innerRadius);
@@ -582,9 +589,8 @@ void UCFrameCornerNode::updateGeometry(
     if (m_radius[0] != static_cast<quint8>(outerRadius)) {
         m_newRadius[0] = static_cast<quint8>(outerRadius);
     }
-    const quint8 nonNullInnerRadius = qMax(1, static_cast<int>(innerRadius));
-    if (m_radius[1] != nonNullInnerRadius) {
-        m_newRadius[1] = nonNullInnerRadius;
+    if (m_radius[1] != static_cast<quint8>(innerRadius)) {
+        m_newRadius[1] = static_cast<quint8>(innerRadius);
     }
 }
 
