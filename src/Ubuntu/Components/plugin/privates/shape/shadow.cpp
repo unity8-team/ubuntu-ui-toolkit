@@ -45,7 +45,7 @@
 #include <QtCore/QElapsedTimer>
 #endif
 
-const UCShadow::Style defaultStyle = UCShadow::Drop;
+const UCShadow::Style defaultStyle = UCShadow::Outer;
 const UCShadow::Shape defaultShape = UCShadow::Squircle;
 const QRgb defaultColor = qRgba(0, 0, 0, 255);
 const int defaultShadow = 25;
@@ -94,7 +94,7 @@ void ShadowShader::initialize()
 {
     QSGMaterialShader::initialize();
     program()->bind();
-    program()->setUniformValue(m_channelId, m_style == UCShadow::Drop ? 0 : 3);
+    program()->setUniformValue(m_channelId, m_style == UCShadow::Outer ? 0 : 3);
     program()->setUniformValue("texture", 0);
     m_channelId = program()->uniformLocation("channel");
     m_matrixId = program()->uniformLocation("matrix");
@@ -113,7 +113,7 @@ void ShadowShader::updateState(
 
     const UCShadow::Style style = material->style();
     if (m_style != style) {
-        program()->setUniformValue(m_channelId, style == UCShadow::Drop ? 0 : 3);
+        program()->setUniformValue(m_channelId, style == UCShadow::Outer ? 0 : 3);
         m_style = style;
     }
     if (state.isMatrixDirty()) {
@@ -564,7 +564,7 @@ void UCShadowNode::updateGeometry(
     const float textureFactor = (1.0f - textureOffset) / textureSize;
     const quint32 packedColor = packColor(color);
 
-    if (m_style == UCShadow::Drop) {
+    if (m_style == UCShadow::Outer) {
         // 1st row.
         v[0].x = -clampedShadow;
         v[0].y = -clampedShadow;

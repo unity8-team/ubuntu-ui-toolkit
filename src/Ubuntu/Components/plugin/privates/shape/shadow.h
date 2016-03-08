@@ -47,7 +47,7 @@ class UCShadow : public QQuickItem
 public:
     UCShadow(QQuickItem* parent = 0);
 
-    enum Style { Drop = 0, Inner = 1 };
+    enum Style { Outer = 0, Inner = 1 };
     enum Shape { Squircle = 0, Circle = 1 };
 
     Style style() const { return static_cast<Style>(m_style); }
