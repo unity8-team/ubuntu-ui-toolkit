@@ -23,7 +23,7 @@
 #include <QtQuick/QQuickItem>
 #include <QtQuick/QSGNode>
 
-class UCColor : public QQuickItem
+class UCFill : public QQuickItem
 {
     Q_OBJECT
 
@@ -33,7 +33,7 @@ class UCColor : public QQuickItem
     Q_PROPERTY(QColor color READ color WRITE setColor NOTIFY colorChanged)
 
 public:
-    UCColor(QQuickItem* parent = 0);
+    UCFill(QQuickItem* parent = 0);
 
     enum Shape { Squircle = 0, Circle = 1 };
 
@@ -61,7 +61,7 @@ private:
     quint8 __padding : 7;
     quint8 m_flags;
 
-    Q_DISABLE_COPY(UCColor)
+    Q_DISABLE_COPY(UCFill)
 };
 
 class UCCornerMaterial : public QSGMaterial
@@ -81,7 +81,7 @@ public:
 
     typedef QHash<quint32, Texture> TextureHash;
 
-    static Q_CONSTEXPR quint32 makeTextureHashKey(UCColor::Shape shape, quint8 radius) {
+    static Q_CONSTEXPR quint32 makeTextureHashKey(UCFill::Shape shape, quint8 radius) {
         return static_cast<quint32>(shape) << 8  // 1 bit
             | static_cast<quint32>(radius);      // 8 bit
     }
@@ -93,7 +93,7 @@ public:
     virtual int compare(const QSGMaterial* other) const;
 
     quint32 textureId() const { return m_textureId; }
-    void updateTexture(UCColor::Shape shape, int radius, UCColor::Shape newShape, int newRadius);
+    void updateTexture(UCFill::Shape shape, int radius, UCFill::Shape newShape, int newRadius);
 
 private:
     TextureHash* m_textureHash;
@@ -109,12 +109,12 @@ public:
     static const quint16* indices();
     static const QSGGeometry::AttributeSet& attributeSet();
 
-    UCCornerNode(UCColor::Shape shape, bool visible);
+    UCCornerNode(UCFill::Shape shape, bool visible);
     virtual void preprocess();
     virtual bool isSubtreeBlocked() const { return m_visible == 0; }
 
     void setVisible(bool visible);
-    void setShape(UCColor::Shape shape) { m_newShape = shape; }
+    void setShape(UCFill::Shape shape) { m_newShape = shape; }
     void updateGeometry(const QSizeF& itemSize, float radius, QRgb color);
 
 private:
@@ -145,6 +145,6 @@ private:
     QSGGeometry m_geometry;
 };
 
-QML_DECLARE_TYPE(UCColor)
+QML_DECLARE_TYPE(UCFill)
 
 #endif  // UCCOLOR_H

@@ -48,17 +48,17 @@ Item {
             width: 100
             height: 100
             style: ShapeShadow.Inner
-            //z: 1
+            z: 1
             visible: true
         }
-        ShapeColor {
-            visible: false
-            id: color1
-            color: "black"
-            radius: dropShadow.radius
-            shape: dropShadow.shape
+        ShapeFill {
+            id: fill
             anchors.fill: parent
             anchors.margins: 200.0
+            color: "red"
+            radius: dropShadow.radius
+            shape: dropShadow.shape
+            visible: true
         }
     }
 
@@ -105,10 +105,10 @@ Item {
         } else if (event.key == Qt.Key_O) {
             dropShadow.opacity = dropShadow.opacity + (shift ? 0.02 : -0.02);
         }
-        // else if (event.key == Qt.Key_B) {
-        //     dropShadow2.size = dropShadow2.size + (shift ? 1.0 : -1.0);
-        // } else if (event.key == Qt.Key_N) {
-        //     dropShadow2.radius = dropShadow2.radius + (shift ? 1.0 : -1.0);
-        // }
+        else if (event.key == Qt.Key_A) {
+            fill.visible = !fill.visible;
+        } else if (event.key == Qt.Key_N) {
+            dropShadow.visible = !dropShadow.visible;
+        }
     }
 }

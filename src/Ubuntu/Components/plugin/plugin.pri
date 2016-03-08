@@ -116,7 +116,7 @@ HEADERS += $$PWD/plugin.h \
     $$PWD/privates/ucpagewrapperincubator_p.h \
     $$PWD/privates/appheaderbase.h \
     $$PWD/privates/shape/utils.h \
-    $$PWD/privates/shape/color.h \
+    $$PWD/privates/shape/fill.h \
     $$PWD/privates/shape/frame.h \
     $$PWD/privates/shape/shadow.h
 
@@ -196,7 +196,7 @@ SOURCES += $$PWD/plugin.cpp \
     $$PWD/privates/ucpagewrapperincubator.cpp \
     $$PWD/privates/appheaderbase.cpp \
     $$PWD/privates/shape/utils.cpp \
-    $$PWD/privates/shape/color.cpp \
+    $$PWD/privates/shape/fill.cpp \
     $$PWD/privates/shape/frame.cpp \
     $$PWD/privates/shape/shadow.cpp
 
@@ -213,11 +213,11 @@ OTHER_FILES += \
     $$PWD/shaders/shapeoverlay.vert \
     $$PWD/shaders/shapeoverlay.frag \
     $$PWD/shaders/shapeoverlay_no_dfdy.frag \
-    $$PWD/privates/shaders/color.vert \
-    $$PWD/privates/shaders/opaquecolor.frag \
-    $$PWD/privates/shaders/color.frag \
-    $$PWD/privates/shaders/texture.vert \
-    $$PWD/privates/shaders/luminance.frag \
-    $$PWD/privates/shaders/shadow.frag \
-    $$PWD/privates/shaders/frame.vert \
-    $$PWD/privates/shaders/frame.frag
+    $$PWD/privates/shape/shaders/color.vert \
+    $$PWD/privates/shape/shaders/opaquecolor.frag \
+    $$PWD/privates/shape/shaders/color.frag \
+    $$PWD/privates/shape/shaders/texture.vert \
+    $$PWD/privates/shape/shaders/luminance.frag \
+    $$PWD/privates/shape/shaders/shadow.frag \
+    $$PWD/privates/shape/shaders/frame.vert \
+    $$PWD/privates/shape/shaders/frame.frag

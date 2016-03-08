@@ -80,9 +80,9 @@
 #include "ucperformancemonitor.h"
 #include "privates/ucpagewrapper.h"
 #include "privates/appheaderbase.h"
-#include "privates/shadow.h"
-#include "privates/color.h"
-#include "privates/frame.h"
+#include "privates/shape/shadow.h"
+#include "privates/shape/fill.h"
+#include "privates/shape/frame.h"
 
 // From UbuntuGestures
 #include "private/ucswipearea_p.h"
@@ -302,7 +302,7 @@ void UbuntuComponentsPlugin::initializeEngine(QQmlEngine *engine, const char *ur
     // Register private types.
     const char *privateUri = "Ubuntu.Components.Private";
     qmlRegisterType<UCFrame>(privateUri, 1, 3, "ShapeFrame");
-    qmlRegisterType<UCColor>(privateUri, 1, 3, "ShapeColor");
+    qmlRegisterType<UCFill>(privateUri, 1, 3, "ShapeFill");
     qmlRegisterType<UCShadow>(privateUri, 1, 3, "ShapeShadow");
 
     qmlRegisterType<UCPageWrapper>(privateUri, 1, 3, "PageWrapper");

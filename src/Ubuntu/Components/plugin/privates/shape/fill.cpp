@@ -21,7 +21,7 @@
 // - Should use a texture atlas to allow batching of nodes with different radius
 // - Should try using half-sized texture with bilinear filtering.
 
-#include "color.h"
+#include "fill.h"
 #include <QtCore/QMutex>
 #include <QtGui/QOpenGLContext>
 #include <QtGui/QOpenGLFunctions>
@@ -29,7 +29,7 @@
 #include <QtGui/QImage>
 #include <QtSvg/QSvgRenderer>
 
-const UCColor::Shape defaultShape = UCColor::Squircle;
+const UCFill::Shape defaultShape = UCFill::Squircle;
 const QRgb defaultColor = qRgba(255, 255, 255, 255);
 
 // --- Shaders ---
@@ -178,7 +178,7 @@ int UCCornerMaterial::compare(const QSGMaterial* other) const
     return static_cast<const UCCornerMaterial*>(other)->textureId() - m_textureId;
 }
 
-static quint8* renderShape(int radius, UCColor::Shape shape)
+static quint8* renderShape(int radius, UCFill::Shape shape)
 {
     DASSERT(radius >= 0);
 
@@ -192,7 +192,7 @@ static quint8* renderShape(int radius, UCColor::Shape shape)
     // Render the shape with QPainter.
     QImage image(dataU8, width, height, width * 4, QImage::Format_ARGB32_Premultiplied);
     QPainter painter(&image);
-    if (shape == UCColor::Squircle) {
+    if (shape == UCFill::Squircle) {
         // QSvgRenderer being reentrant, we use a static instance with local
         // data.
         // FIXME(loicm) Use the same QSvgRenderer for all the items.
@@ -218,7 +218,7 @@ static quint8* renderShape(int radius, UCColor::Shape shape)
 }
 
 void UCCornerMaterial::updateTexture(
-    UCColor::Shape shape, int radius, UCColor::Shape newShape, int newRadius)
+    UCFill::Shape shape, int radius, UCFill::Shape newShape, int newRadius)
 {
     DASSERT(newRadius > 0);
 
@@ -284,7 +284,7 @@ void UCCornerMaterial::updateTexture(
 
 // --- Node ---
 
-UCCornerNode::UCCornerNode(UCColor::Shape shape, bool visible)
+UCCornerNode::UCCornerNode(UCFill::Shape shape, bool visible)
     : QSGGeometryNode()
     , m_geometry(attributeSet(), 12, 12, GL_UNSIGNED_SHORT)
     , m_radius(0)
@@ -336,8 +336,8 @@ void UCCornerNode::preprocess()
 {
     if (m_newRadius != m_radius || m_newShape != m_shape) {
         m_material.updateTexture(
-            static_cast<UCColor::Shape>(m_shape), m_radius,
-            static_cast<UCColor::Shape>(m_newShape), m_newRadius);
+            static_cast<UCFill::Shape>(m_shape), m_radius,
+            static_cast<UCFill::Shape>(m_newShape), m_newRadius);
         m_radius = m_newRadius;
         m_shape = m_newShape;
     }
@@ -486,7 +486,7 @@ void UCColorNode::updateGeometry(const QSizeF& itemSize, float radius, QRgb colo
     const float h = static_cast<float>(itemSize.height());
     // Rounded down since Shadow doesn't support sub-pixel rendering.
     const float maxSize = floorf(qMin(w, h) * 0.5f);
-    const float clampedRadius = qMin(radius + 0.5f, maxSize);
+    const float clampedRadius = qMin(radius, maxSize);
     const quint32 packedColor = packColor(color);
 
     v[0].x = clampedRadius;
@@ -519,7 +519,7 @@ void UCColorNode::updateGeometry(const QSizeF& itemSize, float radius, QRgb colo
 
 // --- Item ---
 
-UCColor::UCColor(QQuickItem* parent)
+UCFill::UCFill(QQuickItem* parent)
     : QQuickItem(parent)
     , m_color(defaultColor)
     , m_radius(defaultRadius)
@@ -529,7 +529,7 @@ UCColor::UCColor(QQuickItem* parent)
     setFlag(ItemHasContents);
 }
 
-void UCColor::setShape(Shape shape)
+void UCFill::setShape(Shape shape)
 {
     const quint8 newShape = shape;
     if (m_shape != newShape) {
@@ -540,7 +540,7 @@ void UCColor::setShape(Shape shape)
     }
 }
 
-void UCColor::setRadius(qreal radius)
+void UCFill::setRadius(qreal radius)
 {
     const quint8 clampedRadius = static_cast<quint8>(qBound(0, qRound(radius), maxRadius));
     if (m_radius != clampedRadius) {
@@ -553,7 +553,7 @@ void UCColor::setRadius(qreal radius)
     }
 }
 
-void UCColor::setColor(const QColor& color)
+void UCFill::setColor(const QColor& color)
 {
     const QRgb rgbColor = qRgba(color.red(), color.green(), color.blue(), color.alpha());
     if (m_color != rgbColor) {
@@ -563,7 +563,7 @@ void UCColor::setColor(const QColor& color)
     }
 }
 
-QSGNode* UCColor::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData* data)
+QSGNode* UCFill::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData* data)
 {
     Q_UNUSED(data);
 
