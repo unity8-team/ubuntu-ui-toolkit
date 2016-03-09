@@ -23,6 +23,7 @@
 #include "ucstyleditembase.h"
 #include "ucthemingextension.h"
 #include "ucimportversionchecker_p.h"
+#include <UbuntuToolkit/PropertyBinding>
 
 class QQuickMouseArea;
 class UCStyledItemBase;
@@ -41,6 +42,9 @@ public:
     UCStyledItemBasePrivate();
     virtual ~UCStyledItemBasePrivate();
     void init();
+    virtual void setupHighlightedStateBinging();
+    virtual void setupFocusedStateBinging();
+    virtual void setupSelectedStateBinging();
 
     virtual void setFocusable(bool focus);
     bool isParentFocusable();
@@ -68,6 +72,10 @@ public:
     QQuickItem *oldParentItem;
     QQmlComponent *styleComponent;
     QQuickItem *styleItem;
+    UbuntuToolkit::PropertyBinding<bool> *highlighted;
+    UbuntuToolkit::PropertyBinding<bool> *focused;
+    UbuntuToolkit::PropertyBinding<bool> *selected;
+    UCStyledItemBase::ComponentState componentState;
     quint16 styleVersion;
     bool keyNavigationFocus:1;
     bool activeFocusOnPress:1;

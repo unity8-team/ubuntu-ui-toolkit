@@ -29,6 +29,10 @@ UCStyledItemBasePrivate::UCStyledItemBasePrivate()
     : oldParentItem(Q_NULLPTR)
     , styleComponent(Q_NULLPTR)
     , styleItem(Q_NULLPTR)
+    , highlighted(Q_NULLPTR)
+    , focused(Q_NULLPTR)
+    , selected(Q_NULLPTR)
+    , componentState(UCStyledItemBase::Undefined)
     , styleVersion(0)
     , keyNavigationFocus(false)
     , activeFocusOnPress(false)
@@ -60,6 +64,55 @@ void UCStyledItemBasePrivate::init()
 {
     Q_Q(UCStyledItemBase);
     QObject::connect(q, &QQuickItem::activeFocusOnTabChanged, q, &UCStyledItemBase::activeFocusOnTabChanged2);
+}
+
+// initializes state builders
+void UCStyledItemBasePrivate::setupHighlightedStateBinging()
+{
+    Q_Q(UCStyledItemBase);
+    const QMetaObject *mo = q->metaObject();
+    // detect highlight setup
+    if (mo->indexOfProperty("pressed") > 0) {
+        QMetaMethod change = mo->method(mo->indexOfSignal("pressedChanged()"));
+        auto getter = [=] ()->bool {
+            return QQmlProperty::read(q, "pressed", qmlContext(q)).toBool();
+        };
+        highlighted = new UbuntuToolkit::PropertyBinding<bool>(
+                    getter,
+                    std::bind(&UCStyledItemBase::componentStateChanged, q),
+                    {UbuntuToolkit::Binding(q, change)});
+    } else if (mo->indexOfProperty("highlighted") > 0) {
+        QMetaMethod change = mo->method(mo->indexOfSignal("highlightedChanged()"));
+        auto getter = [=] ()->bool {
+            return QQmlProperty::read(q, "highlighted", qmlContext(q)).toBool();
+        };
+        highlighted = new UbuntuToolkit::PropertyBinding<bool>(
+                    getter,
+                    std::bind(&UCStyledItemBase::componentStateChanged, q),
+                    {UbuntuToolkit::Binding(q, change)});
+    }
+}
+
+void UCStyledItemBasePrivate::setupFocusedStateBinging()
+{
+    Q_Q(UCStyledItemBase);
+    auto getter = [=] () -> bool {
+        return q->window() && q->window()->activeFocusItem() == q;
+    };
+
+    const QMetaObject *mo = q->metaObject();
+    focused = new UbuntuToolkit::PropertyBinding<bool> (
+                getter,
+                std::bind(&UCStyledItemBase::componentComplete, q),
+                {
+                    UbuntuToolkit::Binding(q, mo->method(mo->indexOfMethod("windowChanged(QQuickWindow*)")))
+                }
+                );
+}
+
+void UCStyledItemBasePrivate::setupSelectedStateBinging()
+{
+
 }
 
 
@@ -480,6 +533,35 @@ void UCStyledItemBase::postThemeChanged()
     d->loadStyleItem();
 }
 
+/*!
+ * \qmlproperty ComponentState StyledItem::componentState
+ * \readonly
+ * \since Ubuntu.Components 1.3
+ * The property reports the current state of the component.
+ */
+UCStyledItemBase::ComponentState UCStyledItemBase::componentState()
+{
+    Q_D(const UCStyledItemBase);
+    if (isEnabled()) {
+        if (d->highlighted && d->highlighted->value()) {
+            return Highlighted;
+        }
+        if (d->focused && d->focused->value()) {
+            return Focused;
+        }
+        if (d->selected && d->selected->value()) {
+            return Selected;
+        }
+        return Normal;
+    } else if (d->selected && d->selected->value()) {
+        return SelectedDisabled;
+    } else {
+        return Disabled;
+    }
+
+    return Undefined;
+}
+
 QString UCStyledItemBasePrivate::propertyForVersion(quint16 version) const
 {
     switch (MINOR_VERSION(version)) {
@@ -510,10 +592,16 @@ void UCStyledItemBase::classBegin()
      * The member defaults to true. Additionally, the focus scope flag must
      * be set before the parentItem is set and child items are added.
      */
-    if (d_func()->isFocusScope) {
+    Q_D(UCStyledItemBase);
+    if (d->isFocusScope) {
         setFlag(QQuickItem::ItemIsFocusScope);
     }
     QQuickItem::classBegin();
+
+    // build state transitioners
+    d->setupHighlightedStateBinging();
+    d->setupFocusedStateBinging();
+    d->setupSelectedStateBinging();
 }
 
 void UCStyledItemBase::componentComplete()

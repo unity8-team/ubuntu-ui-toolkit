@@ -25,6 +25,7 @@
 class UCStyledItemBasePrivate;
 class UCTheme;
 class UCStyleHints;
+class StyledItemAttached;
 class UCStyledItemBase : public QQuickItem, public UCThemingExtension
 {
     Q_OBJECT
@@ -45,7 +46,19 @@ class UCStyledItemBase : public QQuickItem, public UCThemingExtension
     Q_PRIVATE_PROPERTY(UCStyledItemBase::d_func(), QQuickItem *__styleInstance READ styleInstance NOTIFY styleInstanceChanged FINAL DESIGNABLE false)
     Q_PRIVATE_PROPERTY(UCStyledItemBase::d_func(), QString styleName READ styleName WRITE setStyleName NOTIFY styleNameChanged FINAL REVISION 2)
     Q_PROPERTY(UCTheme *theme READ getTheme WRITE setTheme RESET resetTheme NOTIFY themeChanged FINAL REVISION 2)
+    Q_PROPERTY(ComponentState componentState READ componentState NOTIFY componentStateChanged FINAL REVISION 2)
+    Q_ENUMS(ComponentState)
 public:
+    enum ComponentState {
+        Undefined,
+        Normal,
+        Highlighted,
+        Focused,
+        Selected,
+        Disabled,
+        SelectedDisabled
+    };
+
     explicit UCStyledItemBase(QQuickItem *parent = 0);
 
     virtual bool keyNavigationFocus() const;
@@ -53,6 +66,7 @@ public:
     void setActiveFocusOnPress(bool value);
     bool activeFocusOnTab2() const;
     void setActiveFocusOnTab2(bool value);
+    ComponentState componentState();
 
 public Q_SLOTS:
     Q_REVISION(1) bool requestFocus(Qt::FocusReason reason = Qt::OtherFocusReason);
@@ -65,6 +79,7 @@ Q_SIGNALS:
     Q_REVISION(1) void activeFocusOnTabChanged2();
     Q_REVISION(2) void themeChanged();
     Q_REVISION(2) void styleNameChanged();
+    Q_REVISION(2) void componentStateChanged();
 
 protected:
     UCStyledItemBase(UCStyledItemBasePrivate &, QQuickItem *parent);
