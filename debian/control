@@ -67,17 +67,21 @@ Section: oldlibs
 Architecture: amd64 i386
 Multi-Arch: same
 Depends: qml-module-ubuntu-components-gles,
-Description: Transitional package for Qt Components for Ubuntu - OpenGLES
+Description: Transitional package for Qt Components for Ubuntu, OpenGLES
  Qt Components for Ubuntu offers a set of reusable user interface
  components for Qt Quick 2 / QML.
  .
  This is a transitional package that is safe to remove.
+ .
+ This is the OpenGL ES version for amd64 and i386.
 
 Package: qml-module-ubuntu-components-gles
 Architecture: amd64 i386
 Breaks: qtdeclarative5-ubuntu-ui-toolkit-plugin-gles (<< ${source:Version}),
-Conflicts: qtdeclarative5-ubuntu-ui-toolkit-plugin,
-Replaces: qtdeclarative5-ubuntu-ui-toolkit-plugin,
+Conflicts: qml-module-ubuntu-components,
+           qtdeclarative5-ubuntu-ui-toolkit-plugin,
+Replaces: qml-module-ubuntu-components,
+          qtdeclarative5-ubuntu-ui-toolkit-plugin,
           qtdeclarative5-ubuntu-ui-toolkit-plugin-gles (<< ${source:Version}),
 Provides: qml-module-ubuntu-components,
 Multi-Arch: same
@@ -97,12 +101,31 @@ Depends: libqt5svg5,
          ubuntu-ui-toolkit-theme,
          ${misc:Depends},
          ${shlibs:Depends},
-Description: Qt Components for Ubuntu - QML plugin - OpenGLES
+Description: Qt Components for Ubuntu - QML plugin - GLES
  Qt Components for Ubuntu offers a set of reusable user interface
  components for Qt Quick 2 / QML.
  .
  This package contains the Ubuntu Components QML plugin (built with
  the OpenGLES backend).
+
+Package: qml-module-ubuntu-performancemetrics-gles
+Architecture: amd64 i386
+Conflicts: qml-module-ubuntu-performancemetrics,
+Replaces: qml-module-ubuntu-performancemetrics,
+Provides: qml-module-ubuntu-performancemetrics,
+Multi-Arch: same
+Pre-Depends: dpkg (>= 1.15.6~),
+             ${misc:Pre-Depends},
+Depends: ${misc:Depends},
+         ${shlibs:Depends},
+Replaces: qtdeclarative5-ubuntu-ui-toolkit-plugin (<< ${source:Version}),
+Description: Qt Components for Ubuntu - PerformanceMetrics QML plugin - GLES
+ Qt Components for Ubuntu offers a set of reusable user interface
+ components for Qt Quick 2 / QML.
+ .
+ This package contains the Ubuntu PerformanceMetrics QML plugin.
+ .
+ This is the OpenGL ES version for amd64 and i386.
 
 Package: libubuntugestures5-gles
 Architecture: amd64 i386
@@ -114,9 +137,11 @@ Pre-Depends: dpkg (>= 1.15.6~),
              ${misc:Pre-Depends},
 Depends: ${misc:Depends},
          ${shlibs:Depends},
-Description: Gestures library for Ubuntu UI Toolkit - OpenGLES
+Description: Gestures library for Ubuntu UI Toolkit - GLES
  Library supporting Gesture recognition for Ubuntu UI Toolkit
  Classes for SwipeArea, and for Ubuntu Gestures in general.
+ .
+ This is the OpenGL ES version for amd64 and i386.
 
 Package: libubuntugestures5-gles-dev
 Architecture: amd64 i386
@@ -129,9 +154,11 @@ Pre-Depends: dpkg (>= 1.15.6~),
              ${misc:Pre-Depends},
 Depends: ${misc:Depends},
          ${shlibs:Depends},
-Description: Ubuntu gestures library development files - OpenGLES
+Description: Ubuntu gestures library development files - GLES
  This package contains the development files for
  Ubuntu gestures library with SwipeArea
+ .
+ This is the OpenGL ES version for amd64 and i386.
 
 Package: libubuntutoolkit5-gles
 Architecture: amd64 i386
@@ -143,9 +170,11 @@ Pre-Depends: dpkg (>= 1.15.6~),
              ${misc:Pre-Depends},
 Depends: ${misc:Depends},
          ${shlibs:Depends},
-Description: Ubuntu toolkit common library for Ubuntu UI Toolkit
+Description: Ubuntu toolkit common library for Ubuntu UI Toolkit - GLES
  Contains components and helper classes that are shared between the
  Ubuntu QML plugins
+ .
+ This is the OpenGL ES version for amd64 and i386.
 
 Package: libubuntutoolkit5-gles-dev
 Architecture: amd64 i386
@@ -158,6 +187,8 @@ Pre-Depends: dpkg (>= 1.15.6~),
              ${misc:Pre-Depends},
 Depends: ${misc:Depends},
          ${shlibs:Depends},
-Description: Ubuntu toolkit common library development files
+Description: Ubuntu toolkit common library development files - GLES
  This package contains the development files for
  Ubuntu toolkit common library
+ .
+ This is the OpenGL ES version for amd64 and i386.
