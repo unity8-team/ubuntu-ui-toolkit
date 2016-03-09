@@ -110,15 +110,16 @@ Description: Qt Components for Ubuntu - QML plugin - GLES
 
 Package: qml-module-ubuntu-performancemetrics-gles
 Architecture: amd64 i386
+Breaks: qtdeclarative5-ubuntu-ui-toolkit-plugin-gles (<< ${source:Version}),
 Conflicts: qml-module-ubuntu-performancemetrics,
 Replaces: qml-module-ubuntu-performancemetrics,
+          qtdeclarative5-ubuntu-ui-toolkit-plugin-gles (<< ${source:Version}),
 Provides: qml-module-ubuntu-performancemetrics,
 Multi-Arch: same
 Pre-Depends: dpkg (>= 1.15.6~),
              ${misc:Pre-Depends},
 Depends: ${misc:Depends},
          ${shlibs:Depends},
-Replaces: qtdeclarative5-ubuntu-ui-toolkit-plugin (<< ${source:Version}),
 Description: Qt Components for Ubuntu - PerformanceMetrics QML plugin - GLES
  Qt Components for Ubuntu offers a set of reusable user interface
  components for Qt Quick 2 / QML.
