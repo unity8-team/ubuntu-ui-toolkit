@@ -136,6 +136,9 @@ Description: Ubuntu gestures library development files - OpenGLES
 Package: libubuntutoolkit5-gles
 Architecture: amd64 i386
 Multi-Arch: same
+Conflicts: libubuntutoolkit5,
+Replaces: libubuntutoolkit5,
+Provides: libubuntutoolkit5,
 Pre-Depends: dpkg (>= 1.15.6~),
              ${misc:Pre-Depends},
 Depends: ${misc:Depends},
@@ -148,6 +151,9 @@ Package: libubuntutoolkit5-gles-dev
 Architecture: amd64 i386
 Multi-Arch: same
 Section: libdevel
+Conflicts: libubuntutoolkit5-dev,
+Replaces: libubuntutoolkit5-dev,
+Provides: libubuntutoolkit5-dev,
 Pre-Depends: dpkg (>= 1.15.6~),
              ${misc:Pre-Depends},
 Depends: ${misc:Depends},
