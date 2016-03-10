@@ -17,8 +17,8 @@
 
 
 SERIALNUMBER=086e443edf51b915
-PPA="ubuntu-sdk-team/staging"
-TEST_PPA=false
+SILO="025"
+TEST_SILO=false
 TIMESTAMP=`date +"%Y_%m_%d-%H_%M_%S"`
 DATESTAMP=`date +"%Y_%m_%d"`
 LOGFILENAME="ap-${TIMESTAMP}"
@@ -31,11 +31,10 @@ CHANNEL="ubuntu-touch/rc-proposed/${DISTRO}"
 PASSWORD="0000"
 BOOTTIME=250
 COMISSION=false
-COUNT=3
+COUNT=10
 SLEEP_TIME=10
 LTTNG_SESSION_NAME_REGEXP='(auto-.*-.*) created.'
 LTTNG_SESSION_NAME=""
-PPA="ubuntu-sdk-team/testing"
 
 WIRELESS_ADAPTER="$(nmcli -t -f device,type dev | egrep "wireless|wifi" | cut -d: -f1)"
 IP_ADDRESS="$(ifconfig | grep -A 1 ${WIRELESS_ADAPTER} | tail -1 | cut -d ':' -f 2 | cut -d ' ' -f 1)"
@@ -44,7 +43,6 @@ IP_ADDRESS="$(ifconfig | grep -A 1 ${WIRELESS_ADAPTER} | tail -1 | cut -d ':' -f
 declare -a APPLICATIONS=(
 	"dialer-app"
 	"messaging-app"
-	"address-book-app"
 	"ubuntu-system-settings"
 )
 
@@ -77,11 +75,24 @@ sleep_indicator () {
 	return 0
 }
 
+
+function wait_for_shell {
+        # Waiting for device on ADB
+        set -e
+        adb -s ${SERIALNUMBER} wait-for-device
+        # Start waiting for Unity8"
+        until PIDS=$(adb -s ${SERIALNUMBER} shell pidof unity8 2>/dev/null|egrep -v "^$"); 
+        do
+                sleep 0.1;
+        done;
+        echo "Unity8 is up with PID: ${PIDS}"
+        set +e
+}
+
 function unlock_screen {
 	adb -s ${SERIALNUMBER} shell powerd-cli display on |egrep -v "Display State requested, cookie is|Press ctrl-c to exit|not fully supported." &
 	adb -s ${SERIALNUMBER} shell powerd-cli active |egrep -v "requested, cookie is|Press ctrl-c to exit|not fully supported." &
 	sleep_indicator 10
-	adb -s ${SERIALNUMBER} shell amixer -D pulse set Master 1+ mute 2>&1 > /dev/null
 	adb -s ${SERIALNUMBER} shell "gdbus call --session --dest com.canonical.UnityGreeter --object-path / --method com.canonical.UnityGreeter.HideGreeter|grep -v '\(\)'"
 	adb -s ${SERIALNUMBER} shell "echo ${PASSWORD}|sudo -S dbus-send --system --print-reply \
 					 --dest=org.freedesktop.Accounts \
@@ -91,6 +102,14 @@ function unlock_screen {
 					 string:demo-edges variant:boolean:false 2>&1|grep -v password|egrep -v '\(\)|method return'"
 }
 
+function reset {
+        adb -s ${SERIALNUMBER} shell "echo ${PASSWORD}|sudo -S reboot 2>&1|grep -v password"
+        sleep_indicator 120
+        wait_for_shell
+        sleep_indicator 10
+        network
+        unlock_screen
+}
 
 function network {
 	if phablet-network -s ${SERIALNUMBER} 2>&1|grep -q Error; then
@@ -99,7 +118,6 @@ function network {
 		phablet-network -s ${SERIALNUMBER} 2>&1
 	fi
 }
-
 
 function device_provisioning {
 	# flash the latest image
@@ -148,7 +166,7 @@ function measure_app_startups {
 	done
 } 
 
-while getopts ":hptc:o:" opt; do
+while getopts ":hptc:s:w:o:" opt; do
 	case $opt in
 	p)
 		COMISSION=true
@@ -167,15 +185,21 @@ while getopts ":hptc:o:" opt; do
 		SLEEP_TIME=$OPTARG
 		;;
 	t)
-		TEST_PPA=true
+		TEST_SILO=true
 		;;
+        w)
+                PASSWORD=$OPTARG
+                ;;
+
+
 	h)
 		echo "Usage: appstart_profiling_test_plan.sh -p -o [ PATH ]"
-		echo -e "\t-p : Provision the device with the ${PPA} enabled"
+		echo -e "\t-p : Provision the device with the ${SILO} enabled"
 		echo -e "\t-o : Output directory. Default $OUTPUTDIR"
 		echo -e "\t-c : Number of times the applications are started during the test. Default $COUNT"
 		echo -e "\t-s : Sleep time between application starts. Default $SLEEP_TIME"
-		echo -e "\t-t : Run tests against a PPA. Default is ${TEST_PPA} the default PPA is: ${PPA}"
+		echo -e "\t-t : Run tests against a silo Default is ${TEST_SILO} the default silo is: ${SILO}"
+                echo -e "\t-w : Password of the phablet user on the device. Default ${PASSWORD}"
 		exit
 		;;
 	:)
@@ -196,10 +220,10 @@ echo "Number of start: ${COUNT}"
 echo "Length of sleep between restarts: ${SLEEP_TIME}"
 echo "Output directory: ${OUTPUTDIR}"
 echo "Commission: ${COMISSION}"
-echo "Test PPA: ${TEST_PPA}"
-echo "PPA: ${PPA}"
+echo "Test silo: ${TEST_SILO}"
+echo "Silo: ${SILO}"
+echo "Password of the phablet user:${PASSWORD}"
 echo ""
-
 
 # Flash the device with rc-proposed
 if [ ${COMISSION} == true ]; then
@@ -212,7 +236,9 @@ else
 		unlock_screen
 		network
 	else
-		phablet-config -s ${SERIALNUMBER} writable-image -r ${PASSWORD} 2>&1 > /dev/null
+                adb -s ${SERIALNUMBER} shell "echo ${PASSWORD}|sudo -S touch /userdata/.writable_image 2>&1|grep -v password > /dev/null"
+                adb -s ${SERIALNUMBER} shell "echo ${PASSWORD}|sudo -S touch /userdata/.adb_onlock 2>&1|grep -v password > /dev/null"
+                reset -f
 		echo "Sleep after phablet-config";
 		sleep_indicator 120
 		echo -e "Clone the network "
@@ -237,10 +263,6 @@ else
 	echo "The ubuntu-app-launch-profiler is installed on the device"
 fi
 
-# Unlock the screan
-echo -e "Unlocking the screan"
-#unlock_screen
-
 # Start the lttng-relayd if needed
 pgrep lttng-relayd > /dev/null
 if [ $? -eq 0 ]; then
@@ -256,21 +278,19 @@ if [ $? -eq 0 ]; then
 	echo "The lttng server ${URL} is listening on 5343"
 else
 	echo "The lttng server is not accesible. Check lttng-relayd or firewall policies."
+	exit
 fi
 
-# Measure the application startup times with stock system
-measure_app_startups
-
-# Configure the PPA on the device if requested
-if [[ ${TEST_PPA} == true ]]; then
-	echo "Testing with ${PPA}"
-	if adb -s ${SERIALNUMBER} shell "echo ${PASSWORD}|sudo -Sbash -c 'ls -l /etc/apt/sources.list.d/' 2>&1"|grep -q testing-ppa.list; then
+# Configure the silo on the device if requested
+if [[ ${TEST_SILO} == true ]]; then
+	echo "Testing with ${SILO}"
+	if adb -s ${SERIALNUMBER} shell "echo ${PASSWORD}|sudo -S bash -c 'ls -l /etc/apt/sources.list.d/' 2>&1"|grep -q testing-ppa.list; then
 		echo "Already set up"
 	else
-		echo -e "Set up with the PPA \e[31m${PPA}\e[0m"
-		adb -s ${SERIALNUMBER} shell "echo ${PASSWORD}|sudo -S bash -c 'echo \"deb http://ppa.launchpad.net/${PPA}/${DISTRO} ${SERIES} main\" > /etc/apt/sources.list.d/testing-ppa.list' 2>&1|grep -v password > /dev/null"
-		PPA=${PPA/\//-}
-		adb -s ${SERIALNUMBER} shell "echo ${PASSWORD}|sudo -S bash -c 'echo -e \"Package: *\nPin: release o=LP-PPA-${PPA}\nPin-Priority: 1100\" > /etc/apt/preferences.d/silo.pref' 2>&1|grep -v password > /dev/null "
+		echo -e "Set up with the SILO \e[31m${SILO}\e[0m"
+                adb -s ${SERIALNUMBER} shell "echo ${PASSWORD}|sudo -S bash -c 'echo \"deb http://ppa.launchpad.net/ci-train-ppa-service/landing-${SILO}/${DISTRO} ${SERIES} main\" > /etc/apt/sources.list.d/silo-${SILO}.list'  2>&1|grep -v password > /dev/null "
+		SILO=${SILO/\//-}
+                adb -s ${SERIALNUMBER} shell "echo ${PASSWORD}|sudo -S bash -c 'echo -e \"Package: *\nPin: release o=LP-SILO-ci-train-ppa-service-landing-${SILO}\nPin-Priority: 1100\" > /etc/apt/preferences.d/silo.pref' 2>&1|grep -v password > /dev/null "
 		adb -s ${SERIALNUMBER} shell "echo ${PASSWORD}|sudo -S apt-get update 2>&1|grep -v password > /dev/null"
 		adb -s ${SERIALNUMBER} shell "echo ${PASSWORD}|sudo -S apt-get dist-upgrade --yes --force-yes 2>&1 |grep -v password > /dev/null"
 		adb -s ${SERIALNUMBER} shell "echo ${PASSWORD}|sudo -S dpkg --configure -a 2>&1 |grep -v password > /dev/null"
@@ -281,7 +301,7 @@ if [[ ${TEST_PPA} == true ]]; then
         unlock_screen	
 	network
         sleep_indicator 10
-	# Measure the application startup times with the PPA
-	measure_app_startups
 fi
+# Measure the application startup times with the SILO
+measure_app_startups
 
