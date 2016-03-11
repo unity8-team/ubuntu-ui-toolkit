@@ -210,7 +210,7 @@ while getopts ":chn:s:w:p:o:" opt; do
 		;;
 
 	h)
-		echo "Usage: appstart_profiling_test_plan.sh -c -p 025 -n 5 -s 10"
+		echo "Usage: appstart_test -c -p 025 -n 5 -s 10"
 		echo -e "\t-c : Provision the device with the ${SILO} enabled"
 		echo -e "\t-n : Number of times the applications are started during the test. Default $COUNT"
 		echo -e "\t-s : Sleep time between application starts. Default $SLEEP_TIME"
