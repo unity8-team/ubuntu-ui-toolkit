@@ -17,8 +17,10 @@
 import QtQuick 2.4
 import Ubuntu.Components 1.3
 import Ubuntu.Components.Popups 1.3
+import QtQuick.Window 2.0
 
 Template {
+    id: pg
     objectName: "dialogsTemplate"
 
     TemplateSection {
@@ -32,6 +34,32 @@ Template {
                 text: i18n.tr("Open")
                 width: units.gu(16)
                 onClicked: PopupUtils.open(dialog, null)
+            }
+        }
+
+        TemplateRow {
+            title: i18n.tr("Window")
+
+            Button {
+                text: i18n.tr("Open Window")
+                width: units.gu(16)
+                onClicked: {
+                    var object = win.createObject(pg);
+                    object.show();
+                }
+            }
+        }
+
+        Component {
+            id: win
+            Window {
+                width: units.gu(30)
+                height: units.gu(50)
+
+                data: Rectangle {
+                    anchors.fill: parent
+                    color: UbuntuColors.green
+                }
             }
         }
 

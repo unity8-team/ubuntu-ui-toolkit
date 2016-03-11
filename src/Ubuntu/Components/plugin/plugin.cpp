@@ -88,6 +88,7 @@
 //From UbuntuToolkit
 #include <ColorUtils>
 #include <Tree>
+#include <WindowExtension>
 
 #include <sys/types.h>
 #include <unistd.h>
@@ -235,6 +236,7 @@ void UbuntuComponentsPlugin::registerTypes(const char *uri)
     qmlRegisterType<UCPageTreeNode>(uri, 1, 3, "PageTreeNode");
     qmlRegisterType<UCPopupContext>(uri, 1, 3, "PopupContext");
     qmlRegisterType<UCMainViewBase>(uri, 1, 3, "MainViewBase");
+    qmlRegisterExtendedType<QQuickWindow, UbuntuToolkit::WindowExtension>(uri, 1, 3, "QQuickWindowQmlImpl");
 }
 
 void UbuntuComponentsPlugin::initializeContextProperties(QQmlEngine *engine)

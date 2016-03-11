@@ -17,9 +17,11 @@ HEADERS += \
     ubuntutoolkitglobal.h \
     tree.h \
     asyncloader.h \
-    asyncloader_p.h
+    asyncloader_p.h \
+    windowextension.h
 
 SOURCES += \ 
     colorutils.cpp \
     tree.cpp \
-    asyncloader.cpp
+    asyncloader.cpp \
+    windowextension.cpp
