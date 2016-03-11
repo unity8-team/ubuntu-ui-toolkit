@@ -34,15 +34,15 @@ COUNT=10
 SLEEP_TIME=10
 LTTNG_SESSION_NAME_REGEXP='(auto-.*-.*) created.'
 LTTNG_SESSION_NAME=""
-
+REMOTE_LTTNG_SESSION=true
 WIRELESS_ADAPTER="$(nmcli -t -f device,type dev | egrep "wireless|wifi" | cut -d: -f1)"
 IP_ADDRESS="$(ifconfig | grep -A 1 ${WIRELESS_ADAPTER} | tail -1 | cut -d ':' -f 2 | cut -d ' ' -f 1)"
 
 
 declare -a APPLICATIONS=(
 	"dialer-app"
-	"messaging-app"
-	"ubuntu-system-settings"
+#	"messaging-app"
+#	"ubuntu-system-settings"
 )
 
 sleep_indicator () {
@@ -91,7 +91,7 @@ function wait_for_shell {
 function unlock_screen {
 	adb -s ${SERIALNUMBER} shell powerd-cli display on |egrep -v "Display State requested, cookie is|Press ctrl-c to exit|not fully supported." &
 	adb -s ${SERIALNUMBER} shell powerd-cli active |egrep -v "requested, cookie is|Press ctrl-c to exit|not fully supported." &
-	sleep_indicator 10
+	#sleep_indicator 10
 	adb -s ${SERIALNUMBER} shell "gdbus call --session --dest com.canonical.UnityGreeter --object-path / --method com.canonical.UnityGreeter.HideGreeter|grep -v '\(\)'"
 	adb -s ${SERIALNUMBER} shell "echo ${PASSWORD}|sudo -S dbus-send --system --print-reply \
 					 --dest=org.freedesktop.Accounts \
@@ -160,8 +160,23 @@ function measure_app_startups {
 			if [[ $LINE =~ $LTTNG_SESSION_NAME_REGEXP ]]; then
 				LTTNG_SESSION_NAME=${BASH_REMATCH[1]}
 			fi
+			if [[ $LINE =~ "Falling back to local" ]]; then
+				REMOTE_LTTNG_SESSION=false
+				echo "Falling back to local"
+			fi
+                        if [[ $LINE =~ "Traces will be written in" ]]; then
+                                LTTNG_TRACE_FILE=${LINE/Traces will be written in /}
+				LTTNG_TRACE_FILE="${LTTNG_TRACE_FILE/$'\r'/}"
+
+                        fi
 		done < <(adb -s ${SERIALNUMBER} shell "/usr/bin/profile_appstart.sh -a ${APPLICATION} -u ${IP_ADDRESS} -c ${COUNT} -s ${SLEEP_TIME}")
 		[ -z "${LTTNG_SESSION_NAME}" ] && echo "The lttng session is not available" || app-launch-profiler-lttng.py ~/lttng-traces/ubuntu-phablet/${LTTNG_SESSION_NAME}
+		if [[ $REMOTE_LTTNG_SESSION == false ]]; then
+			LTTNG_TRACE_PATH=${LTTNG_TRACE_FILE/$LTTNG_SESSION_NAME/}
+	                adb -s ${SERIALNUMBER} shell "echo ${PASSWORD}|sudo -S chown phablet $LTTNG_TRACE_PATH -R 2>&1|grep -v password > /dev/null"
+			adb -s ${SERIALNUMBER} pull ${LTTNG_TRACE_FILE} ${LTTNG_SESSION_NAME}  2>&1 > /dev/null
+			app-launch-profiler-lttng.py ${LTTNG_SESSION_NAME}
+		fi
 	done
 } 
 
