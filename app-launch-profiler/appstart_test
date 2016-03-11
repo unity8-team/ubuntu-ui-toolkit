@@ -177,12 +177,12 @@ function measure_app_startups {
 
 			fi
 		done < <(adb -s ${SERIALNUMBER} shell "/usr/bin/profile_appstart.sh -a ${APPLICATION} -u ${IP_ADDRESS} -c ${COUNT} -s ${SLEEP_TIME}")
-		[ -z "${LTTNG_SESSION_NAME}" ] && echo "The lttng session is not available" || app-launch-profiler-lttng.py ~/lttng-traces/ubuntu-phablet/${LTTNG_SESSION_NAME}
+		[ -z "${LTTNG_SESSION_NAME}" ] && echo "The lttng session is not available" || app-launch-profiler-lttng ~/lttng-traces/ubuntu-phablet/${LTTNG_SESSION_NAME}
 		if [[ $REMOTE_LTTNG_SESSION == false ]]; then
 			LTTNG_TRACE_PATH=${LTTNG_TRACE_FILE/$LTTNG_SESSION_NAME/}
 			adb -s ${SERIALNUMBER} shell "echo ${PASSWORD}|sudo -S chown phablet $LTTNG_TRACE_PATH -R 2>&1|grep -v password > /dev/null"
 			adb -s ${SERIALNUMBER} pull ${LTTNG_TRACE_FILE} ${LTTNG_SESSION_NAME}  > /dev/null 2>&1
-			app-launch-profiler-lttng.py ${LTTNG_SESSION_NAME}
+			app-launch-profiler-lttng ${LTTNG_SESSION_NAME}
 			if [ -z "${LTTNG_SESSION_NAME}" ];then
 				rm -rf ${LTTNG_SESSION_NAME}
 			fi
@@ -281,7 +281,9 @@ fi
 pgrep lttng-relayd > /dev/null
 if [ $? -eq 0 ]; then
 	echo -e "The lttng-relayd is already running."
+	LTTNG_RELAYD_STARTED=false
 else
+	LTTNG_RELAYD_STARTED=true
 	echo -e "Starting lttng-relayd"
 	lttng-relayd &
 	sleep_indicator 5
@@ -319,7 +321,7 @@ if [[ ${TEST_SILO} == true ]]; then
 	fi
 fi
 
-# Measure the application startup times with the SILO
+# Measure the application startup time
 measure_app_startups
 
 if [[ ${TEST_SILO} == true ]]; then
@@ -334,3 +336,7 @@ if [[ ${TEST_SILO} == true ]]; then
 	fi
 fi
 
+# Kill the lttng-relayd if it was started here
+if [[ ${LTTNG_RELAYD_STARTED} == true]]; then
+	kill -9 `pgrep lttng-relayd`
+fi
