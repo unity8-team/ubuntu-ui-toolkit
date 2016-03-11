@@ -338,6 +338,6 @@ if [[ ${TEST_SILO} == true ]]; then
 fi
 
 # Kill the lttng-relayd if it was started here
-if [[ ${LTTNG_RELAYD_STARTED} == true]]; then
+if [[ ${LTTNG_RELAYD_STARTED} == true ]]; then
 	kill -9 `pgrep lttng-relayd`
 fi
