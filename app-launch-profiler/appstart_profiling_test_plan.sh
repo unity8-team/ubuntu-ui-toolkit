@@ -22,7 +22,6 @@ TEST_SILO=false
 TIMESTAMP=`date +"%Y_%m_%d-%H_%M_%S"`
 DATESTAMP=`date +"%Y_%m_%d"`
 LOGFILENAME="ap-${TIMESTAMP}"
-OUTPUTDIR=$PWD
 RTM=true
 REVISION=105
 DISTRO="ubuntu"
@@ -166,40 +165,33 @@ function measure_app_startups {
 	done
 } 
 
-while getopts ":hptc:s:w:o:" opt; do
+while getopts ":chn:s:w:p:o:" opt; do
 	case $opt in
-	p)
+	c)
 		COMISSION=true
 		;;
-	o)
-		if [ -d "$OPTARG" ]; then
-			OUTPUTDIR=$OPTARG
-		else
-			echo "$OPTARG does not exist. Using default $OUTPUTDIR"
-		fi
-		;;
-	c)
+	n)
 		COUNT=$OPTARG
 		;;
 	s)
 		SLEEP_TIME=$OPTARG
 		;;
-	t)
+	p)
 		TEST_SILO=true
+                PPA=$OPTARG
 		;;
         w)
                 PASSWORD=$OPTARG
                 ;;
 
-
 	h)
-		echo "Usage: appstart_profiling_test_plan.sh -p -o [ PATH ]"
-		echo -e "\t-p : Provision the device with the ${SILO} enabled"
-		echo -e "\t-o : Output directory. Default $OUTPUTDIR"
-		echo -e "\t-c : Number of times the applications are started during the test. Default $COUNT"
+		echo "Usage: appstart_profiling_test_plan.sh -c -p 025 -n 5 -s 10"
+		echo -e "\t-c : Provision the device with the ${SILO} enabled"
+		echo -e "\t-n : Number of times the applications are started during the test. Default $COUNT"
 		echo -e "\t-s : Sleep time between application starts. Default $SLEEP_TIME"
-		echo -e "\t-t : Run tests against a silo Default is ${TEST_SILO} the default silo is: ${SILO}"
+		echo -e "\t-p : Run tests against a silo Default is ${TEST_SILO} the default silo is: ${SILO}"
                 echo -e "\t-w : Password of the phablet user on the device. Default ${PASSWORD}"
+                echo -e "\t-h : Show this help"
 		exit
 		;;
 	:)
@@ -218,7 +210,6 @@ echo ""
 echo "Serial number: ${SERIALNUMBER}"
 echo "Number of start: ${COUNT}"
 echo "Length of sleep between restarts: ${SLEEP_TIME}"
-echo "Output directory: ${OUTPUTDIR}"
 echo "Commission: ${COMISSION}"
 echo "Test silo: ${TEST_SILO}"
 echo "Silo: ${SILO}"
@@ -232,7 +223,7 @@ if [ ${COMISSION} == true ]; then
 else
 	# Check if the device is in writable mode
 	if adb shell "echo ${PASSWORD}|sudo -S bash -c '[[ -f /userdata/.writable_image ]] &&echo && echo writable'" 2>&1 |grep -v password | grep -q writable ; then
-		echo "The device is already writable"
+		# The device is already writable
 		unlock_screen
 		network
 	else
@@ -291,17 +282,21 @@ if [[ ${TEST_SILO} == true ]]; then
                 adb -s ${SERIALNUMBER} shell "echo ${PASSWORD}|sudo -S bash -c 'echo \"deb http://ppa.launchpad.net/ci-train-ppa-service/landing-${SILO}/${DISTRO} ${SERIES} main\" > /etc/apt/sources.list.d/silo-${SILO}.list'  2>&1|grep -v password > /dev/null "
 		SILO=${SILO/\//-}
                 adb -s ${SERIALNUMBER} shell "echo ${PASSWORD}|sudo -S bash -c 'echo -e \"Package: *\nPin: release o=LP-SILO-ci-train-ppa-service-landing-${SILO}\nPin-Priority: 1100\" > /etc/apt/preferences.d/silo.pref' 2>&1|grep -v password > /dev/null "
+                adb -s ${SERIALNUMBER} shell "test -e /usr/sbin/policy-rc.d && cp /usr/sbin/policy-rc.d /tmp/policy-rc.d"
+                adb -s ${SERIALNUMBER} shell "echo ${PASSWORD}|sudo -S  bash -c 'echo \"exit 101\" > /usr/sbin/policy-rc.d'  2>&1|grep -v password > /dev/null"
+                adb -s ${SERIALNUMBER} shell "echo ${PASSWORD}|sudo -S  bash -c 'chmod +x /usr/sbin/policy-rc.d'  2>&1|grep -v password > /dev/null"
 		adb -s ${SERIALNUMBER} shell "echo ${PASSWORD}|sudo -S apt-get update 2>&1|grep -v password > /dev/null"
 		adb -s ${SERIALNUMBER} shell "echo ${PASSWORD}|sudo -S apt-get dist-upgrade --yes --force-yes 2>&1 |grep -v password > /dev/null"
 		adb -s ${SERIALNUMBER} shell "echo ${PASSWORD}|sudo -S dpkg --configure -a 2>&1 |grep -v password > /dev/null"
 		adb -s ${SERIALNUMBER} shell "echo ${PASSWORD}|sudo -S apt-get --force-yes -f install  2>&1 |grep -v password > /dev/null"
 	        adb -s ${SERIALNUMBER} shell "echo ${PASSWORD}|sudo -S reboot 2>&1|grep -v password > /dev/null"
         	sleep_indicator 120
+		unlock_sreen
+		network
+		sleep_indicator 5
 	fi
-        unlock_screen	
-	network
-        sleep_indicator 10
 fi
+
 # Measure the application startup times with the SILO
 measure_app_startups
 
