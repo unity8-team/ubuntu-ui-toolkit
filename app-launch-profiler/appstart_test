@@ -26,6 +26,7 @@ BOOTTIME=250
 COMISSION=false
 COUNT=10
 SLEEP_TIME=10
+FILTER=.*
 LTTNG_SESSION_NAME_REGEXP='(auto-.*-.*) created.'
 LTTNG_SESSION_NAME=""
 REMOTE_LTTNG_SESSION=true
@@ -160,37 +161,38 @@ function device_provisioning {
 function measure_app_startups {
 	for APPLICATION in "${APPLICATIONS[@]}"
 	do
- 		echo -e "\e[31m${APPLICATION}\e[0m"
-		LTTNG_SESSION_NAME=""
-		while read -r LINE
-		do
-			if [[ $LINE =~ $LTTNG_SESSION_NAME_REGEXP ]]; then
-				LTTNG_SESSION_NAME=${BASH_REMATCH[1]}
-			fi
-			if [[ $LINE =~ "Falling back to local" ]]; then
-				# Falling back to local
-				REMOTE_LTTNG_SESSION=false
-			fi
-			if [[ $LINE =~ "Traces will be written in" ]]; then
-				LTTNG_TRACE_FILE=${LINE/Traces will be written in /}
-				LTTNG_TRACE_FILE="${LTTNG_TRACE_FILE/$'\r'/}"
-
-			fi
-		done < <(adb -s ${SERIALNUMBER} shell "/usr/bin/profile_appstart.sh -a ${APPLICATION} -u ${IP_ADDRESS} -c ${COUNT} -s ${SLEEP_TIME}")
-		[ -z "${LTTNG_SESSION_NAME}" ] && echo "The lttng session is not available" || app-launch-profiler-lttng ~/lttng-traces/ubuntu-phablet/${LTTNG_SESSION_NAME}
-		if [[ $REMOTE_LTTNG_SESSION == false ]]; then
-			LTTNG_TRACE_PATH=${LTTNG_TRACE_FILE/$LTTNG_SESSION_NAME/}
-			adb -s ${SERIALNUMBER} shell "echo ${PASSWORD}|sudo -S chown phablet $LTTNG_TRACE_PATH -R 2>&1|grep -v password > /dev/null"
-			adb -s ${SERIALNUMBER} pull ${LTTNG_TRACE_FILE} ${LTTNG_SESSION_NAME}  > /dev/null 2>&1
-			app-launch-profiler-lttng ${LTTNG_SESSION_NAME}
-			if [ -z "${LTTNG_SESSION_NAME}" ];then
-				rm -rf ${LTTNG_SESSION_NAME}
+	        if [[ ${APPLICATION} =~ ${FILTER} ]]; then
+ 			echo -e "\e[31m${APPLICATION}\e[0m"
+			LTTNG_SESSION_NAME=""
+			while read -r LINE
+			do
+				if [[ $LINE =~ $LTTNG_SESSION_NAME_REGEXP ]]; then
+					LTTNG_SESSION_NAME=${BASH_REMATCH[1]}
+				fi
+				if [[ $LINE =~ "Falling back to local" ]]; then
+					# Falling back to local
+					REMOTE_LTTNG_SESSION=false
+				fi
+				if [[ $LINE =~ "Traces will be written in" ]]; then
+					LTTNG_TRACE_FILE=${LINE/Traces will be written in /}
+					LTTNG_TRACE_FILE="${LTTNG_TRACE_FILE/$'\r'/}"
+				fi
+			done < <(adb -s ${SERIALNUMBER} shell "/usr/bin/profile_appstart.sh -a ${APPLICATION} -u ${IP_ADDRESS} -c ${COUNT} -s ${SLEEP_TIME}")
+			[ -z "${LTTNG_SESSION_NAME}" ] && echo "The lttng session is not available" || app-launch-profiler-lttng ~/lttng-traces/ubuntu-phablet/${LTTNG_SESSION_NAME}
+			if [[ $REMOTE_LTTNG_SESSION == false ]]; then
+				LTTNG_TRACE_PATH=${LTTNG_TRACE_FILE/$LTTNG_SESSION_NAME/}
+				adb -s ${SERIALNUMBER} shell "echo ${PASSWORD}|sudo -S chown phablet $LTTNG_TRACE_PATH -R 2>&1|grep -v password > /dev/null"
+				adb -s ${SERIALNUMBER} pull ${LTTNG_TRACE_FILE} ${LTTNG_SESSION_NAME}  > /dev/null 2>&1
+				app-launch-profiler-lttng ${LTTNG_SESSION_NAME}
+				if [ -z "${LTTNG_SESSION_NAME}" ];then
+					rm -rf ${LTTNG_SESSION_NAME}
+				fi
 			fi
 		fi
 	done
 } 
 
-while getopts ":chn:s:w:p:o:" opt; do
+while getopts ":chn:s:w:p:f:o:" opt; do
 	case $opt in
 	c)
 		COMISSION=true
@@ -205,6 +207,9 @@ while getopts ":chn:s:w:p:o:" opt; do
 		TEST_SILO=true
 		PPA=$OPTARG
 		;;
+        f)
+            FILTER=$OPTARG
+            ;;
 	w)
 		PASSWORD=$OPTARG
 		;;
@@ -216,6 +221,7 @@ while getopts ":chn:s:w:p:o:" opt; do
 		echo -e "\t-s : Sleep time between application starts. Default $SLEEP_TIME"
 		echo -e "\t-p : Run tests against a silo Default is ${TEST_SILO} the default silo is: ${SILO}"
 		echo -e "\t-w : Password of the phablet user on the device. Default ${PASSWORD}"
+		echo -e "\t-f : Filter for the test suite. Default $FILTER"
 		echo -e "\t-h : Show this help"
 		exit
 		;;
@@ -233,6 +239,7 @@ adb -s ${SERIALNUMBER} wait-for-device
 echo "Serial number: ${SERIALNUMBER}"
 echo "Number of start: ${COUNT}"
 echo "Length of sleep between restarts: ${SLEEP_TIME}"
+echo "Filter: ${FILTER}"
 echo "Commission: ${COMISSION}"
 echo "Test silo: ${TEST_SILO}"
 if [[ ${TEST_SILO} == true ]]; then
