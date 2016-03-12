@@ -200,7 +200,7 @@ function measure_app_startups {
 	done
 } 
 
-while getopts ":chvn:s:w:p:f:o:" opt; do
+while getopts ":chvn:s:w:p:f:a:o:" opt; do
 	case $opt in
 	c)
 		COMISSION=true
@@ -217,6 +217,9 @@ while getopts ":chvn:s:w:p:f:o:" opt; do
 		;;
         f)
 		FILTER=$OPTARG
+		;;
+	a)
+		IFS=',' read -r -a APPLICATIONS <<< "$OPTARG"
 		;;
 	w)
 		PASSWORD=$OPTARG
@@ -260,6 +263,11 @@ if [[ ${TEST_SILO} == true ]]; then
 	echo "Silo: ${SILO}"
 fi
 echo "Password of the phablet user:${PASSWORD}"
+echo "Applications to test:"
+for APPLICATION in "${APPLICATIONS[@]}"
+do
+    echo -e "\t$APPLICATION"
+done
 
 # Flash the device with rc-proposed
 if [ ${COMISSION} == true ]; then
