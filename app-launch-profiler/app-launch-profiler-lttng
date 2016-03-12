@@ -19,6 +19,7 @@ import babeltrace
 import sys
 import getopt
 
+
 class MyCounter(dict):
     def __missing__(self, key):
         return 0
@@ -26,7 +27,8 @@ class MyCounter(dict):
 if __name__ == '__main__':
     verbose_mode = False
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hi:v", ["help", "inputdata="])
+        opts, args = getopt.getopt(sys.argv[1:], "hi:v", ["help",
+                                   "inputdata="])
     except getopt.GetoptError:
         print("app-launch-profiler-lttng -i <inputdata>")
         sys.exit(2)
@@ -80,8 +82,11 @@ if __name__ == '__main__':
     for event in numbers:
         if (verbose_mode):
             print("---------- Event "+event+" ----------")
-            print("Min: " + str(round(minNumbers[event] / 1000 / 1000 / 1000, 4)))
-            print("Max: " + str(round(maxNumbers[event] / 1000 / 1000 / 1000, 4)))
-            print("Avg: " + str(round(numbers[event]/iterations/1000000/1000, 4)))
+            print("Min: " + str(round(minNumbers[event] /
+                                      1000 / 1000 / 1000, 4)))
+            print("Max: " + str(round(maxNumbers[event] /
+                                      1000 / 1000 / 1000, 4)))
+            print("Avg: " + str(round(numbers[event] / iterations /
+                                      1000000/1000, 4)))
         else:
             print(str(round(numbers[event]/iterations/1000000/1000, 4)))
