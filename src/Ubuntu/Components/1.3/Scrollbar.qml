@@ -15,17 +15,22 @@
  */
 
 import QtQuick 2.4
-import Ubuntu.Components 1.3 as Toolkit
+import Ubuntu.Components 1.3
 
 /*!
-    \qmltype ScrollBar
+    \qmltype Scrollbar
     \inqmlmodule Ubuntu.Components 1.1
     \ingroup ubuntu
-    \brief The ScrollBar component provides scrolling functionality for
+    \brief The Scrollbar component provides scrolling functionality for
     scrollable views (i.e. Flickable, ListView).
 
-    The ScrollBar can be set to any flickable and has built-in anchoring setup
-    to the attached flickable's front, rear, top or bottom. the scrollbar can
+    \b NOTE: the Scrollbar component was revamped for OTA9 and used for the implementation
+    of \l ScrollView. Apps targeting system version OTA9 (or newer) should use ScrollView instead
+    of Scrollbar, as it features convergent-ready features, such as (but not limited to)
+    keyboard input handling.
+
+    The Scrollbar can be set to any flickable and has built-in anchoring setup
+    to the attached flickable's front, rear, top or bottom. The scrollbar can
     also be aligned using anchors, however the built-in align functionality
     makes sure to have the proper alignemt applied based on theme and layout
     direction (RTL or LTR).
@@ -57,9 +62,36 @@ import Ubuntu.Components 1.3 as Toolkit
         }
     }
     \endqml
+
+    \section1 Vertical Scrollbar and Header behaviour
+
+    The thumb of the Scrollbar should not move or resize unexpectedly. It would be confusing,
+    for instance, if it moved under the user's finger (or pointer) while he's dragging it.
+
+    Because the size and position of the thumb in a scrollbar is related to the size of the
+    trough (or track) it slides in, it is important that the trough does not resize or move while the
+    user is interacting with the component.
+
+    In the context of a \l Page with a \l Header that slides in and out dynamically when the user
+    flicks the surface (see \l {Header::flickable}), a vertical Scrollbar that is linked
+    to the same flickable surface as the Header behaves as described below:
+
+    \list
+    \li - when the Header is exposed, the Scrollbar component sits right below it, \
+          thus avoiding overlaps;
+
+    \li - when the Header hides due to the user either flicking the surface or dragging \
+          the thumb, the trough of the Scrollbar does not resize or move, thus avoiding \
+          unexpected changes in thumb's position or size. As a side effect, the space \
+          above the Scrollbar, previously occupied by Header, stays empty until the Header \
+          is exposed again.
+
+    \endlist
+    \br
+    This behaviour is intended and makes for a less confusing User Experience.
   */
 
-Toolkit.StyledItem {
+StyledItem {
     id: scrollbar
 
     /*!
@@ -135,10 +167,12 @@ Toolkit.StyledItem {
         right: internals.rightAnchor(__viewport ? __viewport : flickableItem)
         rightMargin: internals.rightAnchorMargin()
         top: internals.topAnchor(__viewport ? __viewport : flickableItem)
-        topMargin: internals.topAnchorMargin()
+        topMargin: internals.headerOffset + internals.topAnchorMargin()
         bottom: internals.bottomAnchor(__viewport ? __viewport : flickableItem)
         bottomMargin: internals.bottomAnchorMargin()
     }
+
+    Component.onCompleted: internals.findPage()
 
     /*!
       \internal
@@ -151,11 +185,29 @@ Toolkit.StyledItem {
       alignemt check, scrollability check.
     */
     property alias __private: internals
+
     QtObject {
         id: internals
         property bool vertical: (align === Qt.AlignLeading) || (align === Qt.AlignTrailing)
         property bool scrollable: flickableItem && flickableItem.interactive && checkAlign()
         property real nonOverlayScrollbarMargin: __styleInstance ? __styleInstance.nonOverlayScrollbarMargin : 0
+        //if we found a header that is going to show and hide dynamically when the user flicks the same
+        //view we're handling, and that header is visible, offset the scrollbar to leave a fixed blank space
+        //at the top, so that movements of the header don't affect the scrollbar/thumb position/size.
+        //This is particularly relevant during thumb drags (be it via touch or pointer devices)
+        property real headerOffset: header && header.flickable === flickableItem
+                                    && header.visible ? header.height : 0
+        property Header header: page && page.header
+        property Page page: null
+
+        //look for a parent page
+        function findPage() {
+            var tmp = scrollbar.parent
+            while (tmp && !QuickUtils.inherits(tmp, "Page")) {
+                tmp = tmp.parent
+            }
+            page = tmp
+        }
 
         function checkAlign()
         {
@@ -183,7 +235,6 @@ Toolkit.StyledItem {
                         && __buddyScrollbar.align === Qt.AlignLeading
                         && __buddyScrollbar.__styleInstance.isScrollable)
                     return __buddyScrollbar.__styleInstance.troughThicknessSteppersStyle
-                    //return buddyScrollbar.__styleInstance.indicatorThickness
                 // *ELSE FALLTHROUGH*
             default:
                 return 0
@@ -209,7 +260,6 @@ Toolkit.StyledItem {
                         && __buddyScrollbar.align === Qt.AlignTrailing
                         && __buddyScrollbar.__styleInstance.isScrollable)
                     return __buddyScrollbar.__styleInstance.troughThicknessSteppersStyle
-                    //return buddyScrollbar.__styleInstance.indicatorThickness
                 // *ELSE FALLTHROUGH*
             default:
                 return 0
@@ -234,7 +284,6 @@ Toolkit.StyledItem {
                         && __buddyScrollbar.align === Qt.AlignTop
                         && __buddyScrollbar.__styleInstance.isScrollable)
                     return __buddyScrollbar.__styleInstance.troughThicknessSteppersStyle
-                    //return buddyScrollbar.__styleInstance.indicatorThickness
                 // *ELSE FALLTHROUGH*
 
             default:
@@ -260,7 +309,6 @@ Toolkit.StyledItem {
                         && __buddyScrollbar.align === Qt.AlignBottom
                         && __buddyScrollbar.__styleInstance.isScrollable)
                     return __buddyScrollbar.__styleInstance.troughThicknessSteppersStyle
-                    //return buddyScrollbar.__styleInstance.indicatorThickness
                 // *ELSE FALLTHROUGH*
             default:
                 return 0
