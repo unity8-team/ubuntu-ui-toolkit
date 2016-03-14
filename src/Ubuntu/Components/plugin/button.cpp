@@ -25,11 +25,18 @@
 /*!
 \qmltype Button
 \instantiates UbuntuToolkit::Button
+\inherits UCAbstractButton
 \inqmlmodule Ubuntu.Components 1.3
 \ingroup ubuntu
 \brief Standard Ubuntu button.
-\l {http://design.ubuntu.com/apps/building-blocks/buttons}{See also the
-Design Guidelines on Buttons}.
+
+The Button component allows to create a button that follows the Ubuntu visual and behavioral standards.
+
+Two types are available: normal, the default, will be represented by an opaque shape with the text above it, while the outline mode will display a transparent button with the text and border.
+
+There are also two different emphasis that can be used for specific contexts: positive and negative. The default is no emphasis.
+
+\l {http://design.ubuntu.com/apps/building-blocks/buttons}{See also the Design Guidelines on Buttons}.
 
 Example:
 \qml
@@ -123,7 +130,6 @@ Button::Button(QQuickItem* parent)
   The type defines the button style. The default value is \c Button.Normal.
   \list
   \li \b Button.Normal - The button shape is visible.
-  \li \b Button.Text - The button shape is invisible, only the text or the icon remains.
   \li \b Button.Outline - The button shape is transparent but a border is present.
   \endlist
 */
