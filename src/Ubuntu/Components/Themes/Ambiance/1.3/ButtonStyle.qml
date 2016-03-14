@@ -75,8 +75,6 @@ Item {
         pixelSize: FontUtils.sizeToPixels("medium"),
     })
 
-    property real buttonFaceOffset: 0
-
     /*!
       The property overrides the button's default background with an item. This
       item can be used by derived styles to reuse the ButtonStyle and override
@@ -119,7 +117,6 @@ Item {
         id: foreground
         anchors {
             centerIn: parent
-            horizontalCenterOffset: buttonFaceOffset
         }
         text: button.text
         textColor: buttonStyle.textColor
