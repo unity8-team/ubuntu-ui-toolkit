@@ -31,46 +31,15 @@ class Button : public UCAbstractButton
     Q_ENUMS(Type)
     Q_ENUMS(Emphasis)
 
-    Q_PROPERTY(
-        Type type
-        MEMBER m_type
-        NOTIFY typeChanged
-    )
-    Q_PROPERTY(
-        Emphasis emphasis
-        MEMBER m_emphasis
-        NOTIFY emphasisChanged
-    )
-    Q_PROPERTY(
-        QFont font
-        MEMBER m_font
-        NOTIFY fontChanged
-    )
-    Q_PROPERTY(
-        IconPosition iconPosition
-        MEMBER m_iconPosition
-        NOTIFY iconPositionChanged
-    )
+    Q_PROPERTY(Type type MEMBER m_type NOTIFY typeChanged FINAL)
+    Q_PROPERTY(Emphasis emphasis MEMBER m_emphasis NOTIFY emphasisChanged FINAL)
+    Q_PROPERTY(QFont font MEMBER m_font NOTIFY fontChanged FINAL)
+    Q_PROPERTY(IconPosition iconPosition MEMBER m_iconPosition NOTIFY iconPositionChanged FINAL)
 
     // deprecated
-    Q_PROPERTY(
-        QColor color
-        MEMBER m_color
-        WRITE setColor
-        NOTIFY colorChanged
-    )
-    Q_PROPERTY(
-        QColor strokeColor
-        MEMBER m_strokeColor
-        WRITE setStrokeColor
-        NOTIFY strokeColorChanged
-    )
-    Q_PROPERTY(
-        QGradient gradient
-        MEMBER m_gradient
-        WRITE setGradient
-        NOTIFY gradientChanged
-    )
+    Q_PROPERTY(QColor color MEMBER m_color WRITE setColor NOTIFY colorChanged FINAL)
+    Q_PROPERTY(QColor strokeColor MEMBER m_strokeColor WRITE setStrokeColor NOTIFY strokeColorChanged FINAL)
+    Q_PROPERTY(QGradient gradient MEMBER m_gradient WRITE setGradient NOTIFY gradientChanged FINAL)
 
 public:
     explicit Button(QQuickItem* parent=0);
