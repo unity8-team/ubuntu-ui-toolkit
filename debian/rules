@@ -7,6 +7,7 @@ SOURCE := $(shell dpkg-parsechangelog | sed -n -e's/^Source: \(.*\)-gles/\1/p')
 # export DH_VERBOSE=1
 export DPKG_GENSYMBOLS_CHECK_LEVEL=4
 export QMAKEFEATURES=$(CURDIR)/features
+export QT_SELECT := qt5
 DEB_HOST_MULTI_ARCH ?= $(shell dpkg-architecture -qDEB_BUILD_MULTIARCH)
 DEB_HOST_ARCH ?= $(shell dpkg-architecture -qDEB_HOST_ARCH)
 
