@@ -117,7 +117,8 @@ HEADERS += $$PWD/plugin.h \
     $$PWD/privates/ucpagewrapperincubator_p.h \
     $$PWD/privates/appheaderbase.h \
     $$PWD/button.h \
-    $$PWD/textbutton.h
+    $$PWD/textbutton.h \
+    $$PWD/label_p.h
 
 SOURCES += $$PWD/plugin.cpp \
     $$PWD/uctheme.cpp \
