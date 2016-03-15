@@ -23,37 +23,44 @@
 #include "quickutils.h"
 
 /*!
-    \qmltype TextButton
-    \instantiates UbuntuToolkit::TextButton
-    \inqmlmodule Ubuntu.Components 1.3
-    \ingroup ubuntu
-    \brief Standard Ubuntu button.
+\qmltype TextButton
+\instantiates UbuntuToolkit::TextButton
+\inherits UCAbstractButton
+\inqmlmodule Ubuntu.Components 1.3
+\ingroup ubuntu
+\brief Standard Ubuntu button.
 
-    \l {http://design.ubuntu.com/apps/building-blocks/buttons}{See also the Design Guidelines on Buttons}.
+The TextButton component allows to create a text-only button that follows the Ubuntu visual and behavioral standards.
 
-    Example:
+The button can be strong, which will be represented by a bold font.
 
-    \qml
+\l {http://design.ubuntu.com/apps/building-blocks/buttons}{See also the Design Guidelines on Buttons}.
+
+Example:
+
+\qml
+TextButton {
+    text: "Send"
+    onClicked: print("clicked text-only Button")
+}
+\endqml
+
+An \l Action can be used to specify \b clicked and \b text:
+
+\qml
+Item {
+    Action {
+       id: myAction
+       text: "Click me"
+       onTriggered: print("action!")
+    }
     TextButton {
-        text: "Send"
-        onClicked: print("clicked text-only Button")
+       action: myAction
     }
-    \endqml
+}
+\endqml
 
-    An \l Action can be used to specify \b clicked and \b text:
-
-    \qml
-    Item {
-        Action {
-           id: myAction
-           text: "Click me"
-           onTriggered: print("action!")
-        }
-        TextButton {
-           action: myAction
-        }
-    }
-    \endqml
+\sa Button
 */
 
 namespace UbuntuToolkit {

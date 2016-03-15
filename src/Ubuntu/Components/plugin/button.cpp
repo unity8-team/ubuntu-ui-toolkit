@@ -67,6 +67,8 @@ An \l Action can be used to specify \b clicked, iconSource and text:
           }
      }
 \endqml
+
+\sa TextButton
 */
 
 namespace UbuntuToolkit {
