@@ -69,45 +69,51 @@ void UCStyledItemBasePrivate::init()
 // initializes state builders
 void UCStyledItemBasePrivate::setupHighlightedStateBinging()
 {
-    Q_Q(UCStyledItemBase);
-    const QMetaObject *mo = q->metaObject();
-    // detect highlight setup
-    if (mo->indexOfProperty("pressed") > 0) {
-        QMetaMethod change = mo->method(mo->indexOfSignal("pressedChanged()"));
-        auto getter = [=] ()->bool {
-            return QQmlProperty::read(q, "pressed", qmlContext(q)).toBool();
-        };
-        highlighted = new UbuntuToolkit::PropertyBinding<bool>(
-                    getter,
-                    std::bind(&UCStyledItemBase::componentStateChanged, q),
-                    {UbuntuToolkit::Binding(q, change)});
-    } else if (mo->indexOfProperty("highlighted") > 0) {
-        QMetaMethod change = mo->method(mo->indexOfSignal("highlightedChanged()"));
-        auto getter = [=] ()->bool {
-            return QQmlProperty::read(q, "highlighted", qmlContext(q)).toBool();
-        };
-        highlighted = new UbuntuToolkit::PropertyBinding<bool>(
-                    getter,
-                    std::bind(&UCStyledItemBase::componentStateChanged, q),
-                    {UbuntuToolkit::Binding(q, change)});
-    }
+//    Q_Q(UCStyledItemBase);
+//    const QMetaObject *mo = q->metaObject();
+//    // detect highlight setup
+//    if (mo->indexOfProperty("pressed") > 0) {
+//        QMetaMethod change = mo->method(mo->indexOfSignal("pressedChanged()"));
+//        auto getter = [=] ()->bool {
+//            return QQmlProperty::read(q, "pressed", qmlContext(q)).toBool();
+//        };
+//        highlighted = new UbuntuToolkit::PropertyBinding<bool>(
+//                    getter,
+//                    std::bind(&UCStyledItemBase::componentStateChanged, q),
+//                    {UbuntuToolkit::ValueBinding(q, change)});
+//    } else if (mo->indexOfProperty("highlighted") > 0) {
+//        QMetaMethod change = mo->method(mo->indexOfSignal("highlightedChanged()"));
+//        auto getter = [=] ()->bool {
+//            return QQmlProperty::read(q, "highlighted", qmlContext(q)).toBool();
+//        };
+//        highlighted = new UbuntuToolkit::PropertyBinding<bool>(
+//                    getter,
+//                    std::bind(&UCStyledItemBase::componentStateChanged, q),
+//                    {UbuntuToolkit::ValueBinding(q, change)});
+//    }
 }
 
 void UCStyledItemBasePrivate::setupFocusedStateBinging()
 {
     Q_Q(UCStyledItemBase);
+
+    auto b2ObjectGetter = [q]() -> QObject* {
+        return q->window();
+    };
+    UbuntuToolkit::Binding *b2 = new UbuntuToolkit::ExpressionBinding<QObject*>
+            (b2ObjectGetter, &QQuickWindow::activeFocusItemChanged);
+
+    UbuntuToolkit::Binding *b1;
+    auto b1Updater = [&b1]() {
+        b1->reconnect();
+        b1->update();
+    };
+    b1 = new UbuntuToolkit::UpdateBinding(q, &QQuickItem::windowChanged, b1Updater, {b2});
+
     auto getter = [=] () -> bool {
         return q->window() && q->window()->activeFocusItem() == q;
     };
-
-    const QMetaObject *mo = q->metaObject();
-    focused = new UbuntuToolkit::PropertyBinding<bool> (
-                getter,
-                std::bind(&UCStyledItemBase::componentComplete, q),
-                {
-                    UbuntuToolkit::Binding(q, mo->method(mo->indexOfMethod("windowChanged(QQuickWindow*)")))
-                }
-                );
+    focused = new UbuntuToolkit::BindingExpression<bool>(getter, {b2});
 }
 
 void UCStyledItemBasePrivate::setupSelectedStateBinging()

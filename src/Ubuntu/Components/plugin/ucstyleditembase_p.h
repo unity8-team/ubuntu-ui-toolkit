@@ -72,9 +72,9 @@ public:
     QQuickItem *oldParentItem;
     QQmlComponent *styleComponent;
     QQuickItem *styleItem;
-    UbuntuToolkit::PropertyBinding<bool> *highlighted;
-    UbuntuToolkit::PropertyBinding<bool> *focused;
-    UbuntuToolkit::PropertyBinding<bool> *selected;
+    UbuntuToolkit::BindingExpression<bool> *highlighted;
+    UbuntuToolkit::BindingExpression<bool> *focused;
+    UbuntuToolkit::BindingExpression<bool> *selected;
     UCStyledItemBase::ComponentState componentState;
     quint16 styleVersion;
     bool keyNavigationFocus:1;

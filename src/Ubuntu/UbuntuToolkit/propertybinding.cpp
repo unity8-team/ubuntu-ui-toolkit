@@ -22,80 +22,57 @@
 namespace UbuntuToolkit {
 
 /******************************************************************************
- * Changer
+ * Binding
  */
-template<typename T>
-PropertyBinding<T>::Changer::Changer(QObject *object, const QMetaMethod &signal)
-    : object(object)
-    , signal(signal)
-    , connection(nullptr)
+
+Binding::Binding(const Bindings &bindings, Binding *parent)
+    : m_parent(parent)
 {
-}
-template<typename T>
-PropertyBinding<T>::Changer::~Changer()
-{
-    if (connection) {
-        QObject::disconnect(*connection);
+    for (Binding *b : bindings) {
+        addChild(b);
     }
-    delete connection;
 }
+
+Binding::~Binding()
+{
+    if (m_parent) {
+        int idx = m_parent->m_children.indexOf(this);
+        if (idx >= 0) {
+            m_parent->m_children.remove(idx);
+        }
+    }
+}
+
+Binding *Binding::parent()
+{
+    return m_parent;
+}
+void Binding::addChild(Binding *binding)
+{
+    m_children.append(binding);
+    binding->m_parent = this;
+}
+
+void Binding::connectExpression(BindingUpdateExpression *expression)
+{
+    m_expression = expression;
+    // TODO: connect the binding to the expression's update()
+}
+
+void Binding::reconnect()
+{
+    Q_FOREACH(Binding *b, m_children) {
+        b->reconnect();
+    }
+}
+
 
 /******************************************************************************
- * Private
+ * UpdateNotifier
  */
-template<typename T>
-void PropertyBinding<T>::init(const Bindings &bindings)
-{
-    // connect changers
-    for (Binding binding: bindings) {
-
-        // create the changer
-        QObject *object = binding.object();
-        QMetaMethod signal = binding.signal();
-        Changer *changer = new Changer(object, signal);
-
-        // connect
-        changer->connection = new QMetaObject::Connection;
-        *(changer->connection) = QObject::connect(object, signal, std::bind(&evaluate, this));
-        // then append to the rest of the changers
-        changers.append(changer);
-    }
-}
 
 /******************************************************************************
- * PropertyBinding
+ * Binding
  */
-template<typename T>
-PropertyBinding<T>::PropertyBinding(GetterFunc getter, Notifier notifier, const Bindings &bindings)
-    : getter(getter)
-    , notifier(notifier)
-    , propertyValue(getter())
-{
-    init(bindings);
-}
-
-template<typename T>
-PropertyBinding<T>::~PropertyBinding()
-{
-    qDeleteAll(changers);
-    changers.clear();
-}
-
-template<typename T>
-T PropertyBinding<T>::value()
-{
-    return propertyValue;
-}
-
-template<typename T>
-void PropertyBinding<T>::evaluate()
-{
-    T newValue = getter();
-    if (newValue == propertyValue) {
-        return;
-    }
-    propertyValue = newValue;
-    notifier();
-}
 
 } // namespace

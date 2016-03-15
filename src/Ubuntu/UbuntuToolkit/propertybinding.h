@@ -20,6 +20,7 @@
 #define PROPERTYBINDING_H
 
 #include <QtCore/QObject>
+#include <QtQml/QQmlProperty>
 #include <functional>
 #include <initializer_list>
 #include <tuple>
@@ -27,82 +28,178 @@
 
 namespace UbuntuToolkit {
 
-class Binding;
-typedef std::initializer_list<Binding> Bindings;
-
-class UBUNTUTOOLKIT_EXPORT AbstractBinding
+class UBUNTUTOOLKIT_EXPORT BindingUpdateExpression
 {
 public:
-    explicit AbstractBinding() {}
-    virtual ~AbstractBinding() {}
-
-    virtual void evaluate() {}
+    virtual void update() {}
 };
 
+class UBUNTUTOOLKIT_EXPORT Binding
+{
+public:
+    typedef std::initializer_list<Binding*> Bindings;
+
+    explicit Binding(const Bindings &bindings = {}, Binding *parent = 0);
+    virtual ~Binding();
+
+    void connectExpression(BindingUpdateExpression *expression);
+
+    // FIXME perhaps call it as update? would collide with the BindingExpression's update
+    virtual void reconnect();
+
+    Binding *parent();
+protected:
+    BindingUpdateExpression *m_expression = nullptr;
+    QMetaObject::Connection *m_connection = nullptr;
+    QVarLengthArray<Binding*, 4> m_children;
+
+private:
+    Binding *m_parent;
+    void addChild(Binding *binding);
+};
+
+//
+// Signal to slot connector
+//
+typedef std::function<QMetaObject::Connection(QObject *s, QObject *r)> Connector;
+template <typename Sender, typename Receiver, typename Signal, typename Slot>
+Connector createConnector (Signal sig, Slot sl)
+{
+    return [sig, sl] (QObject *s, QObject *r){
+        Sender *sender = static_cast<Sender *>(s);
+        Receiver *receiver = static_cast<Receiver *>(r);
+
+        return QObject::connect(sender, sig, receiver, sl);
+    };
+}
+
+//
+// Signal to lambda connector
+//
+typedef std::function<QMetaObject::Connection(QObject *s)> LConnector;
+template <typename Sender, typename Signal, typename Receiver>
+LConnector createConnector (Signal sig, Receiver rec)
+{
+    return [sig, rec] (QObject *s){
+        Sender *sender = static_cast<Sender *>(s);
+
+        return QObject::connect(sender, sig, rec);
+    };
+}
+//
+// UpdateBinding (or maybe ReconnectBinding?)
+//
+class UBUNTUTOOLKIT_EXPORT UpdateBinding : public Binding
+{
+public:
+    UpdateBinding(QObject *sender, Signal signal, const Bindings &bindings = {}, Binding *parent = 0)
+        : Binding(bindings, parent)
+        , m_sender(sender)
+        , m_signal(signal)
+    {
+        // TODO: connect m_signal to reconnect()
+    }
+
+    void reconnect() override
+    {
+        // reconnect kids first
+        Binding::reconnect();
+        // ivoke expression's update too
+        m_expression->update();
+    }
+
+private:
+    QObject *m_sender;
+    Signal m_signal;
+};
+
+//
+// PropertyBinding
+//
 template<typename T>
-class UBUNTUTOOLKIT_EXPORT PropertyBinding : public AbstractBinding
+class UBUNTUTOOLKIT_EXPORT ExpressionBinding : public Binding
+{
+public:
+    typedef std::function<T()> Expression;
+
+    explicit ExpressionBinding(Expression expression, LConnector connector, const Bindings &bindings = {}, Binding *parent = 0)
+        : Binding(bindings, parent)
+        , m_expression(expression)
+    {
+//        m_signal = createConnector<QObject>(Signal, &Binding::update);
+    }
+
+    void reconnect() override
+    {
+        if (connection) {
+            QObject::disconnect(*connection);
+        }
+        // TODO oupdate connection
+        Binding::reconnect();
+    }
+private:
+    Expression m_expression;
+    LConnector m_signal;
+};
+
+
+//
+// BindingExpression
+//
+
+template<typename T>
+class UBUNTUTOOLKIT_EXPORT BindingExpression : private BindingUpdateExpression
 {
 public:
     typedef T ElementType;
 
     typedef std::function<ElementType()> GetterFunc;
 
-    typedef std::function<void()> Notifier;
+    typedef std::function<void()> BindingSignal;
 
-    explicit PropertyBinding(GetterFunc getter, Notifier notifier, const Bindings &bindings);
-    ~PropertyBinding();
-
-    T value();
-    void evaluate() override;
-
-private:
-    class Changer {
-        explicit Changer(QObject *object, const QMetaMethod &signal);
-        ~Changer();
-
-        QObject *object;
-        const QMetaMethod signal;
-        QMetaObject::Connection *connection;
-    };
-    void init(const Bindings &changerList);
-
-    std::function<PropertyBinding::ElementType()> getter;
-    QVarLengthArray< Changer, 4 > changers;
-    Notifier notifier;
-    PropertyBinding::ElementType propertyValue;
-};
-
-class UBUNTUTOOLKIT_EXPORT Binding
-{
-public:
-    Binding(QObject *object, QMetaMethod method)
-        : m_object(object), m_binding(nullptr), m_signal(methid)
-    {}
-
-    template<typename T>
-    Binding(PropertyBinding<T> *binding)
-        : m_object(nullptr), m_binding(binding)
-    {}
-
-    QObject *object()
+    explicit BindingExpression(GetterFunc getter, BindingSignal signal, const Binding::Bindings &bindings)
+        : getter(getter)
+        , signal(signal)
+        , propertyValue(getter())
     {
-        return m_object;
+        init(bindings);
+    }
+    ~BindingExpression()
+    {
+        qDeleteAll(bindings);
+        bindings.clear();
     }
 
-    QMetaMethod signal()
+    T value()
     {
-        return m_signal;
-    }
-
-    AbstractBinding *binding()
-    {
-        return m_binding;
+        return propertyValue;
     }
 
 private:
-    QObject *m_object;
-    AbstractBinding *m_binding;
-    QMetaMethod m_signal;
+    void init(const Binding::Bindings &bindings)
+    {
+        Q_UNUSED(bindings);
+        for (Binding *b : bindings) {
+            this->bindings.append(b);
+            // hook update
+            b->connectExpression(this);
+        }
+    }
+
+    void update() override
+    {
+        ElementType newValue = getter();
+        if (newValue == propertyValue) {
+            return;
+        }
+        propertyValue = newValue;
+        signal();
+    }
+
+    GetterFunc getter;
+    QVarLengthArray<Binding*, 4 > bindings;
+    BindingSignal signal;
+    ElementType propertyValue;
 };
 
 } // namespace UbuntuToolkit
