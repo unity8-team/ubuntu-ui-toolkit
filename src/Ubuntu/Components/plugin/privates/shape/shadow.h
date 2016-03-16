@@ -103,9 +103,6 @@ public:
     }
 
 private:
-    // FIXME(loicm) TextureFactory<1> should be used since we just need 1 slot,
-    //     but values stored in the array at index 0 aren't loaded
-    //     correctly. The problem is fixed with a size > 1.
     TextureFactory<1> m_textureFactory;
     quint32 m_textureId;
     quint8 m_style : 1;
