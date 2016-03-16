@@ -40,11 +40,15 @@ const int defaultRadius = 50;
 const int maxRadius = 128;
 
 // Gaussian kernels. Changing one field requires an update of the others, use
-// the appropriate tool in the tools folder.
+// creategaussianarrays in the tools folder.
 const int gaussianCount = 128;
 extern const int gaussianOffsets[];
 extern const float gaussianKernels[];
 extern const float gaussianSums[];
+
+// maxRadius can't be higher than gaussianCount. If maxRadius needs to
+// be increased, the gaussian kernels must be adapted too.
+static_assert(maxRadius == gaussianCount, "maxRadius == gaussianCount");
 
 // Get the stride of a buffer of the given width and bytes per pixel for a
 // specific alignment.
