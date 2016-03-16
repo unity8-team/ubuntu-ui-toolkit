@@ -124,7 +124,7 @@ TextureFactory<N>::~TextureFactory()
     // Unref the texture hash associated with the current context.
     contextHashMutex.lock();
     auto it = contextHash.find(m_context);
-    Q_ASSERT(it.value().data() == m_keyHash);
+    DASSERT(it.value().data() == m_keyHash);
     if (it.value().unref() == 0) {
         contextHash.erase(it);
     }

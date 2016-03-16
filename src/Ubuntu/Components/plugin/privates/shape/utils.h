@@ -24,8 +24,18 @@
 
 // FIXME(loicm) Add and clean up code generators in the tools folder.
 
-// FIXME(loicm) Remove and use Q_ASSERT before shipping.
-#define DASSERT(x) do { if (!(x)) { qFatal("assertion failed at %d\n", __LINE__); } } while(0)
+// Debug macros compiled out for release builds.
+#if !defined(QT_NO_DEBUG)
+#define DLOG(...) qDebug(__VA_ARGS__)
+#define DLOG_IF(cond,...) do { if (cond) qDebug(__VA_ARGS__); } while(0)
+#define DASSERT(cond) qt_assert(#cond, __FILE__, __LINE__)
+#define DNOT_REACHED() qt_assert("Not reached!", __FILE__, __LINE__)
+#else
+#define DLOG(...) qt_noop()
+#define DLOG_IF(cond,...) qt_noop()
+#define DASSERT(cond) qt_noop()
+#define DNOT_REACHED() qt_noop()
+#endif
 
 // Common constants for shape items.
 const int defaultRadius = 50;
