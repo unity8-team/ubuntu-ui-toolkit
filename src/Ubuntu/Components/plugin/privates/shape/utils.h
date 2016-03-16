@@ -22,6 +22,8 @@
 #include <QtQuick/QSGMaterial>
 #include <QtGui/QColor>
 
+#define STATIC_ASSERT static_assert
+
 // Debug macros compiled out for release builds.
 #if !defined(QT_NO_DEBUG)
 #define DLOG(...) qDebug(__VA_ARGS__)
@@ -49,7 +51,7 @@ extern const float gaussianSums[];
 
 // maxRadius can't be higher than gaussianCount. If maxRadius needs to
 // be increased, the gaussian kernels must be adapted too.
-static_assert(maxRadius == gaussianCount, "maxRadius == gaussianCount");
+STATIC_ASSERT(maxRadius == gaussianCount, "maxRadius == gaussianCount");
 
 // Get the stride of a buffer of the given width and bytes per pixel for a
 // specific alignment.
