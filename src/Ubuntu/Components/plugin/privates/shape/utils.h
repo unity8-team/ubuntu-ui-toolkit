@@ -25,8 +25,9 @@
 // Debug macros compiled out for release builds.
 #if !defined(QT_NO_DEBUG)
 #define DLOG(...) qDebug(__VA_ARGS__)
-#define DLOG_IF(cond,...) do { if (cond) qDebug(__VA_ARGS__); } while(0)
-#define DASSERT(cond) qt_assert(#cond, __FILE__, __LINE__)
+#define DLOG_IF(cond,...) do { if (cond) qDebug(__VA_ARGS__); } while (0)
+#define DASSERT(cond) do { if (Q_UNLIKELY(!(cond))) \
+    qFatal("Assertion `"#cond"' failed in file %s, line %d", __FILE__, __LINE__); } while (0)
 #define DNOT_REACHED() qt_assert("Not reached!", __FILE__, __LINE__)
 #else
 #define DLOG(...) qt_noop()
