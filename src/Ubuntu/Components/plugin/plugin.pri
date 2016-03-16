@@ -110,12 +110,12 @@ HEADERS += $$PWD/plugin.h \
     $$PWD/ucmainviewbase.h \
     $$PWD/ucmainviewbase_p.h \
     $$PWD/ucperformancemonitor.h \
+    $$PWD/label_p.h \
     $$PWD/privates/listviewextensions.h \
     $$PWD/privates/ucpagewrapper.h \
     $$PWD/privates/ucpagewrapper_p.h \
     $$PWD/privates/ucpagewrapperincubator_p.h \
     $$PWD/privates/appheaderbase.h \
-    $$PWD/label_p.h \
     $$PWD/privates/shape/utils.h \
     $$PWD/privates/shape/texturefactory.h \
     $$PWD/privates/shape/fill.h \
