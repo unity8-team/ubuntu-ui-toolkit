@@ -115,6 +115,7 @@ HEADERS += $$PWD/plugin.h \
     $$PWD/privates/ucpagewrapper_p.h \
     $$PWD/privates/ucpagewrapperincubator_p.h \
     $$PWD/privates/appheaderbase.h \
+    $$PWD/label_p.h \
     $$PWD/privates/shape/utils.h \
     $$PWD/privates/shape/texturefactory.h \
     $$PWD/privates/shape/fill.h \
