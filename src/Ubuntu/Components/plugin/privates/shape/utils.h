@@ -22,8 +22,6 @@
 #include <QtQuick/QSGMaterial>
 #include <QtGui/QColor>
 
-// FIXME(loicm) Add and clean up code generators in the tools folder.
-
 // Debug macros compiled out for release builds.
 #if !defined(QT_NO_DEBUG)
 #define DLOG(...) qDebug(__VA_ARGS__)
