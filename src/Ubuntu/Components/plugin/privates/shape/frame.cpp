@@ -16,17 +16,8 @@
  * Author: Loïc Molinari <loic.molinari@canonical.com>
  */
 
-// FIXME(loicm) Should maybe use one big texture with all the radius
-//     packed. That would allow to batch more items together and simplify the
-//     code.
-
 #include "frame.h"
-#include <QtCore/QMutex>
-#include <QtGui/QOpenGLContext>
 #include <QtGui/QOpenGLFunctions>
-#include <QtGui/QPainter>
-#include <QtGui/QImage>
-#include <QtSvg/QSvgRenderer>
 
 const UCFrame::Shape defaultShape = UCFrame::Squircle;
 const QRgb defaultColor = qRgba(255, 255, 255, 255);
@@ -96,76 +87,9 @@ void FrameCornerShader::updateState(
 
 // --- Material ---
 
-static QHash<QOpenGLContext*, UCFrameCornerMaterial::TextureHash*> contextHash;
-static QMutex contextHashMutex;
-
 UCFrameCornerMaterial::UCFrameCornerMaterial()
 {
     setFlag(Blending, true);
-
-    // Get the texture hash for the current context. Note that this hash is
-    // stored at creation and is never updated since we assume that QtQuick
-    // bounds a graphics context to a material for its entire lifetime.
-    QOpenGLContext* context = QOpenGLContext::currentContext();
-    contextHashMutex.lock();
-    m_textureHash = const_cast<TextureHash*>(contextHash.value(context));
-
-    // Create it in case it's the first corner material created in that context.
-    if (!m_textureHash) {
-        m_textureHash = new TextureHash();
-        contextHash.insert(context, m_textureHash);
-        QObject::connect(context, &QOpenGLContext::aboutToBeDestroyed, [context] {
-            // Remove and delete the texture hash associated to a context when
-            // the context is about to be destroyed.
-            DASSERT(QOpenGLContext::currentContext() == context);
-            contextHashMutex.lock();
-            TextureHash* textureHash = contextHash.take(context);
-            contextHashMutex.unlock();
-#if !defined(QT_NO_DEBUG)
-            // Even though the remaining textures would be deleted when the
-            // context is destroyed, we delete all of these in debug builds for
-            // the sake of correctness (it also makes OpenGL debugging tools
-            // happy). Note that in a common execution, it's unlikely that any
-            // corner materials remain in there since they would have been
-            // deleted before that signal is emitted.
-            const int count = textureHash->count();
-            if (count > 0) {
-                int i = 0;
-                quint32* textures = new quint32[count];
-                QHash<quint32, Texture>::const_iterator it = textureHash->constBegin();
-                while (it != textureHash->constEnd()) {
-                    textures[i++] = it.value().id();
-                    it++;
-                }
-                context->functions()->glDeleteTextures(count, textures);
-                delete[] textures;
-            }
-#endif
-            delete textureHash;
-        });
-    }
-
-    contextHashMutex.unlock();
-}
-
-UCFrameCornerMaterial::~UCFrameCornerMaterial()
-{
-    // Unref the texture data associated to the current material and clean up if
-    // not used anymore.
-    int textureCount = 0;
-    quint32 textureIds[2];
-    for (int i = 0; i < 2; i++) {
-        TextureHash::iterator it = m_textureHash->find(m_key[i]);
-        if (it != m_textureHash->end()) {
-            if (it.value().unref() == 0) {
-                textureIds[textureCount++] = it.value().id();
-                m_textureHash->erase(it);
-            }
-        }
-    }
-    if (textureCount > 0) {
-        QOpenGLContext::currentContext()->functions()->glDeleteTextures(textureCount, textureIds);
-    };
 }
 
 QSGMaterialType* UCFrameCornerMaterial::type() const
@@ -187,132 +111,6 @@ int UCFrameCornerMaterial::compare(const QSGMaterial* other) const
         return -1;
     }
     return otherFrameCornerMaterial->innerTextureId() - m_textureId[1];
-}
-
-static quint8* renderShape(int radius, UCFrame::Shape shape)
-{
-    DASSERT(radius > 0);
-
-    const int border = 1;  // 1 pixel border around the edges for clamping reasons.
-    const int width = getStride(radius + 2 * border, 1, textureStride);
-    const int stride = getStride(width, 1, 4);  // OpenGL unpack pixel storage is 4 by default.
-    const int height = width;
-    const int finalBufferSize = stride * height * sizeof(quint8);
-    const int painterBufferSize = radius * radius * sizeof(quint32);
-    quint8* RESTRICT bufferU8 = (quint8*) malloc(finalBufferSize + painterBufferSize);
-    quint32* RESTRICT painterBufferU32 = (quint32*) &bufferU8[finalBufferSize];
-
-    // Render the shape with QPainter.
-    memset(painterBufferU32, 0, painterBufferSize);
-    QImage image(reinterpret_cast<quint8*>(painterBufferU32), radius, radius, radius * 4,
-                 QImage::Format_ARGB32_Premultiplied);
-    QPainter painter(&image);
-    if (shape == UCFrame::Squircle) {
-        // QSvgRenderer being reentrant, we use a static instance with local
-        // data.
-        // FIXME(loicm) Use the same QSvgRenderer for all the items.
-        static QSvgRenderer svg(QByteArray(squircleSvg), 0);
-        svg.render(&painter);
-    } else {
-        painter.setBrush(Qt::white);
-        painter.setRenderHint(QPainter::Antialiasing, true);
-        painter.drawEllipse(QRectF(-0.5, -0.5, radius * 2.0 + 0.5, radius * 2.0 + 0.5));
-    }
-
-    // Initialise the top and left borders containing the 1 pixel border and
-    // texture stride of the final buffer.
-    const int offset = width - radius - border;
-    memset(bufferU8, 0x00, stride * offset);
-    for (int i = 0; i < radius + border; i++) {
-        memset(&bufferU8[(i + offset) * stride], 0x00, offset);
-        bufferU8[(i + offset) * stride + width - border] = 0xff;
-    }
-    memset(&bufferU8[(height - border) * stride + offset], 0xff, radius + border);
-
-    // Since QImage doesn't support floating-point formats, a conversion from
-    // U32 to U8 is required once rendered (we just convert one of the channel
-    // since the fill color is white).
-    for (int i = 0; i < radius; i++) {
-        for (int j = 0; j < radius; j++) {
-            bufferU8[(i + offset) * stride + j + offset] = painterBufferU32[i * radius + j] & 0xff;
-        }
-    }
-
-    return bufferU8;
-}
-
-void UCFrameCornerMaterial::updateTexture(
-    int index, UCFrame::Shape shape, int radius, UCFrame::Shape newShape, int newRadius)
-{
-    DASSERT(newRadius >= 0);
-
-    QOpenGLFunctions* funcs = QOpenGLContext::currentContext()->functions();
-    bool isNewTexture = false;
-
-    // Handle the texture cache (a texture is shared by all the shadow materials
-    // of the same shadow and radius sizes). No locking is done since we assume
-    // the QtQuick renderer calls preprocess() from the same thread for nodes
-    // sharing the same graphics context.
-    m_key[index] = makeTextureHashKey(newShape, newRadius);
-    TextureHash::iterator it = m_textureHash->find(makeTextureHashKey(shape, radius));
-    TextureHash::iterator newIt = m_textureHash->find(m_key[index]);
-    if (it != m_textureHash->end() && it.value().unref() == 0) {
-        quint32 textureId = it.value().id();
-        m_textureHash->erase(it);
-        if (newIt == m_textureHash->end()) {
-            m_textureHash->insert(m_key[index], Texture(textureId));
-            DASSERT(m_textureId[index] == textureId);
-        } else {
-            funcs->glDeleteTextures(1, &textureId);
-            m_textureId[index] = newIt.value().ref();
-            return;
-        }
-    } else {
-        if (newIt == m_textureHash->end()) {
-            funcs->glGenTextures(1, &m_textureId[index]);
-            m_textureHash->insert(m_key[index], Texture(m_textureId[index]));
-            isNewTexture = true;
-        } else {
-            m_textureId[index] = newIt.value().ref();
-            return;
-        }
-    }
-
-    // Render the texture in memory.
-    const int border = 1;
-    const int newSize = newRadius + 2 * border;
-    const int newSizeRounded = getStride(newSize, 1, textureStride);
-    quint8* buffer;
-    if (newRadius > 0) {
-        buffer = renderShape(newRadius, newShape);
-    } else {
-        const int bufferSize = newSizeRounded * newSizeRounded;
-        buffer = (quint8*) malloc(bufferSize);
-        memset(buffer, 0, bufferSize);
-    }
-
-    // Upload texture. The texture size is a multiple of textureStride to allow
-    // GPUs to speed up uploads and optimise storage.
-    funcs->glBindTexture(GL_TEXTURE_2D, m_textureId[index]);
-    if (isNewTexture) {
-        funcs->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        funcs->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        funcs->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        funcs->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        funcs->glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, newSizeRounded, newSizeRounded, 0,
-                            GL_LUMINANCE, GL_UNSIGNED_BYTE, NULL);
-    } else {
-        const int size = radius + 2 * border;
-        const int sizeRounded = getStride(size, 1, textureStride);
-        if (sizeRounded != newSizeRounded) {
-            funcs->glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, newSizeRounded, newSizeRounded, 0,
-                                GL_LUMINANCE, GL_UNSIGNED_BYTE, NULL);
-        }
-    }
-    funcs->glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, newSizeRounded, newSizeRounded, GL_LUMINANCE,
-                           GL_UNSIGNED_BYTE, buffer);
-
-    free(buffer);
 }
 
 // --- Node ---
@@ -382,8 +180,7 @@ void UCFrameCornerNode::preprocess()
     const bool hasNewshape = m_newShape != m_shape;
     for (int i = 0; i < 2; i++) {
         if (hasNewshape || m_newRadius[i] != m_radius[i]) {
-            m_material.updateTexture(i, static_cast<UCFrame::Shape>(m_shape), m_radius[i],
-                                     static_cast<UCFrame::Shape>(m_newShape), m_newRadius[i]);
+            m_material.updateTexture(i, static_cast<UCFrame::Shape>(m_newShape), m_newRadius[i]);
             m_radius[i] = m_newRadius[i];
         }
     }

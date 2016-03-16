@@ -16,38 +16,20 @@
  * Author: Loïc Molinari <loic.molinari@canonical.com>
  */
 
-#ifndef SHAPE_H
-#define SHAPE_H
+#ifndef UTILS_H
+#define UTILS_H
 
 #include <QtQuick/QSGMaterial>
 #include <QtGui/QColor>
 
 // FIXME(loicm) Add and clean up code generators in the tools folder.
 
-#if defined(Q_CC_GNU)
-#define RESTRICT __restrict__
-#elif defined(Q_CC_MSVC)
-#define RESTRICT __restrict
-#else
-#define RESTRICT
-#endif
-
 // FIXME(loicm) Remove and use Q_ASSERT before shipping.
 #define DASSERT(x) do { if (!(x)) { qFatal("assertion failed at %d\n", __LINE__); } } while(0)
 
-// --- Shared data ---
-
+// Common constants for shape items.
 const int defaultRadius = 50;
 const int maxRadius = 128;
-const int textureStride = 32;
-
-// Squircle SVG string.
-extern const char squircleSvg[];
-
-// Squircle signed distance field.
-const float squircleOffset = 1.0f;
-const int squircleSdfWidth = 32;
-extern const float squircleSdf[][squircleSdfWidth];
 
 // Gaussian kernels. Changing one field requires an update of the others, use
 // the appropriate tool in the tools folder.
@@ -55,25 +37,6 @@ const int gaussianCount = 128;
 extern const int gaussianOffsets[];
 extern const float gaussianKernels[];
 extern const float gaussianSums[];
-
-// --- Shared code ---
-
-class UCOpaqueColorMaterial : public QSGMaterial
-{
-public:
-    UCOpaqueColorMaterial();
-    virtual int compare(const QSGMaterial* other) const;
-    virtual QSGMaterialType* type() const;
-    virtual QSGMaterialShader* createShader() const;
-};
-
-class UCColorMaterial : public UCOpaqueColorMaterial
-{
-public:
-    UCColorMaterial();
-    virtual QSGMaterialType* type() const;
-    virtual QSGMaterialShader* createShader() const;
-};
 
 // Get the stride of a buffer of the given width and bytes per pixel for a
 // specific alignment.
@@ -95,4 +58,23 @@ static inline quint32 packColor(QRgb color)
     return (a << 24) | ((b & 0xff) << 16) | ((g & 0xff) << 8) | (r & 0xff);
 }
 
-#endif  // SHAPE_H
+// Opaque color material common to most shape items.
+class UCOpaqueColorMaterial : public QSGMaterial
+{
+public:
+    UCOpaqueColorMaterial();
+    virtual int compare(const QSGMaterial* other) const;
+    virtual QSGMaterialType* type() const;
+    virtual QSGMaterialShader* createShader() const;
+};
+
+// Color material common to most shape items.
+class UCColorMaterial : public UCOpaqueColorMaterial
+{
+public:
+    UCColorMaterial();
+    virtual QSGMaterialType* type() const;
+    virtual QSGMaterialShader* createShader() const;
+};
+
+#endif  // UTILS_H

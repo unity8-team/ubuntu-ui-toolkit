@@ -19,9 +19,10 @@
 #ifndef UCFRAME_H
 #define UCFRAME_H
 
-#include "utils.h"
 #include <QtQuick/QQuickItem>
 #include <QtQuick/QSGNode>
+#include "texturefactory.h"
+#include "utils.h"
 
 // Renders the frame (border) of a shape.
 class UCFrame : public QQuickItem
@@ -44,7 +45,7 @@ class UCFrame : public QQuickItem
 public:
     UCFrame(QQuickItem* parent = 0);
 
-    enum Shape { Squircle = 0, Circle = 1 };
+    enum Shape { Squircle = Texture::Squircle, Circle = Texture::Circle };
 
     Shape shape() const { return static_cast<Shape>(m_shape); }
     void setShape(Shape shape);
@@ -80,40 +81,23 @@ private:
 class UCFrameCornerMaterial : public QSGMaterial
 {
 public:
-    class Texture {
-    public:
-        Texture(quint32 id = 0) : m_id(id), m_refCount(1) {}
-        quint32 id() const { return m_id; }
-        quint32 ref() { Q_ASSERT(m_refCount < UINT_MAX); m_refCount++; return m_id; }
-        quint32 unref() { Q_ASSERT(m_refCount > 0); return --m_refCount; }
-
-    private:
-        quint32 m_id;
-        quint32 m_refCount;
-    };
-
-    typedef QHash<quint32, Texture> TextureHash;
-
-    static Q_CONSTEXPR quint32 makeTextureHashKey(UCFrame::Shape shape, quint8 radius) {
-        return static_cast<quint32>(shape) << 8  // 1 bit
-            | static_cast<quint32>(radius);      // 8 bit
-    }
-
     UCFrameCornerMaterial();
-    ~UCFrameCornerMaterial();
     virtual QSGMaterialType* type() const;
     virtual QSGMaterialShader* createShader() const;
     virtual int compare(const QSGMaterial* other) const;
 
     quint32 outerTextureId() const { return m_textureId[0]; }
     quint32 innerTextureId() const { return m_textureId[1]; }
-    void updateTexture(
-        int index, UCFrame::Shape shape, int radius, UCFrame::Shape newShape, int newRadius);
+    void updateTexture(int index, UCFrame::Shape shape, int radius) {
+        DASSERT(index >= 0 && index < 2);
+        DASSERT(radius >= 0);
+        m_textureId[index] =
+            m_textureFactory.shapeTexture(index, static_cast<Texture::Shape>(shape), radius);
+    }
 
 private:
-    TextureHash* m_textureHash;
+    TextureFactory<2> m_textureFactory;
     quint32 m_textureId[2];
-    quint32 m_key[2];
 };
 
 class UCFrameCornerNode : public QSGGeometryNode

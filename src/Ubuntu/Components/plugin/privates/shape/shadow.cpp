@@ -26,33 +26,13 @@
 
 #include "shadow.h"
 #include "utils.h"
-#include <QtCore/QMutex>
-#include <QtGui/QOpenGLContext>
 #include <QtGui/QOpenGLFunctions>
-
-// Use QSvgRenderer instead of a custom signed distance field algorithm. Better
-// quality but ~50% slower.
-#define QT_SVG_RENDERER 1
-#if QT_SVG_RENDERER
-#include <QtGui/QPainter>
-#include <QtGui/QImage>
-#include <QtSvg/QSvgRenderer>
-#endif
-
-// Log shape rendering and gaussian blur performance timings.
-#define PERF_DEBUG 0
-#if PERF_DEBUG
-#include <QtCore/QElapsedTimer>
-#endif
 
 const UCShadow::Style defaultStyle = UCShadow::Outer;
 const UCShadow::Shape defaultShape = UCShadow::Squircle;
 const QRgb defaultColor = qRgba(0, 0, 0, 255);
 const int defaultShadow = 25;
 const int maxShadow = 128;
-#if !QT_SVG_RENDERER
-const float aaDistance = 1.75f;
-#endif
 
 // --- Shaders ---
 
@@ -126,75 +106,10 @@ void ShadowShader::updateState(
 
 // --- Material ---
 
-static QHash<QOpenGLContext*, UCShadowMaterial::TextureHash*> contextHash;
-static QMutex contextHashMutex;
-
 UCShadowMaterial::UCShadowMaterial(UCShadow::Style style)
-    : m_textureId(0)
-    , m_key(0)
-    , m_style(style)
+    : m_style(style)
 {
     setFlag(Blending, true);
-
-    // Get the texture hash for the current context. Note that this hash is
-    // stored at creation and is never updated since we assume that QtQuick
-    // bounds a graphics context to a material for its entire lifetime.
-    QOpenGLContext* context = QOpenGLContext::currentContext();
-    contextHashMutex.lock();
-    m_textureHash = const_cast<TextureHash*>(contextHash.value(context));
-
-    // Create it in case it's the first shadow material created in that context.
-    if (!m_textureHash) {
-        m_textureHash = new TextureHash();
-        contextHash.insert(context, m_textureHash);
-        // FIXME(loicm) as greyback mentioned, this is broken since the context
-        //     is not bound when the signal is emitted...
-        QObject::connect(context, &QOpenGLContext::aboutToBeDestroyed, [context] {
-            // Remove and delete the texture hash associated to a context when
-            // the context is about to be destroyed.
-            contextHashMutex.lock();
-            TextureHash* textureHash = contextHash.take(context);
-            contextHashMutex.unlock();
-#if !defined(QT_NO_DEBUG)
-            // Even though the remaining textures would be deleted when the
-            // context is destroyed, we delete all of these in debug builds for
-            // the sake of correctness (it also makes OpenGL debugging tools
-            // happy). Note that in a common execution, it's unlikely that any
-            // shadow materials remain in there since they would have been
-            // deleted before that signal is emitted.
-            const int count = textureHash->count();
-            if (count > 0) {
-                int i = 0;
-                quint32* textures = new quint32[count];
-                QHash<quint32, Texture>::const_iterator it = textureHash->constBegin();
-                while (it != textureHash->constEnd()) {
-                    textures[i++] = it.value().id();
-                    it++;
-                }
-                context->functions()->glDeleteTextures(count, textures);
-                delete[] textures;
-            }
-#endif
-            delete textureHash;
-        });
-    }
-
-    contextHashMutex.unlock();
-}
-
-UCShadowMaterial::~UCShadowMaterial()
-{
-    // Unref the texture data associated to the current material and clean up if
-    // not used anymore.
-    TextureHash::iterator it = m_textureHash->find(m_key);
-    if (it != m_textureHash->end()) {
-        if (it.value().unref() == 0) {
-            quint32 textureId = it.value().id();
-            QOpenGLFunctions* funcs = QOpenGLContext::currentContext()->functions();
-            funcs->glDeleteTextures(1, &textureId);
-            m_textureHash->erase(it);
-        }
-    }
 }
 
 QSGMaterialType* UCShadowMaterial::type() const
@@ -216,253 +131,6 @@ int UCShadowMaterial::compare(const QSGMaterial* other) const
     } else {
         return 1;
     }
-}
-
-static quint16* renderShape(int shadow, int radius, UCShadow::Shape shape)
-{
-    DASSERT(shadow > 0);
-    DASSERT(radius >= 0);
-
-    const int shadowPlusRadius = shadow + radius;
-    const int textureWidth = shadowPlusRadius + shadow;
-    const int gutter = shadow;
-    const int textureWidthPlusGutters = 2 * gutter + textureWidth;
-    const int bufferSize = 2 * textureWidth * textureWidthPlusGutters * sizeof(float);
-    quint16* RESTRICT dataU16 = (quint16*) malloc(bufferSize);
-    float* RESTRICT dataF32 = (float*) dataU16;
-
-    // FIXME(loicm) Try filling unset bytes instead.
-    memset(dataU16, 0, bufferSize);
-
-#if PERF_DEBUG
-    QElapsedTimer timer;
-    printf("texture rendering:\n  shape... ");
-    timer.start();
-#endif
-
-    if (radius > 0) {
-#if QT_SVG_RENDERER
-        // Render the shape with QPainter. Since QImage doesn't support
-        // floating-point formats, a conversion from U32 to F32 is required once
-        // rendered (we just convert one of the channel since the fill color is
-        // white).
-        QImage image((quint8*)&dataF32[textureWidthPlusGutters * shadow + gutter + shadow], radius,
-                     radius, textureWidthPlusGutters * 4, QImage::Format_ARGB32_Premultiplied);
-        QPainter painter(&image);
-        if (shape == UCShadow::Squircle) {
-            // QSvgRenderer being reentrant, we use a static instance with local
-            // data.
-            static QSvgRenderer svg(QByteArray(squircleSvg), 0);
-            svg.render(&painter);
-        } else {
-            painter.setBrush(Qt::white);
-            painter.setRenderHint(QPainter::Antialiasing, true);
-            painter.drawEllipse(QRectF(-0.5, -0.5, radius * 2.0 + 0.5, radius * 2.0 + 0.5));
-        }
-        for (int i = shadow; i < shadowPlusRadius; i++) {
-            for (int j = shadow; j < shadowPlusRadius; j++) {
-                const int index = i * textureWidthPlusGutters + gutter + j;
-                dataF32[index] = (((quint32*)dataF32)[index] & 0xff) / 255.0f;
-            }
-        }
-#else
-        // Render a squircled corner using a custom signed distance field
-        // renderer. The distance field rendering agorithm with an anti-aliasing
-        // distance >1 pixel leads to top/right and bottom/left pixels not
-        // perfectly ending at 1. That creates a gap in the shading with the
-        // neighbouring pixels (added right after). The current solution is to
-        // compensate by adding a linearly interpolated bias to the offset based
-        // on the radius.
-        // FIXME(loicm) This is not satisfying quality-wise, we should maybe try
-        // with a non-linear interpolation.
-        const float biasFrom = 0.2f;
-        const float biasTo = 0.0775f;
-        const float offset = squircleOffset + (((biasTo - biasFrom) / 128.0f) * radius) + biasFrom;
-        const float gradient = (squircleSdfWidth - offset) / radius;
-        const float normaliseFactor = 1.0f / (gradient * aaDistance);
-        float x = 0.5f, y = 0.5f;
-        for (int i = shadow; i < shadowPlusRadius; i++, x = 0.5f, y += 1.0f) {
-            for (int j = shadow; j < shadowPlusRadius; j++, x += 1.0f) {
-                // Bilinear filtering.
-                const float u = x * gradient + offset - 0.5f;
-                const float v = y * gradient + offset - 0.5f;
-                const int x0 = static_cast<int>(u);
-                const int y0 = static_cast<int>(v);
-                // FIXME(loicm) Avoid clamps by adding a bottom/right border.
-                const int x1 = qMin(x0 + 1, squircleSdfWidth - 1);
-                const int y1 = qMin(y0 + 1, squircleSdfWidth - 1);
-                const float wu0 = u - x0;
-                const float wv0 = v - y0;
-                const float wu1 = 1.0f - wu0;
-                const float wv1 = 1.0f - wv0;
-                const float sample =
-                    (squircleSdf[x0][y0] * wu1 + squircleSdf[x1][y0] * wu0) * wv1 +
-                    (squircleSdf[x0][y1] * wu1 + squircleSdf[x1][y1] * wu0) * wv0;
-                // Smooth step (cubic Hermite interpolation) and store.
-                const float t = qBound(0.0f, sample * normaliseFactor + 0.5f, 1.0f);
-                dataF32[i * textureWidthPlusGutters + j + gutter] = t * t * (3.0f - (2.0f * t));
-            }
-        }
-#endif
-    }
-
-#if PERF_DEBUG
-    printf("%6.2f ms\n", timer.nsecsElapsed() * 0.000001f);
-    printf("  quads... ");
-    timer.start();
-#endif
-
-    // Fill bottom-right side of the corner.
-    for (int i = shadow; i < shadowPlusRadius; i++) {
-        for (int j = shadowPlusRadius; j < textureWidth + gutter; j++) {
-            dataF32[i * textureWidthPlusGutters + gutter + j] = 1.0f;
-        }
-    }
-    for (int i = shadowPlusRadius; i < textureWidth; i++) {
-        for (int j = shadow; j < textureWidth + gutter; j++) {
-            dataF32[i * textureWidthPlusGutters + gutter + j] = 1.0f;
-        }
-    }
-
-#if PERF_DEBUG
-    printf("%6.2f ms\n", timer.nsecsElapsed() * 0.000001f);
-    printf("  hblur... ");
-    timer.start();
-#endif
-
-    // Gaussian blur horizontal pass.
-    const int gaussianIndex = shadow - 1;
-    const float sumFactor = 1.0f / gaussianSums[gaussianIndex];
-    const float* RESTRICT gaussianKernel = &gaussianKernels[gaussianOffsets[gaussianIndex]];
-    float* RESTRICT tempF32 = &dataF32[textureWidthPlusGutters * textureWidth];
-    for (int i = 0; i < textureWidth; i++) {
-        const int index = textureWidthPlusGutters * i + gutter;
-        const int offset = gutter + i;
-        for (int j = 0; j < textureWidth; j++) {
-            float sum = 0.0f;
-            float* RESTRICT src = &dataF32[index + j];
-            for (int k = -shadow; k <= shadow; k++) {
-                sum += src[k] * gaussianKernel[k];
-            }
-            tempF32[textureWidthPlusGutters * j + offset] = sum * sumFactor;
-        }
-    }
-
-#if PERF_DEBUG
-    printf("%6.2f ms\n", timer.nsecsElapsed() * 0.000001f);
-    printf("  gutters. ");
-    timer.start();
-#endif
-
-    // Fill the bottom gutter of the temporary buffer by repeating last row.
-    for (int i = 0; i < textureWidth; i++) {
-        const float edge = tempF32[textureWidthPlusGutters * i + gutter + textureWidth - 1];
-        float* RESTRICT dst = &tempF32[textureWidthPlusGutters * i + gutter + textureWidth];
-        for (int j = 0; j < gutter; j++) {
-            dst[j] = edge;
-        }
-    }
-
-#if PERF_DEBUG
-    printf("%6.2f ms\n", timer.nsecsElapsed() * 0.000001f);
-    printf("  vblur... ");
-    timer.start();
-#endif
-
-    // Gaussian blur vertical pass, shape masking (simply reuse the shape
-    // already rendered), floating-point quantization to 8 bits and
-    // store. Ensures the returned 16-bit buffer has a 4 bytes stride alignment
-    // to fit the default OpenGL unpack alignment.
-    const int stride = getStride(textureWidth, sizeof(quint16), 4);
-    for (int i = 0; i < textureWidth; i++) {
-        const int index = textureWidthPlusGutters * i + gutter;
-        quint16* RESTRICT dst = &dataU16[stride * i];
-        for (int j = 0; j < textureWidth; j++) {
-            float sum = 0.0f;
-            float* RESTRICT src = &tempF32[index + j];
-            for (int k = -shadow; k <= shadow; k++) {
-                sum += src[k] * gaussianKernel[k];
-            }
-            const float shadow = sum * sumFactor;
-            const float shape = dataF32[i * textureWidthPlusGutters + j + gutter];
-            const float inner = shape * (1.0f - shadow);
-            const float drop = shadow * (1.0f - shape);
-            const quint16 innerU16 = (quint16) (inner * 255.0f + 0.5f);
-            const quint16 dropU16 = (quint16) (drop * 255.0f + 0.5f);
-            dst[j] = innerU16 << 8 | dropU16;
-        }
-    }
-
-#if PERF_DEBUG
-    printf("%6.2f ms\n", timer.nsecsElapsed() * 0.000001f);
-#endif
-
-    return dataU16;
-}
-
-void UCShadowMaterial::updateTexture(
-    UCShadow::Shape shape, int shadow, int radius,
-    UCShadow::Shape newShape, int newShadow, int newRadius)
-{
-    QOpenGLFunctions* funcs = QOpenGLContext::currentContext()->functions();
-    bool isNewTexture = false;
-
-    // Handle the texture cache (a texture is shared by all the shadow materials
-    // of the same shadow and radius sizes). No locking is done since we assume
-    // the QtQuick renderer calls preprocess() from the same thread for nodes
-    // sharing the same graphics context.
-    m_key = makeTextureHashKey(newShape, newShadow, newRadius);
-    TextureHash::iterator it = m_textureHash->find(makeTextureHashKey(shape, shadow, radius));
-    TextureHash::iterator newIt = m_textureHash->find(m_key);
-    if (it != m_textureHash->end() && it.value().unref() == 0) {
-        quint32 textureId = it.value().id();
-        m_textureHash->erase(it);
-        if (newIt == m_textureHash->end()) {
-            m_textureHash->insert(m_key, Texture(textureId));
-            DASSERT(m_textureId == textureId);
-        } else {
-            funcs->glDeleteTextures(1, &textureId);
-            m_textureId = newIt.value().ref();
-            return;
-        }
-    } else {
-        if (newIt == m_textureHash->end()) {
-            funcs->glGenTextures(1, &m_textureId);
-            m_textureHash->insert(m_key, Texture(m_textureId));
-            isNewTexture = true;
-        } else {
-            m_textureId = newIt.value().ref();
-            return;
-        }
-    }
-
-    quint16* buffer = renderShape(newShadow, newRadius, newShape);
-
-    // Upload texture. The texture size is a multiple of textureStride to allow
-    // GPUs to speed up uploads and optimise storage.
-    funcs->glBindTexture(GL_TEXTURE_2D, m_textureId);
-    const int newSize = 2 * newShadow + newRadius;
-    const int newSizeRounded = getStride(newSize, 1, textureStride);
-    if (isNewTexture) {
-        funcs->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        funcs->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        funcs->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        funcs->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        funcs->glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE_ALPHA, newSizeRounded, newSizeRounded, 0,
-                            GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, NULL);
-    } else {
-        const int size = 2 * shadow + radius;
-        const int sizeRounded = getStride(size, 1, textureStride);
-        if (sizeRounded != newSizeRounded) {
-            funcs->glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE_ALPHA, newSizeRounded,
-                                newSizeRounded, 0, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, NULL);
-        }
-    }
-    const int offset = newSizeRounded - newSize;
-    funcs->glTexSubImage2D(GL_TEXTURE_2D, 0, offset, offset, newSize, newSize, GL_LUMINANCE_ALPHA,
-                           GL_UNSIGNED_BYTE, buffer);
-
-    free(buffer);
 }
 
 // --- Node ---
@@ -532,8 +200,7 @@ void UCShadowNode::preprocess()
 {
     if (m_newShadow != m_shadow || m_newRadius != m_radius || m_newShape != m_shape) {
         m_material.updateTexture(
-            static_cast<UCShadow::Shape>(m_shape), m_shadow, m_radius,
-            static_cast<UCShadow::Shape>(m_newShape), m_newShadow, m_newRadius);
+            static_cast<UCShadow::Shape>(m_newShape), m_newRadius, m_newShadow);
         m_shadow = m_newShadow;
         m_radius = m_newRadius;
         m_shape = m_newShape;

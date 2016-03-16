@@ -116,6 +116,7 @@ HEADERS += $$PWD/plugin.h \
     $$PWD/privates/ucpagewrapperincubator_p.h \
     $$PWD/privates/appheaderbase.h \
     $$PWD/privates/shape/utils.h \
+    $$PWD/privates/shape/texturefactory.h \
     $$PWD/privates/shape/fill.h \
     $$PWD/privates/shape/frame.h \
     $$PWD/privates/shape/shadow.h
@@ -196,6 +197,7 @@ SOURCES += $$PWD/plugin.cpp \
     $$PWD/privates/ucpagewrapperincubator.cpp \
     $$PWD/privates/appheaderbase.cpp \
     $$PWD/privates/shape/utils.cpp \
+    $$PWD/privates/shape/texturefactory.cpp \
     $$PWD/privates/shape/fill.cpp \
     $$PWD/privates/shape/frame.cpp \
     $$PWD/privates/shape/shadow.cpp

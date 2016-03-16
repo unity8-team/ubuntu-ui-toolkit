@@ -48,18 +48,18 @@ Item {
             width: 100
             height: 100
             style: ShapeShadow.Inner
-            z: 1
+            z: 3
             visible: true
         }
-        ShapeFill {
-            id: fill
-            anchors.fill: parent
-            anchors.margins: 200.0
-            color: "red"
-            radius: dropShadow.radius
-            shape: dropShadow.shape
-            visible: true
-        }
+        // ShapeFrame {
+        //     id: fill
+        //     anchors.fill: parent
+        //     anchors.margins: 200.0
+        //     color: "blue"
+        //     radius: dropShadow.radius
+        //     shape: dropShadow.shape
+        //     visible: true
+        // }
     }
 
     ZoomPan {

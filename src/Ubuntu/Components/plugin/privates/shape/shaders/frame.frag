@@ -28,6 +28,5 @@ void main(void)
     lowp float innerShape = texture2D(texture[1], innerCoord).r;
     // Fused multiply-add friendly version of (outerShape * (1.0 - innerShape))
     lowp float shape = (outerShape * -innerShape) + outerShape;
-    // Squared to make thinner corners (particularly visible at stroke 1).
-    gl_FragColor = vec4(shape * shape * opacity) * color;
+    gl_FragColor = vec4(shape * opacity) * color;
 }

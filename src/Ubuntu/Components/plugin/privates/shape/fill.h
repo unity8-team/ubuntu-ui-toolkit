@@ -16,12 +16,13 @@
  * Author: Loïc Molinari <loic.molinari@canonical.com>
  */
 
-#ifndef UCCOLOR_H
-#define UCCOLOR_H
+#ifndef UCFILL_H
+#define UCFILL_H
 
-#include "utils.h"
 #include <QtQuick/QQuickItem>
 #include <QtQuick/QSGNode>
+#include "texturefactory.h"
+#include "utils.h"
 
 // Renders a colored fill shape.
 class UCFill : public QQuickItem
@@ -41,7 +42,7 @@ class UCFill : public QQuickItem
 public:
     UCFill(QQuickItem* parent = 0);
 
-    enum Shape { Squircle = 0, Circle = 1 };
+    enum Shape { Squircle = Texture::Squircle, Circle = Texture::Circle };
 
     Shape shape() const { return static_cast<Shape>(m_shape); }
     void setShape(Shape shape);
@@ -73,38 +74,20 @@ private:
 class UCCornerMaterial : public QSGMaterial
 {
 public:
-    class Texture {
-    public:
-        Texture(quint32 id = 0) : m_id(id), m_refCount(1) {}
-        quint32 id() const { return m_id; }
-        quint32 ref() { Q_ASSERT(m_refCount < UINT_MAX); m_refCount++; return m_id; }
-        quint32 unref() { Q_ASSERT(m_refCount > 0); return --m_refCount; }
-
-    private:
-        quint32 m_id;
-        quint32 m_refCount;
-    };
-
-    typedef QHash<quint32, Texture> TextureHash;
-
-    static Q_CONSTEXPR quint32 makeTextureHashKey(UCFill::Shape shape, quint8 radius) {
-        return static_cast<quint32>(shape) << 8  // 1 bit
-            | static_cast<quint32>(radius);      // 8 bit
-    }
-
     UCCornerMaterial();
-    ~UCCornerMaterial();
     virtual QSGMaterialType* type() const;
     virtual QSGMaterialShader* createShader() const;
     virtual int compare(const QSGMaterial* other) const;
 
     quint32 textureId() const { return m_textureId; }
-    void updateTexture(UCFill::Shape shape, int radius, UCFill::Shape newShape, int newRadius);
+    void updateTexture(UCFill::Shape shape, int radius) {
+        DASSERT(radius > 0);
+        m_textureId = m_textureFactory.shapeTexture(0, static_cast<Texture::Shape>(shape), radius);
+    }
 
 private:
-    TextureHash* m_textureHash;
+    TextureFactory<1> m_textureFactory;
     quint32 m_textureId;
-    quint32 m_key;
 };
 
 class UCCornerNode : public QSGGeometryNode
@@ -153,4 +136,4 @@ private:
 
 QML_DECLARE_TYPE(UCFill)
 
-#endif  // UCCOLOR_H
+#endif  // UCFILL_H
