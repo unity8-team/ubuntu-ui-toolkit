@@ -154,7 +154,7 @@ UCShadowNode::UCShadowNode(UCShadow::Style style, UCShadow::Shape shape)
     m_geometry.setVertexDataPattern(QSGGeometry::AlwaysUploadPattern);
     setGeometry(&m_geometry);
     setMaterial(&m_material);
-    qsgnode_set_description(this, QLatin1String("shadow"));
+    qsgnode_set_description(this, QLatin1String("shapeshadow"));
 }
 
 // static

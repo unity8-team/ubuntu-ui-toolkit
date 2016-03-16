@@ -122,7 +122,7 @@ UCCornerNode::UCCornerNode(UCFill::Shape shape, bool visible)
     m_geometry.setVertexDataPattern(QSGGeometry::AlwaysUploadPattern);
     setGeometry(&m_geometry);
     setMaterial(&m_material);
-    qsgnode_set_description(this, QLatin1String("shapecorner"));
+    qsgnode_set_description(this, QLatin1String("shapefillcorner"));
 }
 
 // static
@@ -270,7 +270,7 @@ UCColorNode::UCColorNode()
     setGeometry(&m_geometry);
     setOpaqueMaterial(&m_opaqueMaterial);
     setMaterial(&m_material);
-    qsgnode_set_description(this, QLatin1String("shapecolor"));
+    qsgnode_set_description(this, QLatin1String("shapefill"));
 }
 
 // static
