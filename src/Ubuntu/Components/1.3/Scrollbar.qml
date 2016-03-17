@@ -197,7 +197,7 @@ StyledItem {
         //This is particularly relevant during thumb drags (be it via touch or pointer devices)
         property real headerOffset: header && header.flickable === flickableItem
                                     && header.visible ? header.height : 0
-        property Header header: page && page.header
+        property Header header: page ? page.header : null
         property Page page: null
 
         //look for a parent page
