@@ -16,11 +16,23 @@
  * Author: Pierre Bertet <pierre.bertet@canonical.com>
  */
 
-#include "button.h"
-
+#include "button_p.h"
 #include "ucstyleditembase_p.h"
-#include "uctheme.h"
-#include "quickutils.h"
+#include "ucnamespace.h"
+
+namespace UbuntuToolkit {
+
+ButtonPrivate::ButtonPrivate()
+    : UCAbstractButtonPrivate()
+    , type(Button::Normal)
+    , emphasis(Button::None)
+    , font(QFont())
+    , iconPosition(Button::Before)
+    , color(QColor())
+    , strokeColor(QColor())
+    , gradient(QGradient())
+{
+}
 
 /*!
 \qmltype Button
@@ -70,18 +82,8 @@ An \l Action can be used to specify \b clicked, iconSource and text:
 
 \sa TextButton
 */
-
-namespace UbuntuToolkit {
-
 Button::Button(QQuickItem* parent)
-    : UCAbstractButton(parent)
-    , m_iconPosition(Before)
-    , m_type(Normal)
-    , m_emphasis(None)
-    , m_font(QFont())
-    , m_color(QColor())
-    , m_strokeColor(QColor())
-    , m_gradient(QGradient())
+    : UCAbstractButton(*(new ButtonPrivate), parent)
 {
     /*
      * From ucbottomedgehint.cpp:
@@ -135,6 +137,17 @@ Button::Button(QQuickItem* parent)
   \li \b Button.Outline - The button shape is transparent but a border is present.
   \endlist
 */
+Button::Type Button::type()
+{
+    Q_D(Button);
+    return d->type;
+}
+void Button::setType(Type &type)
+{
+    Q_D(Button);
+    d->type = type;
+    Q_EMIT typeChanged();
+}
 
 /*!
   \qmlproperty enumeration Button::emphasis
@@ -146,11 +159,33 @@ Button::Button(QQuickItem* parent)
   \li \b Button.Negative - The action is negative.
   \endlist
 */
+Button::Emphasis Button::emphasis()
+{
+    Q_D(Button);
+    return d->emphasis;
+}
+void Button::setEmphasis(Emphasis &emphasis)
+{
+    Q_D(Button);
+    d->emphasis = emphasis;
+    Q_EMIT emphasisChanged();
+}
 
 /*!
   \qmlproperty string Button::font
   The font used for the button's text.
 */
+QFont Button::font()
+{
+    Q_D(Button);
+    return d->font;
+}
+void Button::setFont(QFont &font)
+{
+    Q_D(Button);
+    d->font = font;
+    Q_EMIT fontChanged();
+}
 
 /*!
   \qmlproperty enumeration Button::iconPosition
@@ -165,27 +200,44 @@ Button::Button(QQuickItem* parent)
   \li \b Button.After - The icon is positioned after the text.
   \endlist
 */
+Button::IconPosition Button::iconPosition()
+{
+    Q_D(Button);
+    return d->iconPosition;
+}
+void Button::setIconPosition(IconPosition &iconPosition)
+{
+    Q_D(Button);
+    d->iconPosition = iconPosition;
+    Q_EMIT iconPositionChanged();
+}
 
 /*!
   \qmlproperty string Button::color
   \deprecated
   The property is deprecated, use `emphasis` or a custom style instead.
 */
+QColor Button::color()
+{
+    Q_D(Button);
+    return d->color;
+}
 void Button::setColor(QColor &color)
 {
-    if (color == m_color) {
+    Q_D(Button);
+
+    qDebug() << color;
+    qDebug() << d->color;
+
+    if (color == d->color) {
         return;
     }
-    m_color = color;
+    d->color = color;
 
-    static bool logged = false;
-    if (!logged) {
-        logged = true;
-        if (QuickUtils::showDeprecationWarnings()) {
-            qmlInfo(this) << "WARNING: `color` is deprecated. "
-                             "Use `emphasis` or `StyleHint` instead.";
-        }
-    }
+    qDebug() << color;
+    qDebug() << d->color;
+
+    UC_QML_DEPRECATION_WARNING("WARNING: `color` is deprecated. Use `emphasis` or `StyleHint` instead.");
 
     Q_EMIT colorChanged();
 }
@@ -195,22 +247,20 @@ void Button::setColor(QColor &color)
   \deprecated
   The property is deprecated, set `type` to "outline" instead.
 */
+QColor Button::strokeColor()
+{
+    Q_D(Button);
+    return d->strokeColor;
+}
 void Button::setStrokeColor(QColor &strokeColor)
 {
-    if (strokeColor == m_strokeColor) {
+    Q_D(Button);
+    if (strokeColor == d->strokeColor) {
         return;
     }
-    m_strokeColor = strokeColor;
+    d->strokeColor = strokeColor;
 
-    static bool logged = false;
-    if (!logged) {
-        logged = true;
-        if (QuickUtils::showDeprecationWarnings()) {
-            qmlInfo(this) << "WARNING: `strokeColor` is deprecated. "
-                             "Set the `type` property to Button.Type.Normal, "
-                             "or use `StyleHint` instead.";
-        }
-    }
+    UC_QML_DEPRECATION_WARNING("WARNING: `strokeColor` is deprecated. Set the `type` property to Button.Type.Normal, or use `StyleHint` instead.");
 
     Q_EMIT strokeColorChanged();
 }
@@ -220,21 +270,20 @@ void Button::setStrokeColor(QColor &strokeColor)
   \deprecated
   The property is deprecated, use `emphasis` or a custom style instead.
 */
+QGradient Button::gradient()
+{
+    Q_D(Button);
+    return d->gradient;
+}
 void Button::setGradient(QGradient &gradient)
 {
-    if (gradient == m_gradient) {
+    Q_D(Button);
+    if (gradient == d->gradient) {
         return;
     }
-    m_gradient = gradient;
+    d->gradient = gradient;
 
-    static bool logged = false;
-    if (!logged) {
-        logged = true;
-        if (QuickUtils::showDeprecationWarnings()) {
-            qmlInfo(this) << "WARNING: `gradient` is deprecated. "
-                             "Use `type`, `emphasis`, or `StyleHint` instead.";
-        }
-    }
+    UC_QML_DEPRECATION_WARNING("WARNING: `gradient` is deprecated. Use `type`, `emphasis`, or `StyleHint` instead.");
 
     Q_EMIT gradientChanged();
 }

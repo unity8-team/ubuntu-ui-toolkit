@@ -16,13 +16,14 @@
  * Author: Pierre Bertet <pierre.bertet@canonical.com>
  */
 
-#ifndef BUTTONBASE_H
-#define BUTTONBASE_H
+#ifndef BUTTON_H
+#define BUTTON_H
 
 #include "ucabstractbutton.h"
 
 namespace UbuntuToolkit {
 
+class ButtonPrivate;
 class Button : public UCAbstractButton
 {
     Q_OBJECT
@@ -31,15 +32,15 @@ class Button : public UCAbstractButton
     Q_ENUMS(Type)
     Q_ENUMS(Emphasis)
 
-    Q_PROPERTY(Type type MEMBER m_type NOTIFY typeChanged FINAL)
-    Q_PROPERTY(Emphasis emphasis MEMBER m_emphasis NOTIFY emphasisChanged FINAL)
-    Q_PROPERTY(QFont font MEMBER m_font NOTIFY fontChanged FINAL)
-    Q_PROPERTY(IconPosition iconPosition MEMBER m_iconPosition NOTIFY iconPositionChanged FINAL)
+    Q_PROPERTY(Type type READ type WRITE setType NOTIFY typeChanged FINAL)
+    Q_PROPERTY(Emphasis emphasis READ emphasis WRITE setEmphasis NOTIFY emphasisChanged FINAL)
+    Q_PROPERTY(QFont font READ font WRITE setFont NOTIFY fontChanged FINAL)
+    Q_PROPERTY(IconPosition iconPosition READ iconPosition WRITE setIconPosition NOTIFY iconPositionChanged FINAL)
 
-    // deprecated
-    Q_PROPERTY(QColor color MEMBER m_color WRITE setColor NOTIFY colorChanged FINAL)
-    Q_PROPERTY(QColor strokeColor MEMBER m_strokeColor WRITE setStrokeColor NOTIFY strokeColorChanged FINAL)
-    Q_PROPERTY(QGradient gradient MEMBER m_gradient WRITE setGradient NOTIFY gradientChanged FINAL)
+    // deprecated properties
+    Q_PROPERTY(QColor color READ color WRITE setColor NOTIFY colorChanged FINAL)
+    Q_PROPERTY(QColor strokeColor READ strokeColor WRITE setStrokeColor NOTIFY strokeColorChanged FINAL)
+    Q_PROPERTY(QGradient gradient READ gradient WRITE setGradient NOTIFY gradientChanged FINAL)
 
 public:
     explicit Button(QQuickItem* parent=0);
@@ -48,36 +49,43 @@ public:
     enum Type { Normal, Outline };
     enum Emphasis { None, Positive, Negative };
 
-    // deprecated
+    Type type();
+    void setType(Type &type);
+
+    Emphasis emphasis();
+    void setEmphasis(Emphasis &emphasis);
+
+    QFont font();
+    void setFont(QFont &font);
+
+    IconPosition iconPosition();
+    void setIconPosition(IconPosition &iconPosition);
+
+    QColor color();
     void setColor(QColor &color);
+
+    QColor strokeColor();
     void setStrokeColor(QColor &strokeColor);
+
+    QGradient gradient();
     void setGradient(QGradient &gradient);
 
 Q_SIGNALS:
-    void iconPositionChanged();
     void typeChanged();
     void emphasisChanged();
     void fontChanged();
-
-    // deprecated
+    void iconPositionChanged();
     void colorChanged();
     void strokeColorChanged();
     void gradientChanged();
 
 private:
-    IconPosition m_iconPosition;
-    Type m_type;
-    Emphasis m_emphasis;
-    QFont m_font;
-
-    // deprecated
-    QColor m_color;
-    QColor m_strokeColor;
-    QGradient m_gradient;
+    Q_DECLARE_PRIVATE(Button)
+    Q_DISABLE_COPY(Button)
 };
 
 }
 
 QML_DECLARE_TYPE(UbuntuToolkit::Button)
 
-#endif  // BUTTONBASE_H
+#endif // BUTTON_H

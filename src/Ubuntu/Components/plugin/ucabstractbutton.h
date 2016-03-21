@@ -60,7 +60,7 @@ Q_SIGNALS:
     void pressAndHold();
 
 protected:
-    UCAbstractButton(UCAbstractButtonPrivate &&, QQuickItem *parent = 0);
+    UCAbstractButton(UCAbstractButtonPrivate &, QQuickItem *parent = 0);
 
     Q_DECLARE_PRIVATE(UCAbstractButton)
     Q_PRIVATE_SLOT(d_func(), void _q_mouseAreaPressed())

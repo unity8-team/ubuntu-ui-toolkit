@@ -104,7 +104,7 @@ UCAbstractButton::UCAbstractButton(QQuickItem *parent)
 {
     d_func()->init();
 }
-UCAbstractButton::UCAbstractButton(UCAbstractButtonPrivate &&dd, QQuickItem *parent)
+UCAbstractButton::UCAbstractButton(UCAbstractButtonPrivate &dd, QQuickItem *parent)
     : UCActionItem(dd, parent)
 {
     d_func()->init();
