@@ -78,11 +78,13 @@
 #include "ucpagetreenode.h"
 #include "ucmainviewbase.h"
 #include "ucperformancemonitor.h"
-#include "privates/frame.h"
 #include "privates/ucpagewrapper.h"
 #include "privates/appheaderbase.h"
 #include "button.h"
 #include "textbutton.h"
+#include "privates/shape/shadow.h"
+#include "privates/shape/fill.h"
+#include "privates/shape/frame.h"
 
 // From UbuntuGestures
 #include "private/ucswipearea_p.h"
@@ -303,7 +305,10 @@ void UbuntuComponentsPlugin::initializeEngine(QQmlEngine *engine, const char *ur
 
     // Register private types.
     const char *privateUri = "Ubuntu.Components.Private";
-    qmlRegisterType<UCFrame>(privateUri, 1, 3, "Frame");
+    qmlRegisterType<UCFrame>(privateUri, 1, 3, "ShapeFrame");
+    qmlRegisterType<UCFill>(privateUri, 1, 3, "ShapeFill");
+    qmlRegisterType<UCShadow>(privateUri, 1, 3, "ShapeShadow");
+
     qmlRegisterType<UCPageWrapper>(privateUri, 1, 3, "PageWrapper");
     qmlRegisterType<UCAppHeaderBase>(privateUri, 1, 3, "AppHeaderBase");
     qmlRegisterType<UbuntuToolkit::Tree>(privateUri, 1, 3, "Tree");

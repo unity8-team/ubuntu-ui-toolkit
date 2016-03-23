@@ -110,15 +110,19 @@ HEADERS += $$PWD/plugin.h \
     $$PWD/ucmainviewbase.h \
     $$PWD/ucmainviewbase_p.h \
     $$PWD/ucperformancemonitor.h \
+    $$PWD/label_p.h \
     $$PWD/privates/listviewextensions.h \
-    $$PWD/privates/frame.h \
     $$PWD/privates/ucpagewrapper.h \
     $$PWD/privates/ucpagewrapper_p.h \
     $$PWD/privates/ucpagewrapperincubator_p.h \
     $$PWD/privates/appheaderbase.h \
     $$PWD/button.h \
     $$PWD/textbutton.h \
-    $$PWD/label_p.h
+    $$PWD/privates/shape/utils.h \
+    $$PWD/privates/shape/texturefactory.h \
+    $$PWD/privates/shape/fill.h \
+    $$PWD/privates/shape/frame.h \
+    $$PWD/privates/shape/shadow.h
 
 SOURCES += $$PWD/plugin.cpp \
     $$PWD/uctheme.cpp \
@@ -192,12 +196,16 @@ SOURCES += $$PWD/plugin.cpp \
     $$PWD/ucmainviewbase.cpp \
     $$PWD/ucperformancemonitor.cpp \
     $$PWD/privates/listviewextensions.cpp \
-    $$PWD/privates/frame.cpp \
     $$PWD/privates/ucpagewrapper.cpp \
     $$PWD/privates/ucpagewrapperincubator.cpp \
     $$PWD/privates/appheaderbase.cpp \
     $$PWD/button.cpp \
-    $$PWD/textbutton.cpp
+    $$PWD/textbutton.cpp \
+    $$PWD/privates/shape/utils.cpp \
+    $$PWD/privates/shape/texturefactory.cpp \
+    $$PWD/privates/shape/fill.cpp \
+    $$PWD/privates/shape/frame.cpp \
+    $$PWD/privates/shape/shadow.cpp
 
 # adapters
 SOURCES += $$PWD/adapters/alarmsadapter_organizer.cpp
@@ -212,5 +220,11 @@ OTHER_FILES += \
     $$PWD/shaders/shapeoverlay.vert \
     $$PWD/shaders/shapeoverlay.frag \
     $$PWD/shaders/shapeoverlay_no_dfdy.frag \
-    $$PWD/privates/shaders/frame.vert \
-    $$PWD/privates/shaders/frame.frag
+    $$PWD/privates/shape/shaders/color.vert \
+    $$PWD/privates/shape/shaders/opaquecolor.frag \
+    $$PWD/privates/shape/shaders/color.frag \
+    $$PWD/privates/shape/shaders/texture.vert \
+    $$PWD/privates/shape/shaders/luminance.frag \
+    $$PWD/privates/shape/shaders/shadow.frag \
+    $$PWD/privates/shape/shaders/frame.vert \
+    $$PWD/privates/shape/shaders/frame.frag

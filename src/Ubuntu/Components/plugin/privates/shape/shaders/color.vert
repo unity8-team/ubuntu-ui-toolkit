@@ -16,18 +16,13 @@
  * Author: Loïc Molinari <loic.molinari@canonical.com>
  */
 
-uniform sampler2D texture;
-uniform lowp float opacity;
-varying mediump vec2 outerCoord;
-varying mediump vec2 innerCoord;
+uniform highp mat4 matrix;
+attribute highp vec4 positionAttrib;
+attribute lowp vec4 colorAttrib;
 varying lowp vec4 color;
 
-void main(void)
+void main()
 {
-    lowp float shapeOut = texture2D(texture, outerCoord).r;
-    lowp float shapeIn = texture2D(texture, innerCoord).r;
-    // Fused multiply-add friendly version of (shapeOut * (1.0 - shapeIn))
-    lowp float shape = (shapeOut * -shapeIn) + shapeOut;
-    // shape is squared to make thinner corners (particularly visible at stroke 1).
-    gl_FragColor = vec4(shape * shape * opacity) * color;
+    color = colorAttrib;
+    gl_Position = matrix * positionAttrib;
 }
