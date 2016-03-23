@@ -18,6 +18,7 @@
 
 #include "frame.h"
 #include <QtGui/QOpenGLFunctions>
+#include <QtGui/QGuiApplication>
 
 const UCFrame::Shape defaultShape = UCFrame::Squircle;
 const QRgb defaultColor = qRgba(255, 255, 255, 255);
@@ -113,6 +114,14 @@ int UCFrameCornerMaterial::compare(const QSGMaterial* other) const
     return otherFrameCornerMaterial->innerTextureId() - m_textureId[1];
 }
 
+void UCFrameCornerMaterial::updateTexture(int index, UCFrame::Shape shape, int radius)
+{
+    DASSERT(index >= 0 && index < 2);
+    DASSERT(radius >= 0);
+    m_textureId[index] = m_textureFactory.shapeTexture(
+        index, static_cast<Texture::Shape>(shape), radius);
+}
+
 // --- Node ---
 
 UCFrameCornerNode::UCFrameCornerNode(UCFrame::Shape shape, bool visible)
@@ -126,7 +135,7 @@ UCFrameCornerNode::UCFrameCornerNode(UCFrame::Shape shape, bool visible)
     , m_visible(visible)
 {
     setFlag(QSGNode::UsePreprocess);
-    memcpy(m_geometry.indexData(), indices(), 26 * sizeof(unsigned short));
+    memcpy(m_geometry.indexData(), indices(), 26 * sizeof(quint16));
     m_geometry.setDrawingMode(GL_TRIANGLE_STRIP);
     m_geometry.setIndexDataPattern(QSGGeometry::StaticPattern);
     m_geometry.setVertexDataPattern(QSGGeometry::AlwaysUploadPattern);
@@ -136,7 +145,7 @@ UCFrameCornerNode::UCFrameCornerNode(UCFrame::Shape shape, bool visible)
 }
 
 // static
-const unsigned short* UCFrameCornerNode::indices()
+const quint16* UCFrameCornerNode::indices()
 {
     // The geometry is made of 20 vertices indexed with a triangle strip mode.
     //     0 -1       2- 3
@@ -148,7 +157,7 @@ const unsigned short* UCFrameCornerNode::indices()
     //    12  \       /  13
     //     |   14   15   |
     //    16 -17     18- 19
-    static const unsigned short indices[] = {
+    static const quint16 indices[] = {
         0, 6, 1, 8, 4,
         4, 5,  // Degenerate triangle.
         5, 9, 2, 7, 3,
@@ -202,33 +211,39 @@ void UCFrameCornerNode::updateGeometry(
 {
     UCFrameCornerNode::Vertex* v =
         reinterpret_cast<UCFrameCornerNode::Vertex*>(m_geometry.vertexData());
+    const float devicePixelRatio = qGuiApp->devicePixelRatio();
     const float w = static_cast<float>(itemSize.width());
     const float h = static_cast<float>(itemSize.height());
     // FIXME(loicm) Rounded down since renderShape() doesn't support sub-pixel rendering.
     const float maxSize = floorf(qMin(w, h) * 0.5f);
     const float clampedThickness = qMin(thickness, maxSize);
+    const float deviceThickness = clampedThickness * devicePixelRatio;
     const float border = 1.0f;
     const float outerRadius = qMin(radius, maxSize);
+    const float deviceOuterRadius = outerRadius * devicePixelRatio;
     // FIXME(loicm) Rounded down since renderShape() doesn't support sub-pixel rendering.
-    const float innerRadius = floorf(outerRadius * ((maxSize - clampedThickness) / maxSize));
     const float outerRadiusRounded =
-        getStride(static_cast<int>(outerRadius + 2 * border), 1, textureStride);
+        getStride(static_cast<int>(deviceOuterRadius + 2 * border), 1, textureStride);
+    const float innerRadius = floorf(outerRadius * ((maxSize - clampedThickness) / maxSize));
+    const float deviceInnerRadius = innerRadius * devicePixelRatio;
     const float innerRadiusRounded =
-        getStride(static_cast<int>(innerRadius + 2 * border), 1, textureStride);
+        getStride(static_cast<int>(deviceInnerRadius + 2 * border), 1, textureStride);
 
-    const float outerRadiusOffset = outerRadiusRounded - outerRadius - border;
+    const float outerRadiusOffset = outerRadiusRounded - deviceOuterRadius - border;
     const float outerTextureFactor = 1.0f / outerRadiusRounded;
     const float outerS0 = outerTextureFactor * outerRadiusOffset;
-    const float outerS1 = outerTextureFactor * (outerRadiusOffset + outerRadius);
-    const float outerS2 = outerTextureFactor * (outerRadiusOffset + clampedThickness);
-    const float outerS3 = outerTextureFactor * (outerRadiusOffset + clampedThickness + innerRadius);
+    const float outerS1 = outerTextureFactor * (outerRadiusOffset + deviceOuterRadius);
+    const float outerS2 = outerTextureFactor * (outerRadiusOffset + deviceThickness);
+    const float outerS3 =
+        outerTextureFactor * (outerRadiusOffset + deviceThickness + deviceInnerRadius);
 
-    const float innerRadiusOffset = innerRadiusRounded - innerRadius - border;
+    const float innerRadiusOffset = innerRadiusRounded - deviceInnerRadius - border;
     const float innerTextureFactor = 1.0f / innerRadiusRounded;
     const float innerS0 = innerTextureFactor * innerRadiusOffset;
-    const float innerS1 = innerTextureFactor * (innerRadiusOffset + innerRadius);
-    const float innerS2 = innerTextureFactor * (innerRadiusOffset - clampedThickness);
-    const float innerS3 = innerTextureFactor * (innerRadiusOffset - clampedThickness + outerRadius);
+    const float innerS1 = innerTextureFactor * (innerRadiusOffset + deviceInnerRadius);
+    const float innerS2 = innerTextureFactor * (innerRadiusOffset - deviceThickness);
+    const float innerS3 =
+        innerTextureFactor * (innerRadiusOffset - deviceThickness + deviceOuterRadius);
 
     const quint32 packedColor = packColor(color);
 
@@ -383,16 +398,17 @@ void UCFrameCornerNode::updateGeometry(
     markDirty(QSGNode::DirtyGeometry);
 
     // Update data for the preprocess() call.
-    if (m_radius[0] != static_cast<quint8>(outerRadius)) {
-        m_newRadius[0] = static_cast<quint8>(outerRadius);
+    if (m_radius[0] != static_cast<quint8>(deviceOuterRadius)) {
+        m_newRadius[0] = static_cast<quint8>(deviceOuterRadius);
     }
-    if (m_radius[1] != static_cast<quint8>(innerRadius)) {
-        m_newRadius[1] = static_cast<quint8>(innerRadius);
+    if (m_radius[1] != static_cast<quint8>(deviceInnerRadius)) {
+        m_newRadius[1] = static_cast<quint8>(deviceInnerRadius);
     }
 }
 
-UCFrameNode::UCFrameNode()
+UCFrameNode::UCFrameNode(bool blending)
     : QSGGeometryNode()
+    , m_opaqueMaterial(blending)
     , m_geometry(attributeSet(), 16, 22, GL_UNSIGNED_SHORT)
 {
     memcpy(m_geometry.indexData(), indices(), 22 * sizeof(quint16));
@@ -406,7 +422,7 @@ UCFrameNode::UCFrameNode()
 }
 
 // static
-const unsigned short* UCFrameNode::indices()
+const quint16* UCFrameNode::indices()
 {
     // The geometry is made of 16 vertices indexed with a triangle strip mode.
     //        0 ----- 1
@@ -418,7 +434,7 @@ const unsigned short* UCFrameNode::indices()
     //    10             11
     //        12 --- 13
     //       14 ----- 15
-    static const unsigned short indices[] = {
+    static const quint16 indices[] = {
         0, 2, 1, 3,
         3, 4,  // Degenerate triangle.
         4, 10, 6, 8,
@@ -441,6 +457,12 @@ const QSGGeometry::AttributeSet& UCFrameNode::attributeSet()
         2, sizeof(Vertex), attributes
     };
     return attributeSet;
+}
+
+void UCFrameNode::updateBlending(bool blending)
+{
+    m_opaqueMaterial.setFlag(QSGMaterial::Blending, blending);
+    markDirty(QSGNode::DirtyMaterial);
 }
 
 void UCFrameNode::updateGeometry(const QSizeF& itemSize, float thickness, float radius, QRgb color)
@@ -560,6 +582,9 @@ void UCFrame::setColor(const QColor& color)
 {
     const QRgb rgbColor = qRgba(color.red(), color.green(), color.blue(), color.alpha());
     if (m_color != rgbColor) {
+        if ((qAlpha(m_color) < 255) != (qAlpha(rgbColor) < 255)) {
+            m_flags |= DirtyBlending;
+        }
         m_color = rgbColor;
         update();
         Q_EMIT colorChanged();
@@ -571,7 +596,7 @@ QSGNode* UCFrame::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData* data)
     Q_UNUSED(data);
 
     const QSizeF itemSize(width(), height());
-    if (itemSize.isEmpty() || m_thickness == 0) {
+    if (itemSize.isEmpty() || m_thickness == 0 || qAlpha(m_color) == 0) {
         delete oldNode;
         return NULL;
     }
@@ -581,6 +606,9 @@ QSGNode* UCFrame::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData* data)
 
     if (oldNode) {
         frameNode = static_cast<UCFrameNode*>(oldNode->firstChild());
+        if (m_flags & DirtyBlending) {
+            frameNode->updateBlending(qAlpha(m_color) < 255);
+        }
         frameCornerNode = static_cast<UCFrameCornerNode*>(oldNode->lastChild());
         if (m_flags & DirtyShape) {
             frameCornerNode->setShape(static_cast<Shape>(m_shape));
@@ -590,7 +618,7 @@ QSGNode* UCFrame::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData* data)
         }
     } else {
         oldNode = new QSGNode;
-        frameNode = new UCFrameNode;
+        frameNode = new UCFrameNode(qAlpha(m_color) < 255);
         frameCornerNode = new UCFrameCornerNode(static_cast<Shape>(m_shape), m_radius > 0);
         oldNode->appendChildNode(frameNode);
         oldNode->appendChildNode(frameCornerNode);

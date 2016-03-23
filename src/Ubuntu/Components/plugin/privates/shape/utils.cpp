@@ -210,9 +210,9 @@ private:
     int m_opacityId;
 };
 
-UCOpaqueColorMaterial::UCOpaqueColorMaterial()
+UCOpaqueColorMaterial::UCOpaqueColorMaterial(bool blending)
 {
-    setFlag(Blending, false);
+    setFlag(Blending, blending);
 }
 
 QSGMaterialType* UCOpaqueColorMaterial::type() const

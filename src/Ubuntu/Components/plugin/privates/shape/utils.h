@@ -22,7 +22,7 @@
 #include <QtQuick/QSGMaterial>
 #include <QtGui/QColor>
 
-#define STATIC_ASSERT static_assert
+#define STATIC_ASSERT(cond) static_assert(cond, "`"#cond"'")
 
 // Debug macros compiled out for release builds.
 #if !defined(QT_NO_DEBUG)
@@ -30,12 +30,10 @@
 #define DLOG_IF(cond,...) do { if (cond) qDebug(__VA_ARGS__); } while (0)
 #define DASSERT(cond) do { if (Q_UNLIKELY(!(cond))) \
     qFatal("Assertion `"#cond"' failed in file %s, line %d", __FILE__, __LINE__); } while (0)
-#define DNOT_REACHED() qt_assert("Not reached!", __FILE__, __LINE__)
 #else
 #define DLOG(...) qt_noop()
 #define DLOG_IF(cond,...) qt_noop()
 #define DASSERT(cond) qt_noop()
-#define DNOT_REACHED() qt_noop()
 #endif
 
 // Common constants for shape items.
@@ -51,7 +49,7 @@ extern const float gaussianSums[];
 
 // maxRadius can't be higher than gaussianCount. If maxRadius needs to
 // be increased, the gaussian kernels must be adapted too.
-STATIC_ASSERT(maxRadius == gaussianCount, "maxRadius == gaussianCount");
+STATIC_ASSERT(maxRadius == gaussianCount);
 
 // Get the stride of a buffer of the given width and bytes per pixel for a
 // specific alignment.
@@ -73,11 +71,28 @@ static inline quint32 packColor(QRgb color)
     return (a << 24) | ((b & 0xff) << 16) | ((g & 0xff) << 8) | (r & 0xff);
 }
 
+// Quantize a value in the range [0, higherBound] from F32 to U16.
+static inline quint16 quantizeToU16(float value, float higherBound)
+{
+    const float u16Max = static_cast<float>(std::numeric_limits<quint16>::max());
+    DASSERT(higherBound >= 0.0f || higherBound <= u16Max);
+    DASSERT(value >= 0.0f || value <= u16Max);
+    return static_cast<quint16>((value * (u16Max / higherBound)) + 0.5f);
+}
+
+// Unquantize a value in the range [0, higherBound] from U16 to F32.
+static inline float unquantizeFromU16(quint16 value, float higherBound)
+{
+    const float u16Max = static_cast<float>(std::numeric_limits<quint16>::max());
+    DASSERT(higherBound >= 0.0f || higherBound <= u16Max);
+    return static_cast<float>(value) * (higherBound / u16Max);
+}
+
 // Opaque color material common to most shape items.
 class UCOpaqueColorMaterial : public QSGMaterial
 {
 public:
-    UCOpaqueColorMaterial();
+    UCOpaqueColorMaterial(bool blending = false);
     virtual int compare(const QSGMaterial* other) const;
     virtual QSGMaterialType* type() const;
     virtual QSGMaterialShader* createShader() const;
