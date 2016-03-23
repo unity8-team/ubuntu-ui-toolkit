@@ -18,6 +18,7 @@
 
 #include "fill.h"
 #include <QtGui/QOpenGLFunctions>
+#include <QtGui/QGuiApplication>
 
 const UCFill::Shape defaultShape = UCFill::Squircle;
 const QRgb defaultColor = qRgba(255, 255, 255, 255);
@@ -104,6 +105,12 @@ int UCCornerMaterial::compare(const QSGMaterial* other) const
     return static_cast<const UCCornerMaterial*>(other)->textureId() - m_textureId;
 }
 
+void UCCornerMaterial::updateTexture(UCFill::Shape shape, int radius)
+{
+    DASSERT(radius > 0);
+    m_textureId = m_textureFactory.shapeTexture(0, static_cast<Texture::Shape>(shape), radius);
+}
+
 // --- Node ---
 
 UCCornerNode::UCCornerNode(UCFill::Shape shape, bool visible)
@@ -122,7 +129,7 @@ UCCornerNode::UCCornerNode(UCFill::Shape shape, bool visible)
     m_geometry.setVertexDataPattern(QSGGeometry::AlwaysUploadPattern);
     setGeometry(&m_geometry);
     setMaterial(&m_material);
-    qsgnode_set_description(this, QLatin1String("shapecorner"));
+    qsgnode_set_description(this, QLatin1String("shapefillcorner"));
 }
 
 // static
@@ -180,8 +187,9 @@ void UCCornerNode::updateGeometry(const QSizeF& itemSize, float radius, QRgb col
     const float maxSize = floorf(qMin(w, h) * 0.5f);
     // FIXME(loicm) The diagonal at rounded integers pos prevents rasterising pixels on a side.
     const float clampedRadius = qMin(radius, maxSize);
+    const float deviceRadius = clampedRadius * qGuiApp->devicePixelRatio();
     const float border = 1.0f;
-    const float textureSize = clampedRadius + 2 * border;
+    const float textureSize = deviceRadius + 2 * border;
     const float textureSizeRounded = getStride(static_cast<int>(textureSize), 1, textureStride);
     const float textureStart = (textureSizeRounded - textureSize + border) / textureSizeRounded;
     const float textureEnd = (textureSizeRounded - border) / textureSizeRounded;
@@ -254,13 +262,14 @@ void UCCornerNode::updateGeometry(const QSizeF& itemSize, float radius, QRgb col
     markDirty(QSGNode::DirtyGeometry);
 
     // Update data for the preprocess() call.
-    if (m_radius != static_cast<quint8>(clampedRadius)) {
-        m_newRadius = static_cast<quint8>(clampedRadius);
+    if (m_radius != static_cast<quint8>(deviceRadius)) {
+        m_newRadius = static_cast<quint8>(deviceRadius);
     }
 }
 
-UCColorNode::UCColorNode()
+UCColorNode::UCColorNode(bool blending)
     : QSGGeometryNode()
+    , m_opaqueMaterial(blending)
     , m_geometry(attributeSet(), 8, 8, GL_UNSIGNED_SHORT)
 {
     memcpy(m_geometry.indexData(), indices(), 8 * sizeof(quint16));
@@ -270,7 +279,7 @@ UCColorNode::UCColorNode()
     setGeometry(&m_geometry);
     setOpaqueMaterial(&m_opaqueMaterial);
     setMaterial(&m_material);
-    qsgnode_set_description(this, QLatin1String("shapecolor"));
+    qsgnode_set_description(this, QLatin1String("shapefill"));
 }
 
 // static
@@ -299,6 +308,12 @@ const QSGGeometry::AttributeSet& UCColorNode::attributeSet()
         2, sizeof(Vertex), attributes
     };
     return attributeSet;
+}
+
+void UCColorNode::updateBlending(bool blending)
+{
+    m_opaqueMaterial.setFlag(QSGMaterial::Blending, blending);
+    markDirty(QSGNode::DirtyMaterial);
 }
 
 void UCColorNode::updateGeometry(const QSizeF& itemSize, float radius, QRgb color)
@@ -379,6 +394,9 @@ void UCFill::setColor(const QColor& color)
 {
     const QRgb rgbColor = qRgba(color.red(), color.green(), color.blue(), color.alpha());
     if (m_color != rgbColor) {
+        if ((qAlpha(m_color) < 255) != (qAlpha(rgbColor) < 255)) {
+            m_flags |= DirtyBlending;
+        }
         m_color = rgbColor;
         update();
         Q_EMIT colorChanged();
@@ -390,7 +408,7 @@ QSGNode* UCFill::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData* data)
     Q_UNUSED(data);
 
     const QSizeF itemSize(width(), height());
-    if (itemSize.isEmpty()) {
+    if (itemSize.isEmpty() || qAlpha(m_color) == 0) {
         delete oldNode;
         return NULL;
     }
@@ -400,6 +418,9 @@ QSGNode* UCFill::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData* data)
 
     if (oldNode) {
         colorNode = static_cast<UCColorNode*>(oldNode->firstChild());
+        if (m_flags & DirtyBlending) {
+            colorNode->updateBlending(qAlpha(m_color) < 255);
+        }
         cornerNode = static_cast<UCCornerNode*>(oldNode->lastChild());
         if (m_flags & DirtyShape) {
             cornerNode->setShape(static_cast<Shape>(m_shape));
@@ -409,7 +430,7 @@ QSGNode* UCFill::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData* data)
         }
     } else {
         oldNode = new QSGNode;
-        colorNode = new UCColorNode;
+        colorNode = new UCColorNode(qAlpha(m_color) < 255);
         cornerNode = new UCCornerNode(static_cast<Shape>(m_shape), m_radius > 0);
         oldNode->appendChildNode(colorNode);
         oldNode->appendChildNode(cornerNode);

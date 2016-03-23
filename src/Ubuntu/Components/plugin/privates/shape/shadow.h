@@ -33,7 +33,7 @@ class UCShadow : public QQuickItem
     // Specifies whether the rendered shadow is outer (drop) or inner.
     Q_PROPERTY(Style style READ style WRITE setStyle NOTIFY styleChanged)
 
-    // Shape to use at corners.
+    // Kind of shape to use at corners.
     Q_PROPERTY(Shape shape READ shape WRITE setShape NOTIFY shapeChanged)
 
     // Size of the shadow in pixels from the shape edge.
@@ -44,6 +44,13 @@ class UCShadow : public QQuickItem
 
     // Shadow color. Translucent colors are supported.
     Q_PROPERTY(QColor color READ color WRITE setColor NOTIFY colorChanged)
+
+    // Offset angle in degrees. Virtual light points to the left by default and
+    // is rotated counter clockwise.
+    Q_PROPERTY(qreal angle READ angle WRITE setAngle NOTIFY angleChanged)
+
+    // Offset in pixels along the angle.
+    Q_PROPERTY(qreal distance READ distance WRITE setDistance NOTIFY distanceChanged)
 
 public:
     UCShadow(QQuickItem* parent = 0);
@@ -62,13 +69,19 @@ public:
     QColor color() const {
       return QColor(qRed(m_color), qGreen(m_color), qBlue(m_color), qAlpha(m_color)); }
     void setColor(const QColor& color);
+    qreal angle() const { return unquantizeFromU16(m_angle, 360.0f); }
+    void setAngle(qreal angle);
+    qreal distance() const { return unquantizeFromU16(m_distance, 255.0f); }
+    void setDistance(qreal distance);
 
 Q_SIGNALS:
+    void styleChanged();
+    void shapeChanged();
     void sizeChanged();
     void radiusChanged();
     void colorChanged();
-    void styleChanged();
-    void shapeChanged();
+    void angleChanged();
+    void distanceChanged();
 
 private:
     virtual QSGNode* updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData* data);
@@ -76,6 +89,8 @@ private:
     enum { DirtyStyle = (1 << 0), DirtyShape = (1 << 1) };
 
     QRgb m_color;
+    quint16 m_angle;
+    quint16 m_distance;
     quint8 m_size;
     quint8 m_radius;
     quint8 m_style : 1;
@@ -114,14 +129,21 @@ class UCShadowNode : public QSGGeometryNode
 public:
     struct Vertex { float x, y, s, t; quint32 color; };
 
-    static const quint16* indices();
+    const int innerVerticesCount = 20;
+    const int innerIndicesCount = 34;
+    static const quint16* innerIndices();
+    const int outerVerticesCount = 9;
+    const int outerIndicesCount = 14;
+    static const quint16* outerIndices();
     static const QSGGeometry::AttributeSet& attributeSet();
 
     UCShadowNode(UCShadow::Style style, UCShadow::Shape shape);
     void preprocess();
     void setStyle(UCShadow::Style style);
     void setShape(UCShadow::Shape shape) { m_newShape = shape; }
-    void updateGeometry(const QSizeF& itemSize, float shadow, float radius, QRgb color);
+    void updateGeometry(
+        const QSizeF& itemSize, float shadow, float radius, float angle, float distance,
+        QRgb color);
 
 private:
     UCShadowMaterial m_material;

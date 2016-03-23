@@ -390,9 +390,10 @@ static quint16* renderShadowTexture(Texture::Shape shape, int radius, int shadow
             const float shadow = sum * sumFactor;
             const float shape = dataF32[i * textureWidthPlusGutters + j + gutter];
             const float inner = shape * (1.0f - shadow);
-            const float outer = shadow * (1.0f - shape);
+            // const float outer = shadow * (1.0f - shape);
             const quint16 innerU16 = (quint16) (inner * 255.0f + 0.5f);
-            const quint16 outerU16 = (quint16) (outer * 255.0f + 0.5f);
+            // const quint16 outerU16 = (quint16) (outer * 255.0f + 0.5f);
+            const quint16 outerU16 = (quint16) (shadow * 255.0f + 0.5f);
             dst[j] = innerU16 << 8 | outerU16;
         }
     }

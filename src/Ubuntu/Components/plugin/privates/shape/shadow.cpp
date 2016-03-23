@@ -16,23 +16,20 @@
  * Author: Loïc Molinari <loic.molinari@canonical.com>
  */
 
-// FIXME(loicm):
-// - Floating-point values for the radius and shadow sizes are rounded for now
-//   because the CPU-based shape rendering and gaussian blur don't support
-//   sub-pixel rendering.
-// - Should use a texture atlas to allow batching of nodes with different shadow
-//   and radius sizes.
-// - Should try using half-sized texture with bilinear filtering.
+// FIXME(loicm): Should try using half-sized texture to speed up CPU based
+//     shadow rendering.
 
 #include "shadow.h"
 #include "utils.h"
 #include <QtGui/QOpenGLFunctions>
+#include <QtGui/QGuiApplication>
 
 const UCShadow::Style defaultStyle = UCShadow::Outer;
 const UCShadow::Shape defaultShape = UCShadow::Squircle;
 const QRgb defaultColor = qRgba(0, 0, 0, 255);
 const int defaultShadow = 25;
 const int maxShadow = 128;
+const float maxDistance = 255.0f;
 
 // --- Shaders ---
 
@@ -138,7 +135,10 @@ int UCShadowMaterial::compare(const QSGMaterial* other) const
 UCShadowNode::UCShadowNode(UCShadow::Style style, UCShadow::Shape shape)
     : QSGGeometryNode()
     , m_material(style)
-    , m_geometry(attributeSet(), 20, 34, GL_UNSIGNED_SHORT)
+    , m_geometry(attributeSet(),
+                 style == UCShadow::Outer ? outerVerticesCount : innerVerticesCount,
+                 style == UCShadow::Outer ? outerIndicesCount : innerIndicesCount,
+                 GL_UNSIGNED_SHORT)
     , m_shadow(0)
     , m_newShadow(0)
     , m_radius(0)
@@ -148,17 +148,36 @@ UCShadowNode::UCShadowNode(UCShadow::Style style, UCShadow::Shape shape)
     , m_newShape(shape)
 {
     setFlag(QSGNode::UsePreprocess);
-    memcpy(m_geometry.indexData(), indices(), 34 * sizeof(quint16));
+    memcpy(m_geometry.indexData(),
+           style == UCShadow::Outer ? outerIndices() : innerIndices(),
+           (style == UCShadow::Outer ? outerIndicesCount : innerIndicesCount) * sizeof(quint16));
     m_geometry.setDrawingMode(GL_TRIANGLE_STRIP);
     m_geometry.setIndexDataPattern(QSGGeometry::StaticPattern);
     m_geometry.setVertexDataPattern(QSGGeometry::AlwaysUploadPattern);
     setGeometry(&m_geometry);
     setMaterial(&m_material);
-    qsgnode_set_description(this, QLatin1String("shadow"));
+    qsgnode_set_description(this, QLatin1String("shapeshadow"));
 }
 
 // static
-const quint16* UCShadowNode::indices()
+const quint16* UCShadowNode::outerIndices()
+{
+    // The geometry is made of 9 vertices indexed with a triangle strip mode.
+    //     0 --- 1 --- 2
+    //     |  /  |  /  |
+    //     3 --- 4 --- 5
+    //     |  /  |  /  |
+    //     6 --- 7 --- 8
+    static const quint16 indices[] = {
+        0, 3, 1, 4, 2, 5,
+        5, 3,  // Degenerate triangle.
+        3, 6, 4, 7, 5, 8
+    };
+    return indices;
+}
+
+// static
+const quint16* UCShadowNode::innerIndices()
 {
     // The geometry is made of 20 vertices indexed with a triangle strip mode.
     //     0 ------ 1 ------ 2
@@ -209,142 +228,101 @@ void UCShadowNode::preprocess()
 
 void UCShadowNode::setStyle(UCShadow::Style style)
 {
+    DASSERT(style != m_style);
+    m_geometry.allocate(
+        style == UCShadow::Outer ? outerVerticesCount : innerVerticesCount,
+        style == UCShadow::Outer ? outerIndicesCount : innerIndicesCount);
+    memcpy(m_geometry.indexData(),
+           style == UCShadow::Outer ? outerIndices() : innerIndices(),
+           (style == UCShadow::Outer ? outerIndicesCount : innerIndicesCount) * sizeof(quint16));
     m_material.setStyle(style);
     m_style = style;
 }
 
 // FIXME(loicm) Clean up.
 void UCShadowNode::updateGeometry(
-    const QSizeF& itemSize, float shadow, float radius, QRgb color)
+    const QSizeF& itemSize, float shadow, float radius, float angle, float distance, QRgb color)
 {
     UCShadowNode::Vertex* v = reinterpret_cast<UCShadowNode::Vertex*>(m_geometry.vertexData());
+    const float devicePixelRatio = qGuiApp->devicePixelRatio();
     const float w = static_cast<float>(itemSize.width());
     const float h = static_cast<float>(itemSize.height());
     // Rounded down since renderShape() doesn't support sub-pixel rendering.
     const float maxSize = floorf(qMin(w, h) * 0.5f);
     const float clampedShadow = qMin(shadow, maxSize);
+    const float deviceShadow = clampedShadow * devicePixelRatio;
     // FIXME(loicm) The diagonal at rounded integers pos prevents rasterising pixels on a side.
     const float clampedRadius = qMin(radius, maxSize);
-    const float textureSize = 2.0f * clampedShadow + clampedRadius;
+    const float deviceRadius = clampedRadius * devicePixelRatio;
+    const float textureSize = 2.0f * deviceShadow + deviceRadius;
     const float textureSizeRounded = getStride(static_cast<int>(textureSize), 1, textureStride);
     const float textureOffset = (textureSizeRounded - textureSize) / textureSizeRounded;
     const float textureFactor = (1.0f - textureOffset) / textureSize;
     const quint32 packedColor = packColor(color);
 
     if (m_style == UCShadow::Outer) {
+        float s, c;
+        // Get the offsets. Adding 180° to cast the shadow according to the
+        // virtual light position and using the opposite angle to rotate counter
+        // clockwise.
+        sincosf((180.0f - angle) * (M_PI / 180.0f), &s, &c);
+        const float offsetY = s * distance;
+        const float offsetX = c * distance;
+        const float deviceW = w * devicePixelRatio;
+        const float deviceH = h * devicePixelRatio;
+        const float middleS = (deviceW * 0.5f + deviceShadow) * textureFactor + textureOffset;
+        const float middleT = (deviceH * 0.5f + deviceShadow) * textureFactor + textureOffset;
+
         // 1st row.
-        v[0].x = -clampedShadow;
-        v[0].y = -clampedShadow;
+        v[0].x = -clampedShadow + offsetX;
+        v[0].y = -clampedShadow + offsetY;
         v[0].s = textureOffset;
         v[0].t = textureOffset;
         v[0].color = packedColor;
-        v[1].x = w * 0.5f;
-        v[1].y = -clampedShadow;
-        v[1].s = (w * 0.5f + clampedShadow) * textureFactor + textureOffset;
+        v[1].x = w * 0.5f + offsetX;
+        v[1].y = -clampedShadow + offsetY;
+        v[1].s = middleS;
         v[1].t = textureOffset;
         v[1].color = packedColor;
-        v[2].x = w + clampedShadow;
-        v[2].y = -clampedShadow;
+        v[2].x = w + clampedShadow + offsetX;
+        v[2].y = -clampedShadow + offsetY;
         v[2].s = textureOffset;
         v[2].t = textureOffset;
         v[2].color = packedColor;
 
         // 2nd row.
-        v[3].x = clampedRadius;
-        v[3].y = 0.0f;
-        v[3].s = (clampedShadow + clampedRadius) * textureFactor + textureOffset;
-        v[3].t = clampedShadow * textureFactor + textureOffset;
+        v[3].x = -clampedShadow + offsetX;
+        v[3].y = h * 0.5f + offsetY;
+        v[3].s = textureOffset;
+        v[3].t = middleT;
         v[3].color = packedColor;
-        v[4].x = w * 0.5f;
-        v[4].y = 0.0f;
-        v[4].s = (w * 0.5f + clampedShadow) * textureFactor + textureOffset;
-        v[4].t = clampedShadow * textureFactor + textureOffset;
+        v[4].x = w * 0.5f + offsetX;
+        v[4].y = h * 0.5f + offsetY;
+        v[4].s = middleS;
+        v[4].t = middleT;
         v[4].color = packedColor;
-        v[5].x = w - clampedRadius;
-        v[5].y = 0.0f;
-        v[5].s = (clampedShadow + clampedRadius) * textureFactor + textureOffset;
-        v[5].t = clampedShadow * textureFactor + textureOffset;
+        v[5].x = w + clampedShadow + offsetX;
+        v[5].y = h * 0.5f + offsetY;
+        v[5].s = textureOffset;
+        v[5].t = middleT;
         v[5].color = packedColor;
 
         // 3rd row.
-        v[6].x = 0.0f;
-        v[6].y = clampedRadius;
-        v[6].s = clampedShadow * textureFactor + textureOffset;
-        v[6].t = (clampedShadow + clampedRadius) * textureFactor + textureOffset;
+        v[6].x = -clampedShadow + offsetX;
+        v[6].y = h + clampedShadow + offsetY;
+        v[6].s = textureOffset;
+        v[6].t = textureOffset;
         v[6].color = packedColor;
-        v[7].x = w;
-        v[7].y = clampedRadius;
-        v[7].s = clampedShadow * textureFactor + textureOffset;
-        v[7].t = (clampedShadow + clampedRadius) * textureFactor + textureOffset;
+        v[7].x = w * 0.5f + offsetX;
+        v[7].y = h + clampedShadow + offsetY;
+        v[7].s = middleS;
+        v[7].t = textureOffset;
         v[7].color = packedColor;
-
-        // 4th row.
-        v[8].x = -clampedShadow;
-        v[8].y = h * 0.5f;
+        v[8].x = w + clampedShadow + offsetX;
+        v[8].y = h + clampedShadow + offsetY;
         v[8].s = textureOffset;
-        v[8].t = (h * 0.5f + clampedShadow) * textureFactor + textureOffset;
+        v[8].t = textureOffset;
         v[8].color = packedColor;
-        v[9].x = 0.0f;
-        v[9].y = h * 0.5f;
-        v[9].s = clampedShadow * textureFactor + textureOffset;
-        v[9].t = (h * 0.5f + clampedShadow) * textureFactor + textureOffset;
-        v[9].color = packedColor;
-        v[10].x = w;
-        v[10].y = h * 0.5f;
-        v[10].s = clampedShadow * textureFactor + textureOffset;
-        v[10].t = (h * 0.5f + clampedShadow) * textureFactor + textureOffset;
-        v[10].color = packedColor;
-        v[11].x = w + clampedShadow;
-        v[11].y = h * 0.5f;
-        v[11].s = textureOffset;
-        v[11].t = (h * 0.5f + clampedShadow) * textureFactor + textureOffset;
-        v[11].color = packedColor;
-
-        // 5th row.
-        v[12].x = 0.0f;
-        v[12].y = h - clampedRadius;
-        v[12].s = clampedShadow * textureFactor + textureOffset;
-        v[12].t = (clampedShadow + clampedRadius) * textureFactor + textureOffset;
-        v[12].color = packedColor;
-        v[13].x = w;
-        v[13].y = h - clampedRadius;
-        v[13].s = clampedShadow * textureFactor + textureOffset;
-        v[13].t = (clampedShadow + clampedRadius) * textureFactor + textureOffset;
-        v[13].color = packedColor;
-
-        // 6th row.
-        v[14].x = clampedRadius;
-        v[14].y = h;
-        v[14].s = (clampedShadow + clampedRadius) * textureFactor + textureOffset;
-        v[14].t = clampedShadow * textureFactor + textureOffset;
-        v[14].color = packedColor;
-        v[15].x = w * 0.5f;
-        v[15].y = h;
-        v[15].s = (w * 0.5f + clampedShadow) * textureFactor + textureOffset;
-        v[15].t = clampedShadow * textureFactor + textureOffset;
-        v[15].color = packedColor;
-        v[16].x = w - clampedRadius;
-        v[16].y = h;
-        v[16].s = (clampedShadow + clampedRadius) * textureFactor + textureOffset;
-        v[16].t = clampedShadow * textureFactor + textureOffset;
-        v[16].color = packedColor;
-
-        // 7th row.
-        v[17].x = -clampedShadow;
-        v[17].y = h + clampedShadow;
-        v[17].s = textureOffset;
-        v[17].t = textureOffset;
-        v[17].color = packedColor;
-        v[18].x = w * 0.5f;
-        v[18].y = h + clampedShadow;
-        v[18].s = (w * 0.5f + clampedShadow) * textureFactor + textureOffset;
-        v[18].t = textureOffset;
-        v[18].color = packedColor;
-        v[19].x = w + clampedShadow;
-        v[19].y = h + clampedShadow;
-        v[19].s = textureOffset;
-        v[19].t = textureOffset;
-        v[19].color = packedColor;
 
     } else {
         // 1st row.
@@ -465,11 +443,11 @@ void UCShadowNode::updateGeometry(
     markDirty(QSGNode::DirtyGeometry);
 
     // Update data for the preprocess() call.
-    if (m_shadow != static_cast<quint8>(clampedShadow)) {
-        m_newShadow = static_cast<quint8>(clampedShadow);
+    if (m_shadow != static_cast<quint8>(deviceShadow)) {
+        m_newShadow = static_cast<quint8>(deviceShadow);
     }
-    if (m_radius != static_cast<quint8>(clampedRadius)) {
-        m_newRadius = static_cast<quint8>(clampedRadius);
+    if (m_radius != static_cast<quint8>(deviceRadius)) {
+        m_newRadius = static_cast<quint8>(deviceRadius);
     }
 }
 
@@ -478,6 +456,8 @@ void UCShadowNode::updateGeometry(
 UCShadow::UCShadow(QQuickItem* parent)
     : QQuickItem(parent)
     , m_color(defaultColor)
+    , m_angle(0)
+    , m_distance(0)
     , m_size(defaultShadow)
     , m_radius(defaultRadius)
     , m_style(defaultStyle)
@@ -511,9 +491,10 @@ void UCShadow::setShape(Shape shape)
 
 void UCShadow::setSize(qreal size)
 {
-    const quint8 clampedSize = static_cast<quint8>(qBound(0, qRound(size), maxShadow));
-    if (m_size != clampedSize) {
-        m_size = clampedSize;
+    STATIC_ASSERT(maxShadow <= 255);  // Quantized to 8 bits.
+    const quint8 quantizedSize = static_cast<quint8>(qBound(0, qRound(size), maxShadow));
+    if (m_size != quantizedSize) {
+        m_size = quantizedSize;
         update();
         Q_EMIT sizeChanged();
     }
@@ -521,9 +502,10 @@ void UCShadow::setSize(qreal size)
 
 void UCShadow::setRadius(qreal radius)
 {
-    const quint8 clampedRadius = static_cast<quint8>(qBound(0, qRound(radius), maxRadius));
-    if (m_radius != clampedRadius) {
-        m_radius = clampedRadius;
+    STATIC_ASSERT(maxRadius <= 255);  // Quantized to 8 bits.
+    const quint8 quantizedRadius = static_cast<quint8>(qBound(0, qRound(radius), maxRadius));
+    if (m_radius != quantizedRadius) {
+        m_radius = quantizedRadius;
         update();
         Q_EMIT radiusChanged();
     }
@@ -539,12 +521,37 @@ void UCShadow::setColor(const QColor& color)
     }
 }
 
+void UCShadow::setAngle(qreal angle)
+{
+    float quantizedAngle = fmodf(static_cast<float>(angle), 360.0f);
+    if (quantizedAngle < 0.0f) {
+        quantizedAngle += 360.0f;
+    }
+    quantizedAngle = quantizeToU16(quantizedAngle, 360.0f);
+    if (m_angle != quantizedAngle) {
+        m_angle = quantizedAngle;
+        update();
+        Q_EMIT angleChanged();
+    }
+}
+
+void UCShadow::setDistance(qreal distance)
+{
+    const quint16 quantizedDistance =
+        quantizeToU16(qBound(0.0f, static_cast<float>(distance), maxDistance), maxDistance);
+    if (m_distance != quantizedDistance) {
+        m_distance = quantizedDistance;
+        update();
+        Q_EMIT distanceChanged();
+    }
+}
+
 QSGNode* UCShadow::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData* data)
 {
     Q_UNUSED(data);
 
     const QSizeF itemSize(width(), height());
-    if (itemSize.isEmpty() || m_size <= 0.0f) {
+    if (itemSize.isEmpty() || m_size <= 0.0f || qAlpha(m_color) == 0) {
         delete oldNode;
         return NULL;
     }
@@ -565,7 +572,8 @@ QSGNode* UCShadow::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData* data)
     }
 
     node->updateGeometry(
-        itemSize, static_cast<float>(m_size), static_cast<float>(m_radius), m_color);
+        itemSize, static_cast<float>(m_size), static_cast<float>(m_radius),
+        unquantizeFromU16(m_angle, 360.0f), unquantizeFromU16(m_distance, 255.0f), m_color);
 
     return node;
 }

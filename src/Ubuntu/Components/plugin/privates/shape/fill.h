@@ -60,7 +60,7 @@ Q_SIGNALS:
 private:
     virtual QSGNode* updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData* data);
 
-    enum { DirtyShape = (1 << 0), DirtyCornerVisibility = (1 << 1) };
+    enum { DirtyBlending = (1 << 0), DirtyShape = (1 << 1), DirtyCornerVisibility = (1 << 2) };
 
     QRgb m_color;
     quint8 m_radius;
@@ -80,10 +80,7 @@ public:
     virtual int compare(const QSGMaterial* other) const;
 
     quint32 textureId() const { return m_textureId; }
-    void updateTexture(UCFill::Shape shape, int radius) {
-        DASSERT(radius > 0);
-        m_textureId = m_textureFactory.shapeTexture(0, static_cast<Texture::Shape>(shape), radius);
-    }
+    void updateTexture(UCFill::Shape shape, int radius);
 
 private:
     TextureFactory<1> m_textureFactory;
@@ -125,7 +122,8 @@ public:
     static const quint16* indices();
     static const QSGGeometry::AttributeSet& attributeSet();
 
-    UCColorNode();
+    UCColorNode(bool blending);
+    void updateBlending(bool blending);
     void updateGeometry(const QSizeF& itemSize, float radius, QRgb color);
 
 private:

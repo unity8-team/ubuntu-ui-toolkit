@@ -34,6 +34,8 @@ Item {
         "shape      (y): " + shapes[dropShadow.shape] + "\n" +
         "size     (s/S): " + dropShadow.size.toFixed(1) + "\n" +
         "radius   (r/R): " + dropShadow.radius.toFixed(1) + "\n" +
+        "angle    (a/A): " + dropShadow.angle.toFixed(2) + "\n" +
+        "distance (d/D): " + dropShadow.distance.toFixed(2) + "\n" +
         "color      (c): " + dropShadow.color + "\n" +
         "opacity  (o/O): " + dropShadow.opacity.toFixed(2) + "\n"
 
@@ -47,19 +49,18 @@ Item {
             anchors.margins: 200.0
             width: 100
             height: 100
-            style: ShapeShadow.Inner
-            z: 3
+            angle: 90.0
             visible: true
         }
-        // ShapeFrame {
-        //     id: fill
-        //     anchors.fill: parent
-        //     anchors.margins: 200.0
-        //     color: "blue"
-        //     radius: dropShadow.radius
-        //     shape: dropShadow.shape
-        //     visible: true
-        // }
+        ShapeFill {
+            id: fill
+            anchors.fill: parent
+            anchors.margins: 200.0
+            color: "white"
+            radius: dropShadow.radius
+            shape: dropShadow.shape
+            visible: false
+        }
     }
 
     // ZoomPan {
@@ -90,6 +91,9 @@ Item {
         text: textOverlayString
     }
 
+    property real toto: 0.0
+    property real fillA: 1.0
+
     Keys.onPressed: {
         var shift = event.modifiers & Qt.ShiftModifier;
         if (event.key == Qt.Key_T) {
@@ -102,13 +106,25 @@ Item {
             dropShadow.radius = dropShadow.radius + (shift ? 1.0 : -1.0);
         } else if (event.key == Qt.Key_C) {
             dropShadow.color = Qt.rgba(Math.random(), Math.random(), Math.random(), 1.0);
+            fillA = fillA + (shift ? 0.1 : -0.1);
+            if (fillA > 1.0) fillA = 1.0;
+            else if (fillA < 0.0) fillA = 0.0;
+            fill.color = Qt.rgba(1.0, 0.0, 0.0, fillA);
         } else if (event.key == Qt.Key_O) {
             dropShadow.opacity = dropShadow.opacity + (shift ? 0.02 : -0.02);
-        }
-        else if (event.key == Qt.Key_A) {
-            fill.visible = !fill.visible;
-        } else if (event.key == Qt.Key_N) {
+            fill.opacity = fill.opacity + (shift ? 0.02 : -0.02);
+        // }
+        // else if (event.key == Qt.Key_A) {
+        //     fill.visible = !fill.visible;
+        } else if (event.key == Qt.Key_V) {
             dropShadow.visible = !dropShadow.visible;
+        }
+
+        else if (event.key == Qt.Key_A) {
+            toto = toto + (shift ? 0.1 : -0.1);
+            dropShadow.angle = toto;
+        } else if (event.key == Qt.Key_D) {
+            dropShadow.distance = dropShadow.distance + (shift ? 0.1 : -0.1);
         }
     }
 }
