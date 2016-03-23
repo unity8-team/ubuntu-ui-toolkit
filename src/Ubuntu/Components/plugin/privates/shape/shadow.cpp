@@ -135,10 +135,7 @@ int UCShadowMaterial::compare(const QSGMaterial* other) const
 UCShadowNode::UCShadowNode(UCShadow::Style style, UCShadow::Shape shape)
     : QSGGeometryNode()
     , m_material(style)
-    , m_geometry(attributeSet(),
-                 style == UCShadow::Outer ? outerVerticesCount : innerVerticesCount,
-                 style == UCShadow::Outer ? outerIndicesCount : innerIndicesCount,
-                 GL_UNSIGNED_SHORT)
+    , m_geometry(attributeSet(), vertexCount(style), indexCount(style), GL_UNSIGNED_SHORT)
     , m_shadow(0)
     , m_newShadow(0)
     , m_radius(0)
@@ -148,9 +145,7 @@ UCShadowNode::UCShadowNode(UCShadow::Style style, UCShadow::Shape shape)
     , m_newShape(shape)
 {
     setFlag(QSGNode::UsePreprocess);
-    memcpy(m_geometry.indexData(),
-           style == UCShadow::Outer ? outerIndices() : innerIndices(),
-           (style == UCShadow::Outer ? outerIndicesCount : innerIndicesCount) * sizeof(quint16));
+    memcpy(m_geometry.indexData(), indices(style), indexCount(style) * sizeof(quint16));
     m_geometry.setDrawingMode(GL_TRIANGLE_STRIP);
     m_geometry.setIndexDataPattern(QSGGeometry::StaticPattern);
     m_geometry.setVertexDataPattern(QSGGeometry::AlwaysUploadPattern);
@@ -160,7 +155,7 @@ UCShadowNode::UCShadowNode(UCShadow::Style style, UCShadow::Shape shape)
 }
 
 // static
-const quint16* UCShadowNode::outerIndices()
+const quint16* UCShadowNode::indices(UCShadow::Style style)
 {
     // The geometry is made of 9 vertices indexed with a triangle strip mode.
     //     0 --- 1 --- 2
@@ -168,17 +163,11 @@ const quint16* UCShadowNode::outerIndices()
     //     3 --- 4 --- 5
     //     |  /  |  /  |
     //     6 --- 7 --- 8
-    static const quint16 indices[] = {
+    static const quint16 outerIndices[] = {
         0, 3, 1, 4, 2, 5,
         5, 3,  // Degenerate triangle.
         3, 6, 4, 7, 5, 8
     };
-    return indices;
-}
-
-// static
-const quint16* UCShadowNode::innerIndices()
-{
     // The geometry is made of 20 vertices indexed with a triangle strip mode.
     //     0 ------ 1 ------ 2
     //     |   3 -- 4 -- 5   |
@@ -189,7 +178,7 @@ const quint16* UCShadowNode::innerIndices()
     //     |  \           /  |
     //     |   14 - 15 -16   |
     //    17 ------ 18 ----- 19
-    static const quint16 indices[] = {
+    static const quint16 innerIndices[] = {
         9, 8, 6, 0, 3, 1, 4,
         4, 4,  // Degenerate triangle.
         4, 1, 5, 2, 7, 11, 10,
@@ -198,7 +187,10 @@ const quint16* UCShadowNode::innerIndices()
         15, 15,  // Degenerate triangle.
         15, 18, 14, 17, 12, 8, 9
     };
-    return indices;
+
+    STATIC_ASSERT(UCShadow::Outer == 0 && UCShadow::Inner == 1);
+    const quint16* indices[2] = { outerIndices, innerIndices };
+    return indices[static_cast<int>(style)];
 }
 
 // static
@@ -229,12 +221,8 @@ void UCShadowNode::preprocess()
 void UCShadowNode::setStyle(UCShadow::Style style)
 {
     DASSERT(style != m_style);
-    m_geometry.allocate(
-        style == UCShadow::Outer ? outerVerticesCount : innerVerticesCount,
-        style == UCShadow::Outer ? outerIndicesCount : innerIndicesCount);
-    memcpy(m_geometry.indexData(),
-           style == UCShadow::Outer ? outerIndices() : innerIndices(),
-           (style == UCShadow::Outer ? outerIndicesCount : innerIndicesCount) * sizeof(quint16));
+    m_geometry.allocate(vertexCount(style), indexCount(style));
+    memcpy(m_geometry.indexData(), indices(style), indexCount(style) * sizeof(quint16));
     m_material.setStyle(style);
     m_style = style;
 }

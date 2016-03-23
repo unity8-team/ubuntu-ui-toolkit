@@ -129,12 +129,7 @@ class UCShadowNode : public QSGGeometryNode
 public:
     struct Vertex { float x, y, s, t; quint32 color; };
 
-    const int innerVerticesCount = 20;
-    const int innerIndicesCount = 34;
-    static const quint16* innerIndices();
-    const int outerVerticesCount = 9;
-    const int outerIndicesCount = 14;
-    static const quint16* outerIndices();
+    static const quint16* indices(UCShadow::Style style);
     static const QSGGeometry::AttributeSet& attributeSet();
 
     UCShadowNode(UCShadow::Style style, UCShadow::Shape shape);
@@ -144,6 +139,17 @@ public:
     void updateGeometry(
         const QSizeF& itemSize, float shadow, float radius, float angle, float distance,
         QRgb color);
+
+    int vertexCount(UCShadow::Style style) const {
+        STATIC_ASSERT(UCShadow::Outer == 0 && UCShadow::Inner == 1);
+        const int count[2] = { 9, 20 };
+        return count[static_cast<int>(style)];
+    }
+    int indexCount(UCShadow::Style style) const {
+        STATIC_ASSERT(UCShadow::Outer == 0 && UCShadow::Inner == 1);
+        const int count[2] = { 14, 34 };
+        return count[static_cast<int>(style)];
+    }
 
 private:
     UCShadowMaterial m_material;
