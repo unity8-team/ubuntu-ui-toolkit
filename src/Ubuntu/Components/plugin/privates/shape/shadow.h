@@ -112,10 +112,7 @@ public:
     quint32 textureId() const { return m_textureId; }
     void setStyle(UCShadow::Style style) { m_style = style; }
     UCShadow::Style style() const { return static_cast<UCShadow::Style>(m_style); }
-    void updateTexture(UCShadow::Shape shape, int radius, int shadow) {
-        m_textureId =
-            m_textureFactory.shadowTexture(0, static_cast<Texture::Shape>(shape), radius, shadow);
-    }
+    void updateTexture(UCShadow::Shape shape, int radius, int shadow);
 
 private:
     TextureFactory<1> m_textureFactory;

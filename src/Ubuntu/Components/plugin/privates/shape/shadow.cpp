@@ -130,6 +130,12 @@ int UCShadowMaterial::compare(const QSGMaterial* other) const
     }
 }
 
+void UCShadowMaterial::updateTexture(UCShadow::Shape shape, int radius, int shadow)
+{
+    m_textureId = m_textureFactory.shadowTexture(
+        0, static_cast<Texture::Shape>(shape), radius, shadow);
+}
+
 // --- Node ---
 
 UCShadowNode::UCShadowNode(UCShadow::Style style, UCShadow::Shape shape)
