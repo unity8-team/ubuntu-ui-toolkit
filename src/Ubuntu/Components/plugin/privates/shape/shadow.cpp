@@ -16,8 +16,16 @@
  * Author: Loïc Molinari <loic.molinari@canonical.com>
  */
 
-// FIXME(loicm): Should try using half-sized texture to speed up CPU based
-//     shadow rendering.
+// FIXME(loicm): Try using half-sized textures to speed up CPU-based shadow
+//     rendering, switching to bilinear texture sampling at runtime. Evaluate
+//     the trade-off between texture creation (faster generation allows higher
+//     max radius and shadow sizes) and rendering speed.
+
+// FIXME(loicm): Outer shadow rendering should provide a clippedShape (or
+//     knockedOutShape) mode that knocks out the pixels of the shape area. This
+//     is often what we need and that would allow to optimise rendering by
+//     removing transparent pixels (that are still rasterised, shaded and
+//     blended by the GPU...) with a dedicated mesh.
 
 #include "shadow.h"
 #include "utils.h"
