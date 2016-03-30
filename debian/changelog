@@ -1,9 +1,3 @@
-ubuntu-ui-toolkit-gles (1.3.1872+16.04.20160330.2-0ubuntu1) UNRELEASED; urgency=medium
-
-  * Follow the main 
-
- -- Zoltán Balogh <zoltan@bakter.hu>  Wed, 30 Mar 2016 16:36:13 +0300
-
 ubuntu-ui-toolkit-gles (1.3.1872+16.04.20160314-0ubuntu1) xenial; urgency=medium
 
   [ Zoltán Balogh ]
