@@ -889,8 +889,6 @@ Ubuntu.Components.Themes.PaletteValues 1.3: QtObject
     property color activity
     property color activityText
     property color background
-    property color backgroundNegativeText
-    property color backgroundPositiveText
     property color backgroundSecondaryText
     property color backgroundTertiaryText
     property color backgroundText
