@@ -83,7 +83,7 @@ TextButton::TextButton(QQuickItem* parent)
 }
 
 /*!
-   \qmlproperty url Button::iconSource
+   \qmlproperty url TextButton::iconSource
    The source URL of the icon to display inside the button. Leave this value
    blank for a text-only button.
    If \l action is set, the default iconSource is that of the action.
