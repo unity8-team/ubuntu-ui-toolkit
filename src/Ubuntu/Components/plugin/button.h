@@ -30,10 +30,8 @@ class Button : public UCAbstractButton
 
     Q_ENUMS(IconPosition)
     Q_ENUMS(Type)
-    Q_ENUMS(Emphasis)
 
     Q_PROPERTY(Type type READ type WRITE setType NOTIFY typeChanged FINAL)
-    Q_PROPERTY(Emphasis emphasis READ emphasis WRITE setEmphasis NOTIFY emphasisChanged FINAL)
     Q_PROPERTY(QFont font READ font WRITE setFont NOTIFY fontChanged FINAL)
     Q_PROPERTY(IconPosition iconPosition READ iconPosition WRITE setIconPosition NOTIFY iconPositionChanged FINAL)
 
@@ -46,14 +44,10 @@ public:
     explicit Button(QQuickItem* parent=0);
 
     enum IconPosition { Before, left = Before, After, right = After };
-    enum Type { Normal, Outline };
-    enum Emphasis { None, Positive, Negative };
+    enum Type { Normal, Outline, Positive, Negative };
 
     Type type();
     void setType(Type &type);
-
-    Emphasis emphasis();
-    void setEmphasis(Emphasis &emphasis);
 
     QFont font();
     void setFont(QFont &font);
@@ -72,7 +66,6 @@ public:
 
 Q_SIGNALS:
     void typeChanged();
-    void emphasisChanged();
     void fontChanged();
     void iconPositionChanged();
     void colorChanged();

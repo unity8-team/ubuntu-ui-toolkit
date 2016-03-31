@@ -47,13 +47,15 @@ Item {
     LayoutMirroring.enabled: Qt.application.layoutDirection === Qt.RightToLeft
     LayoutMirroring.childrenInherit: true
 
+    FocusShape {
+    }
+
     // Background (on hover)
-    Frame {
+    ShapeFill {
         id: background
         visible: background.color.a > 0
         anchors.fill: parent
         radius: root.radius
-        thickness: Math.max(width, height)
         opacity: button.hovered? 1 : 0
         color: root.bgColor
         Behavior on opacity {

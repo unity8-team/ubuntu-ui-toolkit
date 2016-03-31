@@ -34,7 +34,6 @@ public:
     }
 
     Button::Type type;
-    Button::Emphasis emphasis;
     QFont font;
     Button::IconPosition iconPosition;
     QColor color;

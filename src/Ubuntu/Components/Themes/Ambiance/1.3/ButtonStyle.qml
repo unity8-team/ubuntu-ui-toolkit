@@ -33,38 +33,31 @@ Item {
         button.enabled? theme.palette.normal : theme.palette.disabled
     )
 
-    property color frameColor: {
+    property color color: {
+        // In Outline mode, the border has the same color than the text
         if (button.type === Button.Outline) {
-            // In Outline mode, the border is always
-            // the same color than the button text
             return textColor
         }
-        if (button.emphasis === Button.Positive) {
+        if (button.type === Button.Positive) {
             return palette.positive
         }
-        if (button.emphasis === Button.Negative) {
+        if (button.type === Button.Negative) {
             return palette.negative
         }
         return palette.foreground
     }
 
     property color textColor: {
-        if (button.emphasis === Button.Positive) {
-            return button.type === Button.Outline
-                     ? palette.backgroundPositiveText
-                     : palette.positiveText
+        if (button.type === Button.Positive) {
+            return palette.positiveText
         }
-        if (button.emphasis === Button.Negative) {
-            return button.type === Button.Outline
-                     ? palette.backgroundNegativeText
-                     : palette.negativeText
+        if (button.type === Button.Negative) {
+            return palette.negativeText
         }
         return palette.foregroundText
     }
 
-    property real frameThickness: (
-        button.type === Button.Outline? units.dp(1) : Math.max(width, height)
-    )
+    property real frameThickness: units.dp(1)
 
     property real radius: units.gu(0.6)
 
@@ -85,21 +78,79 @@ Item {
 
     width: button.width
     height: button.height
-    implicitWidth: Math.max( minimumWidth, foreground.width + 2 * horizontalPadding)
+    implicitWidth: Math.max(minimumWidth, foreground.width + 2 * horizontalPadding)
     implicitHeight: units.gu(4)
 
     LayoutMirroring.enabled: Qt.application.layoutDirection === Qt.RightToLeft
     LayoutMirroring.childrenInherit: true
 
-    // Background
-    Frame {
-        id: background
-        visible: background.color.a > 0 || !!backgroundSource
+    FocusShape {
+    }
+
+    // Drop shadow
+    ShapeShadow {
+        visible: button.enabled
+        opacity: (
+            button.type === Button.Outline ||
+            styledItem.keyNavigationFocus ||
+            button.pressed? 0 : 1
+        )
+        width: parent.width
+        height: parent.height
+        radius: buttonStyle.radius
+        style: ShapeShadow.Outer
+        angle: 90
+        distance: units.gu(0.1)
+        size: units.gu(0.1)
+        color: Qt.rgba(0, 0, 0, 0.2)
+        Behavior on opacity {
+            UbuntuNumberAnimation {
+                duration: UbuntuAnimation.SnapDuration
+            }
+        }
+    }
+
+    // Background shape
+    ShapeFill {
         anchors.fill: parent
+        visible: (
+            button.type !== Button.Outline ||
+            button.keyNavigationFocus ||
+            (button.hovered && !button.pressed)
+        )
+        color: {
+            var baseColor = buttonStyle.color
+            if (button.keyNavigationFocus && button.type === Button.Outline) {
+                return Qt.rgba(0, 0, 0, 0.15)
+            }
+            if (button.hovered && !button.pressed) {
+                return button.type === Button.Outline
+                    ? Qt.rgba(0, 0, 0, 0.05)
+                    : Qt.tint(buttonStyle.color, Qt.rgba(0, 0, 0, 0.05))
+            }
+            return buttonStyle.color
+        }
+        radius: buttonStyle.radius
+        Behavior on opacity {
+            UbuntuNumberAnimation {
+                duration: UbuntuAnimation.SnapDuration
+            }
+        }
+        Behavior on color {
+            enabled: button.type !== Button.Outline
+            ColorAnimation {
+                duration: UbuntuAnimation.SnapDuration
+            }
+        }
+    }
+
+    // Outline
+    ShapeFrame {
+        anchors.fill: parent
+        visible: button.type === Button.Outline && !button.keyNavigationFocus
+        color: buttonStyle.color
         radius: buttonStyle.radius
         thickness: frameThickness
-        opacity: (button.type !== Button.Text || button.hovered)? 1 : 0
-        color: frameColor
         Behavior on opacity {
             UbuntuNumberAnimation {
                 duration: UbuntuAnimation.SnapDuration
@@ -130,19 +181,5 @@ Item {
         font: button.font || defaultFont
         spacing: iconSpacing
         transformOrigin: Item.Top
-    }
-
-    // Overlay (on hover)
-    Frame {
-        anchors.fill: parent
-        radius: buttonStyle.radius
-        opacity: button.hovered && !button.pressed? 1 : 0
-        visible: button.type !== Button.Text
-        color: Qt.rgba(overlayColor.r, overlayColor.g, overlayColor.b, 0.05)
-        Behavior on opacity {
-            UbuntuNumberAnimation {
-                duration: UbuntuAnimation.SnapDuration
-            }
-        }
     }
 }

@@ -16,11 +16,17 @@
  * Author: Pierre Bertet <pierre.bertet@canonical.com>
  */
 
-#include "textbutton.h"
-
+#include "textbutton_p.h"
 #include "ucstyleditembase_p.h"
-#include "uctheme.h"
-#include "quickutils.h"
+#include "ucnamespace.h"
+
+namespace UbuntuToolkit {
+
+TextButtonPrivate::TextButtonPrivate()
+    : UCAbstractButtonPrivate()
+    , strong(false)
+{
+}
 
 /*!
 \qmltype TextButton
@@ -28,7 +34,7 @@
 \inherits UCAbstractButton
 \inqmlmodule Ubuntu.Components 1.3
 \ingroup ubuntu
-\brief Standard Ubuntu button.
+\brief Ubuntu text button.
 
 The TextButton component allows to create a text-only button that follows the Ubuntu visual and behavioral standards.
 
@@ -63,18 +69,25 @@ Item {
 \sa Button
 */
 
-namespace UbuntuToolkit {
-
 TextButton::TextButton(QQuickItem* parent)
-    : UCAbstractButton(parent)
-    , m_strong(false)
+    : UCAbstractButton(*(new TextButtonPrivate), parent)
 {
-    // From ucbottomedgehint.cpp: we cannot use setStyleName as that will
-    // trigger style loading and the qmlEngine is not known at this phase of
-    // the of the initialization. Therefore we simply set the style name
-    // default. Style loading will happen during component completion.
+    /*
+     * From ucbottomedgehint.cpp:
+     * we cannot use setStyleName as that will trigger style loading
+     * and the qmlEngine is not known at this phase of the of the
+     * initialization. Therefore we simply set the style name default. Style
+     * loading will happen during component completion.
+     */
     UCStyledItemBasePrivate::get(this)->styleDocument = QStringLiteral("TextButtonStyle");
 }
+
+/*!
+   \qmlproperty url Button::iconSource
+   The source URL of the icon to display inside the button. Leave this value
+   blank for a text-only button.
+   If \l action is set, the default iconSource is that of the action.
+*/
 
 /*!
     \qmlproperty string TextButton::text
@@ -82,21 +95,40 @@ TextButton::TextButton(QQuickItem* parent)
     shown next to the icon, otherwise it will be centered. Leave blank for an
     icon-only button.
     If \l action is set, the default text is that of the action.
-  
+*/
+
+/*!
     \qmlsignal TextButton::clicked()
     This handler is called when there is a mouse click on the button and the
     button is not disabled. If \l {ActionItem::action}{action} is defined, the
     action will be triggered.
-  
+*/
+
+/*!
     \qmlsignal TextButton::pressAndHold()
     This handler is called when there is a long press.
-  
+*/
+
+/*!
     \qmlproperty Action TextButton::action
     An \l Action to specify the clicked and \l text properties.
-  
+*/
+
+/*!
     \qmlproperty bool TextButton::strong
     Set to `true` to give importance to the button. The button font will appear
     in bold.
 */
+bool TextButton::strong()
+{
+    Q_D(TextButton);
+    return d->strong;
+}
+void TextButton::setStrong(bool &strong)
+{
+    Q_D(TextButton);
+    d->strong = strong;
+    Q_EMIT strongChanged();
+}
 
 }

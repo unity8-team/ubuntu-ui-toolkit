@@ -16,35 +16,36 @@
  * Author: Pierre Bertet <pierre.bertet@canonical.com>
  */
 
-#ifndef TEXTBUTTONBASE_H
-#define TEXTBUTTONBASE_H
+#ifndef TEXTBUTTON_H
+#define TEXTBUTTON_H
 
 #include "ucabstractbutton.h"
 
 namespace UbuntuToolkit {
 
+class TextButtonPrivate;
 class TextButton : public UCAbstractButton
 {
     Q_OBJECT
 
-    Q_PROPERTY(
-        bool strong
-        MEMBER m_strong
-        NOTIFY strongChanged
-    )
+    Q_PROPERTY(bool strong READ strong WRITE setStrong NOTIFY strongChanged)
 
 public:
     explicit TextButton(QQuickItem* parent=0);
+
+    bool strong();
+    void setStrong(bool &strong);
 
 Q_SIGNALS:
     void strongChanged();
 
 private:
-    bool m_strong;
+    Q_DECLARE_PRIVATE(TextButton)
+    Q_DISABLE_COPY(TextButton)
 };
 
 }
 
 QML_DECLARE_TYPE(UbuntuToolkit::TextButton)
 
-#endif  // TEXTBUTTONBASE_H
+#endif  // TEXTBUTTON_H

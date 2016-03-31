@@ -25,7 +25,6 @@ namespace UbuntuToolkit {
 ButtonPrivate::ButtonPrivate()
     : UCAbstractButtonPrivate()
     , type(Button::Normal)
-    , emphasis(Button::None)
     , font(QFont())
     , iconPosition(Button::Before)
     , color(QColor())
@@ -44,9 +43,7 @@ ButtonPrivate::ButtonPrivate()
 
 The Button component allows to create a button that follows the Ubuntu visual and behavioral standards.
 
-Two types are available: normal, the default, will be represented by an opaque shape with the text above it, while the outline mode will display a transparent button with the text and border.
-
-There are also two different emphasis that can be used for specific contexts: positive and negative. The default is no emphasis.
+Several types are available: normal, the default, will be represented by an opaque shape with the text above it, while the outline type will display a transparent button with a border. The positive and negative types can be used to indicate the nature of the action.
 
 \l {http://design.ubuntu.com/apps/building-blocks/buttons}{See also the Design Guidelines on Buttons}.
 
@@ -135,6 +132,8 @@ Button::Button(QQuickItem* parent)
   \list
   \li \b Button.Normal - The button shape is visible.
   \li \b Button.Outline - The button shape is transparent but a border is present.
+  \li \b Button.Positive - The action is positive.
+  \li \b Button.Negative - The action is negative.
   \endlist
 */
 Button::Type Button::type()
@@ -147,28 +146,6 @@ void Button::setType(Type &type)
     Q_D(Button);
     d->type = type;
     Q_EMIT typeChanged();
-}
-
-/*!
-  \qmlproperty enumeration Button::emphasis
-  The emphasis desired for the button. The default value is \c Button.None.
-
-  \list
-  \li \b Button.None - The action is neutral.
-  \li \b Button.Positive - The action is positive.
-  \li \b Button.Negative - The action is negative.
-  \endlist
-*/
-Button::Emphasis Button::emphasis()
-{
-    Q_D(Button);
-    return d->emphasis;
-}
-void Button::setEmphasis(Emphasis &emphasis)
-{
-    Q_D(Button);
-    d->emphasis = emphasis;
-    Q_EMIT emphasisChanged();
 }
 
 /*!
@@ -268,7 +245,7 @@ void Button::setStrokeColor(QColor &strokeColor)
 /*!
   \qmlproperty string Button::gradient
   \deprecated
-  The property is deprecated, use `emphasis` or a custom style instead.
+  The property is deprecated, use `type` or a custom style instead.
 */
 QGradient Button::gradient()
 {
@@ -283,7 +260,7 @@ void Button::setGradient(QGradient &gradient)
     }
     d->gradient = gradient;
 
-    UC_QML_DEPRECATION_WARNING("WARNING: `gradient` is deprecated. Use `type`, `emphasis`, or `StyleHint` instead.");
+    UC_QML_DEPRECATION_WARNING("WARNING: `gradient` is deprecated. Use `type`, `type`, or `StyleHint` instead.");
 
     Q_EMIT gradientChanged();
 }
