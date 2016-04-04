@@ -5,6 +5,7 @@ SOURCE := $(shell dpkg-parsechangelog | sed -n -e's/^Source: \(.*\)-gles/\1/p')
 
 # Uncomment this to turn on verbose mode.
 # export DH_VERBOSE=1
+export QT_SELECT := qt5
 export DPKG_GENSYMBOLS_CHECK_LEVEL=4
 export QMAKEFEATURES=$(CURDIR)/features
 DEB_HOST_MULTI_ARCH ?= $(shell dpkg-architecture -qDEB_BUILD_MULTIARCH)
