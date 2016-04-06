@@ -19,19 +19,6 @@ import Ubuntu.Components 1.3
 
 Template {
     objectName: "textinputsTemplate"
-    property string longText: "Lorem ipsum dolor sit amet, consectetur adipiscing elit." +
-                              "Suspendisse sed nulla in arcu dapibus vehicula ac eu tellus. "+
-                              "Mauris malesuada nisl vitae neque auctor placerat. Ut vitae "+
-                              "luctus libero. Praesent tempus nisl faucibus tellus semper "+
-                              "eget iaculis purus congue. Donec elit tellus, malesuada non "+
-                              "vehicula a, sagittis vel purus. Ut elementum vehicula accumsan. "+
-                              "Pellentesque habitant morbi tristique senectus et netus et malesuada "+
-                              "fames ac turpis egestas. Suspendisse ut rutrum sapien. Nullam id lobortis mauris"+
-                              "Maecenas sollicitudin ipsum eu mauris vehicula rutrum. Proin aliquet "+
-                              "justo ut mi luctus eu lobortis risus elementum. Cras sit amet "+
-                              "sollicitudin magna. Quisque facilisis sodales tincidunt. Maecenas "+
-                              "ligula tortor, luctus id elementum vel, varius vel augue. "+
-                              "Nunc porta mattis bibendum. Nam vitae sapien ipsum, non viverra neque."
 
     // http://qt-project.org/doc/qt-5/richtext-html-subset.html
     property string richText: "<big>Lorem ipsum dolor sit amet</big>, <i>consectetur adipiscing elit.</i>" +
@@ -108,7 +95,7 @@ Template {
 
             TextArea {
                 objectName: "textarea_default"
-                text: longText
+                text: loremIpsum
                 width: parent.width
             }
         }

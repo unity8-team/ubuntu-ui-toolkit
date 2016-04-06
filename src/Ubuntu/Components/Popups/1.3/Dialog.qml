@@ -229,6 +229,7 @@ PopupBase {
         Keys.onEscapePressed: dialog.hide()
 
         Flickable {
+            id: flicker
             anchors.fill: parent
             anchors.margins: foreground.margins
             contentWidth: contentsColumn.width
@@ -276,6 +277,11 @@ PopupBase {
                     }
                 }
             }
+        }
+        Scrollbar {
+            id: rightScrollbar
+            flickableItem: flicker
+            anchors.rightMargin: -foreground.margins / 2
         }
 
         styleName: "DialogForegroundStyle"

@@ -40,11 +40,37 @@ Template {
             Dialog {
                 id: dialogue
 
-                title: "Sample Dialog"
-                text: "Descriptive text goes here"
+                title: i18n.tr("Sample Dialog")
+                text: loremIpsum
 
-                TextField {
-                    placeholderText: "Type like your lifes depends on it"
+                TextArea {
+                    placeholderText: loremIpsum
+                }
+                Row {
+                    spacing: units.gu(1)
+                    Label {
+                        text: i18n.tr("Use renewable energy")
+                    }
+                    CheckBox {
+                    }
+                }
+                Row {
+                    spacing: units.gu(1)
+                    Label {
+                        text: i18n.tr("Activate booby trap")
+                    }
+                    Switch {
+                    }
+                }
+                Slider {
+                }
+                OptionSelector {
+                    model: [
+                        i18n.tr("Value 1"),
+                        i18n.tr("This is the second value"),
+                        loremIpsum,
+                        i18n.tr("Once upon a time there was a story nobody told."),
+                    ]
                 }
 
                 Row {

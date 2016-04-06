@@ -33,8 +33,17 @@ MainView {
     LayoutMirroring.childrenInherit: true
     property bool rtl: Qt.application.layoutDirection == Qt.RightToLeft
 
+    property string loremIpsum:
+                    "Lorem ipsum dolor sit amet, consectetur adipiscing elit. " +
+                    "Integer et ante at erat malesuada accumsan in eget mauris. " +
+                    "Nunc ultrices tristique laoreet. In non tristique lorem. " +
+                    "Donec in libero ut libero pretium lacinia. Proin dictum faucibus viverra. " +
+                    "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquid ex ea commodi consequat. " +
+                    "Quis aute iure reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. " +
+                    "Excepteur sint obcaecat cupiditat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. "
+
     AdaptivePageLayout {
-        id: layout
+id: layout
         anchors.fill: parent
         primaryPageSource: Qt.resolvedUrl("MainPage.qml")
 

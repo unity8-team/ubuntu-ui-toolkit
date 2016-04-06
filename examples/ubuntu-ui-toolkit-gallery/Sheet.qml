@@ -54,11 +54,7 @@ Template {
                 Label {
                     anchors.fill: parent
                     wrapMode: Text.WordWrap
-                    text:
-                    "Lorem ipsum dolor sit amet, consectetur adipiscing elit. " +
-                    "Integer et ante at erat malesuada accumsan in eget mauris. " +
-                    "Nunc ultrices tristique laoreet. In non tristique lorem. " +
-                    "Donec in libero ut libero pretium lacinia. Proin dictum faucibus viverra. "
+                    text: loremIpsum
                 }
             }
         }
@@ -87,11 +83,7 @@ Template {
                 Label {
                     anchors.fill: parent
                     wrapMode: Text.WordWrap
-                    text:
-                    "Lorem ipsum dolor sit amet, consectetur adipiscing elit. " +
-                    "Integer et ante at erat malesuada accumsan in eget mauris. " +
-                    "Nunc ultrices tristique laoreet. In non tristique lorem. " +
-                    "Donec in libero ut libero pretium lacinia. Proin dictum faucibus viverra. "
+                    text: loremIpsum
                 }
                 onCancelClicked: PopupUtils.close(sheet)
                 onConfirmClicked: PopupUtils.close(sheet)

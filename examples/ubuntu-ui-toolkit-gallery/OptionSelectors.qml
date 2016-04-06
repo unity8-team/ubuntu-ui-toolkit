@@ -32,7 +32,7 @@ Template {
             property var model: [
                 i18n.tr("Value 1"),
                 i18n.tr("This is the second value"),
-                i18n.tr("Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat."),
+                loremIpsum,
                 i18n.tr("Once upon a time there was a story nobody told."),
             ]
 
