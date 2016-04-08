@@ -270,7 +270,11 @@ quint32 TextureFactory<N>::shapeTexture(int index, Texture::Shape shape, int rad
 
 static quint16* renderShadowTexture(Texture::Shape shape, int radius, int shadow)
 {
-    DASSERT(shadow > 0);
+    // FIXME(loicm) Was shadow > 0 before but when the shadow item is
+    //     shrinked because if its size, the given shadow can be 0. 1)
+    //     Rendering with shadow == 0 hasn't been tested, 2) Shouldn't
+    //     we clamp to 1?
+    DASSERT(shadow >= 0);  // DASSERT(shadow > 0);
     DASSERT(radius >= 0);
 
     const int shadowPlusRadius = shadow + radius;
@@ -389,12 +393,9 @@ static quint16* renderShadowTexture(Texture::Shape shape, int radius, int shadow
             }
             const float shadow = sum * sumFactor;
             const float shape = dataF32[i * textureWidthPlusGutters + j + gutter];
-            const float inner = shape * (1.0f - shadow);
-            // const float outer = shadow * (1.0f - shape);
-            const quint16 innerU16 = (quint16) (inner * 255.0f + 0.5f);
-            // const quint16 outerU16 = (quint16) (outer * 255.0f + 0.5f);
-            const quint16 outerU16 = (quint16) (shadow * 255.0f + 0.5f);
-            dst[j] = innerU16 << 8 | outerU16;
+            const quint16 shadowU16 = (quint16) (shadow * 255.0f + 0.5f);
+            const quint16 shapeU16 = (quint16) (shape * 255.0f + 0.5f);
+            dst[j] = shapeU16 << 8 | shadowU16;
         }
     }
 

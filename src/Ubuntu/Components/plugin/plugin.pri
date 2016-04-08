@@ -220,7 +220,7 @@ OTHER_FILES += \
     $$PWD/privates/shape/shaders/opaquecolor.frag \
     $$PWD/privates/shape/shaders/color.frag \
     $$PWD/privates/shape/shaders/texture.vert \
+    $$PWD/privates/shape/shaders/texture2.vert \
     $$PWD/privates/shape/shaders/luminance.frag \
-    $$PWD/privates/shape/shaders/shadow.frag \
-    $$PWD/privates/shape/shaders/frame.vert \
+    $$PWD/privates/shape/shaders/innershadow.frag \
     $$PWD/privates/shape/shaders/frame.frag

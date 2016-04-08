@@ -43,7 +43,7 @@ private:
 FrameCornerShader::FrameCornerShader()
 {
     setShaderSourceFile(QOpenGLShader::Vertex,
-                        QStringLiteral(":/uc/privates/shape/shaders/frame.vert"));
+                        QStringLiteral(":/uc/privates/shape/shaders/texture2.vert"));
     setShaderSourceFile(QOpenGLShader::Fragment,
                         QStringLiteral(":/uc/privates/shape/shaders/frame.frag"));
 }
@@ -51,7 +51,7 @@ FrameCornerShader::FrameCornerShader()
 char const* const* FrameCornerShader::attributeNames() const
 {
     static char const* const attributes[] = {
-        "positionAttrib", "outerCoordAttrib", "innerCoordAttrib", "colorAttrib", 0
+        "positionAttrib", "texCoord1Attrib", "texCoord2Attrib", "colorAttrib", 0
     };
     return attributes;
 }
@@ -598,7 +598,7 @@ QSGNode* UCFrame::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData* data)
     const QSizeF itemSize(width(), height());
     if (itemSize.isEmpty() || m_thickness == 0 || qAlpha(m_color) == 0) {
         delete oldNode;
-        return NULL;
+        return Q_NULLPTR;
     }
 
     UCFrameNode* frameNode;

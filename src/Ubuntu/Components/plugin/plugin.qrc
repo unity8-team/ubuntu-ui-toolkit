@@ -10,9 +10,9 @@
         <file>privates/shape/shaders/opaquecolor.frag</file>
         <file>privates/shape/shaders/color.frag</file>
         <file>privates/shape/shaders/texture.vert</file>
+        <file>privates/shape/shaders/texture2.vert</file>
         <file>privates/shape/shaders/luminance.frag</file>
-        <file>privates/shape/shaders/shadow.frag</file>
-        <file>privates/shape/shaders/frame.vert</file>
+        <file>privates/shape/shaders/innershadow.frag</file>
         <file>privates/shape/shaders/frame.frag</file>
     </qresource>
 </RCC>

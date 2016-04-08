@@ -18,11 +18,17 @@
 
 uniform sampler2D texture;
 uniform lowp float opacity;
-uniform lowp int channel;
-varying mediump vec2 texCoord;
+varying mediump vec2 texCoord1;
+varying mediump vec2 texCoord2;
 varying lowp vec4 color;
 
 void main(void)
 {
-    gl_FragColor = vec4(texture2D(texture, texCoord)[channel] * opacity) * color;
+    lowp float shadow = texture2D(texture, texCoord1).r;
+    lowp float shape = texture2D(texture, texCoord2).a;
+    // Fused multiply-add friendly version of (shape * (1.0 - shadow))
+    lowp float shapedShadow = (shape * -shadow) + shape;
+    gl_FragColor = vec4(shapedShadow * opacity) * color;
+    //gl_FragColor = vec4(1.0 - shape, 1.0 - shape, 1.0 - shape, 1.0);
+    //gl_FragColor = vec4(1.0, 0.0, 1.0, 1.0);
 }

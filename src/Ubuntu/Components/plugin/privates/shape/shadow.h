@@ -49,7 +49,10 @@ class UCShadow : public QQuickItem
     // is rotated counter clockwise.
     Q_PROPERTY(qreal angle READ angle WRITE setAngle NOTIFY angleChanged)
 
-    // Offset in pixels along the angle.
+    // Positive offset in pixels along the angle (minimal value is 0). When the
+    // shadow style is inner, there's another limitation (for now), the maximal
+    // distance is visually (the distance property is not changed) clamped to
+    // half the minimal edge size (min(width, height) / 2).
     Q_PROPERTY(qreal distance READ distance WRITE setDistance NOTIFY distanceChanged)
 
 public:
@@ -104,30 +107,39 @@ private:
 class UCShadowMaterial : public QSGMaterial
 {
 public:
-    UCShadowMaterial(UCShadow::Style style);
-    virtual QSGMaterialType* type() const;
-    virtual QSGMaterialShader* createShader() const;
+    UCShadowMaterial();
     virtual int compare(const QSGMaterial* other) const;
 
     quint32 textureId() const { return m_textureId; }
-    void setStyle(UCShadow::Style style) { m_style = style; }
-    UCShadow::Style style() const { return static_cast<UCShadow::Style>(m_style); }
     void updateTexture(UCShadow::Shape shape, int radius, int shadow);
 
 private:
     TextureFactory<1> m_textureFactory;
     quint32 m_textureId;
-    quint8 m_style : 1;
-    quint8 __padding : 7;
+};
+
+class UCOuterShadowMaterial : public UCShadowMaterial
+{
+public:
+    virtual QSGMaterialType* type() const;
+    virtual QSGMaterialShader* createShader() const;
+};
+
+class UCInnerShadowMaterial : public UCShadowMaterial
+{
+public:
+    virtual QSGMaterialType* type() const;
+    virtual QSGMaterialShader* createShader() const;
 };
 
 class UCShadowNode : public QSGGeometryNode
 {
 public:
-    struct Vertex { float x, y, s, t; quint32 color; };
+    struct OuterVertex { float x, y, s, t; quint32 color; };
+    struct InnerVertex { float x, y, shadowS, shadowT, shapeS, shapeT; quint32 color; };
 
     static const quint16* indices(UCShadow::Style style);
-    static const QSGGeometry::AttributeSet& attributeSet();
+    static const QSGGeometry::AttributeSet& attributeSet(UCShadow::Style style);
 
     UCShadowNode(UCShadow::Style style, UCShadow::Shape shape);
     void preprocess();
@@ -139,18 +151,18 @@ public:
 
     int vertexCount(UCShadow::Style style) const {
         STATIC_ASSERT(UCShadow::Outer == 0 && UCShadow::Inner == 1);
-        const int count[2] = { 9, 20 };
+        const int count[2] = { 9, 32 };
         return count[static_cast<int>(style)];
     }
     int indexCount(UCShadow::Style style) const {
         STATIC_ASSERT(UCShadow::Outer == 0 && UCShadow::Inner == 1);
-        const int count[2] = { 14, 34 };
+        const int count[2] = { 14, 46 };
         return count[static_cast<int>(style)];
     }
 
 private:
-    UCShadowMaterial m_material;
-    QSGGeometry m_geometry;
+    UCShadowMaterial* m_material;
+    QSGGeometry* m_geometry;
     quint8 m_shadow;
     quint8 m_newShadow;
     quint8 m_radius;

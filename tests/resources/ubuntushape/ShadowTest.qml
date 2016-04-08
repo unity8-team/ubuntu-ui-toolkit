@@ -49,7 +49,6 @@ Item {
             anchors.margins: 200.0
             width: 100
             height: 100
-            angle: 90.0
             visible: true
         }
         ShapeFill {
@@ -121,10 +120,10 @@ Item {
         }
 
         else if (event.key == Qt.Key_A) {
-            toto = toto + (shift ? 0.1 : -0.1);
+            toto = toto + (shift ? 1.0 : -1.0);
             dropShadow.angle = toto;
         } else if (event.key == Qt.Key_D) {
-            dropShadow.distance = dropShadow.distance + (shift ? 0.1 : -0.1);
+            dropShadow.distance = dropShadow.distance + (shift ? 1.0 : -1.0);
         }
     }
 }

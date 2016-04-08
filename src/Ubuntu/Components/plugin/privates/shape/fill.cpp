@@ -410,7 +410,7 @@ QSGNode* UCFill::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData* data)
     const QSizeF itemSize(width(), height());
     if (itemSize.isEmpty() || qAlpha(m_color) == 0) {
         delete oldNode;
-        return NULL;
+        return Q_NULLPTR;
     }
 
     UCColorNode* colorNode;

@@ -16,16 +16,18 @@
  * Author: Loïc Molinari <loic.molinari@canonical.com>
  */
 
-// FIXME(loicm): Try using half-sized textures to speed up CPU-based shadow
+// TODO(loicm): Try using half-sized textures to speed up CPU-based shadow
 //     rendering, switching to bilinear texture sampling at runtime. Evaluate
 //     the trade-off between texture creation (faster generation allows higher
 //     max radius and shadow sizes) and rendering speed.
 
-// FIXME(loicm): Outer shadow rendering should provide a clippedShape (or
+// TODO(loicm): Outer shadow rendering should provide a clippedShape (or
 //     knockedOutShape) mode that knocks out the pixels of the shape area. This
 //     is often what we need and that would allow to optimise rendering by
 //     removing transparent pixels (that are still rasterised, shaded and
 //     blended by the GPU...) with a dedicated mesh.
+
+// TODO(loicm): Add support for negative distances.
 
 #include "shadow.h"
 #include "utils.h"
@@ -44,44 +46,20 @@ const float maxDistance = 255.0f;
 class ShadowShader : public QSGMaterialShader
 {
 public:
-    ShadowShader();
-    virtual char const* const* attributeNames() const;
     virtual void initialize();
     virtual void updateState(
         const RenderState& state, QSGMaterial* newEffect, QSGMaterial* oldEffect);
 
 private:
-    int m_channelId;
     int m_matrixId;
     int m_opacityId;
-    quint8 m_style : 1;
-    quint8 __padding: 7;
 };
-
-ShadowShader::ShadowShader()
-    : m_style(defaultStyle)
-{
-    setShaderSourceFile(QOpenGLShader::Vertex,
-                        QStringLiteral(":/uc/privates/shape/shaders/texture.vert"));
-    setShaderSourceFile(QOpenGLShader::Fragment,
-                        QStringLiteral(":/uc/privates/shape/shaders/shadow.frag"));
-}
-
-char const* const* ShadowShader::attributeNames() const
-{
-    static char const* const attributes[] = {
-        "positionAttrib", "texCoordAttrib", "colorAttrib", 0
-    };
-    return attributes;
-}
 
 void ShadowShader::initialize()
 {
     QSGMaterialShader::initialize();
     program()->bind();
-    program()->setUniformValue(m_channelId, m_style == UCShadow::Outer ? 0 : 3);
     program()->setUniformValue("texture", 0);
-    m_channelId = program()->uniformLocation("channel");
     m_matrixId = program()->uniformLocation("matrix");
     m_opacityId = program()->uniformLocation("opacity");
 }
@@ -93,14 +71,8 @@ void ShadowShader::updateState(
 
     QOpenGLFunctions* funcs = QOpenGLContext::currentContext()->functions();
     UCShadowMaterial* material = static_cast<UCShadowMaterial*>(newEffect);
-
     funcs->glBindTexture(GL_TEXTURE_2D, material->textureId());
 
-    const UCShadow::Style style = material->style();
-    if (m_style != style) {
-        program()->setUniformValue(m_channelId, style == UCShadow::Outer ? 0 : 3);
-        m_style = style;
-    }
     if (state.isMatrixDirty()) {
         program()->setUniformValue(m_matrixId, state.combinedMatrix());
     }
@@ -109,33 +81,63 @@ void ShadowShader::updateState(
     }
 }
 
-// --- Material ---
+class OuterShadowShader : public ShadowShader
+{
+public:
+    OuterShadowShader();
+    virtual char const* const* attributeNames() const;
+};
 
-UCShadowMaterial::UCShadowMaterial(UCShadow::Style style)
-    : m_style(style)
+OuterShadowShader::OuterShadowShader()
+{
+    setShaderSourceFile(QOpenGLShader::Vertex,
+                        QStringLiteral(":/uc/privates/shape/shaders/texture.vert"));
+    setShaderSourceFile(QOpenGLShader::Fragment,
+                        QStringLiteral(":/uc/privates/shape/shaders/luminance.frag"));
+}
+
+char const* const* OuterShadowShader::attributeNames() const
+{
+    static char const* const attributes[] = {
+        "positionAttrib", "texCoordAttrib", "colorAttrib", 0
+    };
+    return attributes;
+}
+
+class InnerShadowShader : public ShadowShader
+{
+public:
+    InnerShadowShader();
+    virtual char const* const* attributeNames() const;
+};
+
+InnerShadowShader::InnerShadowShader()
+{
+    setShaderSourceFile(QOpenGLShader::Vertex,
+                        QStringLiteral(":/uc/privates/shape/shaders/texture2.vert"));
+    setShaderSourceFile(QOpenGLShader::Fragment,
+                        QStringLiteral(":/uc/privates/shape/shaders/innershadow.frag"));
+}
+
+char const* const* InnerShadowShader::attributeNames() const
+{
+    static char const* const attributes[] = {
+        "positionAttrib", "texCoord1Attrib", "texCoord2Attrib", "colorAttrib", 0
+    };
+    return attributes;
+}
+
+// --- Materials ---
+
+UCShadowMaterial::UCShadowMaterial()
 {
     setFlag(Blending, true);
-}
-
-QSGMaterialType* UCShadowMaterial::type() const
-{
-    static QSGMaterialType type;
-    return &type;
-}
-
-QSGMaterialShader* UCShadowMaterial::createShader() const
-{
-    return new ShadowShader;
 }
 
 int UCShadowMaterial::compare(const QSGMaterial* other) const
 {
     const UCShadowMaterial* otherShadow = static_cast<const UCShadowMaterial*>(other);
-    if (otherShadow->textureId() == m_textureId) {
-        return otherShadow->style() - m_style;
-    } else {
-        return 1;
-    }
+    return otherShadow->textureId() - m_textureId;
 }
 
 void UCShadowMaterial::updateTexture(UCShadow::Shape shape, int radius, int shadow)
@@ -144,12 +146,34 @@ void UCShadowMaterial::updateTexture(UCShadow::Shape shape, int radius, int shad
         0, static_cast<Texture::Shape>(shape), radius, shadow);
 }
 
+QSGMaterialType* UCOuterShadowMaterial::type() const
+{
+    static QSGMaterialType type;
+    return &type;
+}
+
+QSGMaterialShader* UCOuterShadowMaterial::createShader() const
+{
+    return new OuterShadowShader;
+}
+
+QSGMaterialType* UCInnerShadowMaterial::type() const
+{
+    static QSGMaterialType type;
+    return &type;
+}
+
+QSGMaterialShader* UCInnerShadowMaterial::createShader() const
+{
+    return new InnerShadowShader;
+}
+
 // --- Node ---
 
 UCShadowNode::UCShadowNode(UCShadow::Style style, UCShadow::Shape shape)
     : QSGGeometryNode()
-    , m_material(style)
-    , m_geometry(attributeSet(), vertexCount(style), indexCount(style), GL_UNSIGNED_SHORT)
+    , m_material(Q_NULLPTR)
+    , m_geometry(Q_NULLPTR)
     , m_shadow(0)
     , m_newShadow(0)
     , m_radius(0)
@@ -159,12 +183,20 @@ UCShadowNode::UCShadowNode(UCShadow::Style style, UCShadow::Shape shape)
     , m_newShape(shape)
 {
     setFlag(QSGNode::UsePreprocess);
-    memcpy(m_geometry.indexData(), indices(style), indexCount(style) * sizeof(quint16));
-    m_geometry.setDrawingMode(GL_TRIANGLE_STRIP);
-    m_geometry.setIndexDataPattern(QSGGeometry::StaticPattern);
-    m_geometry.setVertexDataPattern(QSGGeometry::AlwaysUploadPattern);
-    setGeometry(&m_geometry);
-    setMaterial(&m_material);
+
+    m_material = style == UCShadow::Outer ?
+        static_cast<UCShadowMaterial*>(new UCOuterShadowMaterial) :
+        static_cast<UCShadowMaterial*>(new UCInnerShadowMaterial);
+    setMaterial(m_material);
+
+    m_geometry = new QSGGeometry(
+        attributeSet(style), vertexCount(style), indexCount(style), GL_UNSIGNED_SHORT);
+    m_geometry->setDrawingMode(GL_TRIANGLE_STRIP);
+    m_geometry->setIndexDataPattern(QSGGeometry::StaticPattern);
+    m_geometry->setVertexDataPattern(QSGGeometry::AlwaysUploadPattern);
+    memcpy(m_geometry->indexData(), indices(style), indexCount(style) * sizeof(quint16));
+    setGeometry(m_geometry);
+
     qsgnode_set_description(this, QLatin1String("shapeshadow"));
 }
 
@@ -182,24 +214,25 @@ const quint16* UCShadowNode::indices(UCShadow::Style style)
         5, 3,  // Degenerate triangle.
         3, 6, 4, 7, 5, 8
     };
-    // The geometry is made of 20 vertices indexed with a triangle strip mode.
-    //     0 ------ 1 ------ 2
-    //     |   3 -- 4 -- 5   |
-    //     |  /           \  |
-    //     | 6             7 |
-    //     8 9            10 11
-    //     | 12           13 |
-    //     |  \           /  |
-    //     |   14 - 15 -16   |
-    //    17 ------ 18 ----- 19
+    // The geometry is made of 36 vertices indexed with a triangle strip mode.
+    //     0 ----------- 1 8 ----------- 9
+    //     |  4 ----- 5  | |  12 --- 13  |
+    //     |  |       |  | |  |       |  |
+    //     |  6 ----- 7  | |  14 --- 15  |
+    //     2 ----------- 3 10 --------- 11
+    //     16 --------- 17 24 --------- 25
+    //     |  20 --- 21  | |  28 --- 29  |
+    //     |  |       |  | |  |       |  |
+    //     |  22 --- 23  | |  30 --- 31  |
+    //     18 --------- 19 26 --------- 27
     static const quint16 innerIndices[] = {
-        9, 8, 6, 0, 3, 1, 4,
-        4, 4,  // Degenerate triangle.
-        4, 1, 5, 2, 7, 11, 10,
-        10, 10,  // Degenerate triangle.
-        10, 11, 13, 19, 16, 18, 15,
-        15, 15,  // Degenerate triangle.
-        15, 18, 14, 17, 12, 8, 9
+        0, 4, 1, 5, 3, 7, 2, 6, 0, 4,
+        4, 8,  // Degenerate triangle.
+        8, 12, 9, 13, 11, 15, 10, 14, 8, 12,
+        12, 16,  // Degenerate triangle.
+        16, 20, 17, 21, 19, 23, 18, 22, 16, 20,
+        20, 24,  // Degenerate triangle.
+        24, 28, 25, 29, 27, 31, 26, 30, 24, 28
     };
 
     STATIC_ASSERT(UCShadow::Outer == 0 && UCShadow::Inner == 1);
@@ -208,23 +241,32 @@ const quint16* UCShadowNode::indices(UCShadow::Style style)
 }
 
 // static
-const QSGGeometry::AttributeSet& UCShadowNode::attributeSet()
+const QSGGeometry::AttributeSet& UCShadowNode::attributeSet(UCShadow::Style style)
 {
-    static const QSGGeometry::Attribute attributes[] = {
+    static const QSGGeometry::Attribute outerAttributes[] = {
         QSGGeometry::Attribute::create(0, 2, GL_FLOAT, true),
         QSGGeometry::Attribute::create(1, 2, GL_FLOAT),
         QSGGeometry::Attribute::create(2, 4, GL_UNSIGNED_BYTE)
     };
-    static const QSGGeometry::AttributeSet attributeSet = {
-        3, sizeof(Vertex), attributes
+    static const QSGGeometry::Attribute innerAttributes[] = {
+        QSGGeometry::Attribute::create(0, 2, GL_FLOAT, true),
+        QSGGeometry::Attribute::create(1, 2, GL_FLOAT),
+        QSGGeometry::Attribute::create(2, 2, GL_FLOAT),
+        QSGGeometry::Attribute::create(3, 4, GL_UNSIGNED_BYTE)
     };
-    return attributeSet;
+
+    STATIC_ASSERT(UCShadow::Outer == 0 && UCShadow::Inner == 1);
+    static const QSGGeometry::AttributeSet attributeSet[2] = {
+        { 3, sizeof(OuterVertex), outerAttributes },
+        { 4, sizeof(InnerVertex), innerAttributes }
+    };
+    return attributeSet[static_cast<int>(style)];
 }
 
 void UCShadowNode::preprocess()
 {
     if (m_newShadow != m_shadow || m_newRadius != m_radius || m_newShape != m_shape) {
-        m_material.updateTexture(
+        m_material->updateTexture(
             static_cast<UCShadow::Shape>(m_newShape), m_newRadius, m_newShadow);
         m_shadow = m_newShadow;
         m_radius = m_newRadius;
@@ -234,46 +276,68 @@ void UCShadowNode::preprocess()
 
 void UCShadowNode::setStyle(UCShadow::Style style)
 {
-    DASSERT(style != m_style);
-    m_geometry.allocate(vertexCount(style), indexCount(style));
-    memcpy(m_geometry.indexData(), indices(style), indexCount(style) * sizeof(quint16));
-    m_material.setStyle(style);
+    if (style == m_style) {
+        return;
+    }
     m_style = style;
+
+    // Since textures are reference counted, the current material is deleted
+    // after updating the texture of the new one so that we can reuse the
+    // previous texture if it is allocated.
+    UCShadowMaterial* material = style == UCShadow::Outer ?
+        static_cast<UCShadowMaterial*>(new UCOuterShadowMaterial) :
+        static_cast<UCShadowMaterial*>(new UCInnerShadowMaterial);
+    material->updateTexture(static_cast<UCShadow::Shape>(m_shape), m_radius, m_shadow);
+    delete m_material;
+    m_material = material;
+
+    delete m_geometry;
+    m_geometry = new QSGGeometry(
+        attributeSet(style), vertexCount(style), indexCount(style), GL_UNSIGNED_SHORT);
+    m_geometry->setDrawingMode(GL_TRIANGLE_STRIP);
+    m_geometry->setIndexDataPattern(QSGGeometry::StaticPattern);
+    m_geometry->setVertexDataPattern(QSGGeometry::AlwaysUploadPattern);
+    memcpy(m_geometry->indexData(), indices(style), indexCount(style) * sizeof(quint16));
+
+    setMaterial(m_material);
+    setGeometry(m_geometry);
 }
 
-// FIXME(loicm) Clean up.
 void UCShadowNode::updateGeometry(
     const QSizeF& itemSize, float shadow, float radius, float angle, float distance, QRgb color)
 {
-    UCShadowNode::Vertex* v = reinterpret_cast<UCShadowNode::Vertex*>(m_geometry.vertexData());
     const float devicePixelRatio = qGuiApp->devicePixelRatio();
     const float w = static_cast<float>(itemSize.width());
     const float h = static_cast<float>(itemSize.height());
     // Rounded down since renderShape() doesn't support sub-pixel rendering.
     const float maxSize = floorf(qMin(w, h) * 0.5f);
     const float clampedShadow = qMin(shadow, maxSize);
-    const float deviceShadow = clampedShadow * devicePixelRatio;
-    // FIXME(loicm) The diagonal at rounded integers pos prevents rasterising pixels on a side.
+    // FIXME(loicm) The diagonal at rounded integers pos prevents rasterising
+    //     pixels on a side.
     const float clampedRadius = qMin(radius, maxSize);
-    const float deviceRadius = clampedRadius * devicePixelRatio;
-    const float textureSize = 2.0f * deviceShadow + deviceRadius;
+    const float textureSize = (2.0f * clampedShadow + clampedRadius) * devicePixelRatio;
     const float textureSizeRounded = getStride(static_cast<int>(textureSize), 1, textureStride);
     const float textureOffset = (textureSizeRounded - textureSize) / textureSizeRounded;
-    const float textureFactor = (1.0f - textureOffset) / textureSize;
+    const float textureFactor = ((1.0f - textureOffset) * devicePixelRatio) / textureSize;
     const quint32 packedColor = packColor(color);
 
+    // Get the offsets. Adding 180° to cast the shadow according to the virtual
+    // light position and using the opposite angle to rotate counter clockwise.
+    float s, c;
+    sincosf((180.0f - angle) * (M_PI / 180.0f), &s, &c);
+    const float offsetX = c * distance;
+    const float offsetY = s * distance;
+
+    float midW = w * 0.5f;
+    float midH = h * 0.5f;
+    float midWShadow = midW + clampedShadow;
+    float midHShadow = midH + clampedShadow;
+    float textureMidWShadow = midWShadow * textureFactor + textureOffset;
+    float textureMidHShadow = midHShadow * textureFactor + textureOffset;
+
     if (m_style == UCShadow::Outer) {
-        float s, c;
-        // Get the offsets. Adding 180° to cast the shadow according to the
-        // virtual light position and using the opposite angle to rotate counter
-        // clockwise.
-        sincosf((180.0f - angle) * (M_PI / 180.0f), &s, &c);
-        const float offsetY = s * distance;
-        const float offsetX = c * distance;
-        const float deviceW = w * devicePixelRatio;
-        const float deviceH = h * devicePixelRatio;
-        const float middleS = (deviceW * 0.5f + deviceShadow) * textureFactor + textureOffset;
-        const float middleT = (deviceH * 0.5f + deviceShadow) * textureFactor + textureOffset;
+        UCShadowNode::OuterVertex* v =
+            reinterpret_cast<UCShadowNode::OuterVertex*>(m_geometry->vertexData());
 
         // 1st row.
         v[0].x = -clampedShadow + offsetX;
@@ -283,7 +347,7 @@ void UCShadowNode::updateGeometry(
         v[0].color = packedColor;
         v[1].x = w * 0.5f + offsetX;
         v[1].y = -clampedShadow + offsetY;
-        v[1].s = middleS;
+        v[1].s = textureMidWShadow;
         v[1].t = textureOffset;
         v[1].color = packedColor;
         v[2].x = w + clampedShadow + offsetX;
@@ -291,24 +355,22 @@ void UCShadowNode::updateGeometry(
         v[2].s = textureOffset;
         v[2].t = textureOffset;
         v[2].color = packedColor;
-
         // 2nd row.
         v[3].x = -clampedShadow + offsetX;
         v[3].y = h * 0.5f + offsetY;
         v[3].s = textureOffset;
-        v[3].t = middleT;
+        v[3].t = textureMidHShadow;
         v[3].color = packedColor;
         v[4].x = w * 0.5f + offsetX;
         v[4].y = h * 0.5f + offsetY;
-        v[4].s = middleS;
-        v[4].t = middleT;
+        v[4].s = textureMidWShadow;
+        v[4].t = textureMidHShadow;
         v[4].color = packedColor;
         v[5].x = w + clampedShadow + offsetX;
         v[5].y = h * 0.5f + offsetY;
         v[5].s = textureOffset;
-        v[5].t = middleT;
+        v[5].t = textureMidHShadow;
         v[5].color = packedColor;
-
         // 3rd row.
         v[6].x = -clampedShadow + offsetX;
         v[6].y = h + clampedShadow + offsetY;
@@ -317,7 +379,7 @@ void UCShadowNode::updateGeometry(
         v[6].color = packedColor;
         v[7].x = w * 0.5f + offsetX;
         v[7].y = h + clampedShadow + offsetY;
-        v[7].s = middleS;
+        v[7].s = textureMidWShadow;
         v[7].t = textureOffset;
         v[7].color = packedColor;
         v[8].x = w + clampedShadow + offsetX;
@@ -327,129 +389,312 @@ void UCShadowNode::updateGeometry(
         v[8].color = packedColor;
 
     } else {
-        // 1st row.
+        UCShadowNode::InnerVertex* v =
+            reinterpret_cast<UCShadowNode::InnerVertex*>(m_geometry->vertexData());
+
+        // Position in the corner where we can put the inner vertex without
+        // cropping shape pixels. That allows to avoid using the radius directly
+        // and render too much transparent pixels. We consider the shape is a
+        // circle (it's harder to get that value for the SVG defined curve of
+        // the squircle shape), hence the 1/sqrt(2) (= cos(Pi/4)).
+        const float cornerLimit =
+            qMin(ceilf(clampedRadius * (1.0f - M_SQRT1_2))
+                 + sqrtf(clampedShadow*clampedShadow+clampedShadow*clampedShadow), maxSize);
+
+        // if (clampedShadow + fabsf(offsetX) > midW) {
+        //     midW += offsetX < 0.0f ?
+        //        -(clampedShadow + fabsf(offsetX) - midW) :
+        //         (clampedShadow + fabsf(offsetX) - midW);
+        // }
+        // midWShadow = midW + clampedShadow;
+        // midHShadow = midH + clampedShadow;
+        // textureMidWShadow = midWShadow * textureFactor + textureOffset;
+        // textureMidHShadow = midHShadow * textureFactor + textureOffset;
+
+        const float textureShadow = clampedShadow * textureFactor + textureOffset;
+
+        const float shadowOffsetX = clampedShadow + offsetX;
+        const float shadowOffsetY = clampedShadow + offsetY;
+        const float textureShadowOffsetX = shadowOffsetX * textureFactor + textureOffset;
+        const float textureShadowOffsetY = shadowOffsetY * textureFactor + textureOffset;
+        const float midWShadowOffsetX = midW + shadowOffsetX;
+        const float midHShadowOffsetY = midH + shadowOffsetY;
+        const float textureMidWShadowOffsetX = midWShadowOffsetX * textureFactor + textureOffset;
+        const float textureMidHShadowOffsetY = midHShadowOffsetY * textureFactor + textureOffset;
+
+        const float shadowMinusOffsetX = clampedShadow - offsetX;
+        const float shadowMinusOffsetY = clampedShadow - offsetY;
+        const float textureShadowMinusOffsetX = shadowMinusOffsetX * textureFactor + textureOffset;
+        const float textureShadowMinusOffsetY = shadowMinusOffsetY * textureFactor + textureOffset;
+        const float midWShadowMinusOffsetX = midW + shadowMinusOffsetX;
+        const float midHShadowMinusOffsetY = midH + shadowMinusOffsetY;
+        const float textureMidWShadowMinusOffsetX = midWShadowMinusOffsetX * textureFactor + textureOffset;
+        const float textureMidHShadowMinusOffsetY = midHShadowMinusOffsetY * textureFactor + textureOffset;
+
+        float x1, x2, y1, y2;
+
+        // Top-left quad.
         v[0].x = 0.0f;
         v[0].y = 0.0f;
-        v[0].s = (clampedShadow) * textureFactor + textureOffset;
-        v[0].t = (clampedShadow) * textureFactor + textureOffset;
+        v[0].shadowS = textureShadowMinusOffsetX;
+        v[0].shadowT = textureShadowMinusOffsetY;
+        v[0].shapeS = textureShadow;
+        v[0].shapeT = textureShadow;
         v[0].color = packedColor;
-        v[1].x = w * 0.5f;
+        v[1].x = midW;
         v[1].y = 0.0f;
-        v[1].s = (w * 0.5f + clampedShadow) * textureFactor + textureOffset;
-        v[1].t = (clampedShadow) * textureFactor + textureOffset;
+        v[1].shadowS = textureMidWShadowMinusOffsetX;
+        v[1].shadowT = textureShadowMinusOffsetY;
+        v[1].shapeS = textureMidWShadow;
+        v[1].shapeT = textureShadow;
         v[1].color = packedColor;
-        v[2].x = w;
-        v[2].y = 0.0f;
-        v[2].s = (clampedShadow) * textureFactor + textureOffset;
-        v[2].t = (clampedShadow) * textureFactor + textureOffset;
+        v[2].x = 0.0f;
+        v[2].y = midH;
+        v[2].shadowS = textureShadowMinusOffsetX;
+        v[2].shadowT = textureMidHShadowMinusOffsetY;
+        v[2].shapeS = textureShadow;
+        v[2].shapeT = textureMidHShadow;
         v[2].color = packedColor;
-
-        // 2nd row.
-        v[3].x = qMax(clampedShadow, clampedRadius);
-        v[3].y = clampedShadow;
-        v[3].s = (clampedShadow + qMax(clampedShadow, clampedRadius)) * textureFactor + textureOffset;
-        v[3].t = (2.0f * clampedShadow) * textureFactor + textureOffset;
+        v[3].x = midW;
+        v[3].y = midH;
+        v[3].shadowS = textureMidWShadowMinusOffsetX;
+        v[3].shadowT = textureMidHShadowMinusOffsetY;
+        v[3].shapeS = textureMidWShadow;
+        v[3].shapeT = textureMidHShadow;
         v[3].color = packedColor;
-        v[4].x = w * 0.5f;
-        v[4].y = clampedShadow;
-        v[4].s = (w * 0.5f + clampedShadow) * textureFactor + textureOffset;
-        v[4].t = (2.0f * clampedShadow) * textureFactor + textureOffset;
+        x1 = qBound(cornerLimit, shadowOffsetX, midW);
+        y1 = qBound(cornerLimit, shadowOffsetY, midH);
+        x2 = qBound(cornerLimit, w - clampedShadow + offsetX, midW);
+        y2 = qBound(cornerLimit, h - clampedShadow + offsetY, midH);
+        v[4].x = x1;
+        v[4].y = y1;
+        v[4].shadowS = (x1 + shadowMinusOffsetX) * textureFactor + textureOffset;
+        v[4].shadowT = (y1 + shadowMinusOffsetY) * textureFactor + textureOffset;
+        v[4].shapeS = (x1 + clampedShadow) * textureFactor + textureOffset;
+        v[4].shapeT = (y1 + clampedShadow) * textureFactor + textureOffset;
         v[4].color = packedColor;
-        v[5].x = w - qMax(clampedShadow, clampedRadius);
-        v[5].y = clampedShadow;
-        v[5].s = (clampedShadow + qMax(clampedShadow, clampedRadius)) * textureFactor + textureOffset;
-        v[5].t = (2.0f * clampedShadow) * textureFactor + textureOffset;
+        v[5].x = x2;
+        v[5].y = y1;
+        v[5].shadowS = (x2 + shadowMinusOffsetX) * textureFactor + textureOffset;
+        v[5].shadowT = (y1 + shadowMinusOffsetY) * textureFactor + textureOffset;
+        v[5].shapeS = (x2 + clampedShadow) * textureFactor + textureOffset;
+        v[5].shapeT = (y1 + clampedShadow) * textureFactor + textureOffset;
         v[5].color = packedColor;
-
-        // 3rd row.
-        v[6].x = clampedShadow;
-        v[6].y = qMax(clampedShadow, clampedRadius);
-        v[6].s = (2.0f * clampedShadow) * textureFactor + textureOffset;
-        v[6].t = (clampedShadow + qMax(clampedShadow, clampedRadius)) * textureFactor + textureOffset;
+        v[6].x = x1;
+        v[6].y = y2;
+        v[6].shadowS = (x1 + shadowMinusOffsetX) * textureFactor + textureOffset;
+        v[6].shadowT = (y2 + shadowMinusOffsetY) * textureFactor + textureOffset;
+        v[6].shapeS = (x1 + clampedShadow) * textureFactor + textureOffset;
+        v[6].shapeT = (y2 + clampedShadow) * textureFactor + textureOffset;
         v[6].color = packedColor;
-        v[7].x = w - clampedShadow;
-        v[7].y = qMax(clampedShadow, clampedRadius);
-        v[7].s = (2.0f * clampedShadow) * textureFactor + textureOffset;
-        v[7].t = (clampedShadow + qMax(clampedShadow, clampedRadius)) * textureFactor + textureOffset;
+        v[7].x = x2;
+        v[7].y = y2;
+        v[7].shadowS = (x2 + shadowMinusOffsetX) * textureFactor + textureOffset;
+        v[7].shadowT = (y2 + shadowMinusOffsetY) * textureFactor + textureOffset;
+        v[7].shapeS = (x2 + clampedShadow) * textureFactor + textureOffset;
+        v[7].shapeT = (y2 + clampedShadow) * textureFactor + textureOffset;
         v[7].color = packedColor;
 
-        // 4th row.
-        v[8].x = 0.0f;
-        v[8].y = h * 0.5f;
-        v[8].s = (clampedShadow) * textureFactor + textureOffset;
-        v[8].t = (h * 0.5f + clampedShadow) * textureFactor + textureOffset;
+        // Top-right quad, outer vertices.
+        v[8].x = midW;
+        v[8].y = 0.0f;
+        v[8].shadowS = textureMidWShadowOffsetX;
+        v[8].shadowT = textureShadowMinusOffsetY;
+        v[8].shapeS = textureMidWShadow;
+        v[8].shapeT = textureShadow;
         v[8].color = packedColor;
-        v[9].x = clampedShadow;
-        v[9].y = h * 0.5f;
-        v[9].s = (2.0f * clampedShadow) * textureFactor + textureOffset;
-        v[9].t = (h * 0.5f + clampedShadow) * textureFactor + textureOffset;
+        v[9].x = w;
+        v[9].y = 0.0f;
+        v[9].shadowS = textureShadowOffsetX;
+        v[9].shadowT = textureShadowMinusOffsetY;
+        v[9].shapeS = textureShadow;
+        v[9].shapeT = textureShadow;
         v[9].color = packedColor;
-        v[10].x = w - clampedShadow;
-        v[10].y = h * 0.5f;
-        v[10].s = (2.0f * clampedShadow) * textureFactor + textureOffset;
-        v[10].t = (h * 0.5f + clampedShadow) * textureFactor + textureOffset;
+        v[10].x = midW;
+        v[10].y = midH;
+        v[10].shadowS = textureMidWShadowOffsetX;
+        v[10].shadowT = textureMidHShadowMinusOffsetY;
+        v[10].shapeS = textureMidWShadow;
+        v[10].shapeT = textureMidHShadow;
         v[10].color = packedColor;
         v[11].x = w;
-        v[11].y = h * 0.5f;
-        v[11].s = (clampedShadow) * textureFactor + textureOffset;
-        v[11].t = (h * 0.5f + clampedShadow) * textureFactor + textureOffset;
+        v[11].y = midH;
+        v[11].shadowS = textureShadowOffsetX;
+        v[11].shadowT = textureMidHShadowMinusOffsetY;
+        v[11].shapeS = textureShadow;
+        v[11].shapeT = textureMidHShadow;
         v[11].color = packedColor;
-
-        // 5th row.
-        v[12].x = clampedShadow;
-        v[12].y = h - qMax(clampedShadow, clampedRadius);
-        v[12].s = (2.0f * clampedShadow) * textureFactor + textureOffset;
-        v[12].t = (clampedShadow + qMax(clampedShadow, clampedRadius)) * textureFactor + textureOffset;
+        // Top-right quad, inner vertices.
+        x1 = qBound(midW, shadowOffsetX, w - cornerLimit);
+        y1 = qBound(cornerLimit, shadowOffsetY, midH);
+        x2 = qBound(midW, w - clampedShadow + offsetX, w - cornerLimit);
+        y2 = qBound(cornerLimit, h - clampedShadow + offsetY, midH);
+        v[12].x = x1;
+        v[12].y = y1;
+        v[12].shadowS = (w - x1 + shadowOffsetX) * textureFactor + textureOffset;
+        v[12].shadowT = (y1 + shadowMinusOffsetY) * textureFactor + textureOffset;
+        v[12].shapeS = (w - x1 + clampedShadow) * textureFactor + textureOffset;
+        v[12].shapeT = (y1 + clampedShadow) * textureFactor + textureOffset;
         v[12].color = packedColor;
-        v[13].x = w - clampedShadow;
-        v[13].y = h - qMax(clampedShadow, clampedRadius);
-        v[13].s = (2.0f * clampedShadow) * textureFactor + textureOffset;
-        v[13].t = (clampedShadow + qMax(clampedShadow, clampedRadius)) * textureFactor + textureOffset;
+        v[13].x = x2;
+        v[13].y = y1;
+        v[13].shadowS = (w - x2 + shadowOffsetX) * textureFactor + textureOffset;
+        v[13].shadowT = (y1 + shadowMinusOffsetY) * textureFactor + textureOffset;
+        v[13].shapeS = (w - x2 + clampedShadow) * textureFactor + textureOffset;
+        v[13].shapeT = (y1 + clampedShadow) * textureFactor + textureOffset;
         v[13].color = packedColor;
-
-        // 6th row.
-        v[14].x = qMax(clampedShadow, clampedRadius);
-        v[14].y = h - clampedShadow;
-        v[14].s = (clampedShadow + qMax(clampedShadow, clampedRadius)) * textureFactor + textureOffset;
-        v[14].t = (2.0f * clampedShadow) * textureFactor + textureOffset;
+        v[14].x = x1;
+        v[14].y = y2;
+        v[14].shadowS = (w - x1 + shadowOffsetX) * textureFactor + textureOffset;
+        v[14].shadowT = (y2 + shadowMinusOffsetY) * textureFactor + textureOffset;
+        v[14].shapeS = (w - x1 + clampedShadow) * textureFactor + textureOffset;
+        v[14].shapeT = (y2 + clampedShadow) * textureFactor + textureOffset;
         v[14].color = packedColor;
-        v[15].x = w * 0.5f;
-        v[15].y = h - clampedShadow;
-        v[15].s = (w * 0.5f + clampedShadow) * textureFactor + textureOffset;
-        v[15].t = (2.0f * clampedShadow) * textureFactor + textureOffset;
+        v[15].x = x2;
+        v[15].y = y2;
+        v[15].shadowS = (w - x2 + shadowOffsetX) * textureFactor + textureOffset;
+        v[15].shadowT = (y2 + shadowMinusOffsetY) * textureFactor + textureOffset;
+        v[15].shapeS = (w - x2 + clampedShadow) * textureFactor + textureOffset;
+        v[15].shapeT = (y2 + clampedShadow) * textureFactor + textureOffset;
         v[15].color = packedColor;
-        v[16].x = w - qMax(clampedShadow, clampedRadius);
-        v[16].y = h - clampedShadow;
-        v[16].s = (clampedShadow + qMax(clampedShadow, clampedRadius)) * textureFactor + textureOffset;
-        v[16].t = (2.0f * clampedShadow) * textureFactor + textureOffset;
-        v[16].color = packedColor;
 
-        // 7th row.
-        v[17].x = 0.0f;
-        v[17].y = h;
-        v[17].s = (clampedShadow) * textureFactor + textureOffset;
-        v[17].t = (clampedShadow) * textureFactor + textureOffset;
+        // Bottom-left quad, outer vertices.
+        v[16].x = 0.0f;
+        v[16].y = midH;
+        v[16].shadowS = textureShadowMinusOffsetX;
+        v[16].shadowT = textureMidHShadowOffsetY;
+        v[16].shapeS = textureShadow;
+        v[16].shapeT = textureMidHShadow;
+        v[16].color = packedColor;
+        v[17].x = midW;
+        v[17].y = midH;
+        v[17].shadowS = textureMidWShadowMinusOffsetX;
+        v[17].shadowT = textureMidHShadowOffsetY;
+        v[17].shapeS = textureMidWShadow;
+        v[17].shapeT = textureMidHShadow;
         v[17].color = packedColor;
-        v[18].x = w * 0.5f;
+        v[18].x = 0.0f;
         v[18].y = h;
-        v[18].s = (w * 0.5f + clampedShadow) * textureFactor + textureOffset;
-        v[18].t = (clampedShadow) * textureFactor + textureOffset;
+        v[18].shadowS = textureShadowMinusOffsetX;
+        v[18].shadowT = textureShadowOffsetY;
+        v[18].shapeS = textureShadow;
+        v[18].shapeT = textureShadow;
         v[18].color = packedColor;
-        v[19].x = w;
+        v[19].x = midW;
         v[19].y = h;
-        v[19].s = (clampedShadow) * textureFactor + textureOffset;
-        v[19].t = (clampedShadow) * textureFactor + textureOffset;
+        v[19].shadowS = textureMidWShadowMinusOffsetX;
+        v[19].shadowT = textureShadowOffsetY;
+        v[19].shapeS = textureMidWShadow;
+        v[19].shapeT = textureShadow;
         v[19].color = packedColor;
+        // bottom-left quad, inner vertices.
+        x1 = qBound(cornerLimit, shadowOffsetX, midW);
+        y1 = qBound(midH, shadowOffsetY, h - cornerLimit);
+        x2 = qBound(cornerLimit, w - clampedShadow + offsetX, midW);
+        y2 = qBound(midH, h - clampedShadow + offsetY, h - cornerLimit);
+        v[20].x = x1;
+        v[20].y = y1;
+        v[20].shadowS = (x1 + shadowMinusOffsetX) * textureFactor + textureOffset;
+        v[20].shadowT = (h - y1 + shadowOffsetY) * textureFactor + textureOffset;
+        v[20].shapeS = (x1 + clampedShadow) * textureFactor + textureOffset;
+        v[20].shapeT = (h - y1 + clampedShadow) * textureFactor + textureOffset;
+        v[20].color = packedColor;
+        v[21].x = x2;
+        v[21].y = y1;
+        v[21].shadowS = (x2 + shadowMinusOffsetX) * textureFactor + textureOffset;
+        v[21].shadowT = (h - y1 + shadowOffsetY) * textureFactor + textureOffset;
+        v[21].shapeS = (x2 + clampedShadow) * textureFactor + textureOffset;
+        v[21].shapeT = (h - y1 + clampedShadow) * textureFactor + textureOffset;
+        v[21].color = packedColor;
+        v[22].x = x1;
+        v[22].y = y2;
+        v[22].shadowS = (x1 + shadowMinusOffsetX) * textureFactor + textureOffset;
+        v[22].shadowT = (h - y2 + shadowOffsetY) * textureFactor + textureOffset;
+        v[22].shapeS = (x1 + clampedShadow) * textureFactor + textureOffset;
+        v[22].shapeT = (h - y2 + clampedShadow) * textureFactor + textureOffset;
+        v[22].color = packedColor;
+        v[23].x = x2;
+        v[23].y = y2;
+        v[23].shadowS = (x2 + shadowMinusOffsetX) * textureFactor + textureOffset;
+        v[23].shadowT = (h - y2 + shadowOffsetY) * textureFactor + textureOffset;
+        v[23].shapeS = (x2 + clampedShadow) * textureFactor + textureOffset;
+        v[23].shapeT = (h - y2 + clampedShadow) * textureFactor + textureOffset;
+        v[23].color = packedColor;
+
+        // Bottom-right quad, outer vertices.
+        v[24].x = midW;
+        v[24].y = midH;
+        v[24].shadowS = textureMidWShadowOffsetX;
+        v[24].shadowT = textureMidHShadowOffsetY;
+        v[24].shapeS = textureMidWShadow;
+        v[24].shapeT = textureMidHShadow;
+        v[24].color = packedColor;
+        v[25].x = w;
+        v[25].y = midH;
+        v[25].shadowS = textureShadowOffsetX;
+        v[25].shadowT = textureMidHShadowOffsetY;
+        v[25].shapeS = textureShadow;
+        v[25].shapeT = textureMidHShadow;
+        v[25].color = packedColor;
+        v[26].x = midW;
+        v[26].y = h;
+        v[26].shadowS = textureMidWShadowOffsetX;
+        v[26].shadowT = textureShadowOffsetY;
+        v[26].shapeS = textureMidWShadow;
+        v[26].shapeT = textureShadow;
+        v[26].color = packedColor;
+        v[27].x = w;
+        v[27].y = h;
+        v[27].shadowS = textureShadowOffsetX;
+        v[27].shadowT = textureShadowOffsetY;
+        v[27].shapeS = textureShadow;
+        v[27].shapeT = textureShadow;
+        v[27].color = packedColor;
+        // Bottom-right quad, inner vertices.
+        x1 = qBound(midW, shadowOffsetX, w - cornerLimit);
+        y1 = qBound(midH, shadowOffsetY, h - cornerLimit);
+        x2 = qBound(midW, w - clampedShadow + offsetX, w - cornerLimit);
+        y2 = qBound(midH, h - clampedShadow + offsetY, h - cornerLimit);
+        v[28].x = x1;
+        v[28].y = y1;
+        v[28].shadowS = (w - x1 + shadowOffsetX) * textureFactor + textureOffset;
+        v[28].shadowT = (h - y1 + shadowOffsetY) * textureFactor + textureOffset;
+        v[28].shapeS = (w - x1 + clampedShadow) * textureFactor + textureOffset;
+        v[28].shapeT = (h - y1 + clampedShadow) * textureFactor + textureOffset;
+        v[28].color = packedColor;
+        v[29].x = x2;
+        v[29].y = y1;
+        v[29].shadowS = (w - x2 + shadowOffsetX) * textureFactor + textureOffset;
+        v[29].shadowT = (h - y1 + shadowOffsetY) * textureFactor + textureOffset;
+        v[29].shapeS = (w - x2 + clampedShadow) * textureFactor + textureOffset;
+        v[29].shapeT = (h - y1 + clampedShadow) * textureFactor + textureOffset;
+        v[29].color = packedColor;
+        v[30].x = x1;
+        v[30].y = y2;
+        v[30].shadowS = (w - x1 + shadowOffsetX) * textureFactor + textureOffset;
+        v[30].shadowT = (h - y2 + shadowOffsetY) * textureFactor + textureOffset;
+        v[30].shapeS = (w - x1 + clampedShadow) * textureFactor + textureOffset;
+        v[30].shapeT = (h - y2 + clampedShadow) * textureFactor + textureOffset;
+        v[30].color = packedColor;
+        v[31].x = x2;
+        v[31].y = y2;
+        v[31].shadowS = (w - x2 + shadowOffsetX) * textureFactor + textureOffset;
+        v[31].shadowT = (h - y2 + shadowOffsetY) * textureFactor + textureOffset;
+        v[31].shapeS = (w - x2 + clampedShadow) * textureFactor + textureOffset;
+        v[31].shapeT = (h - y2 + clampedShadow) * textureFactor + textureOffset;
+        v[31].color = packedColor;
     }
 
     markDirty(QSGNode::DirtyGeometry);
 
     // Update data for the preprocess() call.
-    if (m_shadow != static_cast<quint8>(deviceShadow)) {
-        m_newShadow = static_cast<quint8>(deviceShadow);
+    const quint8 deviceShadow = static_cast<quint8>(clampedShadow * devicePixelRatio);
+    if (m_shadow != deviceShadow) {
+        m_newShadow = deviceShadow;
     }
-    if (m_radius != static_cast<quint8>(deviceRadius)) {
-        m_newRadius = static_cast<quint8>(deviceRadius);
+    const quint8 deviceRadius = static_cast<quint8>(clampedRadius * devicePixelRatio);
+    if (m_radius != deviceRadius) {
+        m_newRadius = deviceRadius;
     }
 }
 
@@ -555,7 +800,7 @@ QSGNode* UCShadow::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData* data)
     const QSizeF itemSize(width(), height());
     if (itemSize.isEmpty() || m_size <= 0.0f || qAlpha(m_color) == 0) {
         delete oldNode;
-        return NULL;
+        return Q_NULLPTR;
     }
 
     UCShadowNode* node;
