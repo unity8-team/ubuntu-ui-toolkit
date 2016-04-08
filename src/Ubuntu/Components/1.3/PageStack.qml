@@ -206,11 +206,12 @@ PageTreeNode {
      */
     function pop() {
         print("pop, depth = "+depth)
-        if (pageStack.depth > 1) {
+        if (pageStack.depth > 0) {
             print("popping "+pageStack.currentPage);
             apl.removePages(pageStack.currentPage);
             pageStack.depth -= 1;
             pageStack.currentPage = apl.getTop();
+            print("new depth = "+pageStack.depth+", new top = "+pageStack.currentPage)
         } else if (pageStack.depth < 1) {
             print("WARNING: Trying to pop an empty PageStack. Ignoring.");
         }
