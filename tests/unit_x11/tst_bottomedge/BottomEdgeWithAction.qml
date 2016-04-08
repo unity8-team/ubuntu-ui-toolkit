@@ -12,23 +12,31 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
-#include "testplugin.h"
-#include <QtQml>
-#include "uctestextras.h"
-#include <MouseTouchAdaptor>
+import QtQuick 2.4
+import Ubuntu.Components 1.3
 
-static QObject *registerExtras(QQmlEngine *engine, QJSEngine *scriptEngine)
-{
-    Q_UNUSED(engine)
-    Q_UNUSED(scriptEngine)
+Item {
+    id: holder
+    width: units.gu(40)
+    height: units.gu(71)
 
-    return new UCTestExtras;
-}
+    BottomEdge {
+        id: bottomEdge
+        height: parent.height
+        hint.action: Action {
+            text: "Test Bottom"
+            onTriggered: bottomEdge.commit()
+        }
 
-void TestPlugin::registerTypes(const char *uri)
-{
-    qmlRegisterSingletonType<UCTestExtras>(uri, 1, 0, "TestExtras", registerExtras);
-    qmlRegisterSingletonType<UbuntuToolkit::MouseTouchAdaptor>(uri, 1, 0, "MouseTouchAdaptor", UbuntuToolkit::MouseTouchAdaptor::registerQmlSingleton);
+        objectName: "testItem"
+        contentComponent: Rectangle {
+            objectName: "default"
+            width: bottomEdge.width
+            height: bottomEdge.height
+            color: UbuntuColors.blue
+        }
+    }
 }

@@ -121,10 +121,16 @@ Item {
         }
 
         else if (event.key == Qt.Key_A) {
-            toto = toto + (shift ? 0.1 : -0.1);
+            // toto = toto + (shift ? 0.1 : -0.1);
+            toto = toto + (shift ? 10 : -10);
             dropShadow.angle = toto;
         } else if (event.key == Qt.Key_D) {
-            dropShadow.distance = dropShadow.distance + (shift ? 0.1 : -0.1);
+            // dropShadow.distance = dropShadow.distance + (shift ? 0.1 : -0.1);
+            dropShadow.distance = dropShadow.distance + (shift ? 10 : -10);
         }
+    }
+
+    Component.onCompleted: {
+        dropShadow.size = 1
     }
 }

@@ -110,7 +110,6 @@ HEADERS += $$PWD/plugin.h \
     $$PWD/ucmainviewbase.h \
     $$PWD/ucmainviewbase_p.h \
     $$PWD/ucperformancemonitor.h \
-    $$PWD/label_p.h \
     $$PWD/privates/listviewextensions.h \
     $$PWD/privates/ucpagewrapper.h \
     $$PWD/privates/ucpagewrapper_p.h \
@@ -122,7 +121,9 @@ HEADERS += $$PWD/plugin.h \
     $$PWD/privates/shape/texturefactory.h \
     $$PWD/privates/shape/fill.h \
     $$PWD/privates/shape/frame.h \
-    $$PWD/privates/shape/shadow.h
+    $$PWD/privates/shape/shadow.h \
+    $$PWD/label_p.h \
+    $$PWD/ucbottomedgeregion_p.h
 
 SOURCES += $$PWD/plugin.cpp \
     $$PWD/uctheme.cpp \
