@@ -63,12 +63,12 @@ Item {
         }
     }
 
-    // ZoomPan {
-    //     id: zoomPan
-    //     anchors.fill: parent
-    //     scene: scene
-    //     area: mouseArea
-    // }
+    ZoomPan {
+        id: zoomPan
+        anchors.fill: parent
+        scene: scene
+        area: mouseArea
+    }
     MouseArea {
         id: mouseArea
         anchors.fill: parent
@@ -121,16 +121,10 @@ Item {
         }
 
         else if (event.key == Qt.Key_A) {
-            // toto = toto + (shift ? 0.1 : -0.1);
-            toto = toto + (shift ? 10 : -10);
+            toto = toto + (shift ? 0.1 : -0.1);
             dropShadow.angle = toto;
         } else if (event.key == Qt.Key_D) {
-            // dropShadow.distance = dropShadow.distance + (shift ? 0.1 : -0.1);
-            dropShadow.distance = dropShadow.distance + (shift ? 10 : -10);
+            dropShadow.distance = dropShadow.distance + (shift ? 0.1 : -0.1);
         }
-    }
-
-    Component.onCompleted: {
-        dropShadow.size = 1
     }
 }
