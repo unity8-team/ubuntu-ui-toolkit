@@ -137,18 +137,31 @@ PageTreeNode {
         anchors.fill: parent
         function getTop() {
             if (apl.__d.tree.top()) {
-                return apl.__d.tree.top().object;
+                return apl.__d.tree.top();
             } else {
                 return null;
             }
         }
         function getDepth() {
-            var topPage = getTop();
-            var i = apl.__d.tree.index(topPage);
-            return i+1;
+            var topWrapper = getTop();
+            var i = apl.__d.tree.index(topWrapper);
+            print("topWrapper = "+topWrapper+", index = "+i);
+            return (i+1);
         }
 
         asynchronous: false
+
+        onPagesChanged: {
+            var topWrapper = apl.__d.tree.top();
+            print("Pages changed! top = "+topWrapper)
+            if (topWrapper) {
+                pageStack.currentPage = topWrapper.object;
+                pageStack.depth = apl.__d.tree.index(topWrapper) + 1;
+            } else {
+                pageStack.currentPage = null;
+                pageStack.depth = 0;
+            }
+        }
     }
 
     /*!
@@ -157,14 +170,12 @@ PageTreeNode {
     //FIXME: would prefer this be readonly, but readonly properties are only bound at
     //initialisation. Trying to update it in push or pop fails. Not sure how to fix.
     property int depth: 0
-//    property int depth: apl.getDepth()
     onDepthChanged: print("new depth = "+depth)
 
     /*!
       The currently active page
      */
     property Item currentPage: null
-//    property Item currentPage: apl.getTop();
 
     /*!
       Push a page to the stack, and apply the given (optional) properties to the page.
@@ -184,15 +195,9 @@ PageTreeNode {
                 // Note that the old PageStack supported Items.
                 apl.primaryPage = page;
             }
-//            wait(200);
-            pageStack.currentPage = apl.getTop();
             print("pushed first page. currentPage = "+pageStack.currentPage)
-            pageStack.depth = 1;
         }    else {
-//            pageStack.currentPage =
-                    apl.addPageToCurrentColumn(pageStack.currentPage, page, properties);
-            pageStack.currentPage = apl.getTop();
-            pageStack.depth += 1;//apl.getDepth();
+            apl.addPageToCurrentColumn(pageStack.currentPage, page, properties);
             print("pushed "+page+", new currentPage = "+pageStack.currentPage)
         }
         // TODO TIM: check for header!
@@ -205,12 +210,9 @@ PageTreeNode {
       Do not do anything if 0 items are on the stack.
      */
     function pop() {
-        print("pop, depth = "+depth)
+        print("pop, depth = "+depth+" popping "+pageStack.currentPage)
         if (pageStack.depth > 0) {
-            print("popping "+pageStack.currentPage);
             apl.removePages(pageStack.currentPage);
-            pageStack.depth -= 1;
-            pageStack.currentPage = apl.getTop();
             print("new depth = "+pageStack.depth+", new top = "+pageStack.currentPage)
         } else if (pageStack.depth < 1) {
             print("WARNING: Trying to pop an empty PageStack. Ignoring.");
@@ -223,8 +225,8 @@ PageTreeNode {
     function clear() {
         apl.primaryPage = null;
         apl.primaryPageSource = null;
-        pageStack.depth = 0;
-        currentPage = null;
+//        pageStack.depth = 0;
+//        currentPage = null;
     }
 
 //    property alias bAction: backAction

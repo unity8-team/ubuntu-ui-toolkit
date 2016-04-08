@@ -193,6 +193,10 @@ import Ubuntu.Components.Private 1.3
 PageTreeNode {
     id: layout
 
+    // FIXME TIM: make nice
+    // One or more Pages were added or removed.
+    signal pagesChanged()
+
     Page {
         // AdaptivePageLayout has its own split headers, so
         //  disable the application header.
@@ -326,6 +330,7 @@ PageTreeNode {
             for (var i = nextColumn; i < d.columns; i++) {
                 d.updatePageForColumn(i);
             }
+            layout.pagesChanged();
         });
     }
 
@@ -347,6 +352,7 @@ PageTreeNode {
             for (var i in wrappers) {
                 wrappers[i].destroyObject();
             }
+            layout.pagesChanged();
         });
     }
 
@@ -358,6 +364,7 @@ PageTreeNode {
       */
     function removePages(page) {
         d.removeAllPages(page, page != layout.primaryPage);
+        layout.pagesChanged();
     }
 
     /*
@@ -390,6 +397,7 @@ PageTreeNode {
         if (primaryPage !== null) {
             d.createPrimaryPage(primaryPage);
         }
+        pagesChanged();
     }
     onPrimaryPageSourceChanged: {
         if (!d.completed || d.internalUpdate) {
@@ -403,6 +411,7 @@ PageTreeNode {
         } else {
             d.internalPropertyUpdate("primaryPage", null);
         }
+        pagesChanged();
     }
 
     onLayoutsChanged: {
