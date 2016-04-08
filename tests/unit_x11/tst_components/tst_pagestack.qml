@@ -68,6 +68,21 @@ Item {
         header: PageHeader {
             title: "Title 1"
         }
+        Button {
+            id: page2button
+            anchors.centerIn: parent
+            text: "Page 2"
+            onClicked: pageStack.push(page2)
+        }
+        Button {
+            anchors {
+                horizontalCenter: parent.horizontalCenter
+                top: page2button.bottom
+                margins: units.gu(1)
+            }
+            text: "Page with header"
+            onClicked: pageStack.push(pageWithHeader)
+        }
     }
     Page {
         id: page2
@@ -210,13 +225,23 @@ Item {
             pageStack.push(pageWithHeader);
             var backButton = findChild(pageWithHeader.header.leadingActionBar,
                                        "pagestack_back_action_button");
+//                                       "apl_back_action_button");
             compare(backButton, null,
                     "Page header shows back button with only one page on the stack.");
             pageStack.pop();
             pageStack.push(page1);
             pageStack.push(pageWithHeader);
             waitForHeaderAnimation(mainView);
-            backButton = findChild(pageWithHeader.header, "pagestack_back_action_button");
+            print("depth = "+pageStack.depth);
+//            print("action = "+pageStack.bAction);
+//            print("visible = "+pageStack.bAction.visible)
+//            backButton = findChild(pageWithHeader.header, "pagestack_back_action_button");
+            backButton = findChild(pageWithHeader.header, "apl_back_action_button");
+
+            //            wait(500);
+            print("backButton = "+backButton)
+            print("backButton.visible = "+backButton.visible);
+            print("backButton.action = "+backButton.action)
             compare(backButton && backButton.visible, true,
                     "Page header has no back button with two pages on the stack.");
         }

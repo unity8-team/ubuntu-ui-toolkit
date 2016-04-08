@@ -132,15 +132,23 @@ PageTreeNode {
     id: pageStack
     anchors.fill: parent
 
-    /*!
-      \internal
-      Please do not use this property any more. \l MainView now has a header
-      property that controls when the header is shown/hidden.
-     */
-    property bool __showHeader: true
-    QtObject {
-        property alias showHeader: pageStack.__showHeader
-        onShowHeaderChanged: print("__showHeader is deprecated. Do not use it.")
+    AdaptivePageLayout {
+        id: apl
+        anchors.fill: parent
+        function getTop() {
+            if (apl.__d.tree.top()) {
+                return apl.__d.tree.top().object;
+            } else {
+                return null;
+            }
+        }
+        function getDepth() {
+            var topPage = getTop();
+            var i = apl.__d.tree.index(topPage);
+            return i+1;
+        }
+
+        asynchronous: false
     }
 
     /*!
@@ -149,11 +157,14 @@ PageTreeNode {
     //FIXME: would prefer this be readonly, but readonly properties are only bound at
     //initialisation. Trying to update it in push or pop fails. Not sure how to fix.
     property int depth: 0
+//    property int depth: apl.getDepth()
+    onDepthChanged: print("new depth = "+depth)
 
     /*!
       The currently active page
      */
     property Item currentPage: null
+//    property Item currentPage: apl.getTop();
 
     /*!
       Push a page to the stack, and apply the given (optional) properties to the page.
@@ -163,24 +174,30 @@ PageTreeNode {
       Page may or may not be active and on top of the PageStack yet.
      */
     function push(page, properties) {
-        internal.finishPreviousAction();
-        internal.pageWrapper = internal.createWrapper(page, properties);
-        var pageObject = internal.pageWrapper.object;
-
-        if (internal.animateHeader && internal.stack.size() > 0) {
-            internal.headStyle.animateOutFinished.connect(internal.pushWrapperObject);
-            internal.headStyle.animateOut();
-        } else {
-            internal.pushWrapperObject();
+        if (!pageStack.currentPage) {
+            // this is the first page we are pushing
+            if (page.createObject || typeof page == "string") {
+                // page is a component or url
+                apl.primaryPageSource = page;
+            } else {
+                // page is a Page.
+                // Note that the old PageStack supported Items.
+                apl.primaryPage = page;
+            }
+//            wait(200);
+            pageStack.currentPage = apl.getTop();
+            print("pushed first page. currentPage = "+pageStack.currentPage)
+            pageStack.depth = 1;
+        }    else {
+//            pageStack.currentPage =
+                    apl.addPageToCurrentColumn(pageStack.currentPage, page, properties);
+            pageStack.currentPage = apl.getTop();
+            pageStack.depth += 1;//apl.getDepth();
+            print("pushed "+page+", new currentPage = "+pageStack.currentPage)
         }
-        // set the back action for Page.header:
-        if (pageObject && pageObject.hasOwnProperty("header") && pageObject.header &&
-                pageObject.header.hasOwnProperty("navigationActions")) {
-            // Page.header is an instance of PageHeader.
-            pageObject.header.navigationActions = [ backAction ];
-        }
-
-        return pageObject;
+        // TODO TIM: check for header!
+//        pageStack.currentPage.header.navigationActions = [ backAction ];
+        return pageStack.currentPage;
     }
 
     /*!
@@ -188,17 +205,14 @@ PageTreeNode {
       Do not do anything if 0 or 1 items are on the stack.
      */
     function pop() {
-        internal.finishPreviousAction();
-        if (internal.stack.size() < 1) {
+        print("pop, depth = "+depth)
+        if (pageStack.depth > 1) {
+            print("popping "+pageStack.currentPage);
+            apl.removePages(pageStack.currentPage);
+            pageStack.depth -= 1;
+            pageStack.currentPage = apl.getTop();
+        } else if (pageStack.depth < 1) {
             print("WARNING: Trying to pop an empty PageStack. Ignoring.");
-            return;
-        }
-        // do not animate if there is no page to animate back in after popping
-        if (internal.animateHeader && internal.stack.size() > 1) {
-            internal.headStyle.animateOutFinished.connect(internal.popAndDestroy);
-            internal.headStyle.animateOut();
-        } else {
-            internal.popAndDestroy();
         }
     }
 
@@ -206,124 +220,33 @@ PageTreeNode {
       Deactivate the active page and clear the stack.
      */
     function clear() {
-        internal.finishPreviousAction();
-        while (internal.stack.size() > 0) {
-            internal.stack.top().active = false;
-            if (internal.stack.top().canDestroy) internal.stack.top().destroyObject();
-            internal.stack.pop();
-        }
-        internal.stackUpdated();
+        apl.primaryPage = null;
+        apl.primaryPageSource = null;
+        pageStack.depth = 0;
+        currentPage = null;
     }
 
-    Action {
-        // used when the Page has a Page.header property set.
-        id: backAction
-        visible: pageStack.depth > 1
-        iconName: "back"
-        text: "Back"
-        onTriggered: pageStack.pop()
-        objectName: "pagestack_back_action"
-    }
-
-    Component {
-        id: pageWrapperComponent
-        PageWrapper{
-        }
-    }
-
-    QtObject {
-        id: internal
-        property Item headStyle: (pageStack.__propagated
-                                      && pageStack.__propagated.header
-                                      && pageStack.__propagated.header.__styleInstance)
-                                    ? pageStack.__propagated.header.__styleInstance
-                                    : null
-
-        property bool animateHeader: pageStack.__propagated &&
-                                     pageStack.__propagated.hasOwnProperty("animateHeader") &&
-                                     pageStack.__propagated.animateHeader
-
-        // Call this function before pushing or popping to ensure correct order
-        // of pushes/pops on the stack. This terminates any currently running
-        // header transition.
-        function finishPreviousAction() {
-            // no action required when animating IN because the PageStack was
-            // already updated before that transition started.
-            if (internal.animateHeader && internal.headStyle.state == "OUT") {
-                // force instant update of the PageStack without waiting for
-                // the OUT animation to finish:
-                internal.headStyle.animateOutFinished();
-            }
-        }
-
-        // The PageWrapper to be pushed on the stack by pushWrapperObject().
-        property var pageWrapper: null
-
-        // Called when the header animate OUT transition finishes for push() or instantly
-        // when header animations are disabled.
-        function pushWrapperObject() {
-            if (internal.animateHeader) {
-                headStyle.animateOutFinished.disconnect(internal.pushWrapperObject);
-            }
-            if (internal.stack.size() > 0) internal.stack.top().active = false;
-            internal.stack.push(internal.pageWrapper);
-            internal.pageWrapper = null;
-            internal.stackUpdated();
-        }
-
-        // Called when header animate OUT transition finishes for pop() or instantly
-        // when header animations are disabled.
-        function popAndDestroy() {
-            if (internal.animateHeader) {
-                headStyle.animateOutFinished.disconnect(internal.popAndDestroy);
-            }
-            internal.stack.top().active = false;
-            if (internal.stack.top().canDestroy) internal.stack.top().destroyObject();
-            internal.stack.pop();
-            internal.stackUpdated();
-        }
-
-        /*!
-          The instance of the stack from javascript
-         */
-        property var stack: new Stack.Stack()
-
-        function createWrapper(page, properties) {
-            var wrapperObject = pageWrapperComponent.createObject(pageStack);
-            wrapperObject.pageStack = pageStack;
-            wrapperObject.properties = properties;
-            // set reference last because it will trigger creation of the object
-            //  with specified properties.
-            wrapperObject.reference = page;
-            return wrapperObject;
-        }
-
-        // Update depth and makes the Item on top of the stack active, and
-        // then animates IN the new header contents if header animations are enabled.
-        function stackUpdated() {
-            pageStack.depth = stack.size();
-            if (pageStack.depth > 0) {
-                internal.stack.top().active = true;
-                currentPage = stack.top().object;
-
-                if (internal.animateHeader) {
-                    headStyle.animateIn();
-                }
-            } else {
-                currentPage = null;
-            }
-        }
-    }
+//    property alias bAction: backAction
+//    Action {
+//        // used when the Page has a Page.header property set.
+//        id: backAction
+//        visible: pageStack.depth > 1
+//        iconName: "back"
+//        text: "Back"
+//        onTriggered: pageStack.pop()
+//        objectName: "pagestack_back_action"
+//    }
 
     /*!
       \qmlproperty list<Object> data
       Children of PageStack are placed in a separate item such that they are
       not active by default until they are pushed on the PageStack.
      */
-    default property alias data: inactiveNode.data
-    PageTreeNode {
-        anchors.fill: parent
-        id: inactiveNode
-        active: false
-    }
+    default property alias data: apl.data
+//    default property alias data: inactiveNode.data
+//    PageTreeNode {
+//        anchors.fill: parent
+//        id: inactiveNode
+//        active: false
+//    }
 }

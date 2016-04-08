@@ -37,6 +37,8 @@ Style.ActionBarStyle {
         objectName: action.objectName + "_button"
         height: parent ? parent.height : undefined
         action: modelData
+        // FIXME TIM: remove this. should be automatic.
+        visible: action.visible
     }
 
     defaultNumberOfSlots: 3
