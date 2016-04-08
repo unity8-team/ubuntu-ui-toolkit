@@ -1,3 +1,14 @@
+ubuntu-ui-toolkit (1.3.1918+16.04.20160408-0ubuntu1) xenial; urgency=medium
+
+  [ CI Train Bot ]
+  * Resync trunk. added: examples/ubuntu-ui-toolkit-gallery/po/nb.po
+
+  [ Robert Bruce Park ]
+  * Inline GLES packaging. added: debian/bileto_convert_to_gles
+    debian/control.gles debian/rules.gles
+
+ -- Robert Bruce Park <robert.park@canonical.com>  Fri, 08 Apr 2016 14:46:23 +0000
+
 ubuntu-ui-toolkit (1.3.1918+16.04.20160404-0ubuntu1) xenial; urgency=medium
 
   [ Benjamin Zeller ] 
