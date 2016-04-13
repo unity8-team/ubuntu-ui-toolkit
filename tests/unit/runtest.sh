@@ -112,7 +112,7 @@ function execute_test_cmd {
     # https://bugs.launchpad.net/ubuntu-ui-toolkit/+bug/1256999
     # https://bugreports.qt-project.org/browse/QTBUG-36243
 	
-    # QV4_MM_AGGRESSIVE_GC=1 \
+    QV4_MM_AGGRESSIVE_GC=1 \
     ALARM_BACKEND=memory SUPPRESS_DEPRECATED_NOTE=no \
     QT_LOGGING_RULES="[PERFORMANCE].warning=false" \
     $_CMD $_ARGS 2>&1 | grep -v 'QFontDatabase: Cannot find font directory'
