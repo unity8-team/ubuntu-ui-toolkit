@@ -16,6 +16,7 @@ QML_FILES += $$files(*.qml,true) \
              components
 
 CONF_FILES +=  $${TARGET}.apparmor \
+               $${UBUNTU_MANIFEST_FILE} \
                $${TARGET}.png \
 	       $${TARGET}.wav
 

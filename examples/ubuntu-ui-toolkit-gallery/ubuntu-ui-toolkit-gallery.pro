@@ -2,7 +2,7 @@ TEMPLATE = subdirs
 
 SUBDIRS += po
 
-filetypes = qml png svg js jpg pro desktop
+filetypes = qml png svg js jpg pro desktop manifest.json.in
 
 OTHER_FILES = ""
 
