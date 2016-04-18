@@ -1,0 +1,34 @@
+Quick+
+======
+
+Quick+ provides additional tools, QML items and C++ scenegraph nodes for
+QtQuick 2.
+
+
+Supported Platforms
+===================
+
+Linux (tested on Ubuntu Linux 15.04)
+
+
+Build Instructions
+==================
+
+Building the sources requires Qt 5.1.0 or later.
+
+You can build Quick+ with:
+
+  $ cd $SOURCE_DIRECTORY
+  $ qmake
+  $ make
+
+You can install Quick+ with:
+
+  $ make install INSTALL_ROOT=$INSTALL_DIRECTORY
+
+You can build and run C++ and QML programs using Quick+ uninstalled using the
+Quick+ shell:
+
+  $ ./scripts/shell.sh
+  Entering Quick+ shell.
+  [Quick+] $ _

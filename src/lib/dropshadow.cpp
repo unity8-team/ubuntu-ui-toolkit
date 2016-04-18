@@ -15,8 +15,8 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with Quick+. If not, see <http://www.gnu.org/licenses/>.
 
-#include "dropshadow.h"
-#include "dropshadowtexture.h"
+#include "dropshadow_p.h"
+#include "dropshadowtexture_p.h"
 #include <QtQuick/QQuickWindow>
 #include <QtQuick/QSGNode>
 #include <QtQuick/QSGMaterial>

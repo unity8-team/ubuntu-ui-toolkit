@@ -15,12 +15,13 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with Quick+. If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef QUICKPLUSDROPSHADOW_H
-#define QUICKPLUSDROPSHADOW_H
+#ifndef QUICKPLUSDROPSHADOW_P_H
+#define QUICKPLUSDROPSHADOW_P_H
 
+#include "quickplusglobal_p.h"
 #include <QtQuick/QQuickItem>
 
-class QuickPlusDropShadow : public QQuickItem
+class QUICK_PLUS_PRIVATE_EXPORT QuickPlusDropShadow : public QQuickItem
 {
     Q_OBJECT
     Q_ENUMS(Quality)
@@ -71,4 +72,4 @@ private:
 
 QML_DECLARE_TYPE(QuickPlusDropShadow)
 
-#endif  // QUICKPLUSDROPSHADOW_H
+#endif  // QUICKPLUSDROPSHADOW_P_H
