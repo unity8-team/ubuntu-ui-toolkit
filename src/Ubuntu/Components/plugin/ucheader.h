@@ -50,6 +50,10 @@ protected:
     virtual void hide(bool animate);
     virtual void itemChange(ItemChange change, const ItemChangeData &value);
 
+private:
+    void bindFlickable();
+    void unbindFlickable();
+
 private Q_SLOTS:
     void _q_scrolledContents();
     void _q_showHideAnimationRunningChanged();
@@ -64,6 +68,7 @@ private:
 
     qreal m_previous_contentY;
     qreal m_previous_header_height;
+    bool m_boundToFlickable:1;
     bool m_exposed:1;
     bool m_moving:1;
 

@@ -73,12 +73,20 @@
 
 UCUbuntuAnimation *UCHeader::s_ubuntuAnimation = new UCUbuntuAnimation();
 
+/* First field is the original flickable topMargin; second field is the number
+ * of headers bound to the flickable. */
+typedef QPair<qreal,int> HeaderData;
+Q_DECLARE_METATYPE(HeaderData)
+
+static const char *headerDataKey = "_uc_headerData";
+
 UCHeader::UCHeader(QQuickItem *parent)
     : UCStyledItemBase(parent)
     , m_flickable(Q_NULLPTR)
     , m_showHideAnimation(new QQuickNumberAnimation)
     , m_previous_contentY(0)
     , m_previous_header_height(0)
+    , m_boundToFlickable(false)
     , m_exposed(true)
     , m_moving(false)
 {
@@ -94,9 +102,52 @@ UCHeader::UCHeader(QQuickItem *parent)
 }
 
 UCHeader::~UCHeader() {
-    if (m_flickable != Q_NULLPTR) {
-        m_flickable->setTopMargin(m_flickable->topMargin() - m_previous_header_height);
+    if (m_boundToFlickable) {
+        unbindFlickable();
     }
+}
+
+void UCHeader::bindFlickable() {
+    Q_ASSERT(m_flickable);
+
+    QVariant headerDataV = m_flickable->property(headerDataKey);
+    HeaderData headerData;
+    if (headerDataV.isValid()) {
+        headerData = headerDataV.value<HeaderData>();
+    } else {
+        /* The flickable is not currently bound to a header; let's save its
+         * topMargin proeprty in order to restore it when we unbind from it */
+        headerData.first = m_flickable->topMargin();
+        headerData.second = 0;
+    }
+
+    headerData.second++;
+    m_flickable->setProperty(headerDataKey, QVariant::fromValue(headerData));
+    m_flickable->setTopMargin(height());
+    // TODO do we have to do something to contentY too?
+
+    m_boundToFlickable = true;
+}
+
+void UCHeader::unbindFlickable() {
+    if (m_flickable) {
+        QVariant headerDataV = m_flickable->property(headerDataKey);
+        if (headerDataV.isValid()) {
+            HeaderData headerData = headerDataV.value<HeaderData>();
+            if (headerData.second == 1) {
+                /* We are the last owners of the data, let's just remove it */
+                m_flickable->setProperty(headerDataKey, QVariant());
+                /* ...and reset the flickable topMargin to its original value */
+                m_flickable->setTopMargin(headerData.first);
+                // TODO: do we need to do something to contentY here?
+            } else {
+                headerData.second--;
+                m_flickable->setProperty(headerDataKey, QVariant::fromValue(headerData));
+            }
+        }
+    }
+
+    m_boundToFlickable = false;
 }
 
 void UCHeader::_q_heightChanged() {
@@ -194,17 +245,7 @@ void UCHeader::setFlickable(QQuickFlickable *flickable) {
         }
         m_flickable->disconnect(this);
 
-        // store the current sum of the topMargin and contentY so that we
-        //  can add the change in topMargin+contentY to the new contentY after
-        //  updating the topMargin so that the user will still see the same
-        //  flickable contents at the top of the view after the header height changed.
-        qreal delta = m_flickable->topMargin() + m_flickable->contentY();
-        m_flickable->setTopMargin(m_flickable->topMargin() - m_previous_header_height);
-        m_previous_header_height = 0;
-        delta -= m_flickable->topMargin() + m_flickable->contentY();
-
-        // revert the flickable content Y.
-        m_flickable->setContentY(m_flickable->contentY() + delta);
+        unbindFlickable();
     }
 
     m_flickable = flickable;
@@ -230,10 +271,21 @@ void UCHeader::updateFlickableMargins() {
     if (m_flickable.isNull()) {
         return;
     }
-    qreal headerHeight = 0.0;
-    if (isVisible() && parentItem()) {
-        headerHeight = height();
-    } // else: header is not visible, so do not add to the topMargin.
+
+    bool mustBind = isVisible() && parentItem();
+
+    if (mustBind != m_boundToFlickable) {
+        if (mustBind) {
+            bindFlickable();
+        } else {
+            unbindFlickable();
+        }
+        return;
+    }
+
+    if (!m_boundToFlickable) return;
+
+    qreal headerHeight = height();
     if (headerHeight != m_previous_header_height) {
         qreal previousContentY = m_flickable->contentY();
         m_flickable->setTopMargin(m_flickable->topMargin() + headerHeight - m_previous_header_height);
