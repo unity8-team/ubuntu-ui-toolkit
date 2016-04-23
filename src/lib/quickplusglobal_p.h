@@ -20,6 +20,42 @@
 
 #include "quickplusglobal.h"
 
+// Debug flag. Set to 0 to log each func call.
+#define INHIBIT_LOG_FUNC 1
+
+// Logging macros, debug macros are compiled out for release builds.
+#define LOG(...) qDebug(__VA_ARGS__)
+#if INHIBIT_LOG_FUNC != 1
+#define LOG_FUNC() LOG("%s (%s, line %d)", __PRETTY_FUNCTION__, __FILE__, __LINE__)
+#else
+#define LOG_FUNC() qt_noop()
+#endif
+#define WARN(...) qWarning(__VA_ARGS__)
+#define ASSERT(cond) do { if (Q_UNLIKELY(!(cond))) \
+    qFatal("Assertion `"#cond"' failed in file %s, line %d", __FILE__, __LINE__); } while (0)
+#define NOT_REACHED() \
+    qFatal("Assertion `not reached' failed in file %s, line %d", __FILE__, __LINE__);
+
+#if !defined(QT_NO_DEBUG)
+#define DLOG(...) LOG(__VA_ARGS__)
+#define DLOG_FUNC() LOG_FUNC()
+#define DWARN(...) WARN(__VA_ARGS__)
+#define DNOT_REACHED(...) NOT_REACHED()
+#define DASSERT(cond) ASSERT(cond)
+#else
+#define DLOG(...) qt_noop()
+#define DLOG_FUNC() qt_noop()
+#define DWARN(...) qt_noop()
+#define DNOT_REACHED(...) qt_noop()
+#define DASSERT(cond) qt_noop()
+#endif
+
+// FIXME(loicm) Q_STATIC_ASSERT?
+#define STATIC_ASSERT(cond) static_assert(cond, "`"#cond"'")
+
+// Compile-time constant representing the number of elements in an array.
+template<typename T, size_t N> constexpr size_t ARRAY_SIZE(T (&)[N]) { return N; }
+
 #define QUICK_PLUS_PRIVATE_EXPORT QUICK_PLUS_EXPORT
 
 #endif  // QUICKPLUSGLOBAL_P_H

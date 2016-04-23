@@ -10,7 +10,6 @@ SOURCES += \
 
 QT += quick-private qml-private
 
-DESTDIR_AUX = ../../qml/$${TARGETPATH}
-QMAKE_POST_LINK += cp qmldir plugins.qmltypes $${DESTDIR_AUX}
+QMAKE_POST_LINK += cp $${PWD}/qmldir $${PWD}/plugins.qmltypes $${OUT_PWD}/../../qml/$${TARGETPATH}
 
 load(qml_plugin)

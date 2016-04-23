@@ -19,6 +19,8 @@
 // font in different sizes. The output is a header file containing a structure
 // to be accessed by the bitmap text implementation.
 
+#define STRONG_OUTLINE 0
+
 #include <QtCore/QFile>
 #include <QtCore/QTextStream>
 #include <QtGui/QGuiApplication>
@@ -28,7 +30,7 @@
 // Input data.
 //FIXME(loicm) Make that command line arguments.
 const char* fileName = "bitmaptextfont_p.h";
-const char* fontFamily = "Consolas";  // Must be monospace.
+const char* fontFamily = "Ubuntu Mono";  // Must be monospace.
 const int fontPixelSizeMin = 12;  // Must be an even number.
 const int fontPixelSizeMax = 20;  // Must be an even number, higher than fontPixelSizeMin.
 
@@ -108,10 +110,16 @@ int main(int argc, char* argv[])
         for (int j = 0; j < 2; j++) {
             y += metrics.ascent() + 2;  // Add 2 for the font outline.
             painter.setPen(Qt::black);
+            painter.drawText(1, y - 2, asciiCodes[j]);
+            painter.drawText(0, y - 1, asciiCodes[j]);
+            painter.drawText(2, y - 1, asciiCodes[j]);
+            painter.drawText(1, y, asciiCodes[j]);
+#if STRONG_OUTLINE == 1
             painter.drawText(0, y - 2, asciiCodes[j]);
             painter.drawText(2, y - 2, asciiCodes[j]);
             painter.drawText(0, y, asciiCodes[j]);
             painter.drawText(2, y, asciiCodes[j]);
+#endif
             painter.setPen(Qt::white);
             painter.drawText(1, y - 1, asciiCodes[j]);
             y += metrics.descent() + 1;  // Add 1 for the base line (see QFontMetrics docs).
@@ -160,7 +168,7 @@ int main(int argc, char* argv[])
     }
     fileOut << "};\n";
 
-    // image.save("bitmaptextfont.png");
+    //image.save("bitmaptextfont.png");
 
     delete [] data;
     return 0;

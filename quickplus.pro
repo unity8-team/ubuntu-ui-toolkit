@@ -1,4 +1,4 @@
-requires(linux:!android)  # FIXME(loicm) We simply have not tried others.
+requires(linux:!android)  # FIXME(loicm) We simply have not tried on other systems.
 requires(qtHaveModule(quick))
 
 defineTest(minQtVersion) {

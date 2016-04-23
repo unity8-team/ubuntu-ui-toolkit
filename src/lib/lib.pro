@@ -8,8 +8,8 @@ include(../../version.pri)
 VERSION = $${QUICK_PLUS_VERSION}
 
 PUBLIC_HEADERS = \
-    $$PWD/quickplusglobal.h #\
-    #$$PWD/debugoverlay.h
+    $$PWD/quickplusglobal.h \
+    $$PWD/performancetracker.h
 
 HEADERS += \
     $${PUBLIC_HEADERS} \
@@ -21,8 +21,8 @@ HEADERS += \
 
 SOURCES += \
     $$PWD/quickplus.cpp \
-    $$PWD/dropshadow.cpp #  \
-    # $$PWD/debugoverlay.cpp
+    $$PWD/dropshadow.cpp \
+    $$PWD/performancetracker.cpp
 
 OTHER_FILES += \
     $$PWD/shaders/dropshadow.vert \

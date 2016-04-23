@@ -15,13 +15,16 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with Quick+. If not, see <http://www.gnu.org/licenses/>.
 
-#include "debugoverlay.h"
+#include "performancetracker.h"
 #include "bitmaptextfont_p.h"
+#include "quickplusglobal_p.h"
 #include <unistd.h>
 
-#if !defined(GL_TIME_ELAPSED)
-#define GL_TIME_ELAPSED 0x88BF
+#if !defined(QT_OPENGL_ES) && !defined(GL_TIME_ELAPSED)
+#define GL_TIME_ELAPSED 0x88BF  // For GL_EXT_timer_query.
 #endif
+
+#define "N/A" NOT_AVAILABLE_STRING
 
 static const GLchar* bitmapTextVertexShaderSource =
 #if !defined(QT_OPENGL_ES_2)
@@ -52,12 +55,12 @@ static const GLchar* bitmapTextFragmentShaderSource =
     "    gl_FragColor = texture2D(texture, textureCoord); \n"
     "} \n";
 
-const int defaultFontSize = 12;
+const int defaultFontSize = 14;
 
 BitmapText::BitmapText()
-    : m_functions(nullptr)
-    , m_vertexBuffer(nullptr)
-    , m_textToVertexBuffer(nullptr)
+    : m_functions(Q_NULLPTR)
+    , m_vertexBuffer(Q_NULLPTR)
+    , m_textToVertexBuffer(Q_NULLPTR)
     , m_viewportSize(1, 1)
     , m_position(0.0f, 0.0f)
     , m_transform()
@@ -65,8 +68,9 @@ BitmapText::BitmapText()
     , m_characterCount(0)
     , m_flags(DirtyTransform)
 {
+    DLOG_FUNC();
+
     // Set current font based on requested font size.
-    // FIXME(loicm) Define font size based on the grid unit.
     const int fontSize = qBound(
         static_cast<int>(g_bitmapTextFont.font[0].size), defaultFontSize & (INT_MAX - 1),
         static_cast<int>(g_bitmapTextFont.font[g_bitmapTextFont.fontCount-1].size));
@@ -80,6 +84,8 @@ BitmapText::BitmapText()
 
 BitmapText::~BitmapText()
 {
+    DLOG_FUNC();
+
     delete [] m_vertexBuffer;
     delete [] m_textToVertexBuffer;
 }
@@ -88,6 +94,8 @@ static GLuint createProgram(QOpenGLFunctions* functions, const char* vertexShade
                             const char* fragmentShaderSource, GLuint* vertexShaderObject,
                             GLuint* fragmentShaderObject)
 {
+    DLOG_FUNC();
+
     GLuint program;
     GLuint vertexShader;
     GLuint fragmentShader;
@@ -96,27 +104,32 @@ static GLuint createProgram(QOpenGLFunctions* functions, const char* vertexShade
     vertexShader = functions->glCreateShader(GL_VERTEX_SHADER);
     fragmentShader = functions->glCreateShader(GL_FRAGMENT_SHADER);
     if (vertexShader == 0 || fragmentShader == 0) {
-        qWarning() << "BitmapText: glCreateShader() failed (OpenGL error: " << glGetError() << ")";
+        DWARN("QuickPlusPerformanceTracker: glCreateShader() failed (OpenGL error: %d)",
+              glGetError());
         return 0;
     }
 
-    functions->glShaderSource(vertexShader, 1, &vertexShaderSource, nullptr);
+    functions->glShaderSource(vertexShader, 1, &vertexShaderSource, Q_NULLPTR);
     functions->glCompileShader(vertexShader);
     functions->glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &status);
     if (status == GL_FALSE) {
+#if !defined(QT_NO_DEBUG)
         char infoLog[2048];
-        functions->glGetShaderInfoLog(vertexShader, 2048, nullptr, infoLog);
-        qWarning() << "BitmapText: vertex shader compilation failed:\n" << infoLog;
+        functions->glGetShaderInfoLog(vertexShader, 2048, Q_NULLPTR, infoLog);
+        WARN("QuickPlusPerformanceTracker: vertex shader compilation failed:\n%s\n", infoLog);
+#endif
         return 0;
     }
 
-    functions->glShaderSource(fragmentShader, 1, &fragmentShaderSource, nullptr);
+    functions->glShaderSource(fragmentShader, 1, &fragmentShaderSource, Q_NULLPTR);
     functions->glCompileShader(fragmentShader);
     functions->glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &status);
     if (status == GL_FALSE) {
+#if !defined(QT_NO_DEBUG)
         char infoLog[2048];
-        functions->glGetShaderInfoLog(fragmentShader, 2048, nullptr, infoLog);
-        qWarning() << "BitmapText: fragment shader compilation failed:\n" << infoLog;
+        functions->glGetShaderInfoLog(fragmentShader, 2048, Q_NULLPTR, infoLog);
+        WARN("QuickPlusPerformanceTracker: fragment shader compilation failed:\n%s\n", infoLog);
+#endif
         return 0;
     }
 
@@ -126,9 +139,11 @@ static GLuint createProgram(QOpenGLFunctions* functions, const char* vertexShade
     functions->glLinkProgram(program);
     functions->glGetProgramiv(program, GL_LINK_STATUS, &status);
     if (status == GL_FALSE) {
+#if !defined(QT_NO_DEBUG)
         char infoLog[2048];
-        functions->glGetProgramInfoLog(program, 2048, nullptr, infoLog);
-        qWarning() << "BitmapText: shader linking failed:\n" << infoLog;
+        functions->glGetProgramInfoLog(program, 2048, Q_NULLPTR, infoLog);
+        WARN("QuickPlusPerformanceTracker: shader linking failed:\n%s", infoLog);
+#endif
         return 0;
     }
 
@@ -140,6 +155,9 @@ static GLuint createProgram(QOpenGLFunctions* functions, const char* vertexShade
 
 bool BitmapText::initialise()
 {
+    DLOG_FUNC();
+    DASSERT(!(m_flags & Initialised));
+
     m_functions = QOpenGLContext::currentContext()->functions();
 
     m_functions->glGenTextures(1, &m_texture);
@@ -174,6 +192,9 @@ bool BitmapText::initialise()
 
 void BitmapText::finalise()
 {
+    DLOG_FUNC();
+    DASSERT(m_flags & Initialised);
+
     if (m_texture) {
         m_functions->glDeleteTextures(1, &m_texture);
         m_texture = 0;
@@ -193,12 +214,15 @@ void BitmapText::finalise()
         m_indexBuffer = 0;
     }
 
-    m_functions = nullptr;
+    m_functions = Q_NULLPTR;
     m_flags &= ~Initialised;
 }
 
 void BitmapText::setText(const char* text)
 {
+    DLOG_FUNC();
+    DASSERT(m_flags & Initialised);
+
     int textLength = 0;
     int characterCount = 0;
 
@@ -224,8 +248,8 @@ void BitmapText::setText(const char* text)
     } else {
         // Early exit if the given text is null, empty or filled with
         // non-printable characters.
-        m_vertexBuffer = nullptr;
-        m_textToVertexBuffer = nullptr;
+        m_vertexBuffer = Q_NULLPTR;
+        m_textToVertexBuffer = Q_NULLPTR;
         m_textLength = 0;
         m_characterCount = 0;
         m_flags &= ~NotEmpty;
@@ -235,7 +259,7 @@ void BitmapText::setText(const char* text)
     // Fill the index buffer. The GL_TRIANGLES primitive mode requires 3 indices
     // per triangle, so 6 per character.
     GLushort* indices = new GLushort [6 * characterCount];
-    for (int i = 0; i < maxCharacters; i++) {
+    for (int i = 0; i < characterCount; i++) {
         const GLushort currentIndex = i * 6;
         const GLushort currentVertex = i * 4;
         indices[currentIndex] = currentVertex;
@@ -252,7 +276,7 @@ void BitmapText::setText(const char* text)
 
     // Allocate and fill the vertex buffer and the text to vertex buffer array.
     m_vertexBuffer = new Vertex [characterCount * 4];
-    m_textToVertexBuffer = new char [textLength];
+    m_textToVertexBuffer = new int [textLength];
     const float fontY = static_cast<float>(g_bitmapTextFont.font[m_currentFont].y);
     const float fontWidth = static_cast<float>(g_bitmapTextFont.font[m_currentFont].width);
     const float fontHeight = static_cast<float>(g_bitmapTextFont.font[m_currentFont].height);
@@ -262,13 +286,13 @@ void BitmapText::setText(const char* text)
     const float t2 = (fontHeight + fontY) / g_bitmapTextFont.textureHeight;
     float x = 0.0f;
     float y = 0.0f;
-    int characterCount = 0;
+    characterCount = 0;
     for (int i = 0; i < textLength; i++) {
         char character = text[i];
         if (character >= 32 && character <= 126) {  // Printable characters.
             const int index = characterCount * 4;
             // The atlas stores 2 lines per font size, second line starts at
-            // character 80.
+            // ASCII character 80 at position 49 in the bitmap.
             const float s = ((character - 32) % 48) * fontWidthNormalised;
             const float t = (character < 80) ? t1 : t2;
             m_vertexBuffer[index].x = x;
@@ -301,9 +325,11 @@ void BitmapText::setText(const char* text)
 
 void BitmapText::updateText(const char* text, int index, int length)
 {
-    Q_ASSERT(text);
-    Q_ASSERT(index >= 0 && index <= m_textLength);
-    Q_ASSERT(index + length <= m_textLength);
+    DLOG_FUNC();
+    DASSERT(m_flags & Initialised);
+    DASSERT(text);
+    DASSERT(index >= 0 && index <= m_textLength);
+    DASSERT(index + length <= m_textLength);
 
     const float fontY = static_cast<float>(g_bitmapTextFont.font[m_currentFont].y);
     const float fontWidth = static_cast<float>(g_bitmapTextFont.font[m_currentFont].width);
@@ -313,12 +339,10 @@ void BitmapText::updateText(const char* text, int index, int length)
     const float t1 = fontY / g_bitmapTextFont.textureHeight;
     const float t2 = (fontHeight + fontY) / g_bitmapTextFont.textureHeight;
 
-    for (int i = index, j = 0; i < length; i++, j++) {
-        int vertexBufferIndex = m_textToVertexBuffer[j];
+    for (int i = index, j = 0; i < index + length; i++, j++) {
+        int vertexBufferIndex = m_textToVertexBuffer[i];
         const char character = text[j];
         if (vertexBufferIndex != -1 && character >= 32 && character <= 126) {
-            // The atlas stores 2 lines per font size, second line starts at
-            // character 80.
             const float s = ((character - 32) % 48) * fontWidthNormalised;
             const float t = (character < 80) ? t1 : t2;
             vertexBufferIndex *= 4;
@@ -336,6 +360,8 @@ void BitmapText::updateText(const char* text, int index, int length)
 
 void BitmapText::setViewportSize(const QSize& viewportSize)
 {
+    DLOG_FUNC();
+
     if (viewportSize != m_viewportSize) {
         m_viewportSize = viewportSize;
         m_flags |= DirtyTransform;
@@ -344,6 +370,8 @@ void BitmapText::setViewportSize(const QSize& viewportSize)
 
 void BitmapText::setPosition(const QPointF& position)
 {
+    DLOG_FUNC();
+
     if (position != m_position) {
         m_position = position;
         m_flags |= DirtyTransform;
@@ -352,19 +380,10 @@ void BitmapText::setPosition(const QPointF& position)
 
 void BitmapText::render()
 {
-    // Update transformation vector. It stores a scale (in (x, y)) and translate
-    // (in (z, w)) transform used to put vertices in the right space ((-1, 1),
-    // (-1, 1)), at the right position.
-    if (m_flags & DirtyTransform) {
-        m_transform = QVector4D(
-            (2.0f * g_bitmapTextFont.font[m_currentFont].width) / m_viewportSize.width(),
-            -(2.0f * g_bitmapTextFont.font[m_currentFont].height) / m_viewportSize.height(),
-            ((2.0f * m_position.x()) / m_viewportSize.width()) - 1.0f,
-            ((2.0f * -m_position.y()) / m_viewportSize.height()) + 1.0f);
-        m_flags &= ~DirtyTransform;
-    }
+    DLOG_FUNC();
+    DASSERT(m_flags & Initialised);
 
-    if ((m_flags & (Initialised | NotEmpty)) == (Initialised | NotEmpty)) {
+    if (m_flags & NotEmpty) {
         m_functions->glVertexAttribPointer(
             0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), reinterpret_cast<char*>(m_vertexBuffer));
         m_functions->glVertexAttribPointer(
@@ -373,19 +392,33 @@ void BitmapText::render()
         m_functions->glEnableVertexAttribArray(0);
         m_functions->glEnableVertexAttribArray(1);
         m_functions->glUseProgram(m_program);
-        m_functions->glUniform4fv(
-            m_programTransform, 1, reinterpret_cast<const float*>(&m_transform));
+
+        // Update transformation vector. It stores a scale (in (x, y)) and translate
+        // (in (z, w)) transform used to put vertices in the right space ((-1, 1),
+        // (-1, 1)), at the right position.
+        if (m_flags & DirtyTransform) {
+            m_transform = QVector4D(
+                (2.0f * g_bitmapTextFont.font[m_currentFont].width) / m_viewportSize.width(),
+                -(2.0f * g_bitmapTextFont.font[m_currentFont].height) / m_viewportSize.height(),
+                ((2.0f * m_position.x()) / m_viewportSize.width()) - 1.0f,
+                ((2.0f * -m_position.y()) / m_viewportSize.height()) + 1.0f);
+            m_functions->glUniform4fv(
+                m_programTransform, 1, reinterpret_cast<const float*>(&m_transform));
+            m_flags &= ~DirtyTransform;
+        }
+
         m_functions->glBindTexture(GL_TEXTURE_2D, m_texture);
         m_functions->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBuffer);
         m_functions->glDisable(GL_DEPTH_TEST);  // QtQuick renderers restore that at each draw call.
         m_functions->glDrawElements(GL_TRIANGLES, 6 * m_characterCount, GL_UNSIGNED_SHORT, 0);
-    } else {
-        qWarning() << "BitmapText: render() called while not initialised";
     }
 }
 
 bool GPUTimer::initialise()
 {
+    DLOG_FUNC();
+    DASSERT(m_type == None);
+
 #if defined(QT_OPENGL_ES)
     QList<QByteArray> eglExtensions = QByteArray(
         static_cast<const char*>(
@@ -407,6 +440,7 @@ bool GPUTimer::initialise()
             EGLint (QOPENGLF_APIENTRYP)(EGLDisplay, EGLSyncKHR, EGLint, EGLTimeKHR)>(
                 eglGetProcAddress("eglClientWaitSyncKHR"));
         m_type = KHRFence;
+        DLOG("QuickPlusPerformanceTracker: GpuTimer is using GL_OES_EGL_sync");
         return true;
 
     // NVFence.
@@ -422,10 +456,11 @@ bool GPUTimer::initialise()
             eglGetProcAddress("glFinishFenceNV"));
         m_fenceNV.genFencesNV(2, m_fence);
         m_type = NVFence;
+        DLOG("QuickPlusPerformanceTracker: GpuTimer is using GL_NV_fence");
         return true;
 
     } else {
-        m_type = NotInitialised;
+        m_type = None;
         return false;
     }
 #else
@@ -453,6 +488,7 @@ bool GPUTimer::initialise()
             context->getProcAddress("glQueryCounter"));
         m_timerQuery.genQueries(2, m_timer);
         m_type = ARBTimerQuery;
+        DLOG("QuickPlusPerformanceTracker: GpuTimer is using GL_ARB_timer_query");
         return true;
 
     // EXTTimerQuery.
@@ -472,10 +508,11 @@ bool GPUTimer::initialise()
                 context->getProcAddress("glGetQueryObjectui64vEXT"));
         m_timerQuery.genQueries(1, m_timer);
         m_type = EXTTimerQuery;
+        DLOG("QuickPlusPerformanceTracker: GpuTimer is using GL_EXT_timer_query");
         return true;
 
     } else {
-        m_type = NotInitialised;
+        m_type = None;
         return false;
     }
 #endif
@@ -483,42 +520,41 @@ bool GPUTimer::initialise()
 
 void GPUTimer::finalise()
 {
+    DLOG_FUNC();
+    DASSERT(m_type != None);
+
 #if defined(QT_OPENGL_ES)
     // KHRFence.
     if (m_type == KHRFence) {
         if (m_beforeSync != EGL_NO_SYNC_KHR) {
             m_fenceSyncKHR.destroySyncKHR(eglGetCurrentDisplay(), m_beforeSync);
         }
-        m_type = NotInitialised;
+        m_type = None;
 
     // NVFence.
     } else if (m_type == NVFence) {
         m_fenceNV.deleteFencesNV(2, m_fence);
-        m_type = NotInitialised;
+        m_type = None;
     }
 #else
     // ARBTimerQuery.
     if (m_type == ARBTimerQuery) {
         m_timerQuery.deleteQueries(2, m_timer);
-        m_type = NotInitialised;
+        m_type = None;
 
     // EXTTimerQuery.
     } else if (m_type == EXTTimerQuery) {
         m_timerQuery.deleteQueries(1, m_timer);
-        m_type = NotInitialised;
+        m_type = None;
     }
 #endif
-    else {
-        qWarning() << "GPUTimer: finalise() called while not initialised.";
-    }
 }
 
 void GPUTimer::start()
 {
-    if (m_started) {
-        qWarning() << "GPUTimer: start() called while not stopped.";
-        return;
-    }
+    DLOG_FUNC();
+    DASSERT(m_type != None);
+    DASSERT(!m_started);
 
 #if defined(QT_OPENGL_ES)
     // KHRFence.
@@ -544,17 +580,13 @@ void GPUTimer::start()
         m_timerQuery.beginQuery(GL_TIME_ELAPSED, m_timer[0]);
     }
 #endif
-    else {
-        qWarning() << "GPUTimer: start() called while not initialised.";
-    }
 }
 
-qint64 GPUTimer::stop()
+quint64 GPUTimer::stop()
 {
-    if (!m_started) {
-        qWarning() << "GPUTimer: stop() called while not started.";
-        return 0;
-    }
+    DLOG_FUNC();
+    DASSERT(m_type != None);
+    DASSERT(m_started);
 
 #if defined(QT_OPENGL_ES)
     // KHRFence.
@@ -565,10 +597,10 @@ qint64 GPUTimer::stop()
         EGLSyncKHR afterSync = m_fenceSyncKHR.createSyncKHR(dpy, EGL_SYNC_FENCE_KHR, NULL);
         EGLint beforeSyncValue =
             m_fenceSyncKHR.clientWaitSyncKHR(dpy, m_beforeSync, 0, EGL_FOREVER_KHR);
-        qint64 beforeTime = timer.nsecsElapsed();
+        quint64 beforeTime = timer.nsecsElapsed();
         EGLint afterSyncValue =
             m_fenceSyncKHR.clientWaitSyncKHR(dpy, afterSync, 0, EGL_FOREVER_KHR);
-        qint64 afterTime = timer.nsecsElapsed();
+        quint64 afterTime = timer.nsecsElapsed();
         m_fenceSyncKHR.destroySyncKHR(dpy, afterSync);
         m_fenceSyncKHR.destroySyncKHR(dpy, m_beforeSync);
         m_beforeSync = EGL_NO_SYNC_KHR;
@@ -576,7 +608,7 @@ qint64 GPUTimer::stop()
             && afterSyncValue == EGL_CONDITION_SATISFIED_KHR) {
             return afterTime - beforeTime;
         } else {
-            return -1;
+            return 0;
         }
 
     // NVFence.
@@ -585,9 +617,9 @@ qint64 GPUTimer::stop()
         QElapsedTimer timer;
         m_fenceNV.setFenceNV(m_fence[1], GL_ALL_COMPLETED_NV);
         m_fenceNV.finishFenceNV(m_fence[0]);
-        qint64 beforeTime = timer.nsecsElapsed();
+        quint64 beforeTime = timer.nsecsElapsed();
         m_fenceNV.finishFenceNV(m_fence[1]);
-        qint64 afterTime = timer.nsecsElapsed();
+        quint64 afterTime = timer.nsecsElapsed();
         return afterTime - beforeTime;
     }
 #else
@@ -610,246 +642,434 @@ qint64 GPUTimer::stop()
         GLuint64EXT time;
         m_timerQuery.endQuery(GL_TIME_ELAPSED);
         m_timerQuery.getQueryObjectui64vExt(m_timer[0], GL_QUERY_RESULT, &time);
-        return static_cast<qint64>(time);
+        return time;
     }
 #endif
 
-    else {
-        qWarning() << "GPUTimer: stop() called while not initialised.";
-        return 0;
+    DNOT_REACHED();
+    return 0;
+}
+
+static void connectWindowSignals(QQuickWindow* window, QuickPlusPerformanceTracker* tracker)
+{
+    DLOG_FUNC();
+
+    QObject::connect(window, SIGNAL(destroyed(QObject*)), tracker, SLOT(windowDestroyed(QObject*)));
+    QObject::connect(window, SIGNAL(widthChanged(int)), tracker, SLOT(windowSizeChanged(int)));
+    QObject::connect(window, SIGNAL(heightChanged(int)), tracker, SLOT(windowSizeChanged(int)));
+    QObject::connect(window, SIGNAL(sceneGraphInitialized()), tracker,
+                     SLOT(windowSceneGraphInitialised()), Qt::DirectConnection);
+    QObject::connect(window, SIGNAL(sceneGraphInvalidated()), tracker,
+                     SLOT(windowSceneGraphInvalidated()), Qt::DirectConnection);
+    QObject::connect(window, SIGNAL(beforeSynchronizing()), tracker,
+                     SLOT(windowBeforeSynchronising()));
+    QObject::connect(window, SIGNAL(afterSynchronizing()), tracker,
+                     SLOT(windowAfterSynchronising()));
+    QObject::connect(window, SIGNAL(beforeRendering()), tracker, SLOT(windowBeforeRendering()),
+                     Qt::DirectConnection);
+    QObject::connect(window, SIGNAL(afterRendering()), tracker, SLOT(windowAfterRendering()),
+                     Qt::DirectConnection);
+}
+
+static void disconnectWindowSignals(QQuickWindow* window, QuickPlusPerformanceTracker* tracker)
+{
+    DLOG_FUNC();
+
+    QObject::disconnect(window, SIGNAL(destroyed(QObject*)), tracker,
+                        SLOT(windowDestroyed(QObject*)));
+    QObject::disconnect(window, SIGNAL(widthChanged(int)), tracker, SLOT(windowSizeChanged(int)));
+    QObject::disconnect(window, SIGNAL(heightChanged(int)), tracker, SLOT(windowSizeChanged(int)));
+    QObject::disconnect(window, SIGNAL(sceneGraphInitialized()), tracker,
+                        SLOT(windowSceneGraphInitialised()));
+    QObject::disconnect(window, SIGNAL(sceneGraphInvalidated()), tracker,
+                        SLOT(windowSceneGraphInvalidated()));
+    QObject::disconnect(window, SIGNAL(beforeSynchronizing()), tracker,
+                        SLOT(windowBeforeSynchronising()));
+    QObject::disconnect(window, SIGNAL(afterSynchronizing()), tracker,
+                        SLOT(windowAfterSynchronising()));
+    QObject::disconnect(window, SIGNAL(beforeRendering()), tracker, SLOT(windowBeforeRendering()));
+    QObject::disconnect(window, SIGNAL(afterRendering()), tracker, SLOT(windowAfterRendering()));
+}
+
+static const char* const defaultOverlayText =
+    "CPUs: %cpuUsage%%  Vsz: %vszMemory kB  Rss: %rssMemory kB\n"
+    "\n"
+    "Frame .....: %frameCount\n"
+    "Sync(Cpu) .: %syncTime ms\n"
+    "Render(Cpu): %renderTime ms\n"
+    "Render(Gpu): %gpuRenderTime ms";
+
+const int maxOverlayTextParsedSize = 1024;  // Including '\0'.
+
+QuickPlusPerformanceTracker::QuickPlusPerformanceTracker(QQuickWindow* window, bool overlayVisible)
+    : m_window(window)
+    , m_windowUpdatePolicy(Live)
+    , m_overlayIndicesSize(0)
+    , m_overlayText(defaultOverlayText)
+    , m_overlayTextParsed(new char [maxOverlayTextParsedSize])
+    , m_overlayVisible(overlayVisible)
+    , m_bitmapText()
+    , m_gpuTimer()
+    , m_syncTimer()
+    , m_renderTimer()
+    , m_flags(DirtyText | DirtySize)
+{
+    DLOG_FUNC();
+
+    if (window) {
+        connectWindowSignals(window, this);
+    }
+    parseOverlayText();
+
+    m_cpuOnlineCores = sysconf(_SC_NPROCESSORS_ONLN);
+    m_pageSize = sysconf(_SC_PAGESIZE);
+    m_cpuTimer.start();
+    m_cpuTicks = times(&m_cpuTimes);
+}
+
+QuickPlusPerformanceTracker::~QuickPlusPerformanceTracker()
+{
+    DLOG_FUNC();
+
+    if (m_window) {
+        disconnectWindowSignals(m_window, this);
+    }
+    delete [] m_overlayTextParsed;
+}
+
+void QuickPlusPerformanceTracker::setWindow(QQuickWindow* window)
+{
+    DLOG_FUNC();
+
+    QMutexLocker locker(&m_mutex);
+    if (m_window != window) {
+        if (m_window) {
+            disconnectWindowSignals(window, this);
+        }
+        if (window) {
+            connectWindowSignals(window, this);
+        }
+        m_window = window;
     }
 }
 
-// static const char* defaultText =
-//     "CPUs: %cpuUsage %% / Mem(Vsz): %vszMemory Mb / Mem(Rss): %rssMemory Mb\n"
-//     "\n"
-//     "Frame ..... %frameCount\n"
-//     "Sync(Cpu) . %syncTime ms\n"
-//     "Render(Cpu) %renderTime ms\n"
-//     "Render(Gpu) %gpuRenderTime ms";
+void QuickPlusPerformanceTracker::setOverlayText(const QString& text)
+{
+    DLOG_FUNC();
 
-// static const struct { char* name; char* format; int width; } counterTypes = {
-//     { "cpuUsage",      "%3d",   3 },
-//     { "vszMemory",     "%4d",   4 },
-//     { "rssMemory",     "%4d",   4 },
-//     { "frameCount",    "%7d",   7 },
-//     { "syncTime",      "%7.2f", 7 },
-//     { "renderTime",    "%7.2f", 7 },
-//     { "gpuRenderTime", "%7.2f", 7 }
-// };
+    QMutexLocker locker(&m_mutex);
+    if (text != m_overlayText) {
+        m_overlayText = text;
+        parseOverlayText();
+        m_flags |= DirtyText;
+    }
+}
 
-// const int maxTextSize = 2048;
-// const int maxCounterCount = 16;
+void QuickPlusPerformanceTracker::setWindowUpdatePolicy(UpdatePolicy updatePolicy)
+{
+    DLOG_FUNC();
 
+    QMutexLocker locker(&m_mutex);
+    if (updatePolicy != m_windowUpdatePolicy) {
+        m_windowUpdatePolicy = updatePolicy;
+        if (m_window && updatePolicy == Continuous) {
+            m_window->update();
+        }
+    }
+}
 
-// // static void buildText()
-// // {
-// //     // 
-// //     const void (*updateFuncs)() = {
-        
-// //     };
-// //     for (int i = 0; i < FormatTypeCount; i++) {
-// //         if (data.updateFlags & (1 << i)) {
-            
-// //         }
-// //     }
+void QuickPlusPerformanceTracker::setOverlayVisible(bool visible)
+{
+    DLOG_FUNC();
 
-// //     // 
-// //     for (int i = 0, j = 0; i < formatCount; i++) {
-// //         j += snprintf(
-// //             &data.outputString[j], data.formats[i].size, &data.string[data.formats[i].index],
-// //             );
-// //     }
-// // }
+    QMutexLocker locker(&m_mutex);
+    if (visible != m_overlayVisible) {
+        m_overlayVisible = visible;
+    }
+}
 
-// // int main(int argc, char* argv[])
-// // {
-// //     Q_UNUSED(argc);
-// //     Q_UNUSED(argv);
+void QuickPlusPerformanceTracker::windowDestroyed(QObject*)
+{
+    DLOG_FUNC();
 
-// //     QFile file("format.txt");
-// //     if (!file.open(QFile::ReadOnly)) {
-// //         qWarning() << "can't open file";
-// //         return 1;
-// //     }
-// //     QTextStream stream(&file);
-// //     stream.setCodec("ISO 8859-1");
+    QMutexLocker locker(&m_mutex);
+    m_window = Q_NULLPTR;
+}
 
-// //     QString inputData = stream.readAll();
-// //     const int inputDataSize = inputData.size();
-// //     char textBuffer = new char[inputDataSize];
-// //     int textIndex = 0;
-// //     QStringList textList;
-// //     bool isFormat = false;
-// //     bool isFormatInvalid = true;
+void QuickPlusPerformanceTracker::windowSizeChanged(int)
+{
+    DLOG_FUNC();
+    DASSERT(m_window);
 
-// //     for (int i = 0; i < inputDataSize; i++) {
-// //         const char character = inputData[i].toLatin1();
-// //         if (character != '%') {
-// //             textBuffer[textIndex++] = character;
-// //         } else {
-// //             readFormat();
-// //         }
-// //     }
+    QMutexLocker locker(&m_mutex);
+    m_flags |= DirtySize;
+}
 
-// //     delete [] currentTextBuffer;
+void QuickPlusPerformanceTracker::windowSceneGraphInitialised()
+{
+    DLOG_FUNC();
+    DASSERT(m_window);
+    DASSERT(!(m_flags & Initialised));
 
-// //     // printf("#%7.2f#\n", 3.1415);
+    QMutexLocker locker(&m_mutex);
+    m_bitmapText.initialise();
+    m_counters.frameCount = 0;
+    const quint8 flags = Initialised | DirtyText | DirtySize;
+    m_flags |= m_gpuTimer.initialise() ? (flags | GpuTimerAvailable) : flags;
+}
 
-// //     return 0;
-// // }
+void QuickPlusPerformanceTracker::windowSceneGraphInvalidated()
+{
+    DLOG_FUNC();
+    DASSERT(m_window);
 
-//     //     if (!isFormatInvalid) {
-//     //         if (!isFormat) {
-//     //             if (character == '%') {
-//     //                 isFormat = true;
-//     //             } else {
-//     //                 textBuffer[textIndex++] = character;
-//     //             }
-//     //         } else {
-//     //             if (character == '%') {
-//     //                 isFormatInvalid = true;
-//     //             }
-//     //         }
+    QMutexLocker locker(&m_mutex);
+    if (m_flags & Initialised) {
+        m_bitmapText.finalise();
+        if (m_flags & GpuTimerAvailable) {
+            m_gpuTimer.finalise();
+        }
+        m_flags &= ~(Initialised | GpuTimerAvailable);
+    }
+}
 
-//     //     } else {
-//     //         if (character == '}') {
-//     //             formatIsInvalid = false;
-//     //         }
-//     //     }
-//     // }
+void QuickPlusPerformanceTracker::windowBeforeSynchronising()
+{
+    DLOG_FUNC();
+    DASSERT(m_window);
 
-// DebugOverlay::DebugOverlay(QQuickWindow* window)
-//     : QObject(window)
-//     , m_text(nullptr)
-//     , m_counters(nullptr)
-//     , m_textSize(0)
-//     , m_countersSize(0)
-//     , m_updateFlags(0)
-//     , m_bitmapText()
-//     , m_gpuTimer()
-//     , m_cpuTimer()
-//     , m_cpuUsage(0)
-//     , m_vszMemory(0)
-//     , m_rssMemory(0)
-//     , m_frameCount(0)
-//     , m_syncTimer()
-//     , m_renderTimer()
-//     , m_syncTime(0.0f)
-//     , m_renderTime(0.0f)
-//     , m_gpuRenderTime(0.0f)
-// {
-//     qDebug() << "DebugOverlay::DebugOverlay";
-//     Q_ASSERT(window);
+    QMutexLocker locker(&m_mutex);
+    if (m_flags & Initialised) {
+        m_syncTimer.start();
+    }
+}
 
-//     // 
-    
+void QuickPlusPerformanceTracker::windowAfterSynchronising()
+{
+    DLOG_FUNC();
+    DASSERT(m_window);
 
-//     connect(window, SIGNAL(destroyed(QObject*)), this, SLOT(windowDestroyed(QObject*)));
-//     connect(window, SIGNAL(widthChanged(int)), this, SLOT(windowSizeChanged(int)));
-//     connect(window, SIGNAL(heightChanged(int)), this, SLOT(windowSizeChanged(int)));
-//     connect(window, SIGNAL(sceneGraphInitialized()), this, SLOT(windowSceneGraphInitialised()),
-//             Qt::DirectConnection);
-//     connect(window, SIGNAL(sceneGraphInvalidated()), this, SLOT(windowSceneGraphInvalidated()),
-//             Qt::DirectConnection);
-//     connect(window, SIGNAL(beforeSynchronizing()), this, SLOT(windowBeforeSynchronising()));
-//     connect(window, SIGNAL(afterSynchronizing()), this, SLOT(windowAfterSynchronising()));
-//     connect(window, SIGNAL(beforeRendering()), this, SLOT(windowBeforeRendering()),
-//             Qt::DirectConnection);
-//     connect(window, SIGNAL(afterRendering()), this, SLOT(windowAfterRendering()),
-//             Qt::DirectConnection);
+    QMutexLocker locker(&m_mutex);
+    if (m_flags & Initialised) {
+        m_counters.syncTime = m_syncTimer.nsecsElapsed();
+    }
+}
 
-//     m_cpuTimer.start();
-//     m_cpuTimingFactor = 100.0f / sysconf(_SC_NPROCESSORS_ONLN);
-//     m_cpuTicks = times(&m_cpuTimes);
-// }
+void QuickPlusPerformanceTracker::windowBeforeRendering()
+{
+    DLOG_FUNC();
+    DASSERT(m_window);
 
-// DebugOverlay::~DebugOverlay()
-// {
-//     qDebug() << "DebugOverlay::~DebugOverlay";
-// }
+    QMutexLocker locker(&m_mutex);
+    if (m_flags & Initialised) {
+        m_renderTimer.start();
+        if (m_flags & GpuTimerAvailable) {
+            m_gpuTimer.start();
+        }
+    }
+}
 
-// void DebugOverlay::windowDestroyed(QObject*)
-// {
-//     qDebug() << "DebugOverlay::windowDestroyed";
-// }
+void QuickPlusPerformanceTracker::windowAfterRendering()
+{
+    DLOG_FUNC();
+    DASSERT(m_window);
 
-// void DebugOverlay::windowSizeChanged(int)
-// {
-//     m_bitmapText.setViewportSize(size());
-// }
+    m_mutex.lock();
 
-// void DebugOverlay::windowSceneGraphInitialised()
-// {
-//     m_bitmapText.initialise();
-//     m_gpuTimer.initialise();
-// }
+    if (m_flags & Initialised) {
+        // Update counters.
+        m_counters.renderTime = m_renderTimer.nsecsElapsed();
+        m_counters.gpuRenderTime = (m_flags & GpuTimerAvailable) ? m_gpuTimer.stop() : 0;
+        m_counters.frameCount++;
+        updateCpuUsage();
+        updateMemoryUsage();
 
-// void DebugOverlay::windowSceneGraphInvalidated()
-// {
-//     m_bitmapText.finalise();
-//     m_gpuTimer.finalise();
-// }
+        // Update and render overlay.
+        if (m_overlayVisible) {
+            if (m_flags & DirtySize) {
+                m_bitmapText.setViewportSize(m_window->size());
+                m_flags &= ~DirtySize;
+            }
+            if (m_flags & DirtyText) {
+                m_bitmapText.setText(m_overlayTextParsed);
+                m_flags &= ~DirtyText;
+            }
+            updateOverlayText();
+            m_bitmapText.render();
+        }
 
-// void DebugOverlay::windowBeforeSynchronizing()
-// {
-//     m_syncTimer.start();
-// }
+        // Queue another update if required.
+        if (m_windowUpdatePolicy == Continuous) {
+            m_window->update();
+        }
 
-// void DebugOverlay::windowAfterSynchronizing()
-// {
-//     m_syncTime = static_cast<float>(m_syncTimer.elapsed());
-// }
+        m_mutex.unlock();
 
-// void DebugOverlay::windowBeforeRendering()
-// {
-//     m_renderTimer.start();
-//     m_gpuTimer.start();
-// }
+    } else {
+        // Get everything ready for the next frame.
+        m_mutex.unlock();
+        windowSceneGraphInitialised();
+    }
+}
 
-// void DebugOverlay::windowAfterRendering()
-// {
-//     m_renderTime = static_cast<float>(m_renderTimer.restart());
-//     m_gpuRenderTime = m_gpuTimer.stop() * 0.000001f;
+// Keep in sync with maxCounterWidth!
+static const struct {
+    const char* const name;
+    const char* const format;
+    quint16 nameSize;
+    quint16 width;
+} counterInfo[] = {
+    { "cpuUsage",      "%3d",   sizeof("cpuUsage") - 1,      3 },
+    { "vszMemory",     "%8d",   sizeof("vszMemory") - 1,     8 },
+    { "rssMemory",     "%8d",   sizeof("rssMemory") - 1,     8 },
+    { "frameCount",    "%7d",   sizeof("frameCount") - 1,    7 },
+    { "syncTime",      "%7.2f", sizeof("syncTime") - 1,      7 },
+    { "renderTime",    "%7.2f", sizeof("renderTime") - 1,    7 },
+    { "gpuRenderTime", "%7.2f", sizeof("gpuRenderTime") - 1, 7 }
+};
 
-//     // m_text.clear();
-//     // m_textStream << "Frame " << ++frame << "\n";
-//     // m_textStream << "Render: " << qSetFieldWidth(6) << time << qSetFieldWidth(0) << " ms";
-//     m_bitmapText.updateText();
-//     m_bitmapText.render();
-// }
+// Keep in sync with counterInfo data!
+const int maxCounterWidth = 8;
 
-// bool DebugOverlay::parseText(const char* text)
-// {
-    
-// }
+enum {
+    CpuUsage = 0,
+    VszMemory,
+    RssMemory,
+    FrameCount,
+    SyncTime,
+    RenderTime,
+    GpuRenderTime
+};
 
-// // FIXME(loicm) Get higher definition timings for each CPU core.
-// void DebugOverlay::updateCpuUsage()
-// {
-//     // times() is a Linux syscall giving CPU times used by the process. The
-//     // granularity of the unit returned by the kernel (clock ticks) prevents us
-//     // from getting precise timings at a high frequency, so we have to throttle
-//     // to 200 ms (5 Hz).
-//     const qint64 throttlingFrequency = 200;
-//     if (m_cpuTimer.elapsed() > throttlingFrequency) {
-//         struct tms newTimes;
-//         clock_t newTicks = times(&newTimes);
-//         m_cpuUsage =
-//             ((newTimes.tms_utime + newTimes.tms_stime - m_times.tms_utime - m_times.tms_stime)
-//              / static_cast<float>(newTicks - m_cpuTicks)) * m_cpuTimingFactor;
-//         m_cpuTimer.start();
-//         memcpy(&m_cpuTimes, &newTimes, sizeof(struct tms));
-//         m_cpuTicks = newTicks;
-//     }
-// }
+void QuickPlusPerformanceTracker::updateOverlayText()
+{
+    DLOG_FUNC();
+    DASSERT(m_flags & Initialised);
 
-// void DebugOverlay::updateMemory()
-// {
-    
-// }
+    char buffer[maxCounterWidth + 1];
+    for (int i = 0; i < m_overlayIndicesSize; i++) {
+        const char* const format = counterInfo[m_overlayIndices[i].counterIndex].format;
+        const int width = counterInfo[m_overlayIndices[i].counterIndex].width;
+        DASSERT(width <= maxCounterWidth);
 
-// void DebugOverlay::updateFrameCount()
-// {
-//     m_frameCount++;
-// }
+        switch (m_overlayIndices[i].counterIndex) {
+        case CpuUsage:
+            snprintf(buffer, width + 1, format, m_counters.cpuUsage);
+            break;
+        case VszMemory:
+            snprintf(buffer, width + 1, format, m_counters.vszMemory);
+            break;
+        case RssMemory:
+            snprintf(buffer, width + 1, format, m_counters.rssMemory);
+            break;
+        case FrameCount:
+            snprintf(buffer, width + 1, format, m_counters.frameCount);
+            break;
+        case SyncTime:
+            snprintf(buffer, width + 1, format, m_counters.syncTime * 0.000001f);
+            break;
+        case RenderTime:
+            snprintf(buffer, width + 1, format, m_counters.renderTime * 0.000001f);
+            break;
+        case GpuRenderTime:
+            if (m_flags & GpuTimerAvailable) {
+                snprintf(buffer, width + 1, format, m_counters.gpuRenderTime * 0.000001f);
+            } else {
+                strncpy(buffer, "    "NOT_AVAILABLE_STRING, width);
+            }
+            break;
+        default:
+            DNOT_REACHED();
+            break;
+        }
+
+        m_bitmapText.updateText(buffer, m_overlayIndices[i].overlayTextParsedIndex, width);
+    }
+}
+
+void QuickPlusPerformanceTracker::parseOverlayText()
+{
+    DLOG_FUNC();
+
+    const int counterInfoSize = ARRAY_SIZE(counterInfo);
+    QByteArray overlayTextLatin1 = m_overlayText.toLatin1();
+    const char* const overlayText = overlayTextLatin1.constData();
+    const int overlayTextSize = overlayTextLatin1.size();
+    int counters = 0;
+    int characters = 0;
+
+    for (int i = 0; i <= overlayTextSize; i++) {
+        const char character = overlayText[i];
+        if (character != '%') {
+            m_overlayTextParsed[characters++] = character;
+        } else if (overlayText[i+1] == '%') {
+            m_overlayTextParsed[characters++] = '%';
+            i++;
+        } else if (counters < maxOverlayIndices) {
+            for (int j = 0; j < counterInfoSize; j++) {
+                if ((counterInfo[j].width < maxOverlayTextParsedSize - characters)
+                    && !strncmp(&overlayText[i+1], counterInfo[j].name, counterInfo[j].nameSize)) {
+                    m_overlayIndices[counters].counterIndex = j;
+                    m_overlayIndices[counters].overlayTextParsedIndex = characters;
+                    // Must be initialised since it might contain '\0's and
+                    // break setText otherwise.
+                    memset(&m_overlayTextParsed[characters], '#', counterInfo[j].width);
+                    characters += counterInfo[j].width;
+                    i += counterInfo[j].nameSize;
+                    counters++;
+                    break;
+                }
+            }
+        }
+        if (characters >= (maxOverlayTextParsedSize - 1)) {
+            m_overlayTextParsed[maxOverlayTextParsedSize - 1] = '\0';
+            break;
+        }
+    }
+
+    m_overlayIndicesSize = counters;
+}
+
+void QuickPlusPerformanceTracker::updateCpuUsage()
+{
+    DLOG_FUNC();
+
+    // times() is a Linux syscall giving CPU times used by the process. The
+    // granularity of the unit returned by the (some?) kernel (clock ticks)
+    // prevents us from getting precise timings at a high frequency, so we have
+    // to throttle to 200 ms (5 Hz).
+    const qint64 throttlingFrequency = 200;
+    if (m_cpuTimer.elapsed() > throttlingFrequency) {
+        struct tms newCpuTimes;
+        const clock_t newTicks = times(&newCpuTimes);
+        const clock_t ticks = newTicks - m_cpuTicks;
+        const clock_t userTime = newCpuTimes.tms_utime - m_cpuTimes.tms_utime;
+        const clock_t systemTime = newCpuTimes.tms_stime - m_cpuTimes.tms_stime;
+        m_counters.cpuUsage = ((userTime + systemTime) * 100) / (ticks * m_cpuOnlineCores);
+        m_cpuTimer.start();
+        memcpy(&m_cpuTimes, &newCpuTimes, sizeof(struct tms));
+        m_cpuTicks = newTicks;
+    }
+}
+
+void QuickPlusPerformanceTracker::updateMemoryUsage()
+{
+    DLOG_FUNC();
+
+    unsigned long vsz, rss;
+
+    FILE* file = fopen("/proc/self/statm", "r");
+    if (!file) {
+        DWARN("QuickPlusPerformanceTracker: can't open '/proc/self/statm'");
+        return;
+    }
+    if (fscanf(file, "%lu %lu", &vsz, &rss) != 2) {
+        DWARN("QuickPlusPerformanceTracker: can't read '/proc/self/statm'");
+        fclose(file);
+        return;
+    }
+    fclose(file);
+
+    m_counters.vszMemory = (vsz * m_pageSize) / 1024;
+    m_counters.rssMemory = (rss * m_pageSize) / 1024;
+}
