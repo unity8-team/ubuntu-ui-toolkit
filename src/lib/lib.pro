@@ -17,7 +17,8 @@ HEADERS += \
     $$PWD/quickplus_p.h \
     $$PWD/dropshadow_p.h \
     $$PWD/dropshadowtexture_p.h \
-    $$PWD/bitmaptextfont_p.h
+    $$PWD/bitmaptextfont_p.h \
+    $$PWD/performancetracker_p.h
 
 SOURCES += \
     $$PWD/quickplus.cpp \

@@ -15,16 +15,12 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with Quick+. If not, see <http://www.gnu.org/licenses/>.
 
-#include "performancetracker.h"
+#include "performancetracker_p.h"
 #include "bitmaptextfont_p.h"
 #include "quickplusglobal_p.h"
 #include <unistd.h>
 
-#if !defined(QT_OPENGL_ES) && !defined(GL_TIME_ELAPSED)
-#define GL_TIME_ELAPSED 0x88BF  // For GL_EXT_timer_query.
-#endif
-
-#define "N/A" NOT_AVAILABLE_STRING
+// --- BitmapText ---
 
 static const GLchar* bitmapTextVertexShaderSource =
 #if !defined(QT_OPENGL_ES_2)
@@ -414,6 +410,12 @@ void BitmapText::render()
     }
 }
 
+// --- GpuTimer ---
+
+#if !defined(QT_OPENGL_ES) && !defined(GL_TIME_ELAPSED)
+#define GL_TIME_ELAPSED 0x88BF  // For GL_EXT_timer_query.
+#endif
+
 bool GPUTimer::initialise()
 {
     DLOG_FUNC();
@@ -650,6 +652,47 @@ quint64 GPUTimer::stop()
     return 0;
 }
 
+// --- QuickPlusPerformanceTracker and PerformanceTrackerPrivate ---
+
+static const char* const defaultOverlayText =
+    "CPUs: %cpuUsage%%  Vsz: %vszMemory kB  Rss: %rssMemory kB\n"
+    "\n"
+    "Frame .....: %frameCount\n"
+    "Sync(Cpu) .: %syncTime ms\n"
+    "Render(Cpu): %renderTime ms\n"
+    "Render(Gpu): %gpuRenderTime ms";
+
+const int maxOverlayTextParsedSize = 1024;  // Including '\0'.
+
+// Keep in sync with maxCounterWidth!
+static const struct {
+    const char* const name;
+    const char* const format;
+    quint16 nameSize;
+    quint16 width;
+} counterInfo[] = {
+    { "cpuUsage",      "%3d",   sizeof("cpuUsage") - 1,      3 },
+    { "vszMemory",     "%8d",   sizeof("vszMemory") - 1,     8 },
+    { "rssMemory",     "%8d",   sizeof("rssMemory") - 1,     8 },
+    { "frameCount",    "%7d",   sizeof("frameCount") - 1,    7 },
+    { "syncTime",      "%7.2f", sizeof("syncTime") - 1,      7 },
+    { "renderTime",    "%7.2f", sizeof("renderTime") - 1,    7 },
+    { "gpuRenderTime", "%7.2f", sizeof("gpuRenderTime") - 1, 7 }
+};
+
+// Keep in sync with counterInfo!
+const int maxCounterWidth = 8;
+
+enum {
+    CpuUsage = 0,
+    VszMemory,
+    RssMemory,
+    FrameCount,
+    SyncTime,
+    RenderTime,
+    GpuRenderTime
+};
+
 static void connectWindowSignals(QQuickWindow* window, QuickPlusPerformanceTracker* tracker)
 {
     DLOG_FUNC();
@@ -691,36 +734,30 @@ static void disconnectWindowSignals(QQuickWindow* window, QuickPlusPerformanceTr
     QObject::disconnect(window, SIGNAL(afterRendering()), tracker, SLOT(windowAfterRendering()));
 }
 
-static const char* const defaultOverlayText =
-    "CPUs: %cpuUsage%%  Vsz: %vszMemory kB  Rss: %rssMemory kB\n"
-    "\n"
-    "Frame .....: %frameCount\n"
-    "Sync(Cpu) .: %syncTime ms\n"
-    "Render(Cpu): %renderTime ms\n"
-    "Render(Gpu): %gpuRenderTime ms";
-
-const int maxOverlayTextParsedSize = 1024;  // Including '\0'.
-
 QuickPlusPerformanceTracker::QuickPlusPerformanceTracker(QQuickWindow* window, bool overlayVisible)
-    : m_window(window)
-    , m_windowUpdatePolicy(Live)
-    , m_overlayIndicesSize(0)
-    , m_overlayText(defaultOverlayText)
-    , m_overlayTextParsed(new char [maxOverlayTextParsedSize])
-    , m_overlayVisible(overlayVisible)
-    , m_bitmapText()
-    , m_gpuTimer()
-    , m_syncTimer()
-    , m_renderTimer()
-    , m_flags(DirtyText | DirtySize)
+    : d_ptr(new PerformanceTrackerPrivate(window, overlayVisible))
 {
     DLOG_FUNC();
 
     if (window) {
         connectWindowSignals(window, this);
     }
-    parseOverlayText();
+}
 
+PerformanceTrackerPrivate::PerformanceTrackerPrivate(QQuickWindow* window, bool overlayVisible)
+    : m_window(window)
+    , m_overlayTextParsed(new char [maxOverlayTextParsedSize])
+    , m_overlayIndicesSize(0)
+    , m_overlayText(defaultOverlayText)
+    , m_bitmapText()
+    , m_gpuTimer()
+    , m_syncTimer()
+    , m_renderTimer()
+    , m_flags(DirtyText | DirtySize | (overlayVisible ? OverlayVisible : 0))
+{
+    DLOG_FUNC();
+
+    parseOverlayText();
     m_cpuOnlineCores = sysconf(_SC_NPROCESSORS_ONLN);
     m_pageSize = sysconf(_SC_PAGESIZE);
     m_cpuTimer.start();
@@ -730,30 +767,52 @@ QuickPlusPerformanceTracker::QuickPlusPerformanceTracker(QQuickWindow* window, b
 QuickPlusPerformanceTracker::~QuickPlusPerformanceTracker()
 {
     DLOG_FUNC();
+    Q_D(PerformanceTracker);
 
-    if (m_window) {
-        disconnectWindowSignals(m_window, this);
+    if (d->m_window) {
+        disconnectWindowSignals(d->m_window, this);
     }
+    delete d_ptr;
+}
+
+PerformanceTrackerPrivate::~PerformanceTrackerPrivate()
+{
+    DLOG_FUNC();
     delete [] m_overlayTextParsed;
 }
 
 void QuickPlusPerformanceTracker::setWindow(QQuickWindow* window)
 {
     DLOG_FUNC();
+    Q_D(PerformanceTracker);
 
-    QMutexLocker locker(&m_mutex);
-    if (m_window != window) {
-        if (m_window) {
-            disconnectWindowSignals(window, this);
+    QMutexLocker locker(&d->m_mutex);
+    if (d->m_window != window) {
+        if (d->m_window) {
+            disconnectWindowSignals(d->m_window, this);
         }
         if (window) {
             connectWindowSignals(window, this);
         }
-        m_window = window;
+        d->m_window = window;
     }
 }
 
+QQuickWindow* QuickPlusPerformanceTracker::window() const
+{
+    DLOG_FUNC();
+
+    return d_func()->m_window;
+}
+
 void QuickPlusPerformanceTracker::setOverlayText(const QString& text)
+{
+    DLOG_FUNC();
+
+    d_func()->setOverlayText(text);
+}
+
+void PerformanceTrackerPrivate::setOverlayText(const QString& text)
 {
     DLOG_FUNC();
 
@@ -765,47 +824,94 @@ void QuickPlusPerformanceTracker::setOverlayText(const QString& text)
     }
 }
 
+const QString& QuickPlusPerformanceTracker::overlayText() const
+{
+    DLOG_FUNC();
+
+    return d_func()->m_overlayText;
+}
+
 void QuickPlusPerformanceTracker::setWindowUpdatePolicy(UpdatePolicy updatePolicy)
 {
     DLOG_FUNC();
 
+    d_func()->setWindowUpdatePolicy(updatePolicy);
+}
+
+void PerformanceTrackerPrivate::setWindowUpdatePolicy(
+    QuickPlusPerformanceTracker::UpdatePolicy updatePolicy)
+{
+    DLOG_FUNC();
+
     QMutexLocker locker(&m_mutex);
-    if (updatePolicy != m_windowUpdatePolicy) {
-        m_windowUpdatePolicy = updatePolicy;
-        if (m_window && updatePolicy == Continuous) {
-            m_window->update();
+    const QuickPlusPerformanceTracker::UpdatePolicy policy = (m_flags & ContinuousUpdate) ?
+        QuickPlusPerformanceTracker::Continuous : QuickPlusPerformanceTracker::Live;
+    if (updatePolicy != policy) {
+        if (updatePolicy == QuickPlusPerformanceTracker::Continuous) {
+            if (m_window) {
+                m_window->update();
+            }
+            m_flags |= ContinuousUpdate;
+        } else {
+            m_flags &= ~ContinuousUpdate;
         }
     }
+}
+
+QuickPlusPerformanceTracker::UpdatePolicy QuickPlusPerformanceTracker::windowUpdatePolicy() const
+{
+    DLOG_FUNC();
+
+    return d_func()->m_flags & PerformanceTrackerPrivate::ContinuousUpdate ? Continuous : Live;
 }
 
 void QuickPlusPerformanceTracker::setOverlayVisible(bool visible)
 {
     DLOG_FUNC();
+    Q_D(PerformanceTracker);
 
-    QMutexLocker locker(&m_mutex);
-    if (visible != m_overlayVisible) {
-        m_overlayVisible = visible;
+    QMutexLocker locker(&d->m_mutex);
+    if (visible) {
+        d->m_flags |= PerformanceTrackerPrivate::OverlayVisible;
+    } else {
+        d->m_flags &= ~PerformanceTrackerPrivate::OverlayVisible;
     }
+}
+
+bool QuickPlusPerformanceTracker::overlayVisible() const
+{
+    DLOG_FUNC();
+
+    return d_func()->m_flags & PerformanceTrackerPrivate::OverlayVisible ? true : false;
 }
 
 void QuickPlusPerformanceTracker::windowDestroyed(QObject*)
 {
     DLOG_FUNC();
+    Q_D(PerformanceTracker);
 
-    QMutexLocker locker(&m_mutex);
-    m_window = Q_NULLPTR;
+    QMutexLocker locker(&d->m_mutex);
+    d->m_window = Q_NULLPTR;
 }
 
 void QuickPlusPerformanceTracker::windowSizeChanged(int)
 {
     DLOG_FUNC();
-    DASSERT(m_window);
+    Q_D(PerformanceTracker);
+    DASSERT(d->m_window);
 
-    QMutexLocker locker(&m_mutex);
-    m_flags |= DirtySize;
+    QMutexLocker locker(&d->m_mutex);
+    d->m_flags |= PerformanceTrackerPrivate::DirtySize;
 }
 
 void QuickPlusPerformanceTracker::windowSceneGraphInitialised()
+{
+    DLOG_FUNC();
+
+    d_func()->windowSceneGraphInitialised();
+}
+
+void PerformanceTrackerPrivate::windowSceneGraphInitialised()
 {
     DLOG_FUNC();
     DASSERT(m_window);
@@ -819,6 +925,13 @@ void QuickPlusPerformanceTracker::windowSceneGraphInitialised()
 }
 
 void QuickPlusPerformanceTracker::windowSceneGraphInvalidated()
+{
+    DLOG_FUNC();
+
+    d_func()->windowSceneGraphInvalidated();
+}
+
+void PerformanceTrackerPrivate::windowSceneGraphInvalidated()
 {
     DLOG_FUNC();
     DASSERT(m_window);
@@ -836,6 +949,13 @@ void QuickPlusPerformanceTracker::windowSceneGraphInvalidated()
 void QuickPlusPerformanceTracker::windowBeforeSynchronising()
 {
     DLOG_FUNC();
+
+    d_func()->windowBeforeSynchronising();
+}
+
+void PerformanceTrackerPrivate::windowBeforeSynchronising()
+{
+    DLOG_FUNC();
     DASSERT(m_window);
 
     QMutexLocker locker(&m_mutex);
@@ -847,6 +967,13 @@ void QuickPlusPerformanceTracker::windowBeforeSynchronising()
 void QuickPlusPerformanceTracker::windowAfterSynchronising()
 {
     DLOG_FUNC();
+
+    d_func()->windowAfterSynchronising();
+}
+
+void PerformanceTrackerPrivate::windowAfterSynchronising()
+{
+    DLOG_FUNC();
     DASSERT(m_window);
 
     QMutexLocker locker(&m_mutex);
@@ -856,6 +983,13 @@ void QuickPlusPerformanceTracker::windowAfterSynchronising()
 }
 
 void QuickPlusPerformanceTracker::windowBeforeRendering()
+{
+    DLOG_FUNC();
+
+    d_func()->windowBeforeRendering();
+}
+
+void PerformanceTrackerPrivate::windowBeforeRendering()
 {
     DLOG_FUNC();
     DASSERT(m_window);
@@ -872,6 +1006,13 @@ void QuickPlusPerformanceTracker::windowBeforeRendering()
 void QuickPlusPerformanceTracker::windowAfterRendering()
 {
     DLOG_FUNC();
+
+    d_func()->windowAfterRendering();
+}
+
+void PerformanceTrackerPrivate::windowAfterRendering()
+{
+    DLOG_FUNC();
     DASSERT(m_window);
 
     m_mutex.lock();
@@ -885,7 +1026,7 @@ void QuickPlusPerformanceTracker::windowAfterRendering()
         updateMemoryUsage();
 
         // Update and render overlay.
-        if (m_overlayVisible) {
+        if (m_flags & OverlayVisible) {
             if (m_flags & DirtySize) {
                 m_bitmapText.setViewportSize(m_window->size());
                 m_flags &= ~DirtySize;
@@ -899,7 +1040,7 @@ void QuickPlusPerformanceTracker::windowAfterRendering()
         }
 
         // Queue another update if required.
-        if (m_windowUpdatePolicy == Continuous) {
+        if (m_flags == ContinuousUpdate) {
             m_window->update();
         }
 
@@ -912,36 +1053,7 @@ void QuickPlusPerformanceTracker::windowAfterRendering()
     }
 }
 
-// Keep in sync with maxCounterWidth!
-static const struct {
-    const char* const name;
-    const char* const format;
-    quint16 nameSize;
-    quint16 width;
-} counterInfo[] = {
-    { "cpuUsage",      "%3d",   sizeof("cpuUsage") - 1,      3 },
-    { "vszMemory",     "%8d",   sizeof("vszMemory") - 1,     8 },
-    { "rssMemory",     "%8d",   sizeof("rssMemory") - 1,     8 },
-    { "frameCount",    "%7d",   sizeof("frameCount") - 1,    7 },
-    { "syncTime",      "%7.2f", sizeof("syncTime") - 1,      7 },
-    { "renderTime",    "%7.2f", sizeof("renderTime") - 1,    7 },
-    { "gpuRenderTime", "%7.2f", sizeof("gpuRenderTime") - 1, 7 }
-};
-
-// Keep in sync with counterInfo data!
-const int maxCounterWidth = 8;
-
-enum {
-    CpuUsage = 0,
-    VszMemory,
-    RssMemory,
-    FrameCount,
-    SyncTime,
-    RenderTime,
-    GpuRenderTime
-};
-
-void QuickPlusPerformanceTracker::updateOverlayText()
+void PerformanceTrackerPrivate::updateOverlayText()
 {
     DLOG_FUNC();
     DASSERT(m_flags & Initialised);
@@ -975,7 +1087,7 @@ void QuickPlusPerformanceTracker::updateOverlayText()
             if (m_flags & GpuTimerAvailable) {
                 snprintf(buffer, width + 1, format, m_counters.gpuRenderTime * 0.000001f);
             } else {
-                strncpy(buffer, "    "NOT_AVAILABLE_STRING, width);
+                strncpy(buffer, "    N/A", width);
             }
             break;
         default:
@@ -987,7 +1099,7 @@ void QuickPlusPerformanceTracker::updateOverlayText()
     }
 }
 
-void QuickPlusPerformanceTracker::parseOverlayText()
+void PerformanceTrackerPrivate::parseOverlayText()
 {
     DLOG_FUNC();
 
@@ -1011,9 +1123,9 @@ void QuickPlusPerformanceTracker::parseOverlayText()
                     && !strncmp(&overlayText[i+1], counterInfo[j].name, counterInfo[j].nameSize)) {
                     m_overlayIndices[counters].counterIndex = j;
                     m_overlayIndices[counters].overlayTextParsedIndex = characters;
-                    // Must be initialised since it might contain '\0's and
-                    // break setText otherwise.
-                    memset(&m_overlayTextParsed[characters], '#', counterInfo[j].width);
+                    // Must be initialised since it might contain non-printable
+                    // and break setText otherwise.
+                    memset(&m_overlayTextParsed[characters], '?', counterInfo[j].width);
                     characters += counterInfo[j].width;
                     i += counterInfo[j].nameSize;
                     counters++;
@@ -1030,7 +1142,7 @@ void QuickPlusPerformanceTracker::parseOverlayText()
     m_overlayIndicesSize = counters;
 }
 
-void QuickPlusPerformanceTracker::updateCpuUsage()
+void PerformanceTrackerPrivate::updateCpuUsage()
 {
     DLOG_FUNC();
 
@@ -1052,7 +1164,7 @@ void QuickPlusPerformanceTracker::updateCpuUsage()
     }
 }
 
-void QuickPlusPerformanceTracker::updateMemoryUsage()
+void PerformanceTrackerPrivate::updateMemoryUsage()
 {
     DLOG_FUNC();
 
