@@ -9,7 +9,7 @@ VERSION = $${QUICK_PLUS_VERSION}
 
 PUBLIC_HEADERS = \
     $$PWD/quickplusglobal.h \
-    $$PWD/performancetracker.h
+    $$PWD/performancemetrics.h
 
 HEADERS += \
     $${PUBLIC_HEADERS} \
@@ -18,12 +18,12 @@ HEADERS += \
     $$PWD/dropshadow_p.h \
     $$PWD/dropshadowtexture_p.h \
     $$PWD/bitmaptextfont_p.h \
-    $$PWD/performancetracker_p.h
+    $$PWD/performancemetrics_p.h
 
 SOURCES += \
     $$PWD/quickplus.cpp \
     $$PWD/dropshadow.cpp \
-    $$PWD/performancetracker.cpp
+    $$PWD/performancemetrics.cpp
 
 OTHER_FILES += \
     $$PWD/shaders/dropshadow.vert \

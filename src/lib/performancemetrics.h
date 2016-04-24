@@ -21,17 +21,17 @@
 #include "quickplusglobal.h"
 #include <QtQuick/QQuickWindow>
 
-class PerformanceTrackerPrivate;
+class PerformanceMetricsPrivate;
 
 // 
-class QUICK_PLUS_EXPORT QuickPlusPerformanceTracker : public QObject
+class QUICK_PLUS_EXPORT QuickPlusPerformanceMetrics : public QObject
 {
     Q_OBJECT
     Q_ENUMS(UpdatePolicy)
 
   public:
-    QuickPlusPerformanceTracker(QQuickWindow* window=Q_NULLPTR, bool overlayVisible=false);
-    ~QuickPlusPerformanceTracker();
+    QuickPlusPerformanceMetrics(QQuickWindow* window=Q_NULLPTR, bool overlayVisible=false);
+    ~QuickPlusPerformanceMetrics();
 
     enum UpdatePolicy { Live, Continuous };
 
@@ -62,8 +62,8 @@ private Q_SLOTS:
     void windowAfterRendering();
 
 private:
-    PerformanceTrackerPrivate* const d_ptr;
-    Q_DECLARE_PRIVATE(PerformanceTracker);
+    PerformanceMetricsPrivate* const d_ptr;
+    Q_DECLARE_PRIVATE(PerformanceMetrics);
 };
 
 #endif  // PERFORMANCEMETRICS_H

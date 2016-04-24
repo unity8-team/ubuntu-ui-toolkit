@@ -1,10 +1,10 @@
 TEMPLATE = app
-TARGET = qmlscene-performance-tracker
+TARGET = quick-plus-scene
 QT += qml core-private gui-private quick-private
 qtHaveModule(widgets): QT += widgets
 CONFIG += c++11
 
-SOURCES += qmlsceneperformancetracker.cpp
+SOURCES += quickplusscene.cpp
 DEFINES += QML_RUNTIME_TESTING QT_QML_DEBUG_NO_WARNING
 
 INCLUDEPATH = $${OUT_PWD}/../../include

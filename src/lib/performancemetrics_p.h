@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with Quick+. If not, see <http://www.gnu.org/licenses/>.
 
-#include "performancetracker.h"
+#include "performancemetrics.h"
 #include <QtCore/QMutex>
 #include <QtCore/QElapsedTimer>
 #include <QtGui/QVector4D>
@@ -168,14 +168,14 @@ private:
 #endif
 };
 
-class PerformanceTrackerPrivate
+class PerformanceMetricsPrivate
 {
 public:
-    PerformanceTrackerPrivate(QQuickWindow* window, bool overlayVisible);
-    ~PerformanceTrackerPrivate();
+    PerformanceMetricsPrivate(QQuickWindow* window, bool overlayVisible);
+    ~PerformanceMetricsPrivate();
 
     void setOverlayText(const QString& text);
-    void setWindowUpdatePolicy(QuickPlusPerformanceTracker::UpdatePolicy updatePolicy);
+    void setWindowUpdatePolicy(QuickPlusPerformanceMetrics::UpdatePolicy updatePolicy);
 
     void windowSceneGraphInitialised();
     void windowSceneGraphInvalidated();

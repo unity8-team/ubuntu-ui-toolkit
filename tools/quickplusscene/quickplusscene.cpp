@@ -28,7 +28,7 @@
 #include <QtCore/QTranslator>
 #include <QtCore/QLibraryInfo>
 
-#include <quickplus/performancetracker.h>
+#include <quickplus/performancemetrics.h>
 
 #ifdef QML_RUNTIME_TESTING
 class RenderStatistics
@@ -309,7 +309,7 @@ static void loadDummyDataFiles(QQmlEngine &engine, const QString& directory)
 
 static void usage()
 {
-    puts("Usage: qmlscene [options] <filename>");
+    puts("Usage: quick-plus-scene [options] <filename>");
     puts(" ");
     puts(" Options:");
     puts("  --maximized ...................... Run maximized");
@@ -372,7 +372,7 @@ static void setWindowTitle(bool verbose, const QObject *topLevel, QWindow *windo
     const QString oldTitle = window->title();
     QString newTitle = oldTitle;
     if (newTitle.isEmpty()) {
-        newTitle = QLatin1String("qmlsceneplus");
+        newTitle = QLatin1String("Quick+ Scene");
         if (!qobject_cast<const QWindow *>(topLevel) && !topLevel->objectName().isEmpty())
             newTitle += QLatin1String(": ") + topLevel->objectName();
     }
@@ -599,8 +599,8 @@ int main(int argc, char ** argv)
 
             // Now would be a good time to inform the debug service to start listening.
 
-            QuickPlusPerformanceTracker tracker(window.data(), true);
-            // tracker.setWindowUpdatePolicy(QuickPlusPerformanceTracker::Continuous);
+            QuickPlusPerformanceMetrics metrics(window.data(), true);
+            // metrics.setWindowUpdatePolicy(QuickPlusPerformanceMetrics::Continuous);
 
             exitCode = app.exec();
 
@@ -617,4 +617,4 @@ int main(int argc, char ** argv)
     return exitCode;
 }
 
-#include "qmlsceneperformancetracker.moc"
+#include "quickplusscene.moc"
