@@ -38,8 +38,10 @@ FRAME_COUNT = 100
 def show_usage_quit():
     print 'Usage: ./compare-perf.py <counter> <filename1.qml> [filename2.qml, ...]'
     print ''
-    print 'counters: \'frameCount\', \'syncTime\', \'renderTime\', \'gpuRenderTime\','
-    print '          \'cpuUsage\', \'vszMemory\', \'rssMemory\''
+    print '  Plot and compare per-frame counter values of different QML files.'
+    print ''
+    print '  counters: \'frameCount\', \'syncTime\', \'renderTime\', \'gpuRenderTime\','
+    print '            \'cpuUsage\', \'vszMemory\', \'rssMemory\''
     sys.exit(1)
 
 def main(args):
