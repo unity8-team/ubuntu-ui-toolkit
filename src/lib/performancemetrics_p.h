@@ -196,12 +196,15 @@ public:
         OverlayVisible    = (1 << 2),
         ContinuousUpdate  = (1 << 3),
         DirtyText         = (1 << 4),
-        DirtySize         = (1 << 5)
+        DirtySize         = (1 << 5),
+        Logging           = (1 << 6)
     };
 
     static const int maxOverlayIndices = 16;
 
     QQuickWindow* m_window;
+    QIODevice* m_loggingDevice;
+
     char* m_overlayTextParsed;
     struct {
         quint16 counterIndex;
@@ -209,6 +212,8 @@ public:
     } m_overlayIndices[maxOverlayIndices];
     quint8 m_overlayIndicesSize;
     QString m_overlayText;
+
+    QFile m_defaultLoggingDevice;
 
     BitmapText m_bitmapText;
     GPUTimer m_gpuTimer;

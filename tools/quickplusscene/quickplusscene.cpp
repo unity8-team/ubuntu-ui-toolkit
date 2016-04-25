@@ -5,6 +5,7 @@
 #include <QtCore/qpointer.h>
 #include <QtCore/qscopedpointer.h>
 #include <QtCore/qtextstream.h>
+#include <QtCore/qstandardpaths.h>
 
 #include <QtGui/QGuiApplication>
 #include <QtGui/QOpenGLFunctions>
@@ -119,6 +120,9 @@ struct Options
         , resizeViewToRootItem(false)
         , multisample(false)
         , verbose(false)
+        , performanceOverlay(false)
+        , performanceLogging(false)
+        , continuousUpdate(false)
     {
         // QtWebEngine needs a shared context in order for the GPU thread to
         // upload textures.
@@ -138,6 +142,10 @@ struct Options
     bool resizeViewToRootItem;
     bool multisample;
     bool verbose;
+    bool performanceOverlay;
+    bool performanceLogging;
+    QString performanceLogFile;
+    bool continuousUpdate;
     QVector<Qt::ApplicationAttribute> applicationAttributes;
     QString translationFile;
 };
@@ -333,6 +341,12 @@ static void usage()
     puts("  -I <path> ........................ Add <path> to the list of import paths");
     puts("  -P <path> ........................ Add <path> to the list of plugin paths");
     puts("  -translation <translationfile> ... Set the language to run in");
+    puts(" ");
+    puts(" Quick+ options:");
+    puts("  --performance-overlay ............ Enable the performance overlay");
+    puts("  --performance-logging ............ Enable performance logging");
+    puts("  --performance-log-file <path>..... Set performance log file (default is stdout)");
+    puts("  --continuous-update .............. Continuously update the window");
 
     puts(" ");
     exit(1);
@@ -405,6 +419,42 @@ static QUrl parseUrlArgument(const QString &arg)
     return url;
 }
 
+static void setPerformanceMetricsOptions(
+    QuickPlusPerformanceMetrics* metrics, Options* options, QFile* loggingDevice)
+{
+    if (options->performanceOverlay) {
+        QString filename(
+            QStandardPaths::locate(QStandardPaths::ConfigLocation, "QuickPlusSceneOverlay.txt"));
+        if (!filename.isEmpty()) {
+            QFile file(filename);
+            if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+                if (!file.atEnd()) {
+                    metrics->setOverlayText(QString(file.readAll()));
+                }
+            }
+        }
+        metrics->setOverlayVisible(true);
+    }
+
+    if (options->performanceLogging) {
+        if (!options->performanceLogFile.isEmpty()) {
+            QString filename = options->performanceLogFile;
+            if (QDir::isRelativePath(options->performanceLogFile)) {
+                filename.prepend(QDir::currentPath() + QDir::separator());
+            }
+            loggingDevice->setFileName(filename);
+            if (loggingDevice->open(QFile::WriteOnly)) {
+                metrics->setLoggingDevice(loggingDevice);
+            }
+        }
+        metrics->setLogging(true);
+    }
+
+    if (options->continuousUpdate) {
+        metrics->setWindowUpdatePolicy(QuickPlusPerformanceMetrics::Continuous);
+    }
+}
+
 int main(int argc, char ** argv)
 {
     Options options;
@@ -470,6 +520,14 @@ int main(int argc, char ** argv)
                 options.multisample = true;
             else if (lowerArgument == QLatin1String("--verbose"))
                 options.verbose = true;
+            else if (lowerArgument == QLatin1String("--performance-overlay"))
+                options.performanceOverlay = true;
+            else if (lowerArgument == QLatin1String("--performance-logging"))
+                options.performanceLogging = true;
+            else if (lowerArgument == QLatin1String("--performance-log-file"))
+                options.performanceLogFile = QString(argv[++i]);
+            else if (lowerArgument == QLatin1String("--continuous-update"))
+                options.continuousUpdate = true;
             else if (lowerArgument == QLatin1String("-i") && i + 1 < size)
                 imports.append(arguments.at(++i));
             else if (lowerArgument == QLatin1String("-p") && i + 1 < size)
@@ -597,10 +655,12 @@ int main(int argc, char ** argv)
             if (options.quitImmediately)
                 QMetaObject::invokeMethod(QCoreApplication::instance(), "quit", Qt::QueuedConnection);
 
-            // Now would be a good time to inform the debug service to start listening.
+            // Quick+ performance metrics.
+            QuickPlusPerformanceMetrics metrics(window.data());
+            QFile loggingDevice;
+            setPerformanceMetricsOptions(&metrics, &options, &loggingDevice);
 
-            QuickPlusPerformanceMetrics metrics(window.data(), true);
-            // metrics.setWindowUpdatePolicy(QuickPlusPerformanceMetrics::Continuous);
+            // Now would be a good time to inform the debug service to start listening.
 
             exitCode = app.exec();
 

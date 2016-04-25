@@ -18,6 +18,7 @@
 #include "performancemetrics_p.h"
 #include "bitmaptextfont_p.h"
 #include "quickplusglobal_p.h"
+#include <QtCore/QTextStream>
 #include <unistd.h>
 
 // --- BitmapText ---
@@ -746,9 +747,11 @@ QuickPlusPerformanceMetrics::QuickPlusPerformanceMetrics(QQuickWindow* window, b
 
 PerformanceMetricsPrivate::PerformanceMetricsPrivate(QQuickWindow* window, bool overlayVisible)
     : m_window(window)
+    , m_loggingDevice(Q_NULLPTR)
     , m_overlayTextParsed(new char [maxOverlayTextParsedSize])
     , m_overlayIndicesSize(0)
     , m_overlayText(defaultOverlayText)
+    , m_defaultLoggingDevice()
     , m_bitmapText()
     , m_gpuTimer()
     , m_syncTimer()
@@ -758,6 +761,7 @@ PerformanceMetricsPrivate::PerformanceMetricsPrivate(QQuickWindow* window, bool 
     DLOG_FUNC();
 
     parseOverlayText();
+    m_defaultLoggingDevice.open(stdout, QIODevice::WriteOnly);
     m_cpuOnlineCores = sysconf(_SC_NPROCESSORS_ONLN);
     m_pageSize = sysconf(_SC_PAGESIZE);
     m_cpuTimer.start();
@@ -831,6 +835,28 @@ const QString& QuickPlusPerformanceMetrics::overlayText() const
     return d_func()->m_overlayText;
 }
 
+void QuickPlusPerformanceMetrics::setOverlayVisible(bool visible)
+{
+    DLOG_FUNC();
+    Q_D(PerformanceMetrics);
+
+    QMutexLocker locker(&d->m_mutex);
+    if (visible) {
+        d->m_flags |= PerformanceMetricsPrivate::OverlayVisible;
+    } else {
+        d->m_flags &= ~PerformanceMetricsPrivate::OverlayVisible;
+    }
+}
+
+bool QuickPlusPerformanceMetrics::overlayVisible()
+{
+    DLOG_FUNC();
+    Q_D(PerformanceMetrics);
+
+    QMutexLocker locker(&d->m_mutex);
+    return d->m_flags & PerformanceMetricsPrivate::OverlayVisible ? true : false;
+}
+
 void QuickPlusPerformanceMetrics::setWindowUpdatePolicy(UpdatePolicy updatePolicy)
 {
     DLOG_FUNC();
@@ -858,31 +884,53 @@ void PerformanceMetricsPrivate::setWindowUpdatePolicy(
     }
 }
 
-QuickPlusPerformanceMetrics::UpdatePolicy QuickPlusPerformanceMetrics::windowUpdatePolicy() const
-{
-    DLOG_FUNC();
-
-    return d_func()->m_flags & PerformanceMetricsPrivate::ContinuousUpdate ? Continuous : Live;
-}
-
-void QuickPlusPerformanceMetrics::setOverlayVisible(bool visible)
+QuickPlusPerformanceMetrics::UpdatePolicy QuickPlusPerformanceMetrics::windowUpdatePolicy()
 {
     DLOG_FUNC();
     Q_D(PerformanceMetrics);
 
     QMutexLocker locker(&d->m_mutex);
-    if (visible) {
-        d->m_flags |= PerformanceMetricsPrivate::OverlayVisible;
-    } else {
-        d->m_flags &= ~PerformanceMetricsPrivate::OverlayVisible;
+    return d->m_flags & PerformanceMetricsPrivate::ContinuousUpdate ? Continuous : Live;
+}
+
+void QuickPlusPerformanceMetrics::setLoggingDevice(QIODevice* loggingDevice)
+{
+    DLOG_FUNC();
+    Q_D(PerformanceMetrics);
+
+    QMutexLocker locker(&d->m_mutex);
+    if (loggingDevice != d->m_loggingDevice) {
+        d->m_loggingDevice = loggingDevice;
     }
 }
 
-bool QuickPlusPerformanceMetrics::overlayVisible() const
+QIODevice* QuickPlusPerformanceMetrics::loggingDevice() const
 {
     DLOG_FUNC();
 
-    return d_func()->m_flags & PerformanceMetricsPrivate::OverlayVisible ? true : false;
+    return d_func()->m_loggingDevice;
+}
+
+void QuickPlusPerformanceMetrics::setLogging(bool logging)
+{
+    DLOG_FUNC();
+    Q_D(PerformanceMetrics);
+
+    QMutexLocker locker(&d->m_mutex);
+    if (logging) {
+        d->m_flags |= PerformanceMetricsPrivate::Logging;
+    } else {
+        d->m_flags &= ~PerformanceMetricsPrivate::Logging;
+    }
+}
+
+bool QuickPlusPerformanceMetrics::logging()
+{
+    DLOG_FUNC();
+    Q_D(PerformanceMetrics);
+
+    QMutexLocker locker(&d->m_mutex);
+    return !!(d->m_flags & PerformanceMetricsPrivate::Logging);
 }
 
 void QuickPlusPerformanceMetrics::windowDestroyed(QObject*)
@@ -1039,8 +1087,24 @@ void PerformanceMetricsPrivate::windowAfterRendering()
             m_bitmapText.render();
         }
 
+        // Logging.
+        // FIXME(loicm) Use a dedicated I/O thread.
+        if (m_flags & Logging ) {
+            QIODevice* device = m_loggingDevice ? m_loggingDevice : &m_defaultLoggingDevice;
+            if (device->isWritable()) {
+                QTextStream stream(device);
+                stream << m_counters.frameCount << ' '
+                       << m_counters.syncTime << ' '
+                       << m_counters.renderTime << ' '
+                       << m_counters.gpuRenderTime << ' '
+                       << m_counters.cpuUsage << ' '
+                       << m_counters.vszMemory << ' '
+                       << m_counters.rssMemory << '\n';
+            }
+        }
+
         // Queue another update if required.
-        if (m_flags == ContinuousUpdate) {
+        if (m_flags & ContinuousUpdate) {
             m_window->update();
         }
 

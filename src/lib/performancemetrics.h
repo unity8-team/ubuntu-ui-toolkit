@@ -45,11 +45,19 @@ class QUICK_PLUS_EXPORT QuickPlusPerformanceMetrics : public QObject
 
     // 
     void setOverlayVisible(bool visible);
-    bool overlayVisible() const;
+    bool overlayVisible();
 
     // 
     void setWindowUpdatePolicy(UpdatePolicy updatePolicy);
-    UpdatePolicy windowUpdatePolicy() const;
+    UpdatePolicy windowUpdatePolicy();
+
+    // 
+    void setLoggingDevice(QIODevice* loggingDevice);
+    QIODevice* loggingDevice() const;
+
+    // 
+    void setLogging(bool logging);
+    bool logging();
 
 private Q_SLOTS:
     void windowDestroyed(QObject*);
