@@ -39,6 +39,7 @@ fi
 export QML2_IMPORT_PATH=$BUILD_DIR/qml
 export LD_LIBRARY_PATH=$BUILD_DIR/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
 export PKG_CONFIG_PATH=$BUILD_DIR/lib/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}
+export PATH=$BUILD_DIR/bin${PATH:+:$PATH}
 
 TEMP_FILE=`mktemp -t bashrc.XXXXXXXX`
 echo source $HOME/.bashrc >> $TEMP_FILE
