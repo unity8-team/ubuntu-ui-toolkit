@@ -146,6 +146,7 @@ struct Options
     bool performanceLogging;
     QString performanceLogFile;
     bool continuousUpdate;
+    int quitAfterFrameCount;
     QVector<Qt::ApplicationAttribute> applicationAttributes;
     QString translationFile;
 };
@@ -347,6 +348,7 @@ static void usage()
     puts("  --performance-logging ............ Enable performance logging");
     puts("  --performance-log-file <path>..... Set performance log file (default is stdout)");
     puts("  --continuous-update .............. Continuously update the window");
+    puts("  --quit-after-frame-count <count>.. Quit after a number of rendered frames");
 
     puts(" ");
     exit(1);
@@ -379,6 +381,33 @@ private slots:
         context->doneCurrent();
         deleteLater();
     }
+};
+
+class QuitAfterFrameCountListener : public QObject {
+    Q_OBJECT
+public:
+    QuitAfterFrameCountListener(QQuickWindow *window, int count)
+        : QObject(window), m_count(count), m_currentCount(0)
+    {
+        connect(window, &QQuickWindow::afterRendering,
+                this, &QuitAfterFrameCountListener::onAfterRendering, Qt::DirectConnection);
+    }
+    ~QuitAfterFrameCountListener()
+    {
+        QCoreApplication::quit();
+    }
+
+private slots:
+    void onAfterRendering()
+    {
+        if (++m_currentCount >= m_count) {
+            deleteLater();
+        }
+    }
+
+private:
+    int m_count;
+    int m_currentCount;
 };
 
 static void setWindowTitle(bool verbose, const QObject *topLevel, QWindow *window)
@@ -419,8 +448,7 @@ static QUrl parseUrlArgument(const QString &arg)
     return url;
 }
 
-static void setPerformanceMetricsOptions(
-    QuickPlusPerformanceMetrics* metrics, Options* options, QFile* loggingDevice)
+static void setPerformanceMetricsOptions(QuickPlusPerformanceMetrics* metrics, Options* options)
 {
     if (options->performanceOverlay) {
         QString filename(
@@ -442,7 +470,7 @@ static void setPerformanceMetricsOptions(
             if (QDir::isRelativePath(options->performanceLogFile)) {
                 filename.prepend(QDir::currentPath() + QDir::separator());
             }
-            loggingDevice->setFileName(filename);
+            QFile* loggingDevice = new QFile(filename);
             if (loggingDevice->open(QFile::WriteOnly)) {
                 metrics->setLoggingDevice(loggingDevice);
             }
@@ -528,6 +556,8 @@ int main(int argc, char ** argv)
                 options.performanceLogFile = QString(argv[++i]);
             else if (lowerArgument == QLatin1String("--continuous-update"))
                 options.continuousUpdate = true;
+            else if (lowerArgument == QLatin1String("--quit-after-frame-count"))
+                options.quitAfterFrameCount = atoi(argv[++i]);
             else if (lowerArgument == QLatin1String("-i") && i + 1 < size)
                 imports.append(arguments.at(++i));
             else if (lowerArgument == QLatin1String("-p") && i + 1 < size)
@@ -644,6 +674,9 @@ int main(int argc, char ** argv)
                 if (window->flags() == Qt::Window) // Fix window flags unless set by QML.
                     window->setFlags(Qt::Window | Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint | Qt::WindowFullscreenButtonHint);
 
+                if (options.quitAfterFrameCount > 0)
+                    new QuitAfterFrameCountListener(window.data(), options.quitAfterFrameCount);
+
                 if (options.fullscreen)
                     window->showFullScreen();
                 else if (options.maximized)
@@ -657,8 +690,7 @@ int main(int argc, char ** argv)
 
             // Quick+ performance metrics.
             QuickPlusPerformanceMetrics metrics(window.data());
-            QFile loggingDevice;
-            setPerformanceMetricsOptions(&metrics, &options, &loggingDevice);
+            setPerformanceMetricsOptions(&metrics, &options);
 
             // Now would be a good time to inform the debug service to start listening.
 
