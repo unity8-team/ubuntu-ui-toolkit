@@ -20,11 +20,11 @@
 # This script spawns a new Bash shell with all the environment variables needed
 # to run apps based on the local source tree uninstalled. Note that qmake must
 # be run before in order to have the build_paths.inc file generated:
-#
+
 #  $ qmake
 #  $ ./shell.sh
 #  [Quick+] $ make
-#  [Quick+] $ qmlscene <file>
+#  [Quick+] $ quick-plus-scene <file>
 
 NAME='Quick+'
 
