@@ -2,15 +2,15 @@ import QtQuick 2.0
 
 Rectangle {
     id: scene
-    width: 750
-    height: 750
+    width: 500
+    height: 500
     color: "black"
 
     Image {
         id: quad
         anchors.centerIn: parent
-        width: Math.min(parent.width, parent.height) * 1.0
-        height: Math.min(parent.width, parent.height) * 1.0
+        width: Math.min(parent.width, parent.height) * 0.75
+        height: Math.min(parent.width, parent.height) * 0.75
         source: "ubuntu.svg"
         sourceSize: Qt.size(width, height)
         transform: Rotation {

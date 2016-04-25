@@ -900,7 +900,11 @@ void QuickPlusPerformanceMetrics::setLoggingDevice(QIODevice* loggingDevice)
 
     QMutexLocker locker(&d->m_mutex);
     if (loggingDevice != d->m_loggingDevice) {
-        d->m_loggingDevice = loggingDevice;
+        if (loggingDevice && loggingDevice->isWritable()) {
+            d->m_loggingDevice = loggingDevice;
+        } else {
+            d->m_loggingDevice = Q_NULLPTR;
+        }
     }
 }
 
@@ -1090,17 +1094,14 @@ void PerformanceMetricsPrivate::windowAfterRendering()
         // Logging.
         // FIXME(loicm) Use a dedicated I/O thread.
         if (m_flags & Logging ) {
-            QIODevice* device = m_loggingDevice ? m_loggingDevice : &m_defaultLoggingDevice;
-            if (device->isWritable()) {
-                QTextStream stream(device);
-                stream << m_counters.frameCount << ' '
-                       << m_counters.syncTime << ' '
-                       << m_counters.renderTime << ' '
-                       << m_counters.gpuRenderTime << ' '
-                       << m_counters.cpuUsage << ' '
-                       << m_counters.vszMemory << ' '
-                       << m_counters.rssMemory << '\n';
-            }
+            QTextStream stream(m_loggingDevice ? m_loggingDevice : &m_defaultLoggingDevice);
+            stream << m_counters.frameCount << ' '
+                   << m_counters.syncTime << ' '
+                   << m_counters.renderTime << ' '
+                   << m_counters.gpuRenderTime << ' '
+                   << m_counters.cpuUsage << ' '
+                   << m_counters.vszMemory << ' '
+                   << m_counters.rssMemory << '\n';
         }
 
         // Queue another update if required.
