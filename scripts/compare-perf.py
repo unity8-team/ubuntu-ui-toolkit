@@ -128,7 +128,6 @@ def main(args):
     axis.grid()
     axis.legend(loc=0)
     axis.set_xlim(0, FRAME_COUNT + 1)
-    axis.set_ylim(0)
     plot.title(title)
     plot.xlabel('Frame')
     plot.ylabel(COUNTERS[counter_index]['label'])
