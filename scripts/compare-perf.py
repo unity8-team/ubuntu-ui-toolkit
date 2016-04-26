@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 # Copyright © 2016 Canonical Ltd.
@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Quick+. If not, see <http://www.gnu.org/licenses/>.
 
-import sys, subprocess, os, tempfile
+import sys, subprocess, os, tempfile, math
 import matplotlib.pyplot as plot
 from matplotlib import rcParams
 
@@ -31,7 +31,7 @@ COUNTERS = [
     { 'name':'vszMemory',     'type':int,  'factor':1.0,      'label':'Virtual size memory (kB)' },
     { 'name':'rssMemory',     'type':int,  'factor':1.0,      'label':'RSS memory (kB)' }
 ]
-PLOT_FONT_FAMILY = 'Ubuntu'
+PLOT_FONT_NAME = 'Ubuntu'
 PLOT_FONT_SIZE = 12
 FRAME_COUNT = 100
 
@@ -43,6 +43,18 @@ def show_usage_quit():
     print '  counters: \'frameCount\', \'syncTime\', \'renderTime\', \'gpuRenderTime\','
     print '            \'cpuUsage\', \'vszMemory\', \'rssMemory\''
     sys.exit(1)
+
+# Gets average and standard deviation
+def getStats(values):
+    sum = 0.0
+    for i in values:
+        sum += i
+    avg = sum / len(values)
+    var = 0.0
+    for i in values:
+        var += (i - avg) * (i - avg)
+    var /= len(values)
+    return (avg, math.sqrt(var))
 
 def main(args):
     # Command line arguments
@@ -57,7 +69,8 @@ def main(args):
         show_usage_quit()
     qml_files = args[1:]
 
-    rcParams['font.family'] = PLOT_FONT_FAMILY
+    rcParams['font.family'] = 'sans-serif'
+    rcParams['font.sans-serif'] = [PLOT_FONT_NAME]
     rcParams['font.size'] = PLOT_FONT_SIZE
     fig, axis = plot.subplots()
 
@@ -90,7 +103,11 @@ def main(args):
             if len(counters_value) == len(COUNTERS):  # Prevents quick-scene-plus early exit issues
                 values.append(counters_value[counter_index] * COUNTERS[counter_index]['factor'])
         if len(values) == FRAME_COUNT:  # Prevents quick-scene-plus early exit issues
-            axis.plot(range(1, FRAME_COUNT + 1), values, '-', label=qml_files[i].split('/')[-1])
+            (avg, stdev) = getStats(values)
+            label = qml_files[i].split('/')[-1] + ' (avg=' + ('%.2f' % avg) + \
+                ', stdev=' + ('%.2f' % stdev) + ')'
+            axis.plot(range(1, FRAME_COUNT + 1), values, '-', label=label)
+            axis.plot((1, FRAME_COUNT), (avg, avg), '--', color='red', alpha=0.5)
         os.remove(temp_name)
 
     # Set plot infos and render.
