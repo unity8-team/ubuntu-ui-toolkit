@@ -959,17 +959,18 @@ void QuickPlusPerformanceMetrics::windowSizeChanged(int)
 void QuickPlusPerformanceMetrics::windowSceneGraphInitialised()
 {
     DLOG_FUNC();
+    Q_D(PerformanceMetrics);
 
-    d_func()->windowSceneGraphInitialised();
+    QMutexLocker locker(&d->m_mutex);
+    d->initialiseGpuResources();
 }
 
-void PerformanceMetricsPrivate::windowSceneGraphInitialised()
+void PerformanceMetricsPrivate::initialiseGpuResources()
 {
     DLOG_FUNC();
     DASSERT(m_window);
     DASSERT(!(m_flags & Initialised));
 
-    QMutexLocker locker(&m_mutex);
     m_bitmapText.initialise();
     m_counters.frameCount = 0;
     const quint8 flags = Initialised | DirtyText | DirtySize;
@@ -1067,15 +1068,17 @@ void PerformanceMetricsPrivate::windowAfterRendering()
     DLOG_FUNC();
     DASSERT(m_window);
 
-    m_mutex.lock();
+    QMutexLocker locker(&m_mutex);
 
     if (m_flags & Initialised) {
-        // Update counters.
-        m_counters.renderTime = m_renderTimer.nsecsElapsed();
-        m_counters.gpuRenderTime = (m_flags & GpuTimerAvailable) ? m_gpuTimer.stop() : 0;
-        m_counters.frameCount++;
-        updateCpuUsage();
-        updateMemoryUsage();
+        if (m_flags & (OverlayVisible | Logging)) {
+            // Update counters.
+            m_counters.renderTime = m_renderTimer.nsecsElapsed();
+            m_counters.gpuRenderTime = (m_flags & GpuTimerAvailable) ? m_gpuTimer.stop() : 0;
+            m_counters.frameCount++;
+            updateCpuUsage();
+            updateMemoryUsage();
+        }
 
         // Update and render overlay.
         if (m_flags & OverlayVisible) {
@@ -1104,17 +1107,14 @@ void PerformanceMetricsPrivate::windowAfterRendering()
                    << m_counters.rssMemory << '\n';
         }
 
-        // Queue another update if required.
-        if (m_flags & ContinuousUpdate) {
-            m_window->update();
-        }
-
-        m_mutex.unlock();
-
     } else {
         // Get everything ready for the next frame.
-        m_mutex.unlock();
-        windowSceneGraphInitialised();
+        initialiseGpuResources();
+    }
+
+    // Queue another update if required.
+    if (m_flags & ContinuousUpdate) {
+        m_window->update();
     }
 }
 

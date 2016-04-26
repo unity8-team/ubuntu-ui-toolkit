@@ -176,14 +176,12 @@ public:
 
     void setOverlayText(const QString& text);
     void setWindowUpdatePolicy(QuickPlusPerformanceMetrics::UpdatePolicy updatePolicy);
-
-    void windowSceneGraphInitialised();
+    void initialiseGpuResources();
     void windowSceneGraphInvalidated();
     void windowBeforeSynchronising();
     void windowAfterSynchronising();
     void windowBeforeRendering();
     void windowAfterRendering();
-
     void updateOverlayText();
     void parseOverlayText();
     void updateCpuUsage();
