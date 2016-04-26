@@ -70,9 +70,10 @@ def main(args):
     qml_files = args[1:]
 
     # Use OpenGL renderer string as title
+    # FIXME(loicm) Add EGL support.
     title = ''
     try:
-        p = subprocess.Popen('glxinf', bufsize=4096*4, stdout=subprocess.PIPE,
+        p = subprocess.Popen('glxinfo', bufsize=4096*4, stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE, close_fds=True)
         p.wait()
         for line in p.stdout.readlines():
@@ -127,6 +128,7 @@ def main(args):
     axis.grid()
     axis.legend(loc=0)
     axis.set_xlim(0, FRAME_COUNT + 1)
+    axis.set_ylim(0)
     plot.title(title)
     plot.xlabel('Frame')
     plot.ylabel(COUNTERS[counter_index]['label'])
