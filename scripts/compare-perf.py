@@ -69,6 +69,19 @@ def main(args):
         show_usage_quit()
     qml_files = args[1:]
 
+    # Use OpenGL renderer string as title
+    title = ''
+    try:
+        p = subprocess.Popen('glxinf', bufsize=4096*4, stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE, close_fds=True)
+        p.wait()
+        for line in p.stdout.readlines():
+            if line.startswith('OpenGL renderer string:'):
+                title = line.split('OpenGL renderer string:')[1]
+                break
+    except:
+        print 'Warning: Can\'t set OpenGL renderer as plot title (glxinfo not installed).'
+
     rcParams['font.family'] = 'sans-serif'
     rcParams['font.sans-serif'] = [PLOT_FONT_NAME]
     rcParams['font.size'] = PLOT_FONT_SIZE
@@ -88,11 +101,11 @@ def main(args):
                 '--continuous-update', '--quit-after-frame-count', str(FRAME_COUNT), qml_files[i]
             ]
             p = subprocess.Popen(command)
+            p.wait()
         except:
             print 'Error: can\'t spawn quick-plus-scene'
             os.remove(temp_name)
             sys.exit(1)
-        p.wait()
 
         # Plot values
         temp_file = os.fdopen(temp_fd, 'r')
@@ -114,7 +127,8 @@ def main(args):
     axis.grid()
     axis.legend(loc=0)
     axis.set_xlim(0, FRAME_COUNT + 1)
-    plot.xlabel('frame')
+    plot.title(title)
+    plot.xlabel('Frame')
     plot.ylabel(COUNTERS[counter_index]['label'])
     plot.show()
 
