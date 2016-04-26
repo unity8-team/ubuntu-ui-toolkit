@@ -1071,10 +1071,12 @@ void PerformanceMetricsPrivate::windowAfterRendering()
     QMutexLocker locker(&m_mutex);
 
     if (m_flags & Initialised) {
+        // Update timers (updated even if not overlaid nor logged to simplify logic).
+        m_counters.renderTime = m_renderTimer.nsecsElapsed();
+        m_counters.gpuRenderTime = (m_flags & GpuTimerAvailable) ? m_gpuTimer.stop() : 0;
+
         if (m_flags & (OverlayVisible | Logging)) {
-            // Update counters.
-            m_counters.renderTime = m_renderTimer.nsecsElapsed();
-            m_counters.gpuRenderTime = (m_flags & GpuTimerAvailable) ? m_gpuTimer.stop() : 0;
+            // Update other counters.
             m_counters.frameCount++;
             updateCpuUsage();
             updateMemoryUsage();
