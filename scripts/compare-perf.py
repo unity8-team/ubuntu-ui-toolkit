@@ -100,6 +100,8 @@ def main(args):
     for i in COUNTERS:
         counters_type.append(i['type']);
 
+    min_value = sys.maxsize
+    max_value = 0
     for i in range(0, len(qml_files)):
         (temp_fd, temp_name) = tempfile.mkstemp()
 
@@ -130,16 +132,24 @@ def main(args):
                 ', stdev=' + ('%.2f' % stdev) + ')'
             base_line, = axis.plot(range(1, FRAME_COUNT + 1), values, '-', label=label)
             axis.plot((1, FRAME_COUNT), (avg, avg), '--', color=base_line.get_color(), alpha=0.5)
-            if min < LIMIT_60HZ and max > LIMIT_60HZ:
-                axis.plot((1, FRAME_COUNT), (LIMIT_60HZ, LIMIT_60HZ), '-', color='orange')
-            if min < LIMIT_30HZ and max > LIMIT_30HZ:
-                axis.plot((1, FRAME_COUNT), (LIMIT_30HZ, LIMIT_30HZ), '-', color='red')
+            if min < min_value:
+                min_value = min
+            if max > max_value:
+                max_value = max
         os.remove(temp_name)
+
+    # Draw 60 and 30 Hz limits
+    if max_value > LIMIT_60HZ:
+        axis.plot((1, FRAME_COUNT), (LIMIT_60HZ, LIMIT_60HZ), '-', color='orange')
+    if max_value > LIMIT_30HZ:
+        axis.plot((1, FRAME_COUNT), (LIMIT_30HZ, LIMIT_30HZ), '-', color='red')
 
     # Set plot infos and render.
     axis.grid()
     axis.legend(loc=0)
     axis.set_xlim(0, FRAME_COUNT + 1)
+    if min_value > LIMIT_60HZ - 1:
+        axis.set_ylim(LIMIT_60HZ - 1)
     plot.title(title)
     plot.xlabel('Frame')
     plot.ylabel(COUNTERS[counter_index]['label'])
