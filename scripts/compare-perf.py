@@ -34,6 +34,8 @@ COUNTERS = [
 PLOT_FONT_NAME = 'Ubuntu'
 PLOT_FONT_SIZE = 12
 FRAME_COUNT = 100
+LIMIT_60HZ = 1000.0 / 60.0
+LIMIT_30HZ = 1000.0 / 30.0
 
 def show_usage_quit():
     print 'Usage: ./compare-perf.py <counter> <filename1.qml> [filename2.qml, ...]'
@@ -44,17 +46,23 @@ def show_usage_quit():
     print '            \'cpuUsage\', \'vszMemory\', \'rssMemory\''
     sys.exit(1)
 
-# Gets average and standard deviation
+# Gets average, standard deviation, min, max
 def getStats(values):
     sum = 0.0
+    min = sys.maxsize
+    max = 0
     for i in values:
+        if i < min:
+            min = i
+        if i > max:
+            max = i
         sum += i
     avg = sum / len(values)
     var = 0.0
     for i in values:
         var += (i - avg) * (i - avg)
     var /= len(values)
-    return (avg, math.sqrt(var))
+    return (avg, math.sqrt(var), min, max)
 
 def main(args):
     # Command line arguments
@@ -117,11 +125,15 @@ def main(args):
             if len(counters_value) == len(COUNTERS):  # Prevents quick-scene-plus early exit issues
                 values.append(counters_value[counter_index] * COUNTERS[counter_index]['factor'])
         if len(values) == FRAME_COUNT:  # Prevents quick-scene-plus early exit issues
-            (avg, stdev) = getStats(values)
+            (avg, stdev, min, max) = getStats(values)
             label = qml_files[i].split('/')[-1] + ' (avg=' + ('%.2f' % avg) + \
                 ', stdev=' + ('%.2f' % stdev) + ')'
             axis.plot(range(1, FRAME_COUNT + 1), values, '-', label=label)
             axis.plot((1, FRAME_COUNT), (avg, avg), '--', color='red', alpha=0.5)
+            if min < LIMIT_60HZ and max > LIMIT_60HZ:
+                axis.plot((1, FRAME_COUNT), (LIMIT_60HZ, LIMIT_60HZ), '-', color='orange')
+            if min < LIMIT_30HZ and max > LIMIT_30HZ:
+                axis.plot((1, FRAME_COUNT), (LIMIT_30HZ, LIMIT_30HZ), '-', color='red')
         os.remove(temp_name)
 
     # Set plot infos and render.
