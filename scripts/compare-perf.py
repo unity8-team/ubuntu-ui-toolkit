@@ -128,8 +128,8 @@ def main(args):
             (avg, stdev, min, max) = getStats(values)
             label = qml_files[i].split('/')[-1] + ' (avg=' + ('%.2f' % avg) + \
                 ', stdev=' + ('%.2f' % stdev) + ')'
-            axis.plot(range(1, FRAME_COUNT + 1), values, '-', label=label)
-            axis.plot((1, FRAME_COUNT), (avg, avg), '--', color='red', alpha=0.5)
+            base_line, = axis.plot(range(1, FRAME_COUNT + 1), values, '-', label=label)
+            axis.plot((1, FRAME_COUNT), (avg, avg), '--', color=base_line.get_color(), alpha=0.5)
             if min < LIMIT_60HZ and max > LIMIT_60HZ:
                 axis.plot((1, FRAME_COUNT), (LIMIT_60HZ, LIMIT_60HZ), '-', color='orange')
             if min < LIMIT_30HZ and max > LIMIT_30HZ:
