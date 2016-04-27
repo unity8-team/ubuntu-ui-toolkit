@@ -46,7 +46,7 @@ def show_usage_quit():
     print '            \'cpuUsage\', \'vszMemory\', \'rssMemory\''
     sys.exit(1)
 
-# Gets average, standard deviation, min, max
+# Gets average, standard deviation, min, max.
 def getStats(values):
     sum = 0.0
     min = sys.maxsize
@@ -65,7 +65,7 @@ def getStats(values):
     return (avg, math.sqrt(var), min, max)
 
 def main(args):
-    # Command line arguments
+    # Command line arguments.
     if len(args) < 2:
         show_usage_quit()
     counter_index = 0
@@ -77,7 +77,7 @@ def main(args):
         show_usage_quit()
     qml_files = args[1:]
 
-    # Use OpenGL renderer string as title
+    # Use OpenGL renderer string as title.
     # FIXME(loicm) Add EGL support.
     title = ''
     try:
@@ -105,7 +105,7 @@ def main(args):
     for i in range(0, len(qml_files)):
         (temp_fd, temp_name) = tempfile.mkstemp()
 
-        # Spawn quick-plus-scene
+        # Spawn quick-plus-scene.
         try:
             command = [
                 'quick-plus-scene', '--performance-logging', '--performance-log-file', temp_name,
@@ -118,7 +118,7 @@ def main(args):
             os.remove(temp_name)
             sys.exit(1)
 
-        # Plot values
+        # Plot values.
         temp_file = os.fdopen(temp_fd, 'r')
         values = []
         for j in range(0, FRAME_COUNT):
@@ -138,7 +138,7 @@ def main(args):
                 max_value = max
         os.remove(temp_name)
 
-    # Draw 60 and 30 Hz limits
+    # Draw 60 and 30 Hz limits.
     if max_value > LIMIT_60HZ:
         axis.plot((1, FRAME_COUNT), (LIMIT_60HZ, LIMIT_60HZ), '-', color='orange')
     if max_value > LIMIT_30HZ:
