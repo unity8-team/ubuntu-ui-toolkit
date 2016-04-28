@@ -23,6 +23,8 @@
 
 class PerformanceMetricsPrivate;
 
+class QuickPlusLoggingDevice;
+
 // 
 class QUICK_PLUS_EXPORT QuickPlusPerformanceMetrics : public QObject
 {
@@ -51,9 +53,9 @@ class QUICK_PLUS_EXPORT QuickPlusPerformanceMetrics : public QObject
     void setWindowUpdatePolicy(UpdatePolicy updatePolicy);
     UpdatePolicy windowUpdatePolicy();
 
-    // 
-    void setLoggingDevice(QIODevice* loggingDevice);
-    QIODevice* loggingDevice() const;
+    // takes ownership of loggingDevice
+    void setLoggingDevice(QuickPlusLoggingDevice* loggingDevice);
+    QuickPlusLoggingDevice* loggingDevice() const;
 
     // 
     void setLogging(bool logging);

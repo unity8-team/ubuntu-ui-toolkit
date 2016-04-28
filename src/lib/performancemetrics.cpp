@@ -18,8 +18,9 @@
 #include "performancemetrics_p.h"
 #include "bitmaptextfont_p.h"
 #include "quickplusglobal_p.h"
-#include <QtCore/QTextStream>
 #include <unistd.h>
+#include "iodeviceloggingdevice.h"
+#include "lttngloggingdevice.h"
 
 // --- BitmapText ---
 
@@ -751,7 +752,6 @@ PerformanceMetricsPrivate::PerformanceMetricsPrivate(QQuickWindow* window, bool 
     , m_overlayTextParsed(new char [maxOverlayTextParsedSize])
     , m_overlayIndicesSize(0)
     , m_overlayText(defaultOverlayText)
-    , m_defaultLoggingDevice()
     , m_bitmapText()
     , m_gpuTimer()
     , m_syncTimer()
@@ -761,11 +761,13 @@ PerformanceMetricsPrivate::PerformanceMetricsPrivate(QQuickWindow* window, bool 
     DLOG_FUNC();
 
     parseOverlayText();
-    m_defaultLoggingDevice.open(stdout, QIODevice::WriteOnly);
     m_cpuOnlineCores = sysconf(_SC_NPROCESSORS_ONLN);
     m_pageSize = sysconf(_SC_PAGESIZE);
     m_cpuTimer.start();
     m_cpuTicks = times(&m_cpuTimes);
+
+    if (qEnvironmentVariableIsSet("LOG_METRICS"))
+        m_flags |= PerformanceMetricsPrivate::Logging;
 }
 
 QuickPlusPerformanceMetrics::~QuickPlusPerformanceMetrics()
@@ -893,22 +895,19 @@ QuickPlusPerformanceMetrics::UpdatePolicy QuickPlusPerformanceMetrics::windowUpd
     return d->m_flags & PerformanceMetricsPrivate::ContinuousUpdate ? Continuous : Live;
 }
 
-void QuickPlusPerformanceMetrics::setLoggingDevice(QIODevice* loggingDevice)
+void QuickPlusPerformanceMetrics::setLoggingDevice(QuickPlusLoggingDevice* loggingDevice)
 {
     DLOG_FUNC();
     Q_D(PerformanceMetrics);
 
     QMutexLocker locker(&d->m_mutex);
     if (loggingDevice != d->m_loggingDevice) {
-        if (loggingDevice && loggingDevice->isWritable()) {
-            d->m_loggingDevice = loggingDevice;
-        } else {
-            d->m_loggingDevice = Q_NULLPTR;
-        }
+        delete d->m_loggingDevice;
+        d->m_loggingDevice = loggingDevice;
     }
 }
 
-QIODevice* QuickPlusPerformanceMetrics::loggingDevice() const
+QuickPlusLoggingDevice* QuickPlusPerformanceMetrics::loggingDevice() const
 {
     DLOG_FUNC();
 
@@ -1099,15 +1098,16 @@ void PerformanceMetricsPrivate::windowAfterRendering()
 
         // Logging.
         // FIXME(loicm) Use a dedicated I/O thread.
-        if (m_flags & Logging ) {
-            QTextStream stream(m_loggingDevice ? m_loggingDevice : &m_defaultLoggingDevice);
-            stream << m_counters.frameCount << ' '
-                   << m_counters.syncTime << ' '
-                   << m_counters.renderTime << ' '
-                   << m_counters.gpuRenderTime << ' '
-                   << m_counters.cpuUsage << ' '
-                   << m_counters.vszMemory << ' '
-                   << m_counters.rssMemory << '\n';
+        if (m_flags & Logging) {
+            if (!m_loggingDevice) {
+                if (qgetenv("LOG_METRICS") == "lttng") {
+                    m_loggingDevice = new QuickPlusLTTNGLoggingDevice();
+                } else {
+                    m_loggingDevice = new QuickPlusIODeviceLoggingDevice(stdout);
+                }
+            }
+            // TODO m_loggingDevice is null log to stdout
+            m_loggingDevice->log(m_counters);
         }
 
     } else {

@@ -30,6 +30,7 @@
 #include <QtCore/QLibraryInfo>
 
 #include <quickplus/performancemetrics.h>
+#include <quickplus/iodeviceloggingdevice.h>
 
 #ifdef QML_RUNTIME_TESTING
 class RenderStatistics
@@ -470,9 +471,12 @@ static void setPerformanceMetricsOptions(QuickPlusPerformanceMetrics* metrics, O
             if (QDir::isRelativePath(options->performanceLogFile)) {
                 filename.prepend(QDir::currentPath() + QDir::separator());
             }
-            QFile* loggingDevice = new QFile(filename);
-            if (loggingDevice->open(QFile::WriteOnly)) {
+            QFile* loggingFile = new QFile(filename);
+            if (loggingFile->open(QFile::WriteOnly)) {
+                QuickPlusIODeviceLoggingDevice *loggingDevice = new QuickPlusIODeviceLoggingDevice(loggingFile);
                 metrics->setLoggingDevice(loggingDevice);
+            } else {
+                delete loggingFile;
             }
         }
         metrics->setLogging(true);

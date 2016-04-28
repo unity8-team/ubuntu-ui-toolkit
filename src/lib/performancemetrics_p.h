@@ -16,6 +16,9 @@
 // along with Quick+. If not, see <http://www.gnu.org/licenses/>.
 
 #include "performancemetrics.h"
+
+#include "loggingdevice.h"
+
 #include <QtCore/QMutex>
 #include <QtCore/QElapsedTimer>
 #include <QtGui/QVector4D>
@@ -201,7 +204,7 @@ public:
     static const int maxOverlayIndices = 16;
 
     QQuickWindow* m_window;
-    QIODevice* m_loggingDevice;
+    QuickPlusLoggingDevice* m_loggingDevice;
 
     char* m_overlayTextParsed;
     struct {
@@ -210,8 +213,6 @@ public:
     } m_overlayIndices[maxOverlayIndices];
     quint8 m_overlayIndicesSize;
     QString m_overlayText;
-
-    QFile m_defaultLoggingDevice;
 
     BitmapText m_bitmapText;
     GPUTimer m_gpuTimer;
@@ -225,15 +226,7 @@ public:
     clock_t m_cpuTicks;
     struct tms m_cpuTimes;
 
-    struct Counters {
-        quint64 syncTime;
-        quint64 renderTime;
-        quint64 gpuRenderTime;
-        quint32 frameCount;
-        quint32 cpuUsage;
-        quint32 vszMemory;
-        quint32 rssMemory;
-    } m_counters;
+    QuickPlusLoggingDevice::Counters m_counters;
 
     QMutex m_mutex;
     quint8 m_flags;
