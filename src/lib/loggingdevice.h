@@ -29,7 +29,7 @@ public:
         uint64_t syncTime;       // ns
         uint64_t renderTime;     // ns
         uint64_t gpuRenderTime;  // ns
-        uint32_t frameCount;
+        uint32_t frameNumber;
         uint32_t cpuUsage;       // %
         uint32_t vszMemory;      // kB
         uint32_t rssMemory;      // kB

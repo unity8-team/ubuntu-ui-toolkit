@@ -28,7 +28,7 @@ TRACEPOINT_EVENT(quick_plus, metrics,
         uint64_t, syncTime,
         uint64_t, renderTime,
         uint64_t, gpuRenderTime,
-        uint32_t, frameCount,
+        uint32_t, frameNumber,
         uint32_t, cpuUsage,
         uint32_t, vszMemory,
         uint32_t, rssMemory
@@ -38,7 +38,7 @@ TRACEPOINT_EVENT(quick_plus, metrics,
         ctf_integer(uint64_t, sync_time_ns, syncTime)
         ctf_integer(uint64_t, render_time_ns, renderTime)
         ctf_integer(uint64_t, gpu_render_time_ns, gpuRenderTime)
-        ctf_integer(uint32_t, frame_count, frameCount)
+        ctf_integer(uint32_t, frame_number, frameNumber)
         ctf_integer(uint32_t, cpu_usage_percent, cpuUsage)
         ctf_integer(uint32_t, vsz_memory_kB, vszMemory)
         ctf_integer(uint32_t, rss_memory_kB, rssMemory)
