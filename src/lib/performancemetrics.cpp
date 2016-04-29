@@ -58,9 +58,9 @@ const int defaultFontSize = 14;
 const float carriageReturnHeight = 1.5f;
 
 BitmapText::BitmapText()
-    : m_functions(Q_NULLPTR)
-    , m_vertexBuffer(Q_NULLPTR)
-    , m_textToVertexBuffer(Q_NULLPTR)
+    : m_functions(nullptr)
+    , m_vertexBuffer(nullptr)
+    , m_textToVertexBuffer(nullptr)
     , m_viewportSize(1, 1)
     , m_position(0.0f, 0.0f)
     , m_transform()
@@ -109,25 +109,25 @@ static GLuint createProgram(QOpenGLFunctions* functions, const char* vertexShade
         return 0;
     }
 
-    functions->glShaderSource(vertexShader, 1, &vertexShaderSource, Q_NULLPTR);
+    functions->glShaderSource(vertexShader, 1, &vertexShaderSource, nullptr);
     functions->glCompileShader(vertexShader);
     functions->glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &status);
     if (status == GL_FALSE) {
 #if !defined(QT_NO_DEBUG)
         char infoLog[2048];
-        functions->glGetShaderInfoLog(vertexShader, 2048, Q_NULLPTR, infoLog);
+        functions->glGetShaderInfoLog(vertexShader, 2048, nullptr, infoLog);
         WARN("QuickPlusPerformanceMetrics: vertex shader compilation failed:\n%s\n", infoLog);
 #endif
         return 0;
     }
 
-    functions->glShaderSource(fragmentShader, 1, &fragmentShaderSource, Q_NULLPTR);
+    functions->glShaderSource(fragmentShader, 1, &fragmentShaderSource, nullptr);
     functions->glCompileShader(fragmentShader);
     functions->glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &status);
     if (status == GL_FALSE) {
 #if !defined(QT_NO_DEBUG)
         char infoLog[2048];
-        functions->glGetShaderInfoLog(fragmentShader, 2048, Q_NULLPTR, infoLog);
+        functions->glGetShaderInfoLog(fragmentShader, 2048, nullptr, infoLog);
         WARN("QuickPlusPerformanceMetrics: fragment shader compilation failed:\n%s\n", infoLog);
 #endif
         return 0;
@@ -141,7 +141,7 @@ static GLuint createProgram(QOpenGLFunctions* functions, const char* vertexShade
     if (status == GL_FALSE) {
 #if !defined(QT_NO_DEBUG)
         char infoLog[2048];
-        functions->glGetProgramInfoLog(program, 2048, Q_NULLPTR, infoLog);
+        functions->glGetProgramInfoLog(program, 2048, nullptr, infoLog);
         WARN("QuickPlusPerformanceMetrics: shader linking failed:\n%s", infoLog);
 #endif
         return 0;
@@ -214,7 +214,7 @@ void BitmapText::finalise()
         m_indexBuffer = 0;
     }
 
-    m_functions = Q_NULLPTR;
+    m_functions = nullptr;
     m_flags &= ~Initialised;
 }
 
@@ -248,8 +248,8 @@ void BitmapText::setText(const char* text)
     } else {
         // Early exit if the given text is null, empty or filled with
         // non-printable characters.
-        m_vertexBuffer = Q_NULLPTR;
-        m_textToVertexBuffer = Q_NULLPTR;
+        m_vertexBuffer = nullptr;
+        m_textToVertexBuffer = nullptr;
         m_textLength = 0;
         m_characterCount = 0;
         m_flags &= ~NotEmpty;
@@ -798,7 +798,7 @@ QuickPlusPerformanceMetrics::QuickPlusPerformanceMetrics(QQuickWindow* window, b
 
 PerformanceMetricsPrivate::PerformanceMetricsPrivate(QQuickWindow* window, bool overlayVisible)
     : m_window(window)
-    , m_loggingDevice(Q_NULLPTR)
+    , m_loggingDevice(nullptr)
     , m_overlayTextParsed(new char [maxOverlayTextParsedSize])
     , m_overlayIndicesSize(0)
     , m_overlayText(defaultOverlayText)
@@ -978,7 +978,7 @@ void QuickPlusPerformanceMetrics::setLoggingDevice(QIODevice* loggingDevice)
         if (loggingDevice && loggingDevice->isWritable()) {
             d->m_loggingDevice = loggingDevice;
         } else {
-            d->m_loggingDevice = Q_NULLPTR;
+            d->m_loggingDevice = nullptr;
         }
     }
 }
@@ -1018,7 +1018,7 @@ void QuickPlusPerformanceMetrics::windowDestroyed(QObject*)
     Q_D(PerformanceMetrics);
 
     QMutexLocker locker(&d->m_mutex);
-    d->m_window = Q_NULLPTR;
+    d->m_window = nullptr;
 }
 
 void QuickPlusPerformanceMetrics::windowSizeChanged(int)
@@ -1389,7 +1389,7 @@ void PerformanceMetricsPrivate::parseOverlayText()
     QByteArray overlayTextLatin1 = m_overlayText.toLatin1();
     const char* const overlayText = overlayTextLatin1.constData();
     const int overlayTextSize = overlayTextLatin1.size();
-    char* keywordBuffer = Q_NULLPTR;
+    char* keywordBuffer = nullptr;
     int counters = 0;
     int characters = 0;
 
