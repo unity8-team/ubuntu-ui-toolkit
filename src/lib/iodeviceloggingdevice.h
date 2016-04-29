@@ -20,9 +20,8 @@
 #include "quickplusglobal.h"
 #include "loggingdevice.h"
 
-#include <QtCore/QTextStream>
-
 class QIODevice;
+class QTextStream;
 
 //
 class QUICK_PLUS_EXPORT QuickPlusIODeviceLoggingDevice : public QuickPlusLoggingDevice
@@ -37,7 +36,7 @@ public:
 
 private:
     QIODevice *m_device;
-    QTextStream m_ts;
+    QTextStream *m_ts;
 };
 
 #endif

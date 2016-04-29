@@ -17,34 +17,36 @@
 #include "iodeviceloggingdevice.h"
 
 #include <QtCore/QFile>
+#include <QtCore/QTextStream>
 
 QuickPlusIODeviceLoggingDevice::QuickPlusIODeviceLoggingDevice(FILE *fh)
 {
     auto file = new QFile();
     file->open(fh, QIODevice::WriteOnly);
     m_device = file;
-    m_ts.setDevice(m_device);
+    m_ts = new QTextStream(m_device);
 }
 
 QuickPlusIODeviceLoggingDevice::QuickPlusIODeviceLoggingDevice(QIODevice *device)
  : m_device(device)
 {
-    m_ts.setDevice(m_device);
+    m_ts = new QTextStream(m_device);
 }
 
 QuickPlusIODeviceLoggingDevice::~QuickPlusIODeviceLoggingDevice()
 {
     delete m_device;
+    delete m_ts;
 }
 
 void QuickPlusIODeviceLoggingDevice::log(const Counters &counters)
 {
     // FIXME(loicm) Use a dedicated I/O thread.
-    m_ts << counters.frameNumber << ' '
-         << counters.syncTime << ' '
-         << counters.renderTime << ' '
-         << counters.gpuRenderTime << ' '
-         << counters.cpuUsage << ' '
-         << counters.vszMemory << ' '
-         << counters.rssMemory << '\n';
+    *m_ts << counters.frameNumber << ' '
+          << counters.syncTime << ' '
+          << counters.renderTime << ' '
+          << counters.gpuRenderTime << ' '
+          << counters.cpuUsage << ' '
+          << counters.vszMemory << ' '
+          << counters.rssMemory << '\n';
 }
