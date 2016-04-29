@@ -697,7 +697,7 @@ static const struct {
     { "threadCount",   "%3d",   sizeof("threadCount") - 1,   3 },
     { "vszMemory",     "%8d",   sizeof("vszMemory") - 1,     8 },
     { "rssMemory",     "%8d",   sizeof("rssMemory") - 1,     8 },
-    { "frameCount",    "%7d",   sizeof("frameCount") - 1,    7 },
+    { "frameNumber",    "%7d",  sizeof("frameNumber") - 1,   7 },
     { "syncTime",      "%7.2f", sizeof("syncTime") - 1,      7 },
     { "renderTime",    "%7.2f", sizeof("renderTime") - 1,    7 },
     { "gpuRenderTime", "%7.2f", sizeof("gpuRenderTime") - 1, 7 }
@@ -728,7 +728,7 @@ static const char* const defaultOverlayText =
     " Threads ...:      %threadCount\n"
     " Vsz .......: %vszMemory kB\n"
     " Rss .......: %rssMemory kB\r"
-    " Frame .....:  %frameCount\n"
+    " Frame .....:  %frameNumber\n"
     " Sync(Cpu) .:  %syncTime ms\n"
     " Render(Cpu):  %renderTime ms\n"
     " Render(Gpu):  %gpuRenderTime ms";
@@ -1021,7 +1021,7 @@ void PerformanceMetricsPrivate::initialiseGpuResources()
     DASSERT(!(m_flags & Initialised));
 
     m_bitmapText.initialise();
-    m_counters.frameCount = 0;
+    m_counters.frameNumber = 0;
     const quint8 flags = Initialised | DirtyText | DirtySize;
     m_flags |= m_gpuTimer.initialise() ? (flags | GpuTimerAvailable) : flags;
 }
@@ -1127,7 +1127,7 @@ void PerformanceMetricsPrivate::windowAfterRendering()
         if (m_flags & (OverlayVisible | Logging)) {
             // Update counters.
             m_counters.renderTime = m_renderTimer.nsecsElapsed();
-            m_counters.frameCount++;
+            m_counters.frameNumber++;
             updateCpuUsage();
             updateThreadCount();
             updateMemoryUsage();
@@ -1152,7 +1152,7 @@ void PerformanceMetricsPrivate::windowAfterRendering()
         // FIXME(loicm) Use a dedicated I/O thread.
         if (m_flags & Logging ) {
             QTextStream stream(m_loggingDevice ? m_loggingDevice : &m_defaultLoggingDevice);
-            stream << m_counters.frameCount << ' '
+            stream << m_counters.frameNumber << ' '
                    << m_counters.syncTime << ' '
                    << m_counters.renderTime << ' '
                    << m_counters.gpuRenderTime << ' '
@@ -1198,7 +1198,7 @@ void PerformanceMetricsPrivate::updateOverlayText()
             snprintf(buffer, width + 1, format, m_counters.rssMemory);
             break;
         case FrameCount:
-            snprintf(buffer, width + 1, format, m_counters.frameCount);
+            snprintf(buffer, width + 1, format, m_counters.frameNumber);
             break;
         case SyncTime:
             snprintf(buffer, width + 1, format, m_counters.syncTime * 0.000001f);

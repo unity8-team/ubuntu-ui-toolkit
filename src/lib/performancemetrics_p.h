@@ -232,7 +232,7 @@ public:
         quint64 syncTime;
         quint64 renderTime;
         quint64 gpuRenderTime;
-        quint32 frameCount;
+        quint32 frameNumber;
         quint32 cpuUsage;
         quint32 vszMemory;
         quint32 rssMemory;
