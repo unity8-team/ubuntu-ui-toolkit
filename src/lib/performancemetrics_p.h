@@ -183,8 +183,11 @@ public:
     void windowBeforeRendering();
     void windowAfterRendering();
     void updateOverlayText();
+    int cpuModel(char* buffer, int bufferSize);
+    int keywordString(int index, char* buffer, int bufferSize);
     void parseOverlayText();
     void updateCpuUsage();
+    void updateThreadCount();
     void updateMemoryUsage();
 
     // Flags.
@@ -233,6 +236,7 @@ public:
         quint32 cpuUsage;
         quint32 vszMemory;
         quint32 rssMemory;
+        quint16 threadCount;
     } m_counters;
 
     QMutex m_mutex;

@@ -18,6 +18,8 @@
 #include "performancemetrics_p.h"
 #include "bitmaptextfont_p.h"
 #include "quickplusglobal_p.h"
+#include <QtGui/QGuiApplication>
+#include <QtCore/QLibraryInfo>
 #include <QtCore/QTextStream>
 #include <unistd.h>
 
@@ -53,6 +55,7 @@ static const GLchar* bitmapTextFragmentShaderSource =
     "} \n";
 
 const int defaultFontSize = 14;
+const float carriageReturnHeight = 1.5f;
 
 BitmapText::BitmapText()
     : m_functions(Q_NULLPTR)
@@ -313,6 +316,10 @@ void BitmapText::setText(const char* text)
         } else if (character == '\n') {
             x = 0.0f;
             y += 1.0f;
+            m_textToVertexBuffer[i] = -1;
+        } else if (character == '\r') {
+            x = 0.0f;
+            y += 1.5f;
             m_textToVertexBuffer[i] = -1;
         } else {
             m_textToVertexBuffer[i] = -1;
@@ -655,17 +662,31 @@ quint64 GPUTimer::stop()
 
 // --- QuickPlusPerformanceMetrics and PerformanceMetricsPrivate ---
 
-static const char* const defaultOverlayText =
-    "CPUs: %cpuUsage%%  Vsz: %vszMemory kB  Rss: %rssMemory kB\n"
-    "\n"
-    "Frame .....: %frameCount\n"
-    "Sync(Cpu) .: %syncTime ms\n"
-    "Render(Cpu): %renderTime ms\n"
-    "Render(Gpu): %gpuRenderTime ms";
+// Keep in sync with corresponding enum!
+static const struct {
+    const char* const name;
+    quint16 nameSize;
+} keywordInfo[] = {
+    { "qtVersion",  sizeof("qtVersion") - 1  },
+    { "qtPlatform", sizeof("qtPlatform") - 1 },
+    { "glVersion",  sizeof("glVersion") - 1  },
+    { "cpuModel",   sizeof("cpuModel") - 1   },
+    { "gpuModel",   sizeof("gpuModel") - 1   }
+};
 
-const int maxOverlayTextParsedSize = 1024;  // Including '\0'.
+// Keep in sync with keywordInfo!
+enum {
+    QtVersion = 0,
+    QtPlatform,
+    GlVersion,
+    CpuModel,
+    GpuModel,
+    KeywordCount
+};
 
-// Keep in sync with maxCounterWidth!
+const int maxKeywordStringSize = 128;
+
+// Keep in sync with maxCounterWidth and corresponding enum!
 static const struct {
     const char* const name;
     const char* const format;
@@ -673,6 +694,7 @@ static const struct {
     quint16 width;
 } counterInfo[] = {
     { "cpuUsage",      "%3d",   sizeof("cpuUsage") - 1,      3 },
+    { "threadCount",   "%3d",   sizeof("threadCount") - 1,   3 },
     { "vszMemory",     "%8d",   sizeof("vszMemory") - 1,     8 },
     { "rssMemory",     "%8d",   sizeof("rssMemory") - 1,     8 },
     { "frameCount",    "%7d",   sizeof("frameCount") - 1,    7 },
@@ -681,18 +703,47 @@ static const struct {
     { "gpuRenderTime", "%7.2f", sizeof("gpuRenderTime") - 1, 7 }
 };
 
+// The highest width field in the counterInfo struct.
 // Keep in sync with counterInfo!
 const int maxCounterWidth = 8;
 
+// Keep in sync with counterInfo!
 enum {
     CpuUsage = 0,
+    ThreadCount,
     VszMemory,
     RssMemory,
     FrameCount,
     SyncTime,
     RenderTime,
-    GpuRenderTime
+    GpuRenderTime,
+    CounterCount
 };
+
+static const char* const defaultOverlayText =
+    "%qtVersion (%qtPlatform) with %glVersion\n"
+    "%cpuModel\n"
+    "%gpuModel\r"
+    " Cpu(usage) :      %cpuUsage %%\n"
+    " Threads ...:      %threadCount\n"
+    " Vsz .......: %vszMemory kB\n"
+    " Rss .......: %rssMemory kB\r"
+    " Frame .....:  %frameCount\n"
+    " Sync(Cpu) .:  %syncTime ms\n"
+    " Render(Cpu):  %renderTime ms\n"
+    " Render(Gpu):  %gpuRenderTime ms";
+
+// FIXME(loicm) Ideally, we should have:
+// " CPU(usage) ......... 4 %%\n"
+// " Threads ............ 6\n"
+// " Vsz .......... 3734672 kB\n"
+// " Rss .............76225 kB\r"
+// " Frame ............. 45\n"
+// " Sync(CPU) ....... 0.45 ms\n"
+// " Render(CPU) ..... 9.12 ms\n"
+// " Render(GPU) ..... 0.69 ms";
+
+const int maxOverlayTextParsedSize = 1024;  // Including '\0'.
 
 static void connectWindowSignals(QQuickWindow* window, QuickPlusPerformanceMetrics* metrics)
 {
@@ -760,7 +811,6 @@ PerformanceMetricsPrivate::PerformanceMetricsPrivate(QQuickWindow* window, bool 
 {
     DLOG_FUNC();
 
-    parseOverlayText();
     m_defaultLoggingDevice.open(stdout, QIODevice::WriteOnly);
     m_cpuOnlineCores = sysconf(_SC_NPROCESSORS_ONLN);
     m_pageSize = sysconf(_SC_PAGESIZE);
@@ -823,7 +873,6 @@ void PerformanceMetricsPrivate::setOverlayText(const QString& text)
     QMutexLocker locker(&m_mutex);
     if (text != m_overlayText) {
         m_overlayText = text;
-        parseOverlayText();
         m_flags |= DirtyText;
     }
 }
@@ -1072,7 +1121,7 @@ void PerformanceMetricsPrivate::windowAfterRendering()
 
     if (m_flags & Initialised) {
         // Update GPU timer even if not overlaid nor logged to simplify logic
-        // (the GPU timer can't be started or stopped twice in row).
+        // (GpuTimer can't be started or stopped twice in row).
         m_counters.gpuRenderTime = (m_flags & GpuTimerAvailable) ? m_gpuTimer.stop() : 0;
 
         if (m_flags & (OverlayVisible | Logging)) {
@@ -1080,6 +1129,7 @@ void PerformanceMetricsPrivate::windowAfterRendering()
             m_counters.renderTime = m_renderTimer.nsecsElapsed();
             m_counters.frameCount++;
             updateCpuUsage();
+            updateThreadCount();
             updateMemoryUsage();
         }
 
@@ -1090,6 +1140,7 @@ void PerformanceMetricsPrivate::windowAfterRendering()
                 m_flags &= ~DirtySize;
             }
             if (m_flags & DirtyText) {
+                parseOverlayText();
                 m_bitmapText.setText(m_overlayTextParsed);
                 m_flags &= ~DirtyText;
             }
@@ -1126,6 +1177,7 @@ void PerformanceMetricsPrivate::updateOverlayText()
     DLOG_FUNC();
     DASSERT(m_flags & Initialised);
 
+    // FIXME(loicm) Buffer should be allocated on the heap at class instantiation.
     char buffer[maxCounterWidth + 1];
     for (int i = 0; i < m_overlayIndicesSize; i++) {
         const char* const format = counterInfo[m_overlayIndices[i].counterIndex].format;
@@ -1135,6 +1187,9 @@ void PerformanceMetricsPrivate::updateOverlayText()
         switch (m_overlayIndices[i].counterIndex) {
         case CpuUsage:
             snprintf(buffer, width + 1, format, m_counters.cpuUsage);
+            break;
+        case ThreadCount:
+            snprintf(buffer, width + 1, format, m_counters.threadCount);
             break;
         case VszMemory:
             snprintf(buffer, width + 1, format, m_counters.vszMemory);
@@ -1167,40 +1222,193 @@ void PerformanceMetricsPrivate::updateOverlayText()
     }
 }
 
+// That's the easy way, a more involved one would be to use CPUID.
+int PerformanceMetricsPrivate::cpuModel(char* buffer, int bufferSize)
+{
+    DLOG_FUNC();
+    DASSERT(buffer);
+    DASSERT(bufferSize > 0);
+
+    FILE* file = fopen("/proc/cpuinfo", "r");
+    if (!file) {
+        DWARN("QuickPlusPerformanceMetrics: can't open '/proc/cpuinfo'");
+        return 0;
+    }
+    const int sourceBufferSize = 128;
+    char sourceBuffer[sourceBufferSize];
+    if (fread(sourceBuffer, sourceBufferSize, 1, file) < 1) {
+        DWARN("QuickPlusPerformanceMetrics: can't read '/proc/cpuinfo'");
+        fclose(file);
+        return 0;
+    }
+
+    // Skip the five first ': ' occurences to reach model name.
+    int sourceIndex = 0, colonCount = 0;
+    while (colonCount < 5) {
+        if (sourceIndex < sourceBufferSize - 1) {
+            if (sourceBuffer[sourceIndex] != ':' || sourceBuffer[sourceIndex + 1] != ' ') {
+                sourceIndex++;
+            } else {
+                sourceIndex += 2;
+                colonCount++;
+            }
+        } else {
+            DNOT_REACHED();  // Consider increasing sourceBufferSize.
+            fclose(file);
+            return 0;
+        }
+    }
+
+    int index = 0;
+    while (sourceBuffer[sourceIndex] != '\n' && index < bufferSize) {
+        if (sourceIndex < sourceBufferSize) {
+            buffer[index++] = sourceBuffer[sourceIndex++];
+        } else {
+            DNOT_REACHED();  // Consider increasing sourceBufferSize.
+            index = 0;
+            break;
+        }
+    }
+
+    // Add the core count.
+    if (m_cpuOnlineCores > 1) {
+        const int maxSize = sizeof(" (%d cores)") - 2 + 3;  // Adds space for a 3 digits core count.
+        const int size = snprintf(sourceBuffer, maxSize, " (%d cores)", m_cpuOnlineCores);
+        if (index + size < bufferSize) {
+            memcpy(&buffer[index], sourceBuffer, size);
+            index += size;
+        }
+    }
+
+    fclose(file);
+    return index;
+}
+
+// Stores the keyword string corresponding to the given index in a preallocated
+// buffer of size bufferSize, the terminating null byte ('\0') is not
+// written. Returns the number of characters written.
+int PerformanceMetricsPrivate::keywordString(int index, char* buffer, int bufferSize)
+{
+    DLOG_FUNC();
+    DASSERT(index < KeywordCount);
+    DASSERT(buffer);
+    DASSERT(bufferSize > 0);
+
+    int size = 0;
+
+    switch (index) {
+    case QtVersion: {
+        const char* version = "Qt " QT_VERSION_STR;
+        for (; size < bufferSize; size++) {
+            if (version[size] == '\0') break;
+            buffer[size] = version[size];
+        }
+        break;
+    }
+    case QtPlatform: {
+        const char* platform = QGuiApplication::platformName().toLatin1().constData();
+        for (; size < bufferSize; size++) {
+            if (platform[size] == '\0') break;
+            buffer[size] = platform[size];
+        }
+        break;
+    }
+    case GlVersion: {
+        const char* gl = QOpenGLContext::openGLModuleType() == QOpenGLContext::LibGL
+            ? "OpenGL " : "OpenGL ES ";
+        QOpenGLFunctions* functions = QOpenGLContext::currentContext()->functions();
+        const char* version = reinterpret_cast<const char*>(functions->glGetString(GL_VERSION));
+        for (int i = 0; size < bufferSize; i++, size++) {
+            if (gl[i] == '\0') break;
+            buffer[size] = gl[i];
+        }
+        for (int i = 0; size < bufferSize; i++, size++) {
+            if (version[i] == '\0') break;
+            buffer[size] = version[i];
+        }
+        break;
+    }
+    case CpuModel: {
+        return cpuModel(buffer, bufferSize);
+        break;
+    }
+    case GpuModel: {
+        QOpenGLFunctions* functions = QOpenGLContext::currentContext()->functions();
+        const char* renderer = reinterpret_cast<const char*>(functions->glGetString(GL_RENDERER));
+        for (; size < bufferSize; size++) {
+            if (renderer[size] == '\0') break;
+            buffer[size] = renderer[size];
+        }
+        break;
+    }
+    default:
+        DNOT_REACHED();
+        break;
+    }
+
+    return size;
+}
+
 void PerformanceMetricsPrivate::parseOverlayText()
 {
     DLOG_FUNC();
 
+    const int keywordInfoSize = ARRAY_SIZE(keywordInfo);
     const int counterInfoSize = ARRAY_SIZE(counterInfo);
     QByteArray overlayTextLatin1 = m_overlayText.toLatin1();
     const char* const overlayText = overlayTextLatin1.constData();
     const int overlayTextSize = overlayTextLatin1.size();
+    char* keywordBuffer = Q_NULLPTR;
     int counters = 0;
     int characters = 0;
 
     for (int i = 0; i <= overlayTextSize; i++) {
         const char character = overlayText[i];
         if (character != '%') {
+            // Common case.
             m_overlayTextParsed[characters++] = character;
         } else if (overlayText[i+1] == '%') {
+            // "%%" outputs "%".
             m_overlayTextParsed[characters++] = '%';
             i++;
-        } else if (counters < maxOverlayIndices) {
-            for (int j = 0; j < counterInfoSize; j++) {
-                if ((counterInfo[j].width < maxOverlayTextParsedSize - characters)
-                    && !strncmp(&overlayText[i+1], counterInfo[j].name, counterInfo[j].nameSize)) {
-                    m_overlayIndices[counters].counterIndex = j;
-                    m_overlayIndices[counters].overlayTextParsedIndex = characters;
-                    // Must be initialised since it might contain non-printable
-                    // and break setText otherwise.
-                    memset(&m_overlayTextParsed[characters], '?', counterInfo[j].width);
-                    characters += counterInfo[j].width;
-                    i += counterInfo[j].nameSize;
-                    counters++;
+        } else {
+            bool keywordFound = false;
+            // Search for keywords.
+            for (int j = 0; j < keywordInfoSize; j++) {
+                if (!strncmp(&overlayText[i+1], keywordInfo[j].name, keywordInfo[j].nameSize)) {
+                    if (!keywordBuffer) {
+                        keywordBuffer = new char [maxKeywordStringSize];
+                    }
+                    const int stringSize = keywordString(j, keywordBuffer, maxKeywordStringSize);
+                    if (stringSize < maxOverlayTextParsedSize - characters) {
+                        strcpy(&m_overlayTextParsed[characters], keywordBuffer);
+                        characters += stringSize;
+                        i += keywordInfo[j].nameSize;
+                    }
+                    keywordFound = true;
                     break;
                 }
             }
+            // Search for counters.
+            if (!keywordFound && counters < maxOverlayIndices) {
+                for (int j = 0; j < counterInfoSize; j++) {
+                    if (!strncmp(&overlayText[i+1], counterInfo[j].name, counterInfo[j].nameSize)) {
+                        if (counterInfo[j].width < maxOverlayTextParsedSize - characters) {
+                            m_overlayIndices[counters].counterIndex = j;
+                            m_overlayIndices[counters].overlayTextParsedIndex = characters;
+                            // Must be initialised since it might contain non-printable
+                            // and break setText otherwise.
+                            memset(&m_overlayTextParsed[characters], '?', counterInfo[j].width);
+                            characters += counterInfo[j].width;
+                            i += counterInfo[j].nameSize;
+                            counters++;
+                        }
+                        break;
+                    }
+                }
+            }
         }
+        // Set string terminator and quit once the max size is reached.
         if (characters >= (maxOverlayTextParsedSize - 1)) {
             m_overlayTextParsed[maxOverlayTextParsedSize - 1] = '\0';
             break;
@@ -1208,6 +1416,7 @@ void PerformanceMetricsPrivate::parseOverlayText()
     }
 
     m_overlayIndicesSize = counters;
+    delete [] keywordBuffer;
 }
 
 void PerformanceMetricsPrivate::updateCpuUsage()
@@ -1232,18 +1441,69 @@ void PerformanceMetricsPrivate::updateCpuUsage()
     }
 }
 
+void PerformanceMetricsPrivate::updateThreadCount()
+{
+    // FIXME(loicm) Maybe we should throttle that, since it takes a bit of CPU
+    //     usage and having the exact thread count per frame doesn't seem of big
+    //     significance?
+
+    DLOG_FUNC();
+
+    FILE* file = fopen("/proc/self/stat", "r");
+    if (!file) {
+        DWARN("QuickPlusPerformanceMetrics: can't open '/proc/self/stat'");
+        return;
+    }
+    const int bufferSize = 128;
+    char buffer[bufferSize];
+    if (fread(buffer, bufferSize, 1, file) < 1) {
+        DWARN("QuickPlusPerformanceMetrics: can't read '/proc/self/stat'");
+        fclose(file);
+        return;
+    }
+
+    // Skip the 19 first entries, checking if there's enough space in buffer to
+    // scan the next one.
+    int sourceIndex = 0, spaceCount = 0, entryIndex = 0;
+    while (spaceCount < 19 + 1) {
+        if (sourceIndex < bufferSize) {
+            if (buffer[sourceIndex++] == ' ') {
+                if (++spaceCount == 19) {
+                    entryIndex = sourceIndex;
+                }
+            }
+        } else {
+            DNOT_REACHED();  // Consider increasing bufferSize.
+            fclose(file);
+            return;
+        }
+    }
+
+    long threadCount;
+#if !defined(QT_NO_DEBUG)
+    const int value = sscanf(&buffer[entryIndex], "%ld", &threadCount);
+    ASSERT(value == 1);
+#else
+    sscanf(&buffer[entryIndex], "%ld", &threadCount);
+#endif
+    m_counters.threadCount = threadCount;
+
+    fclose(file);
+}
+
 void PerformanceMetricsPrivate::updateMemoryUsage()
 {
     DLOG_FUNC();
 
-    unsigned long vsz, rss;
+    unsigned long vsz;
+    long rss;
 
     FILE* file = fopen("/proc/self/statm", "r");
     if (!file) {
         DWARN("QuickPlusPerformanceMetrics: can't open '/proc/self/statm'");
         return;
     }
-    if (fscanf(file, "%lu %lu", &vsz, &rss) != 2) {
+    if (fscanf(file, "%lu %ld", &vsz, &rss) != 2) {
         DWARN("QuickPlusPerformanceMetrics: can't read '/proc/self/statm'");
         fclose(file);
         return;
