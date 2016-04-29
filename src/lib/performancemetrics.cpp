@@ -1177,8 +1177,9 @@ void PerformanceMetricsPrivate::updateOverlayText()
     DLOG_FUNC();
     DASSERT(m_flags & Initialised);
 
-    // FIXME(loicm) Buffer should be allocated on the heap at class instantiation.
+    STATIC_ASSERT(maxCounterWidth < 128);  // Prevent big stack allocation.
     char buffer[maxCounterWidth + 1];
+
     for (int i = 0; i < m_overlayIndicesSize; i++) {
         const char* const format = counterInfo[m_overlayIndices[i].counterIndex].format;
         const int width = counterInfo[m_overlayIndices[i].counterIndex].width;
