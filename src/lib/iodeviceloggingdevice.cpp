@@ -39,7 +39,7 @@ QuickPlusIODeviceLoggingDevice::~QuickPlusIODeviceLoggingDevice()
 
 void QuickPlusIODeviceLoggingDevice::log(const Counters &counters)
 {
-    m_ts << counters.frameCount << ' '
+    m_ts << counters.frameNumber << ' '
          << counters.syncTime << ' '
          << counters.renderTime << ' '
          << counters.gpuRenderTime << ' '

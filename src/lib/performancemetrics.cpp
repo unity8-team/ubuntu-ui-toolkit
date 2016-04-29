@@ -971,7 +971,7 @@ void PerformanceMetricsPrivate::initialiseGpuResources()
     DASSERT(!(m_flags & Initialised));
 
     m_bitmapText.initialise();
-    m_counters.frameCount = 0;
+    m_counters.frameNumber = 0;
     const quint8 flags = Initialised | DirtyText | DirtySize;
     m_flags |= m_gpuTimer.initialise() ? (flags | GpuTimerAvailable) : flags;
 }
@@ -1077,7 +1077,7 @@ void PerformanceMetricsPrivate::windowAfterRendering()
         if (m_flags & (OverlayVisible | Logging)) {
             // Update counters.
             m_counters.renderTime = m_renderTimer.nsecsElapsed();
-            m_counters.frameCount++;
+            m_counters.frameNumber++;
             updateCpuUsage();
             updateMemoryUsage();
         }
@@ -1143,7 +1143,7 @@ void PerformanceMetricsPrivate::updateOverlayText()
             snprintf(buffer, width + 1, format, m_counters.rssMemory);
             break;
         case FrameCount:
-            snprintf(buffer, width + 1, format, m_counters.frameCount);
+            snprintf(buffer, width + 1, format, m_counters.frameNumber);
             break;
         case SyncTime:
             snprintf(buffer, width + 1, format, m_counters.syncTime * 0.000001f);
