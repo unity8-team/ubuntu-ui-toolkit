@@ -50,9 +50,6 @@
 #define DASSERT(cond) qt_noop()
 #endif
 
-// FIXME(loicm) Q_STATIC_ASSERT?
-#define STATIC_ASSERT(cond) static_assert(cond, "`"#cond"'")
-
 // Compile-time constant representing the number of elements in an array.
 template<typename T, size_t N> constexpr size_t ARRAY_SIZE(T (&)[N]) { return N; }
 

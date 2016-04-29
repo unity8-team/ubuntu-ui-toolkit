@@ -1177,7 +1177,7 @@ void PerformanceMetricsPrivate::updateOverlayText()
     DLOG_FUNC();
     DASSERT(m_flags & Initialised);
 
-    STATIC_ASSERT(maxCounterWidth < 128);  // Prevent big stack allocation.
+    Q_STATIC_ASSERT(maxCounterWidth < 128);  // Prevent big stack allocation.
     char buffer[maxCounterWidth + 1];
 
     for (int i = 0; i < m_overlayIndicesSize; i++) {
