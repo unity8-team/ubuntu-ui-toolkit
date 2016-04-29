@@ -421,7 +421,7 @@ void BitmapText::render()
 bool GPUTimer::initialise()
 {
     DLOG_FUNC();
-    DASSERT(m_type == None);
+    DASSERT(m_type == NoType);
 
 #if defined(QT_OPENGL_ES)
     QList<QByteArray> eglExtensions = QByteArray(
@@ -464,7 +464,7 @@ bool GPUTimer::initialise()
         return true;
 
     } else {
-        m_type = None;
+        m_type = NoType;
         return false;
     }
 #else
@@ -516,7 +516,7 @@ bool GPUTimer::initialise()
         return true;
 
     } else {
-        m_type = None;
+        m_type = NoType;
         return false;
     }
 #endif
@@ -525,7 +525,7 @@ bool GPUTimer::initialise()
 void GPUTimer::finalise()
 {
     DLOG_FUNC();
-    DASSERT(m_type != None);
+    DASSERT(m_type != NoType);
 
 #if defined(QT_OPENGL_ES)
     // KHRFence.
@@ -533,23 +533,23 @@ void GPUTimer::finalise()
         if (m_beforeSync != EGL_NO_SYNC_KHR) {
             m_fenceSyncKHR.destroySyncKHR(eglGetCurrentDisplay(), m_beforeSync);
         }
-        m_type = None;
+        m_type = NoType;
 
     // NVFence.
     } else if (m_type == NVFence) {
         m_fenceNV.deleteFencesNV(2, m_fence);
-        m_type = None;
+        m_type = NoType;
     }
 #else
     // ARBTimerQuery.
     if (m_type == ARBTimerQuery) {
         m_timerQuery.deleteQueries(2, m_timer);
-        m_type = None;
+        m_type = NoType;
 
     // EXTTimerQuery.
     } else if (m_type == EXTTimerQuery) {
         m_timerQuery.deleteQueries(1, m_timer);
-        m_type = None;
+        m_type = NoType;
     }
 #endif
 }
@@ -557,7 +557,7 @@ void GPUTimer::finalise()
 void GPUTimer::start()
 {
     DLOG_FUNC();
-    DASSERT(m_type != None);
+    DASSERT(m_type != NoType);
     DASSERT(!m_started);
 
 #if defined(QT_OPENGL_ES)
@@ -589,7 +589,7 @@ void GPUTimer::start()
 quint64 GPUTimer::stop()
 {
     DLOG_FUNC();
-    DASSERT(m_type != None);
+    DASSERT(m_type != NoType);
     DASSERT(m_started);
 
 #if defined(QT_OPENGL_ES)

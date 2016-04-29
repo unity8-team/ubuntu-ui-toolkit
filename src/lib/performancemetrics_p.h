@@ -107,7 +107,7 @@ private:
 class GPUTimer
 {
 public:
-    GPUTimer() : m_type(None), m_started(false) {}
+    GPUTimer() : m_type(NoType), m_started(false) {}
 
     // Allocates/Deletes the OpenGL resources. finalise() is not called at
     // destruction, it must be explicitly called to free the resources at the
@@ -126,7 +126,7 @@ public:
 
 private:
     enum Type {
-        None,
+        NoType,
 #if defined(QT_OPENGL_ES)
         KHRFence,
         NVFence,
