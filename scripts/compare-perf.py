@@ -139,6 +139,7 @@ def main(args):
         os.remove(temp_name)
 
     # Draw 60 and 30 Hz limits.
+    # FIXME(loicm) Doesn't make sense for counters other than timers.
     if max_value > LIMIT_60HZ:
         axis.plot((1, FRAME_COUNT), (LIMIT_60HZ, LIMIT_60HZ), '-', color='orange')
     if max_value > LIMIT_30HZ:
@@ -149,6 +150,7 @@ def main(args):
     axis.legend(loc=0)
     axis.set_xlim(0, FRAME_COUNT + 1)
     if min_value > LIMIT_60HZ - 1:
+        # FIXME(loicm) Doesn't make sense for counters other than timers.
         axis.set_ylim(LIMIT_60HZ - 1)
     plot.title(title)
     plot.xlabel('Frame')
