@@ -76,7 +76,7 @@ private:
         DirtyTransform = (1 << 0),
         DirtyOpacity   = (1 << 1),
         NotEmpty       = (1 << 2),
-#if !defined(Qt_NO_DEBUG)
+#if !defined(QT_NO_DEBUG)
         Initialised    = (1 << 3)
 #endif
     };
