@@ -39,6 +39,7 @@ QuickPlusIODeviceLoggingDevice::~QuickPlusIODeviceLoggingDevice()
 
 void QuickPlusIODeviceLoggingDevice::log(const Counters &counters)
 {
+    // FIXME(loicm) Use a dedicated I/O thread.
     m_ts << counters.frameNumber << ' '
          << counters.syncTime << ' '
          << counters.renderTime << ' '

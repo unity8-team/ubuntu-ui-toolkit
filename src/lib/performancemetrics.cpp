@@ -1097,7 +1097,6 @@ void PerformanceMetricsPrivate::windowAfterRendering()
         }
 
         // Logging.
-        // FIXME(loicm) Use a dedicated I/O thread.
         if (m_flags & Logging) {
             if (!m_loggingDevice) {
                 if (qgetenv("LOG_METRICS") == "lttng") {
@@ -1106,7 +1105,6 @@ void PerformanceMetricsPrivate::windowAfterRendering()
                     m_loggingDevice = new QuickPlusIODeviceLoggingDevice(stdout);
                 }
             }
-            // TODO m_loggingDevice is null log to stdout
             m_loggingDevice->log(m_counters);
         }
 
