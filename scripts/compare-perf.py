@@ -114,7 +114,7 @@ def main(args):
             p = subprocess.Popen(command)
             p.wait()
         except:
-            print 'Error: can\'t spawn quick-plus-scene'
+            print 'Error: Can\'t spawn quick-plus-scene.'
             os.remove(temp_name)
             sys.exit(1)
 
