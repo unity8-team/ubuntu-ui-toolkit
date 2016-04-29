@@ -191,7 +191,9 @@ bool BitmapText::initialise()
     m_functions->glGenBuffers(1, &m_indexBuffer);
 
     if (m_texture && m_program && m_indexBuffer) {
+#if !defined QT_NO_DEBUG
         m_flags |= Initialised;
+#endif
         return true;
     } else {
         return false;
@@ -226,8 +228,8 @@ void BitmapText::finalise()
     m_functions = nullptr;
 #if !defined QT_NO_DEBUG
     m_context = nullptr;
-#endif
     m_flags &= ~Initialised;
+#endif
 }
 
 void BitmapText::setText(const char* text)
