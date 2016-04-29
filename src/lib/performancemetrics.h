@@ -48,6 +48,10 @@ class QUICK_PLUS_EXPORT QuickPlusPerformanceMetrics : public QObject
     QPointF overlayPosition() const;
 
     // 
+    void setOverlayOpacity(float opacity);
+    float overlayOpacity() const;
+
+    // 
     void setOverlayVisible(bool visible);
     bool overlayVisible();
 

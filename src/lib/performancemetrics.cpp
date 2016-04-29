@@ -49,9 +49,10 @@ static const GLchar* bitmapTextFragmentShaderSource =
 #endif
     "varying mediump vec2 textureCoord; \n"
     "uniform sampler2D texture; \n"
+    "uniform lowp float opacity; \n"
     "void main() \n"
     "{ \n"
-    "    gl_FragColor = texture2D(texture, textureCoord); \n"
+    "    gl_FragColor = texture2D(texture, textureCoord) * vec4(opacity); \n"
     "} \n";
 
 const int defaultFontSize = 14;
@@ -64,9 +65,10 @@ BitmapText::BitmapText()
     , m_viewportSize(1, 1)
     , m_position(0.0f, 0.0f)
     , m_transform()
+    , m_opacity(1.0f)
     , m_textLength(0)
     , m_characterCount(0)
-    , m_flags(DirtyTransform)
+    , m_flags(DirtyTransform | DirtyOpacity)
 {
     DLOG_FUNC();
 
@@ -178,6 +180,7 @@ bool BitmapText::initialise()
         m_functions->glBindAttribLocation(m_program, 1, "textureCoordAttrib");
         m_functions->glUniform1i(m_functions->glGetUniformLocation(m_program, "texture"), 0);
         m_programTransform = m_functions->glGetUniformLocation(m_program, "transform");
+        m_programOpacity = m_functions->glGetUniformLocation(m_program, "opacity");
     }
 
     m_functions->glGenBuffers(1, &m_indexBuffer);
@@ -382,6 +385,17 @@ void BitmapText::setPosition(const QPointF& position)
     }
 }
 
+void BitmapText::setOpacity(float opacity)
+{
+    DLOG_FUNC();
+    DASSERT(opacity >= 0.0f && opacity <= 1.0f);
+
+    if (opacity != m_opacity) {
+        m_opacity = opacity;
+        m_flags |= DirtyOpacity;
+    }
+}
+
 void BitmapText::render()
 {
     DLOG_FUNC();
@@ -396,11 +410,10 @@ void BitmapText::render()
         m_functions->glEnableVertexAttribArray(0);
         m_functions->glEnableVertexAttribArray(1);
         m_functions->glUseProgram(m_program);
-
-        // Update transformation vector. It stores a scale (in (x, y)) and translate
-        // (in (z, w)) transform used to put vertices in the right space ((-1, 1),
-        // (-1, 1)), at the right position.
         if (m_flags & DirtyTransform) {
+            // Update transformation vector. It stores a scale (in (x, y)) and
+            // translate (in (z, w)) transform used to put vertices in the right
+            // space ((-1, 1), (-1, 1)), at the right position.
             m_transform = QVector4D(
                 (2.0f * g_bitmapTextFont.font[m_currentFont].width) / m_viewportSize.width(),
                 -(2.0f * g_bitmapTextFont.font[m_currentFont].height) / m_viewportSize.height(),
@@ -410,7 +423,10 @@ void BitmapText::render()
                 m_programTransform, 1, reinterpret_cast<const float*>(&m_transform));
             m_flags &= ~DirtyTransform;
         }
-
+        if (m_flags & DirtyOpacity) {
+            m_functions->glUniform1f(m_programOpacity, m_opacity);
+            m_flags &= ~DirtyOpacity;
+        }
         m_functions->glBindTexture(GL_TEXTURE_2D, m_texture);
         m_functions->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBuffer);
         m_functions->glDisable(GL_DEPTH_TEST);  // QtQuick renderers restore that at each draw call.
@@ -803,12 +819,14 @@ PerformanceMetricsPrivate::PerformanceMetricsPrivate(QQuickWindow* window, bool 
     , m_overlayIndicesSize(0)
     , m_overlayText(defaultOverlayText)
     , m_overlayPosition(5.0f, 5.0f)
+    , m_overlayOpacity(0.85f)
     , m_defaultLoggingDevice()
     , m_bitmapText()
     , m_gpuTimer()
     , m_syncTimer()
     , m_renderTimer()
-    , m_flags(DirtyText | DirtySize | DirtyPosition | (overlayVisible ? OverlayVisible : 0))
+    , m_flags(DirtyText | DirtySize | DirtyPosition | DirtyOpacity
+              | (overlayVisible ? OverlayVisible : 0))
 {
     DLOG_FUNC();
 
@@ -908,6 +926,31 @@ QPointF QuickPlusPerformanceMetrics::overlayPosition() const
     DLOG_FUNC();
 
     return d_func()->m_overlayPosition;
+}
+
+void QuickPlusPerformanceMetrics::setOverlayOpacity(float opacity)
+{
+    DLOG_FUNC();
+
+    d_func()->setOverlayOpacity(opacity);
+}
+
+void PerformanceMetricsPrivate::setOverlayOpacity(float opacity)
+{
+    DLOG_FUNC();
+
+    QMutexLocker locker(&m_mutex);
+    if (opacity != m_overlayOpacity) {
+        m_overlayOpacity = opacity;
+        m_flags |= DirtyOpacity;
+    }
+}
+
+float QuickPlusPerformanceMetrics::overlayOpacity() const
+{
+    DLOG_FUNC();
+
+    return d_func()->m_overlayOpacity;
 }
 
 void QuickPlusPerformanceMetrics::setOverlayVisible(bool visible)
@@ -1168,6 +1211,10 @@ void PerformanceMetricsPrivate::windowAfterRendering()
             if (m_flags & DirtyPosition) {
                 m_bitmapText.setPosition(m_overlayPosition);
                 m_flags &= ~DirtyPosition;
+            }
+            if (m_flags & DirtyOpacity) {
+                m_bitmapText.setOpacity(m_overlayOpacity);
+                m_flags &= ~DirtyOpacity;
             }
             if (m_flags & DirtyText) {
                 parseOverlayText();

@@ -61,6 +61,9 @@ public:
     // top/left.
     void setPosition(const QPointF& position);
 
+    // Sets the text opacity.
+    void setOpacity(float opacity);
+
     // Renders the text. Must be called in a thread with the same OpenGL context
     // bound than at initialise().
     void render();
@@ -71,9 +74,10 @@ private:
     };
     enum {
         DirtyTransform = (1 << 0),
-        NotEmpty       = (1 << 1),
+        DirtyOpacity   = (1 << 1),
+        NotEmpty       = (1 << 2),
 #if !defined(Qt_NO_DEBUG)
-        Initialised    = (1 << 2)
+        Initialised    = (1 << 3)
 #endif
     };
 
@@ -83,11 +87,13 @@ private:
     QSize m_viewportSize;
     QPointF m_position;
     QVector4D m_transform;
+    float m_opacity;
     int m_textLength;
     int m_characterCount;
     int m_currentFont;
     GLuint m_program;
     GLint m_programTransform;
+    GLint m_programOpacity;
     GLuint m_vertexShaderObject;
     GLuint m_fragmentShaderObject;
     GLuint m_texture;
@@ -176,6 +182,7 @@ public:
 
     void setOverlayText(const QString& text);
     void setOverlayPosition(const QPointF& position);
+    void setOverlayOpacity(float opacity);
     void setWindowUpdatePolicy(QuickPlusPerformanceMetrics::UpdatePolicy updatePolicy);
     void initialiseGpuResources();
     void windowSceneGraphInvalidated();
@@ -200,7 +207,8 @@ public:
         DirtyText         = (1 << 4),
         DirtySize         = (1 << 5),
         DirtyPosition     = (1 << 6),
-        Logging           = (1 << 7)
+        DirtyOpacity      = (1 << 7),
+        Logging           = (1 << 8)
     };
 
     static const int maxOverlayIndices = 16;
@@ -216,6 +224,7 @@ public:
     quint8 m_overlayIndicesSize;
     QString m_overlayText;
     QPointF m_overlayPosition;
+    float m_overlayOpacity;
 
     QFile m_defaultLoggingDevice;
 
@@ -243,5 +252,5 @@ public:
     } m_counters;
 
     QMutex m_mutex;
-    quint8 m_flags;
+    quint16 m_flags;
 };
