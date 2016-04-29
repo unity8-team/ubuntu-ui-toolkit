@@ -26,13 +26,14 @@ public:
     virtual ~QuickPlusLoggingDevice() {}
 
     struct Counters {
-        quint64 syncTime;
-        quint64 renderTime;
-        quint64 gpuRenderTime;
+        quint64 syncTime;       // ns
+        quint64 renderTime;     // ns
+        quint64 gpuRenderTime;  // ns
         quint32 frameCount;
-        quint32 cpuUsage;
-        quint32 vszMemory;
-        quint32 rssMemory;
+        quint32 cpuUsage;       // %
+        quint32 vszMemory;      // kB
+        quint32 rssMemory;      // kB
+        syncTime
     };
 
     virtual void log(const Counters &counters) = 0;
