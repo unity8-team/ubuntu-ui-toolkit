@@ -175,6 +175,7 @@ public:
     ~PerformanceMetricsPrivate();
 
     void setOverlayText(const QString& text);
+    void setOverlayPosition(const QPointF& position);
     void setWindowUpdatePolicy(QuickPlusPerformanceMetrics::UpdatePolicy updatePolicy);
     void initialiseGpuResources();
     void windowSceneGraphInvalidated();
@@ -198,7 +199,8 @@ public:
         ContinuousUpdate  = (1 << 3),
         DirtyText         = (1 << 4),
         DirtySize         = (1 << 5),
-        Logging           = (1 << 6)
+        DirtyPosition     = (1 << 6),
+        Logging           = (1 << 7)
     };
 
     static const int maxOverlayIndices = 16;
@@ -213,6 +215,7 @@ public:
     } m_overlayIndices[maxOverlayIndices];
     quint8 m_overlayIndicesSize;
     QString m_overlayText;
+    QPointF m_overlayPosition;
 
     QFile m_defaultLoggingDevice;
 

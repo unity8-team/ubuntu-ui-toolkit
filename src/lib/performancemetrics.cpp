@@ -377,7 +377,7 @@ void BitmapText::setPosition(const QPointF& position)
     DLOG_FUNC();
 
     if (position != m_position) {
-        m_position = position;
+        m_position = QPointF(roundf(position.x()), roundf(position.y()));
         m_flags |= DirtyTransform;
     }
 }
@@ -802,12 +802,13 @@ PerformanceMetricsPrivate::PerformanceMetricsPrivate(QQuickWindow* window, bool 
     , m_overlayTextParsed(new char [maxOverlayTextParsedSize])
     , m_overlayIndicesSize(0)
     , m_overlayText(defaultOverlayText)
+    , m_overlayPosition(5.0f, 5.0f)
     , m_defaultLoggingDevice()
     , m_bitmapText()
     , m_gpuTimer()
     , m_syncTimer()
     , m_renderTimer()
-    , m_flags(DirtyText | DirtySize | (overlayVisible ? OverlayVisible : 0))
+    , m_flags(DirtyText | DirtySize | DirtyPosition | (overlayVisible ? OverlayVisible : 0))
 {
     DLOG_FUNC();
 
@@ -882,6 +883,31 @@ const QString& QuickPlusPerformanceMetrics::overlayText() const
     DLOG_FUNC();
 
     return d_func()->m_overlayText;
+}
+
+void QuickPlusPerformanceMetrics::setOverlayPosition(const QPointF& position)
+{
+    DLOG_FUNC();
+
+    d_func()->setOverlayPosition(position);
+}
+
+void PerformanceMetricsPrivate::setOverlayPosition(const QPointF& position)
+{
+    DLOG_FUNC();
+
+    QMutexLocker locker(&m_mutex);
+    if (position != m_overlayPosition) {
+        m_overlayPosition = position;
+        m_flags |= DirtyPosition;
+    }
+}
+
+QPointF QuickPlusPerformanceMetrics::overlayPosition() const
+{
+    DLOG_FUNC();
+
+    return d_func()->m_overlayPosition;
 }
 
 void QuickPlusPerformanceMetrics::setOverlayVisible(bool visible)
@@ -1138,6 +1164,10 @@ void PerformanceMetricsPrivate::windowAfterRendering()
             if (m_flags & DirtySize) {
                 m_bitmapText.setViewportSize(m_window->size());
                 m_flags &= ~DirtySize;
+            }
+            if (m_flags & DirtyPosition) {
+                m_bitmapText.setPosition(m_overlayPosition);
+                m_flags &= ~DirtyPosition;
             }
             if (m_flags & DirtyText) {
                 parseOverlayText();
