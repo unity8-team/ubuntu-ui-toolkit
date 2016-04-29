@@ -41,7 +41,7 @@ class QUICK_PLUS_EXPORT QuickPlusPerformanceMetrics : public QObject
 
     // 
     void setOverlayText(const QString& text);
-    const QString& overlayText() const;
+    QString overlayText() const;
 
     // 
     void setOverlayPosition(const QPointF& position);

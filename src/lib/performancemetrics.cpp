@@ -896,7 +896,7 @@ void PerformanceMetricsPrivate::setOverlayText(const QString& text)
     }
 }
 
-const QString& QuickPlusPerformanceMetrics::overlayText() const
+QString QuickPlusPerformanceMetrics::overlayText() const
 {
     DLOG_FUNC();
 
