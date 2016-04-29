@@ -56,6 +56,12 @@ void QuickPlusLTTNGLoggingDevice::log(const Counters &counters)
         }
     }
     if (m_lttngLib) {
-        tracepoint(quick_plus, metrics, counters.renderTime);
+        tracepoint(quick_plus, metrics, counters.syncTime
+                                      , counters.renderTime
+                                      , counters.gpuRenderTime
+                                      , counters.frameNumber
+                                      , counters.cpuUsage
+                                      , counters.vszMemory
+                                      , counters.rssMemory);
     }
 }
