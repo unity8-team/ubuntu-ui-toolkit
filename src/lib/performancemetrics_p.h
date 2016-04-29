@@ -53,15 +53,17 @@ public:
     // characters below 32 and above 126 in the new text are ignored.
     void updateText(const char* text, int index, int length);
 
-    // Sets the viewport size. Must be set correctly prior to rendering for
-    // correct results.
-    void setViewportSize(const QSize& viewportSize);
+    // Binds the BitmapText's shader program. Must be called prior to
+    // setTransform, setOpacity and render calls.
+    void bindProgram();
 
-    // Sets the text position with regards to the viewport size. Origin is at
-    // top/left.
-    void setPosition(const QPointF& position);
+    // Sets the viewport size and text position. Origin is at top/left. Must be
+    // set correctly prior to rendering for correct results. Must be called in a
+    // thread with the same OpenGL context bound than at initialise().
+    void setTransform(const QSize& viewportSize, const QPointF& position);
 
-    // Sets the text opacity.
+    // Sets the text opacity. Must be called in a thread with the same OpenGL
+    // context bound than at initialise().
     void setOpacity(float opacity);
 
     // Renders the text. Must be called in a thread with the same OpenGL context
@@ -73,21 +75,18 @@ private:
         float x, y, s, t;
     };
     enum {
-        DirtyTransform = (1 << 0),
-        DirtyOpacity   = (1 << 1),
-        NotEmpty       = (1 << 2),
+        NotEmpty    = (1 << 0),
 #if !defined(QT_NO_DEBUG)
-        Initialised    = (1 << 3)
+        Initialised = (1 << 1)
 #endif
     };
 
     QOpenGLFunctions* m_functions;
+#if !defined QT_NO_DEBUG
+    QOpenGLContext* m_context;
+#endif
     Vertex* m_vertexBuffer;
     int* m_textToVertexBuffer;
-    QSize m_viewportSize;
-    QPointF m_position;
-    QVector4D m_transform;
-    float m_opacity;
     int m_textLength;
     int m_characterCount;
     int m_currentFont;
@@ -205,10 +204,9 @@ public:
         OverlayVisible    = (1 << 2),
         ContinuousUpdate  = (1 << 3),
         DirtyText         = (1 << 4),
-        DirtySize         = (1 << 5),
-        DirtyPosition     = (1 << 6),
-        DirtyOpacity      = (1 << 7),
-        Logging           = (1 << 8)
+        DirtyTransform    = (1 << 5),
+        DirtyOpacity      = (1 << 6),
+        Logging           = (1 << 7)
     };
 
     static const int maxOverlayIndices = 16;
@@ -252,5 +250,5 @@ public:
     } m_counters;
 
     QMutex m_mutex;
-    quint16 m_flags;
+    quint8 m_flags;
 };

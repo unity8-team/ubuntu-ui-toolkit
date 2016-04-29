@@ -55,26 +55,26 @@ static const GLchar* bitmapTextFragmentShaderSource =
     "    gl_FragColor = texture2D(texture, textureCoord) * vec4(opacity); \n"
     "} \n";
 
-const int defaultFontSize = 14;
-const float carriageReturnHeight = 1.5f;
+const int bitmapTextDefaultFontSize = 14;
+const float bitmapTextDefaultOpacity = 1.0f;
+const float bitmapTextCarriageReturnHeight = 1.5f;
 
 BitmapText::BitmapText()
     : m_functions(nullptr)
+#if !defined QT_NO_DEBUG
+    , m_context(nullptr)
+#endif
     , m_vertexBuffer(nullptr)
     , m_textToVertexBuffer(nullptr)
-    , m_viewportSize(1, 1)
-    , m_position(0.0f, 0.0f)
-    , m_transform()
-    , m_opacity(1.0f)
     , m_textLength(0)
     , m_characterCount(0)
-    , m_flags(DirtyTransform | DirtyOpacity)
+    , m_flags(0)
 {
     DLOG_FUNC();
 
     // Set current font based on requested font size.
     const int fontSize = qBound(
-        static_cast<int>(g_bitmapTextFont.font[0].size), defaultFontSize & (INT_MAX - 1),
+        static_cast<int>(g_bitmapTextFont.font[0].size), bitmapTextDefaultFontSize & (INT_MAX - 1),
         static_cast<int>(g_bitmapTextFont.font[g_bitmapTextFont.fontCount-1].size));
     for (int i = 0; i < g_bitmapTextFont.fontCount; i++) {
         if (static_cast<int>(g_bitmapTextFont.font[i].size) == fontSize) {
@@ -159,8 +159,12 @@ bool BitmapText::initialise()
 {
     DLOG_FUNC();
     DASSERT(!(m_flags & Initialised));
+    DASSERT(QOpenGLContext::currentContext());
 
     m_functions = QOpenGLContext::currentContext()->functions();
+#if !defined QT_NO_DEBUG
+    m_context = QOpenGLContext::currentContext();
+#endif
 
     m_functions->glGenTextures(1, &m_texture);
     m_functions->glBindTexture(GL_TEXTURE_2D, m_texture);
@@ -181,6 +185,7 @@ bool BitmapText::initialise()
         m_functions->glUniform1i(m_functions->glGetUniformLocation(m_program, "texture"), 0);
         m_programTransform = m_functions->glGetUniformLocation(m_program, "transform");
         m_programOpacity = m_functions->glGetUniformLocation(m_program, "opacity");
+        m_functions->glUniform1f(m_programOpacity, bitmapTextDefaultOpacity);
     }
 
     m_functions->glGenBuffers(1, &m_indexBuffer);
@@ -197,6 +202,7 @@ void BitmapText::finalise()
 {
     DLOG_FUNC();
     DASSERT(m_flags & Initialised);
+    DASSERT(m_context == QOpenGLContext::currentContext());
 
     if (m_texture) {
         m_functions->glDeleteTextures(1, &m_texture);
@@ -218,6 +224,9 @@ void BitmapText::finalise()
     }
 
     m_functions = nullptr;
+#if !defined QT_NO_DEBUG
+    m_context = nullptr;
+#endif
     m_flags &= ~Initialised;
 }
 
@@ -322,7 +331,7 @@ void BitmapText::setText(const char* text)
             m_textToVertexBuffer[i] = -1;
         } else if (character == '\r') {
             x = 0.0f;
-            y += 1.5f;
+            y += bitmapTextCarriageReturnHeight;
             m_textToVertexBuffer[i] = -1;
         } else {
             m_textToVertexBuffer[i] = -1;
@@ -365,41 +374,51 @@ void BitmapText::updateText(const char* text, int index, int length)
     }
 }
 
-void BitmapText::setViewportSize(const QSize& viewportSize)
+void BitmapText::bindProgram()
 {
     DLOG_FUNC();
+    DASSERT(m_flags & Initialised);
+    DASSERT(m_context == QOpenGLContext::currentContext());
 
-    if (viewportSize != m_viewportSize) {
-        m_viewportSize = viewportSize;
-        m_flags |= DirtyTransform;
-    }
+    m_functions->glUseProgram(m_program);
 }
 
-void BitmapText::setPosition(const QPointF& position)
+void BitmapText::setTransform(const QSize& viewportSize, const QPointF& position)
 {
     DLOG_FUNC();
+    DASSERT(m_flags & Initialised);
+    DASSERT(m_context == QOpenGLContext::currentContext());
+    DASSERT(viewportSize.width() > 0.0f);
+    DASSERT(viewportSize.height() > 0.0f);
+    DASSERT(!isnan(position.x()));
+    DASSERT(!isnan(position.y()));
 
-    if (position != m_position) {
-        m_position = QPointF(roundf(position.x()), roundf(position.y()));
-        m_flags |= DirtyTransform;
-    }
+    // The transform stores a scale (in (x, y)) and translate (in (z, w)) used
+    // to put vertices in the right space ((-1, 1), (-1, 1)), at the right
+    // position.
+    const float transform[4] = {
+         (2.0f * g_bitmapTextFont.font[m_currentFont].width)  / viewportSize.width(),
+        -(2.0f * g_bitmapTextFont.font[m_currentFont].height) / viewportSize.height(),
+        ((2.0f *  roundf(position.x())) / viewportSize.width())  - 1.0f,
+        ((2.0f * -roundf(position.y())) / viewportSize.height()) + 1.0f
+    };
+    m_functions->glUniform4fv(m_programTransform, 1, transform);
 }
 
 void BitmapText::setOpacity(float opacity)
 {
     DLOG_FUNC();
+    DASSERT(m_context == QOpenGLContext::currentContext());
     DASSERT(opacity >= 0.0f && opacity <= 1.0f);
 
-    if (opacity != m_opacity) {
-        m_opacity = opacity;
-        m_flags |= DirtyOpacity;
-    }
+    m_functions->glUniform1f(m_programOpacity, opacity);
 }
 
 void BitmapText::render()
 {
     DLOG_FUNC();
     DASSERT(m_flags & Initialised);
+    DASSERT(m_context == QOpenGLContext::currentContext());
 
     if (m_flags & NotEmpty) {
         m_functions->glVertexAttribPointer(
@@ -409,24 +428,6 @@ void BitmapText::render()
             reinterpret_cast<char*>(m_vertexBuffer) + (2 * sizeof(float)));
         m_functions->glEnableVertexAttribArray(0);
         m_functions->glEnableVertexAttribArray(1);
-        m_functions->glUseProgram(m_program);
-        if (m_flags & DirtyTransform) {
-            // Update transformation vector. It stores a scale (in (x, y)) and
-            // translate (in (z, w)) transform used to put vertices in the right
-            // space ((-1, 1), (-1, 1)), at the right position.
-            m_transform = QVector4D(
-                (2.0f * g_bitmapTextFont.font[m_currentFont].width) / m_viewportSize.width(),
-                -(2.0f * g_bitmapTextFont.font[m_currentFont].height) / m_viewportSize.height(),
-                ((2.0f * m_position.x()) / m_viewportSize.width()) - 1.0f,
-                ((2.0f * -m_position.y()) / m_viewportSize.height()) + 1.0f);
-            m_functions->glUniform4fv(
-                m_programTransform, 1, reinterpret_cast<const float*>(&m_transform));
-            m_flags &= ~DirtyTransform;
-        }
-        if (m_flags & DirtyOpacity) {
-            m_functions->glUniform1f(m_programOpacity, m_opacity);
-            m_flags &= ~DirtyOpacity;
-        }
         m_functions->glBindTexture(GL_TEXTURE_2D, m_texture);
         m_functions->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBuffer);
         m_functions->glDisable(GL_DEPTH_TEST);  // QtQuick renderers restore that at each draw call.
@@ -825,8 +826,7 @@ PerformanceMetricsPrivate::PerformanceMetricsPrivate(QQuickWindow* window, bool 
     , m_gpuTimer()
     , m_syncTimer()
     , m_renderTimer()
-    , m_flags(DirtyText | DirtySize | DirtyPosition | DirtyOpacity
-              | (overlayVisible ? OverlayVisible : 0))
+    , m_flags(DirtyText | DirtyTransform | DirtyOpacity | (overlayVisible ? OverlayVisible : 0))
 {
     DLOG_FUNC();
 
@@ -917,7 +917,7 @@ void PerformanceMetricsPrivate::setOverlayPosition(const QPointF& position)
     QMutexLocker locker(&m_mutex);
     if (position != m_overlayPosition) {
         m_overlayPosition = position;
-        m_flags |= DirtyPosition;
+        m_flags |= DirtyTransform;
     }
 }
 
@@ -1071,7 +1071,7 @@ void QuickPlusPerformanceMetrics::windowSizeChanged(int)
     DASSERT(d->m_window);
 
     QMutexLocker locker(&d->m_mutex);
-    d->m_flags |= PerformanceMetricsPrivate::DirtySize;
+    d->m_flags |= PerformanceMetricsPrivate::DirtyTransform;
 }
 
 void QuickPlusPerformanceMetrics::windowSceneGraphInitialised()
@@ -1091,7 +1091,7 @@ void PerformanceMetricsPrivate::initialiseGpuResources()
 
     m_bitmapText.initialise();
     m_counters.frameNumber = 0;
-    const quint8 flags = Initialised | DirtyText | DirtySize;
+    const quint8 flags = Initialised | DirtyText | DirtyTransform;
     m_flags |= m_gpuTimer.initialise() ? (flags | GpuTimerAvailable) : flags;
 }
 
@@ -1204,13 +1204,11 @@ void PerformanceMetricsPrivate::windowAfterRendering()
 
         // Update and render overlay.
         if (m_flags & OverlayVisible) {
-            if (m_flags & DirtySize) {
-                m_bitmapText.setViewportSize(m_window->size());
-                m_flags &= ~DirtySize;
-            }
-            if (m_flags & DirtyPosition) {
-                m_bitmapText.setPosition(m_overlayPosition);
-                m_flags &= ~DirtyPosition;
+            updateOverlayText();
+            m_bitmapText.bindProgram();
+            if (m_flags & DirtyTransform) {
+                m_bitmapText.setTransform(m_window->size(), m_overlayPosition);
+                m_flags &= ~DirtyTransform;
             }
             if (m_flags & DirtyOpacity) {
                 m_bitmapText.setOpacity(m_overlayOpacity);
@@ -1221,7 +1219,6 @@ void PerformanceMetricsPrivate::windowAfterRendering()
                 m_bitmapText.setText(m_overlayTextParsed);
                 m_flags &= ~DirtyText;
             }
-            updateOverlayText();
             m_bitmapText.render();
         }
 
