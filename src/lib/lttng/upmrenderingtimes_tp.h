@@ -15,6 +15,8 @@
  *
  */
 
+#include <stdint.h>
+
 #undef TRACEPOINT_PROVIDER
 #define TRACEPOINT_PROVIDER quick_plus
 
