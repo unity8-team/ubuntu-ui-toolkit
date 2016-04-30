@@ -379,8 +379,8 @@ void BitmapText::updateText(const char* text, int index, int length)
 void BitmapText::bindProgram()
 {
     DLOG_FUNC();
-    DASSERT(m_flags & Initialised);
     DASSERT(m_context == QOpenGLContext::currentContext());
+    DASSERT(m_flags & Initialised);
 
     m_functions->glUseProgram(m_program);
 }
@@ -388,8 +388,8 @@ void BitmapText::bindProgram()
 void BitmapText::setTransform(const QSize& viewportSize, const QPointF& position)
 {
     DLOG_FUNC();
-    DASSERT(m_flags & Initialised);
     DASSERT(m_context == QOpenGLContext::currentContext());
+    DASSERT(m_flags & Initialised);
     DASSERT(viewportSize.width() > 0.0f);
     DASSERT(viewportSize.height() > 0.0f);
     DASSERT(!isnan(position.x()));
@@ -411,6 +411,7 @@ void BitmapText::setOpacity(float opacity)
 {
     DLOG_FUNC();
     DASSERT(m_context == QOpenGLContext::currentContext());
+    DASSERT(m_flags & Initialised);
     DASSERT(opacity >= 0.0f && opacity <= 1.0f);
 
     m_functions->glUniform1f(m_programOpacity, opacity);
@@ -419,8 +420,8 @@ void BitmapText::setOpacity(float opacity)
 void BitmapText::render()
 {
     DLOG_FUNC();
-    DASSERT(m_flags & Initialised);
     DASSERT(m_context == QOpenGLContext::currentContext());
+    DASSERT(m_flags & Initialised);
 
     if (m_flags & NotEmpty) {
         m_functions->glVertexAttribPointer(
@@ -446,7 +447,12 @@ void BitmapText::render()
 bool GPUTimer::initialise()
 {
     DLOG_FUNC();
+    DASSERT(QOpenGLContext::currentContext());
     DASSERT(m_type == None);
+
+#if !defined QT_NO_DEBUG
+    m_context = QOpenGLContext::currentContext();
+#endif
 
 #if defined(QT_OPENGL_ES)
     QList<QByteArray> eglExtensions = QByteArray(
@@ -548,7 +554,12 @@ bool GPUTimer::initialise()
 void GPUTimer::finalise()
 {
     DLOG_FUNC();
+    DASSERT(m_context == QOpenGLContext::currentContext());
     DASSERT(m_type != None);
+
+#if !defined QT_NO_DEBUG
+    m_context = nullptr;
+#endif
 
 #if defined(QT_OPENGL_ES)
     // KHRFence.
@@ -580,9 +591,11 @@ void GPUTimer::finalise()
 void GPUTimer::start()
 {
     DLOG_FUNC();
+    DASSERT(m_context == QOpenGLContext::currentContext());
     DASSERT(m_type != None);
+    DASSERT(!m_started);
+
 #if !defined QT_NO_DEBUG
-    ASSERT(!m_started);
     m_started = true;
 #endif
 
@@ -611,9 +624,11 @@ void GPUTimer::start()
 quint64 GPUTimer::stop()
 {
     DLOG_FUNC();
+    DASSERT(m_context == QOpenGLContext::currentContext());
     DASSERT(m_type != None);
+    DASSERT(m_started);
+
 #if !defined QT_NO_DEBUG
-    ASSERT(m_started);
     m_started = false;
 #endif
 

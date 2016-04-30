@@ -109,12 +109,11 @@ private:
 class GPUTimer
 {
 public:
-    GPUTimer()
-        : m_type(None)
+    GPUTimer() :
 #if !defined QT_NO_DEBUG
-        , m_started(false)
+        m_context(nullptr), m_started(false),
 #endif
-        {}
+        m_type(None) {}
 
     // Allocates/Deletes the OpenGL resources. finalise() is not called at
     // destruction, it must be explicitly called to free the resources at the
@@ -142,10 +141,12 @@ private:
         EXTTimerQuery
 #endif
     };
-    Type m_type;
+
 #if !defined QT_NO_DEBUG
+    QOpenGLContext* m_context;
     bool m_started;
 #endif
+    Type m_type;
 
 #if defined(QT_OPENGL_ES)
     struct {
