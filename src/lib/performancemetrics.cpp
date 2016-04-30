@@ -504,7 +504,6 @@ bool GPUTimer::initialise()
     // ARBTimerQuery.
     if (qMakePair(format.majorVersion(), format.minorVersion()) >= qMakePair(3, 2)
         && context->hasExtension(QByteArrayLiteral("GL_ARB_timer_query"))) {
-        QOpenGLContext* context = QOpenGLContext::currentContext();
         m_timerQuery.genQueries = reinterpret_cast<void (QOPENGLF_APIENTRYP)(GLsizei, GLuint*)>(
             context->getProcAddress("glGenQueries"));
         m_timerQuery.deleteQueries =
@@ -522,7 +521,6 @@ bool GPUTimer::initialise()
 
     // EXTTimerQuery.
     } else if (context->hasExtension(QByteArrayLiteral("GL_EXT_timer_query"))) {
-        QOpenGLContext* context = QOpenGLContext::currentContext();
         m_timerQuery.genQueries = reinterpret_cast<void (QOPENGLF_APIENTRYP)(GLsizei, GLuint*)>(
             context->getProcAddress("glGenQueries"));
         m_timerQuery.deleteQueries =
