@@ -581,29 +581,28 @@ void GPUTimer::start()
 {
     DLOG_FUNC();
     DASSERT(m_type != None);
-    DASSERT(!m_started);
+#if !defined QT_NO_DEBUG
+    ASSERT(!m_started);
+    m_started = true;
+#endif
 
 #if defined(QT_OPENGL_ES)
     // KHRFence.
     if (m_type == KHRFence) {
-        m_started = true;
         m_beforeSync = m_fenceSyncKHR.createSyncKHR(
             eglGetCurrentDisplay(), EGL_SYNC_FENCE_KHR, NULL);
 
     // NVFence.
     } else if (m_type == NVFence) {
-        m_started = true;
         m_fenceNV.setFenceNV(m_fence[0], GL_ALL_COMPLETED_NV);
     }
 #else
     // ARBTimerQuery.
     if (m_type == ARBTimerQuery) {
-        m_started = true;
         m_timerQuery.queryCounter(m_timer[0], GL_TIMESTAMP);
 
     // EXTTimerQuery.
     } else if (m_type == EXTTimerQuery) {
-        m_started = true;
         m_timerQuery.beginQuery(GL_TIME_ELAPSED, m_timer[0]);
     }
 #endif
@@ -613,12 +612,14 @@ quint64 GPUTimer::stop()
 {
     DLOG_FUNC();
     DASSERT(m_type != None);
-    DASSERT(m_started);
+#if !defined QT_NO_DEBUG
+    ASSERT(m_started);
+    m_started = false;
+#endif
 
 #if defined(QT_OPENGL_ES)
     // KHRFence.
     if (m_type == KHRFence) {
-        m_started = false;
         QElapsedTimer timer;
         EGLDisplay dpy = eglGetCurrentDisplay();
         EGLSyncKHR afterSync = m_fenceSyncKHR.createSyncKHR(dpy, EGL_SYNC_FENCE_KHR, NULL);
@@ -640,7 +641,6 @@ quint64 GPUTimer::stop()
 
     // NVFence.
     } else if (m_type == NVFence) {
-        m_started = false;
         QElapsedTimer timer;
         m_fenceNV.setFenceNV(m_fence[1], GL_ALL_COMPLETED_NV);
         m_fenceNV.finishFenceNV(m_fence[0]);
@@ -652,7 +652,6 @@ quint64 GPUTimer::stop()
 #else
     // ARBTimerQuery.
     if (m_type == ARBTimerQuery) {
-        m_started = false;
         GLuint64 time[2] = { 0, 0 };
         m_timerQuery.queryCounter(m_timer[1], GL_TIMESTAMP);
         m_timerQuery.getQueryObjectui64v(m_timer[0], GL_QUERY_RESULT, &time[0]);
@@ -665,7 +664,6 @@ quint64 GPUTimer::stop()
 
     // EXTTimerQuery.
     } else if (m_type == EXTTimerQuery) {
-        m_started = false;
         GLuint64EXT time;
         m_timerQuery.endQuery(GL_TIME_ELAPSED);
         m_timerQuery.getQueryObjectui64vExt(m_timer[0], GL_QUERY_RESULT, &time);
