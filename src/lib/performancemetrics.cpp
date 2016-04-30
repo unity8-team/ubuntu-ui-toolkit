@@ -847,6 +847,7 @@ PerformanceMetricsPrivate::PerformanceMetricsPrivate(QQuickWindow* window, bool 
     m_defaultLoggingDevice.open(stdout, QIODevice::WriteOnly);
     m_cpuOnlineCores = sysconf(_SC_NPROCESSORS_ONLN);
     m_pageSize = sysconf(_SC_PAGESIZE);
+    m_timeStampTimer.start();
     m_cpuTimer.start();
     m_cpuTicks = times(&m_cpuTimes);
 }
@@ -1262,12 +1263,14 @@ void PerformanceMetricsPrivate::windowFrameSwapped()
 
     if (m_flags & Initialised) {
         if (m_flags & (OverlayVisible | Logging)) {
+            m_counters.timeStamp = m_timeStampTimer.nsecsElapsed();
             m_counters.swapTime = m_sceneGraphTimer.nsecsElapsed();
         }
         if (m_flags & Logging ) {
             // FIXME(loicm) Use a dedicated I/O thread.
             QTextStream stream(m_loggingDevice ? m_loggingDevice : &m_defaultLoggingDevice);
-            stream << m_counters.frameNumber << ' '
+            stream << m_counters.timeStamp << ' '
+                   << m_counters.frameNumber << ' '
                    << m_counters.syncTime << ' '
                    << m_counters.renderTime << ' '
                    << m_counters.gpuRenderTime << ' '

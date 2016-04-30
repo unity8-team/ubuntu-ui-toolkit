@@ -238,6 +238,7 @@ public:
     BitmapText m_bitmapText;
     GPUTimer m_gpuTimer;
 
+    QElapsedTimer m_timeStampTimer;
     QElapsedTimer m_sceneGraphTimer;
     QElapsedTimer m_cpuTimer;
 
@@ -247,6 +248,7 @@ public:
     struct tms m_cpuTimes;
 
     struct Counters {
+        quint64 timeStamp;
         quint64 syncTime;
         quint64 renderTime;
         quint64 gpuRenderTime;
