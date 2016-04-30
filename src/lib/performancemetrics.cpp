@@ -850,6 +850,7 @@ PerformanceMetricsPrivate::PerformanceMetricsPrivate(QQuickWindow* window, bool 
     m_timeStampTimer.start();
     m_cpuTimer.start();
     m_cpuTicks = times(&m_cpuTimes);
+    memset(&m_counters, 0, sizeof(m_counters));
 }
 
 QuickPlusPerformanceMetrics::~QuickPlusPerformanceMetrics()
