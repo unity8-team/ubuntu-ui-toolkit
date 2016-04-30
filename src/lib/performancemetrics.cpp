@@ -794,6 +794,8 @@ static void connectWindowSignals(QQuickWindow* window, QuickPlusPerformanceMetri
                      Qt::DirectConnection);
     QObject::connect(window, SIGNAL(afterRendering()), metrics, SLOT(windowAfterRendering()),
                      Qt::DirectConnection);
+    QObject::connect(window, SIGNAL(frameSwapped()), metrics, SLOT(windowFrameSwapped()),
+                     Qt::DirectConnection);
 }
 
 static void disconnectWindowSignals(QQuickWindow* window, QuickPlusPerformanceMetrics* metrics)
@@ -814,6 +816,7 @@ static void disconnectWindowSignals(QQuickWindow* window, QuickPlusPerformanceMe
                         SLOT(windowAfterSynchronising()));
     QObject::disconnect(window, SIGNAL(beforeRendering()), metrics, SLOT(windowBeforeRendering()));
     QObject::disconnect(window, SIGNAL(afterRendering()), metrics, SLOT(windowAfterRendering()));
+    QObject::disconnect(window, SIGNAL(frameSwapped()), metrics, SLOT(windowFrameSwapped()));
 }
 
 QuickPlusPerformanceMetrics::QuickPlusPerformanceMetrics(QQuickWindow* window, bool overlayVisible)
@@ -837,8 +840,6 @@ PerformanceMetricsPrivate::PerformanceMetricsPrivate(QQuickWindow* window, bool 
     , m_defaultLoggingDevice()
     , m_bitmapText()
     , m_gpuTimer()
-    , m_syncTimer()
-    , m_renderTimer()
     , m_flags(DirtyText | DirtyTransform | DirtyOpacity | (overlayVisible ? OverlayVisible : 0))
 {
     DLOG_FUNC();
@@ -1144,7 +1145,7 @@ void PerformanceMetricsPrivate::windowBeforeSynchronising()
 
     QMutexLocker locker(&m_mutex);
     if (m_flags & Initialised) {
-        m_syncTimer.start();
+        m_sceneGraphTimer.start();
     }
 }
 
@@ -1162,7 +1163,7 @@ void PerformanceMetricsPrivate::windowAfterSynchronising()
 
     QMutexLocker locker(&m_mutex);
     if (m_flags & Initialised) {
-        m_counters.syncTime = m_syncTimer.nsecsElapsed();
+        m_counters.syncTime = m_sceneGraphTimer.nsecsElapsed();
     }
 }
 
@@ -1180,7 +1181,7 @@ void PerformanceMetricsPrivate::windowBeforeRendering()
 
     QMutexLocker locker(&m_mutex);
     if (m_flags & Initialised) {
-        m_renderTimer.start();
+        m_sceneGraphTimer.start();
         if (m_flags & GpuTimerAvailable) {
             m_gpuTimer.start();
         }
@@ -1208,7 +1209,7 @@ void PerformanceMetricsPrivate::windowAfterRendering()
 
         if (m_flags & (OverlayVisible | Logging)) {
             // Update counters.
-            m_counters.renderTime = m_renderTimer.nsecsElapsed();
+            m_counters.renderTime = m_sceneGraphTimer.nsecsElapsed();
             m_counters.frameNumber++;
             updateCpuUsage();
             updateThreadCount();
@@ -1235,27 +1236,50 @@ void PerformanceMetricsPrivate::windowAfterRendering()
             m_bitmapText.render();
         }
 
-        // Logging.
-        // FIXME(loicm) Use a dedicated I/O thread.
-        if (m_flags & Logging ) {
-            QTextStream stream(m_loggingDevice ? m_loggingDevice : &m_defaultLoggingDevice);
-            stream << m_counters.frameNumber << ' '
-                   << m_counters.syncTime << ' '
-                   << m_counters.renderTime << ' '
-                   << m_counters.gpuRenderTime << ' '
-                   << m_counters.cpuUsage << ' '
-                   << m_counters.vszMemory << ' '
-                   << m_counters.rssMemory << '\n';
-        }
-
-    } else {
-        // Get everything ready for the next frame.
-        initialiseGpuResources();
+        // Start swap time measurement.
+        m_sceneGraphTimer.start();
     }
 
     // Queue another update if required.
     if (m_flags & ContinuousUpdate) {
         m_window->update();
+    }
+}
+
+void QuickPlusPerformanceMetrics::windowFrameSwapped()
+{
+    DLOG_FUNC();
+
+    d_func()->windowFrameSwapped();
+}
+
+void PerformanceMetricsPrivate::windowFrameSwapped()
+{
+    DLOG_FUNC();
+    DASSERT(m_window);
+
+    QMutexLocker locker(&m_mutex);
+
+    if (m_flags & Initialised) {
+        if (m_flags & (OverlayVisible | Logging)) {
+            m_counters.swapTime = m_sceneGraphTimer.nsecsElapsed();
+        }
+        if (m_flags & Logging ) {
+            // FIXME(loicm) Use a dedicated I/O thread.
+            QTextStream stream(m_loggingDevice ? m_loggingDevice : &m_defaultLoggingDevice);
+            stream << m_counters.frameNumber << ' '
+                   << m_counters.syncTime << ' '
+                   << m_counters.renderTime << ' '
+                   << m_counters.gpuRenderTime << ' '
+                   << m_counters.swapTime << ' '
+                   << m_counters.cpuUsage << ' '
+                   << m_counters.vszMemory << ' '
+                   << m_counters.rssMemory << ' '
+                   << m_counters.threadCount << '\n';
+        }
+    } else {
+        // Get everything ready for the next frame.
+        initialiseGpuResources();
     }
 }
 

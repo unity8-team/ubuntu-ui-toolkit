@@ -76,6 +76,7 @@ private Q_SLOTS:
     void windowAfterSynchronising();
     void windowBeforeRendering();
     void windowAfterRendering();
+    void windowFrameSwapped();
 
 private:
     PerformanceMetricsPrivate* const d_ptr;

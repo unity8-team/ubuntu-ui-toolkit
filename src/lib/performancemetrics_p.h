@@ -197,6 +197,7 @@ public:
     void windowAfterSynchronising();
     void windowBeforeRendering();
     void windowAfterRendering();
+    void windowFrameSwapped();
     void updateOverlayText();
     int cpuModel(char* buffer, int bufferSize);
     int keywordString(int index, char* buffer, int bufferSize);
@@ -237,8 +238,7 @@ public:
     BitmapText m_bitmapText;
     GPUTimer m_gpuTimer;
 
-    QElapsedTimer m_syncTimer;
-    QElapsedTimer m_renderTimer;
+    QElapsedTimer m_sceneGraphTimer;
     QElapsedTimer m_cpuTimer;
 
     quint16 m_cpuOnlineCores;
@@ -250,6 +250,7 @@ public:
         quint64 syncTime;
         quint64 renderTime;
         quint64 gpuRenderTime;
+        quint64 swapTime;
         quint32 frameNumber;
         quint32 cpuUsage;
         quint32 vszMemory;
