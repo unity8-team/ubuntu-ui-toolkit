@@ -113,13 +113,13 @@ public:
 #if !defined QT_NO_DEBUG
         m_context(nullptr), m_started(false),
 #endif
-        m_type(None) {}
+        m_type(Unset) {}
 
     // Allocates/Deletes the OpenGL resources. finalise() is not called at
     // destruction, it must be explicitly called to free the resources at the
     // right time in a thread with the same OpenGL context bound than at
     // initialise().
-    bool initialise();
+    void initialise();
     void finalise();
 
     // Starts/Stops the timer. stop() returns the time elapsed in nanoseconds
@@ -132,7 +132,8 @@ public:
 
 private:
     enum Type {
-        None,
+        Unset,
+        Finish,
 #if defined(QT_OPENGL_ES)
         KHRFence,
         NVFence,

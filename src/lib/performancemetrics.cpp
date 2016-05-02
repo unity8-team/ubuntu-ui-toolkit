@@ -444,11 +444,11 @@ void BitmapText::render()
 #define GL_TIME_ELAPSED 0x88BF  // For GL_EXT_timer_query.
 #endif
 
-bool GPUTimer::initialise()
+void GPUTimer::initialise()
 {
     DLOG_FUNC();
     DASSERT(QOpenGLContext::currentContext());
-    DASSERT(m_type == None);
+    DASSERT(m_type == Unset);
 
 #if !defined QT_NO_DEBUG
     m_context = QOpenGLContext::currentContext();
@@ -475,8 +475,7 @@ bool GPUTimer::initialise()
             EGLint (QOPENGLF_APIENTRYP)(EGLDisplay, EGLSyncKHR, EGLint, EGLTimeKHR)>(
                 eglGetProcAddress("eglClientWaitSyncKHR"));
         m_type = KHRFence;
-        DLOG("QuickPlusPerformanceMetrics: GpuTimer is using GL_OES_EGL_sync");
-        return true;
+        DLOG("QuickPlusPerformanceMetrics: GpuTimer based on GL_OES_EGL_sync");
 
     // NVFence.
     } else if (glExtensions.contains("GL_NV_fence")) {
@@ -491,12 +490,7 @@ bool GPUTimer::initialise()
             eglGetProcAddress("glFinishFenceNV"));
         m_fenceNV.genFencesNV(2, m_fence);
         m_type = NVFence;
-        DLOG("QuickPlusPerformanceMetrics: GpuTimer is using GL_NV_fence");
-        return true;
-
-    } else {
-        m_type = None;
-        return false;
+        DLOG("QuickPlusPerformanceMetrics: GpuTimer based on GL_NV_fence");
     }
 #else
     // We could use the thin QOpenGLTimerQuery wrapper from Qt 5.1, but the lack
@@ -522,8 +516,7 @@ bool GPUTimer::initialise()
             context->getProcAddress("glQueryCounter"));
         m_timerQuery.genQueries(2, m_timer);
         m_type = ARBTimerQuery;
-        DLOG("QuickPlusPerformanceMetrics: GpuTimer is using GL_ARB_timer_query");
-        return true;
+        DLOG("QuickPlusPerformanceMetrics: GpuTimer based on GL_ARB_timer_query");
 
     // EXTTimerQuery.
     } else if (context->hasExtension(QByteArrayLiteral("GL_EXT_timer_query"))) {
@@ -541,21 +534,21 @@ bool GPUTimer::initialise()
                 context->getProcAddress("glGetQueryObjectui64vEXT"));
         m_timerQuery.genQueries(1, m_timer);
         m_type = EXTTimerQuery;
-        DLOG("QuickPlusPerformanceMetrics: GpuTimer is using GL_EXT_timer_query");
-        return true;
-
-    } else {
-        m_type = None;
-        return false;
+        DLOG("QuickPlusPerformanceMetrics: GpuTimer based on GL_EXT_timer_query");
     }
 #endif
+
+    else {
+        m_type = Finish;
+        DLOG("QuickPlusPerformanceMetrics: GpuTimer based on glFinish");
+    }
 }
 
 void GPUTimer::finalise()
 {
     DLOG_FUNC();
     DASSERT(m_context == QOpenGLContext::currentContext());
-    DASSERT(m_type != None);
+    DASSERT(m_type != Unset);
 
 #if !defined QT_NO_DEBUG
     m_context = nullptr;
@@ -567,23 +560,23 @@ void GPUTimer::finalise()
         if (m_beforeSync != EGL_NO_SYNC_KHR) {
             m_fenceSyncKHR.destroySyncKHR(eglGetCurrentDisplay(), m_beforeSync);
         }
-        m_type = None;
+        m_type = Unset;
 
     // NVFence.
     } else if (m_type == NVFence) {
         m_fenceNV.deleteFencesNV(2, m_fence);
-        m_type = None;
+        m_type = Unset;
     }
 #else
     // ARBTimerQuery.
     if (m_type == ARBTimerQuery) {
         m_timerQuery.deleteQueries(2, m_timer);
-        m_type = None;
+        m_type = Unset;
 
     // EXTTimerQuery.
     } else if (m_type == EXTTimerQuery) {
         m_timerQuery.deleteQueries(1, m_timer);
-        m_type = None;
+        m_type = Unset;
     }
 #endif
 }
@@ -592,7 +585,7 @@ void GPUTimer::start()
 {
     DLOG_FUNC();
     DASSERT(m_context == QOpenGLContext::currentContext());
-    DASSERT(m_type != None);
+    DASSERT(m_type != Unset);
     DASSERT(!m_started);
 
 #if !defined QT_NO_DEBUG
@@ -625,7 +618,7 @@ quint64 GPUTimer::stop()
 {
     DLOG_FUNC();
     DASSERT(m_context == QOpenGLContext::currentContext());
-    DASSERT(m_type != None);
+    DASSERT(m_type != Unset);
     DASSERT(m_started);
 
 #if !defined QT_NO_DEBUG
@@ -685,6 +678,15 @@ quint64 GPUTimer::stop()
         return time;
     }
 #endif
+
+    // Finish.
+    else {
+        QOpenGLFunctions* functions = QOpenGLContext::currentContext()->functions();
+        QElapsedTimer timer;
+        timer.start();
+        functions->glFinish();
+        return static_cast<quint64>(timer.nsecsElapsed());
+    }
 
     DNOT_REACHED();
     return 0;
@@ -1105,10 +1107,12 @@ void PerformanceMetricsPrivate::initialiseGpuResources()
     DASSERT(m_window);
     DASSERT(!(m_flags & Initialised));
 
+    static bool noGpuTimer = qEnvironmentVariableIsSet("QUICKPLUS_NO_GPU_TIMER");
+
     m_bitmapText.initialise();
+    m_gpuTimer.initialise();
     m_counters.frameNumber = 0;
-    const quint8 flags = Initialised | DirtyText | DirtyTransform;
-    m_flags |= m_gpuTimer.initialise() ? (flags | GpuTimerAvailable) : flags;
+    m_flags |=  Initialised | DirtyText | DirtyTransform | (!noGpuTimer ? GpuTimerAvailable : 0);
 }
 
 void QuickPlusPerformanceMetrics::windowSceneGraphInvalidated()
