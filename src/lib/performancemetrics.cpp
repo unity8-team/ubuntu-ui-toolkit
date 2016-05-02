@@ -756,14 +756,14 @@ static const char* const defaultOverlayText =
     "%qtVersion (%qtPlatform) with %glVersion\n"
     "%cpuModel\n"
     "%gpuModel\r"
-    " Cpu(usage) :      %cpuUsage %%\n"
-    " Threads ...:      %threadCount\n"
-    " Vsz .......: %vszMemory kB\n"
-    " Rss .......: %rssMemory kB\r"
-    " Frame .....:  %frameNumber\n"
-    " Sync(Cpu) .:  %syncTime ms\n"
-    " Render(Cpu):  %renderTime ms\n"
-    " Render(Gpu):  %gpuRenderTime ms";
+    " VSZ mem.: %vszMemory kB\n"
+    " RSS mem.: %rssMemory kB\n"
+    " Threads:       %threadCount\n"
+    " CPU usage:     %cpuUsage %%\r"
+    " Frame:     %frameNumber\n"
+    " SG sync:   %syncTime ms\n"
+    " SG render: %renderTime ms\n"
+    " GPU:       %gpuRenderTime ms";
 
 // FIXME(loicm) Ideally, we should have:
 // " CPU(usage) ......... 4 %%\n"
