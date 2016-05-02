@@ -725,14 +725,16 @@ static const struct {
     quint16 nameSize;
     quint16 width;
 } counterInfo[] = {
-    { "cpuUsage",      "%3d",   sizeof("cpuUsage") - 1,      3 },
-    { "threadCount",   "%3d",   sizeof("threadCount") - 1,   3 },
-    { "vszMemory",     "%8d",   sizeof("vszMemory") - 1,     8 },
-    { "rssMemory",     "%8d",   sizeof("rssMemory") - 1,     8 },
-    { "frameNumber",    "%7d",  sizeof("frameNumber") - 1,   7 },
-    { "syncTime",      "%7.2f", sizeof("syncTime") - 1,      7 },
-    { "renderTime",    "%7.2f", sizeof("renderTime") - 1,    7 },
-    { "gpuRenderTime", "%7.2f", sizeof("gpuRenderTime") - 1, 7 }
+    { "cpuUsage",    "%3d",   sizeof("cpuUsage") - 1,    3 },
+    { "threadCount", "%3d",   sizeof("threadCount") - 1, 3 },
+    { "vszMemory",   "%8d",   sizeof("vszMemory") - 1,   8 },
+    { "rssMemory",   "%8d",   sizeof("rssMemory") - 1,   8 },
+    { "frameNumber", "%7d",   sizeof("frameNumber") - 1, 7 },
+    { "deltaTime",   "%7.2f", sizeof("deltaTime") - 1,   7 },
+    { "syncTime",    "%7.2f", sizeof("syncTime") - 1,    7 },
+    { "renderTime",  "%7.2f", sizeof("renderTime") - 1,  7 },
+    { "gpuTime",     "%7.2f", sizeof("gpuTime") - 1,     7 },
+    { "totalTime",   "%7.2f", sizeof("totalTime") - 1,   7 }
 };
 
 // The highest width field in the counterInfo struct.
@@ -745,10 +747,12 @@ enum {
     ThreadCount,
     VszMemory,
     RssMemory,
-    FrameCount,
+    FrameNumber,
+    DeltaTime,
     SyncTime,
     RenderTime,
-    GpuRenderTime,
+    GpuTime,
+    TotalTime,
     CounterCount
 };
 
@@ -761,9 +765,11 @@ static const char* const defaultOverlayText =
     " Threads:       %threadCount\n"
     " CPU usage:     %cpuUsage %%\r"
     " Frame:     %frameNumber\n"
+    " Delta n-1: %deltaTime ms\n"
     " SG sync:   %syncTime ms\n"
     " SG render: %renderTime ms\n"
-    " GPU:       %gpuRenderTime ms";
+    " GPU:       %gpuTime ms\n"
+    " Total:     %totalTime ms";
 
 // FIXME(loicm) Ideally, we should have:
 // " CPU(usage) ......... 4 %%\n"
@@ -842,6 +848,7 @@ PerformanceMetricsPrivate::PerformanceMetricsPrivate(QQuickWindow* window, bool 
     , m_defaultLoggingDevice()
     , m_bitmapText()
     , m_gpuTimer()
+    , m_deltaTime(0.0f)
     , m_flags(DirtyText | DirtyTransform | DirtyOpacity | (overlayVisible ? OverlayVisible : 0))
 {
     DLOG_FUNC();
@@ -1211,7 +1218,7 @@ void PerformanceMetricsPrivate::windowAfterRendering()
     if (m_flags & Initialised) {
         // Update GPU timer even if not overlaid nor logged to simplify logic
         // (GpuTimer can't be started or stopped twice in row).
-        m_counters.gpuRenderTime = (m_flags & GpuTimerAvailable) ? m_gpuTimer.stop() : 0;
+        m_counters.gpuTime = (m_flags & GpuTimerAvailable) ? m_gpuTimer.stop() : 0;
 
         if (m_flags & (OverlayVisible | Logging)) {
             // Update counters.
@@ -1268,7 +1275,9 @@ void PerformanceMetricsPrivate::windowFrameSwapped()
 
     if (m_flags & Initialised) {
         if (m_flags & (OverlayVisible | Logging)) {
-            m_counters.timeStamp = m_timeStampTimer.nsecsElapsed();
+            const quint64 timeStamp = m_timeStampTimer.nsecsElapsed();
+            m_deltaTime = (timeStamp - m_counters.timeStamp) * 0.000001f;
+            m_counters.timeStamp = timeStamp;
             m_counters.swapTime = m_sceneGraphTimer.nsecsElapsed();
         }
         if (m_flags & Logging ) {
@@ -1278,7 +1287,7 @@ void PerformanceMetricsPrivate::windowFrameSwapped()
                    << m_counters.frameNumber << ' '
                    << m_counters.syncTime << ' '
                    << m_counters.renderTime << ' '
-                   << m_counters.gpuRenderTime << ' '
+                   << m_counters.gpuTime << ' '
                    << m_counters.swapTime << ' '
                    << m_counters.cpuUsage << ' '
                    << m_counters.vszMemory << ' '
@@ -1317,8 +1326,11 @@ void PerformanceMetricsPrivate::updateOverlayText()
         case RssMemory:
             snprintf(buffer, width + 1, format, m_counters.rssMemory);
             break;
-        case FrameCount:
+        case FrameNumber:
             snprintf(buffer, width + 1, format, m_counters.frameNumber);
+            break;
+        case DeltaTime:
+            snprintf(buffer, width + 1, format, m_deltaTime);
             break;
         case SyncTime:
             snprintf(buffer, width + 1, format, m_counters.syncTime * 0.000001f);
@@ -1326,12 +1338,16 @@ void PerformanceMetricsPrivate::updateOverlayText()
         case RenderTime:
             snprintf(buffer, width + 1, format, m_counters.renderTime * 0.000001f);
             break;
-        case GpuRenderTime:
+        case GpuTime:
             if (m_flags & GpuTimerAvailable) {
-                snprintf(buffer, width + 1, format, m_counters.gpuRenderTime * 0.000001f);
+                snprintf(buffer, width + 1, format, m_counters.gpuTime * 0.000001f);
             } else {
                 strncpy(buffer, "    N/A", width);
             }
+            break;
+        case TotalTime:
+            snprintf(buffer, width + 1, format, 0.000001f
+                     * (m_counters.syncTime + m_counters.renderTime + m_counters.gpuTime));
             break;
         default:
             DNOT_REACHED();

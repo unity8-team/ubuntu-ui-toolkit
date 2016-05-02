@@ -248,11 +248,13 @@ public:
     clock_t m_cpuTicks;
     struct tms m_cpuTimes;
 
+    float m_deltaTime;
+
     struct Counters {
         quint64 timeStamp;
         quint64 syncTime;
         quint64 renderTime;
-        quint64 gpuRenderTime;
+        quint64 gpuTime;
         quint64 swapTime;
         quint32 frameNumber;
         quint32 cpuUsage;
