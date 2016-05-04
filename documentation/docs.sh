@@ -33,6 +33,15 @@ cat $DOC_PATH/qdoc.err
 test ! -s $DOC_PATH/qdoc.err || exit 1
 echo docs: Offline done.
 
+# Verify inheritance
+grep -m 1 import $DOC_PATH/offline/qml-ubuntu-*.html | grep -v 'Inherits:' | sed -r "s@([^:]+).+@\1@g" > $DOC_PATH/qdoc.err
+if [ -s $DOC_PATH/qdoc.err ]; then
+    echo 'Missing \inherits tag in the following components:'
+    cat $DOC_PATH/qdoc.err
+    exit 1
+fi
+echo docs: \inherits tags verified.
+
 eval "$QHELPGENERATOR -o '$DOC_PATH/ubuntuuserinterfacetoolkit.qch' '$DOC_PATH/offline/ubuntuuserinterfacetoolkit.qhp' | grep -v ' does not exist! Skipping it'"
 echo docs: qch done: $DOC_PATH
 
