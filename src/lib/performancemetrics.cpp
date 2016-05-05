@@ -699,6 +699,7 @@ quint64 GPUTimer::stop()
         break;                                     \
     }
 
+// Logging thread entry point.
 void Logger::run()
 {
     DLOG_FUNC();
