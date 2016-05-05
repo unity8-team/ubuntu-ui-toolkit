@@ -22,6 +22,7 @@
 #include <QtCore/QLibraryInfo>
 #include <QtCore/QTextStream>
 #include <unistd.h>
+#include <fcntl.h>
 
 // --- BitmapText ---
 
@@ -816,11 +817,11 @@ static const struct {
     quint16 nameSize;
     quint16 width;
 } counterInfo[] = {
-    { "cpuUsage",    "%3d",   sizeof("cpuUsage") - 1,    3 },
-    { "threadCount", "%3d",   sizeof("threadCount") - 1, 3 },
-    { "vszMemory",   "%8d",   sizeof("vszMemory") - 1,   8 },
-    { "rssMemory",   "%8d",   sizeof("rssMemory") - 1,   8 },
-    { "frameNumber", "%7d",   sizeof("frameNumber") - 1, 7 },
+    { "cpuUsage",    "%3u",   sizeof("cpuUsage") - 1,    3 },
+    { "threadCount", "%3u",   sizeof("threadCount") - 1, 3 },
+    { "vszMemory",   "%8u",   sizeof("vszMemory") - 1,   8 },
+    { "rssMemory",   "%8u",   sizeof("rssMemory") - 1,   8 },
+    { "frameNumber", "%7u",   sizeof("frameNumber") - 1, 7 },
     { "deltaTime",   "%7.2f", sizeof("deltaTime") - 1,   7 },
     { "syncTime",    "%7.2f", sizeof("syncTime") - 1,    7 },
     { "renderTime",  "%7.2f", sizeof("renderTime") - 1,  7 },
@@ -1329,8 +1330,7 @@ void PerformanceMetricsPrivate::windowAfterRendering()
             m_counters.renderTime = m_sceneGraphTimer.nsecsElapsed();
             m_counters.frameNumber++;
             updateCpuUsage();
-            updateThreadCount();
-            updateMemoryUsage();
+            updateProcStatCounters();
         }
 
         // Update and render overlay.
@@ -1670,77 +1670,63 @@ void PerformanceMetricsPrivate::updateCpuUsage()
     }
 }
 
-void PerformanceMetricsPrivate::updateThreadCount()
+void PerformanceMetricsPrivate::updateProcStatCounters()
 {
-    // FIXME(loicm) Maybe we should throttle that, since it takes a bit of CPU
-    //     usage and having the exact thread count per frame doesn't seem of big
-    //     significance?
-
     DLOG_FUNC();
 
-    FILE* file = fopen("/proc/self/stat", "r");
-    if (!file) {
+    // FIXME(loicm) Should we throttle to minimise the (little) CPU impact?
+
+    int fd = open("/proc/self/stat", O_RDONLY);
+    if (fd == -1) {
         DWARN("QuickPlusPerformanceMetrics: can't open '/proc/self/stat'");
         return;
     }
     const int bufferSize = 128;
     char buffer[bufferSize];
-    if (fread(buffer, bufferSize, 1, file) < 1) {
+    if (read(fd, buffer, bufferSize) != bufferSize) {
         DWARN("QuickPlusPerformanceMetrics: can't read '/proc/self/stat'");
-        fclose(file);
+        close(fd);
         return;
     }
 
-    // Skip the 19 first entries, checking if there's enough space in buffer to
-    // scan the next one.
-    int sourceIndex = 0, spaceCount = 0, entryIndex = 0;
-    while (spaceCount < 19 + 1) {
+    // Entries starting from 1 (as listed by 'man proc').
+    const int numThreadsEntry = 20;
+    const int vsizeEntry = 23;
+    const int rssEntry = 24;
+    const int lastEntry = rssEntry;
+
+    // Get the indices of num_threads, vsize and rss entries and check if
+    // the buffer is big enough.
+    int sourceIndex = 0, spaceCount = 0;
+    quint16 entryIndices[lastEntry];
+    entryIndices[sourceIndex] = 0;
+    while (spaceCount < lastEntry) {
         if (sourceIndex < bufferSize) {
             if (buffer[sourceIndex++] == ' ') {
-                if (++spaceCount == 19) {
-                    entryIndex = sourceIndex;
-                }
+                entryIndices[++spaceCount] = sourceIndex;
             }
         } else {
             DNOT_REACHED();  // Consider increasing bufferSize.
-            fclose(file);
+            close(fd);
             return;
         }
     }
 
-    long threadCount;
+    unsigned long vsize;
+    long threadCount, rss;
 #if !defined(QT_NO_DEBUG)
-    const int value = sscanf(&buffer[entryIndex], "%ld", &threadCount);
+    int value = sscanf(&buffer[entryIndices[numThreadsEntry-1]], "%ld", &threadCount);
     ASSERT(value == 1);
+    value = sscanf(&buffer[entryIndices[vsizeEntry-1]], "%lu %ld", &vsize, &rss);
+    ASSERT(value == 2);
 #else
-    sscanf(&buffer[entryIndex], "%ld", &threadCount);
+    sscanf(&buffer[entryIndices[numThreadsEntry-1]], "%ld", &threadCount);
+    sscanf(&buffer[entryIndices[vsizeEntry-1]], "%lu %ld", &vsize, &rss);
 #endif
 
-    // Subtract our I/O thread from the count.
-    m_counters.threadCount = threadCount - 1;
+    m_counters.vszMemory = vsize >> 10;
+    m_counters.rssMemory = (rss * m_pageSize) >> 10;
+    m_counters.threadCount = threadCount - 1;  // Subtract logger thread from the count.
 
-    fclose(file);
-}
-
-void PerformanceMetricsPrivate::updateMemoryUsage()
-{
-    DLOG_FUNC();
-
-    unsigned long vsz;
-    long rss;
-
-    FILE* file = fopen("/proc/self/statm", "r");
-    if (!file) {
-        DWARN("QuickPlusPerformanceMetrics: can't open '/proc/self/statm'");
-        return;
-    }
-    if (fscanf(file, "%lu %ld", &vsz, &rss) != 2) {
-        DWARN("QuickPlusPerformanceMetrics: can't read '/proc/self/statm'");
-        fclose(file);
-        return;
-    }
-    fclose(file);
-
-    m_counters.vszMemory = (vsz * m_pageSize) / 1024;
-    m_counters.rssMemory = (rss * m_pageSize) / 1024;
+    close(fd);
 }

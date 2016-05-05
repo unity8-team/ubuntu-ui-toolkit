@@ -248,8 +248,7 @@ public:
     int keywordString(int index, char* buffer, int bufferSize);
     void parseOverlayText();
     void updateCpuUsage();
-    void updateThreadCount();
-    void updateMemoryUsage();
+    void updateProcStatCounters();
 
     // Flags.
     enum {
