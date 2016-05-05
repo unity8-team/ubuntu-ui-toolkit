@@ -215,16 +215,16 @@ const quint16* UCShadowNode::indices(UCShadow::Style style)
         3, 6, 4, 7, 5, 8
     };
     // The geometry is made of 36 vertices indexed with a triangle strip mode.
-    //     0 ----------- 1 8 ----------- 9
-    //     |  4 ----- 5  | |  12 --- 13  |
-    //     |  |       |  | |  |       |  |
-    //     |  6 ----- 7  | |  14 --- 15  |
-    //     2 ----------- 3 10 --------- 11
-    //     16 --------- 17 24 --------- 25
-    //     |  20 --- 21  | |  28 --- 29  |
-    //     |  |       |  | |  |       |  |
-    //     |  22 --- 23  | |  30 --- 31  |
-    //     18 --------- 19 26 --------- 27
+    //     0 --------- 1 8 --------- 9
+    //     |  4 --- 5  | |  12 - 13  |
+    //     |  |     |  | |  |     |  |
+    //     |  6 --- 7  | |  14 - 15  |
+    //     2 --------- 3 10 ------- 11
+    //     16 ------- 17 24 ------- 25
+    //     |  20 - 21  | |  28 - 29  |
+    //     |  |     |  | |  |     |  |
+    //     |  22 - 23  | |  30 - 31  |
+    //     18 ------- 19 26 ------- 27
     static const quint16 innerIndices[] = {
         0, 4, 1, 5, 3, 7, 2, 6, 0, 4,
         4, 8,  // Degenerate triangle.
@@ -325,19 +325,16 @@ void UCShadowNode::updateGeometry(
     // light position and using the opposite angle to rotate counter clockwise.
     float s, c;
     sincosf((180.0f - angle) * (M_PI / 180.0f), &s, &c);
-    const float offsetX = c * distance;
-    const float offsetY = s * distance;
-
-    float midW = w * 0.5f;
-    float midH = h * 0.5f;
-    float midWShadow = midW + clampedShadow;
-    float midHShadow = midH + clampedShadow;
-    float textureMidWShadow = midWShadow * textureFactor + textureOffset;
-    float textureMidHShadow = midHShadow * textureFactor + textureOffset;
 
     if (m_style == UCShadow::Outer) {
         UCShadowNode::OuterVertex* v =
             reinterpret_cast<UCShadowNode::OuterVertex*>(m_geometry->vertexData());
+        const float midW = w * 0.5f;
+        const float midH = h * 0.5f;
+        const float textureMidWShadow = (midW + clampedShadow) * textureFactor + textureOffset;
+        const float textureMidHShadow = (midH + clampedShadow) * textureFactor + textureOffset;
+        const float offsetX = c * distance;
+        const float offsetY = s * distance;
 
         // 1st row.
         v[0].x = -clampedShadow + offsetX;
@@ -345,7 +342,7 @@ void UCShadowNode::updateGeometry(
         v[0].s = textureOffset;
         v[0].t = textureOffset;
         v[0].color = packedColor;
-        v[1].x = w * 0.5f + offsetX;
+        v[1].x = midW + offsetX;
         v[1].y = -clampedShadow + offsetY;
         v[1].s = textureMidWShadow;
         v[1].t = textureOffset;
@@ -357,17 +354,17 @@ void UCShadowNode::updateGeometry(
         v[2].color = packedColor;
         // 2nd row.
         v[3].x = -clampedShadow + offsetX;
-        v[3].y = h * 0.5f + offsetY;
+        v[3].y = midH + offsetY;
         v[3].s = textureOffset;
         v[3].t = textureMidHShadow;
         v[3].color = packedColor;
-        v[4].x = w * 0.5f + offsetX;
-        v[4].y = h * 0.5f + offsetY;
+        v[4].x = midW + offsetX;
+        v[4].y = midH + offsetY;
         v[4].s = textureMidWShadow;
         v[4].t = textureMidHShadow;
         v[4].color = packedColor;
         v[5].x = w + clampedShadow + offsetX;
-        v[5].y = h * 0.5f + offsetY;
+        v[5].y = midH + offsetY;
         v[5].s = textureOffset;
         v[5].t = textureMidHShadow;
         v[5].color = packedColor;
@@ -377,7 +374,7 @@ void UCShadowNode::updateGeometry(
         v[6].s = textureOffset;
         v[6].t = textureOffset;
         v[6].color = packedColor;
-        v[7].x = w * 0.5f + offsetX;
+        v[7].x = midW + offsetX;
         v[7].y = h + clampedShadow + offsetY;
         v[7].s = textureMidWShadow;
         v[7].t = textureOffset;
@@ -392,80 +389,77 @@ void UCShadowNode::updateGeometry(
         UCShadowNode::InnerVertex* v =
             reinterpret_cast<UCShadowNode::InnerVertex*>(m_geometry->vertexData());
 
+        const float maxOffsetX = qMax(0.0f, w - 2.0f * (clampedRadius + clampedShadow));
+        const float maxOffsetY = qMax(0.0f, h - 2.0f * (clampedRadius + clampedShadow));
+        const float offsetX = qBound(-maxOffsetX, c * distance, maxOffsetX);
+        const float offsetY = qBound(-maxOffsetY, s * distance, maxOffsetY);
+        const float midWOffset = (offsetX > 0.0f ? 1.0f : -1.0f) * maxOffsetX - 2.0f * offsetX;
+        const float midHOffset = (offsetY > 0.0f ? 1.0f : -1.0f) * maxOffsetY - 2.0f * offsetY;
+        const float midW = 0.5f * (w - midWOffset);
+        const float midH = 0.5f * (h - midHOffset);
+
+        //const float textureMidWShadow = (midW + clampedShadow) * textureFactor + textureOffset;
+        //const float textureMidHShadow = (midH + clampedShadow) * textureFactor + textureOffset;
+
+        const float shadowOffsetX = clampedShadow + offsetX;
+        const float shadowOffsetY = clampedShadow + offsetY;
+        //const float midWShadowOffsetX = midW + shadowOffsetX;
+        //const float midHShadowOffsetY = midH + shadowOffsetY;
+        //const float textureMidWShadowOffsetX = midWShadowOffsetX * textureFactor + textureOffset;
+        //const float textureMidHShadowOffsetY = midHShadowOffsetY * textureFactor + textureOffset;
+
+        const float shadowMinusOffsetX = clampedShadow - offsetX;
+        const float shadowMinusOffsetY = clampedShadow - offsetY;
+        //const float midWShadowMinusOffsetX = midW + shadowMinusOffsetX;
+        //const float midHShadowMinusOffsetY = midH + shadowMinusOffsetY;
+        //const float textureMidWShadowMinusOffsetX = midWShadowMinusOffsetX * textureFactor + textureOffset;
+        //const float textureMidHShadowMinusOffsetY = midHShadowMinusOffsetY * textureFactor + textureOffset;
+
         // Position in the corner where we can put the inner vertex without
         // cropping shape pixels. That allows to avoid using the radius directly
         // and render too much transparent pixels. We consider the shape is a
         // circle (it's harder to get that value for the SVG defined curve of
         // the squircle shape), hence the 1/sqrt(2) (= cos(Pi/4)).
+        const float shapeCoverage =
+            m_newShape == UCShadow::Squircle ? squircleCoverage : 1.0f - M_SQRT1_2;
         const float cornerLimit =
-            qMin(ceilf(clampedRadius * (1.0f - M_SQRT1_2))
-                 + sqrtf(clampedShadow*clampedShadow+clampedShadow*clampedShadow), maxSize);
-
-        // if (clampedShadow + fabsf(offsetX) > midW) {
-        //     midW += offsetX < 0.0f ?
-        //        -(clampedShadow + fabsf(offsetX) - midW) :
-        //         (clampedShadow + fabsf(offsetX) - midW);
-        // }
-        // midWShadow = midW + clampedShadow;
-        // midHShadow = midH + clampedShadow;
-        // textureMidWShadow = midWShadow * textureFactor + textureOffset;
-        // textureMidHShadow = midHShadow * textureFactor + textureOffset;
-
-        const float textureShadow = clampedShadow * textureFactor + textureOffset;
-
-        const float shadowOffsetX = clampedShadow + offsetX;
-        const float shadowOffsetY = clampedShadow + offsetY;
-        const float textureShadowOffsetX = shadowOffsetX * textureFactor + textureOffset;
-        const float textureShadowOffsetY = shadowOffsetY * textureFactor + textureOffset;
-        const float midWShadowOffsetX = midW + shadowOffsetX;
-        const float midHShadowOffsetY = midH + shadowOffsetY;
-        const float textureMidWShadowOffsetX = midWShadowOffsetX * textureFactor + textureOffset;
-        const float textureMidHShadowOffsetY = midHShadowOffsetY * textureFactor + textureOffset;
-
-        const float shadowMinusOffsetX = clampedShadow - offsetX;
-        const float shadowMinusOffsetY = clampedShadow - offsetY;
-        const float textureShadowMinusOffsetX = shadowMinusOffsetX * textureFactor + textureOffset;
-        const float textureShadowMinusOffsetY = shadowMinusOffsetY * textureFactor + textureOffset;
-        const float midWShadowMinusOffsetX = midW + shadowMinusOffsetX;
-        const float midHShadowMinusOffsetY = midH + shadowMinusOffsetY;
-        const float textureMidWShadowMinusOffsetX = midWShadowMinusOffsetX * textureFactor + textureOffset;
-        const float textureMidHShadowMinusOffsetY = midHShadowMinusOffsetY * textureFactor + textureOffset;
+            qMin(ceilf(clampedRadius * shapeCoverage + clampedShadow), maxSize);
 
         float x1, x2, y1, y2;
 
         // Top-left quad.
         v[0].x = 0.0f;
         v[0].y = 0.0f;
-        v[0].shadowS = textureShadowMinusOffsetX;
-        v[0].shadowT = textureShadowMinusOffsetY;
-        v[0].shapeS = textureShadow;
-        v[0].shapeT = textureShadow;
+        v[0].shadowS = shadowMinusOffsetX * textureFactor + textureOffset;
+        v[0].shadowT = shadowMinusOffsetY * textureFactor + textureOffset;
+        v[0].shapeS = clampedShadow * textureFactor + textureOffset;
+        v[0].shapeT = clampedShadow * textureFactor + textureOffset;
         v[0].color = packedColor;
         v[1].x = midW;
         v[1].y = 0.0f;
-        v[1].shadowS = textureMidWShadowMinusOffsetX;
-        v[1].shadowT = textureShadowMinusOffsetY;
-        v[1].shapeS = textureMidWShadow;
-        v[1].shapeT = textureShadow;
+        v[1].shadowS = (midW + clampedShadow - offsetX) * textureFactor + textureOffset;
+        v[1].shadowT = shadowMinusOffsetY * textureFactor + textureOffset;
+        v[1].shapeS = (midW + clampedShadow) * textureFactor + textureOffset;
+        v[1].shapeT = clampedShadow * textureFactor + textureOffset;
         v[1].color = packedColor;
         v[2].x = 0.0f;
         v[2].y = midH;
-        v[2].shadowS = textureShadowMinusOffsetX;
-        v[2].shadowT = textureMidHShadowMinusOffsetY;
-        v[2].shapeS = textureShadow;
-        v[2].shapeT = textureMidHShadow;
+        v[2].shadowS = shadowMinusOffsetX * textureFactor + textureOffset;
+        v[2].shadowT = (midH + clampedShadow - offsetY) * textureFactor + textureOffset;
+        v[2].shapeS = clampedShadow * textureFactor + textureOffset;
+        v[2].shapeT = (midH + clampedShadow) * textureFactor + textureOffset;
         v[2].color = packedColor;
         v[3].x = midW;
         v[3].y = midH;
-        v[3].shadowS = textureMidWShadowMinusOffsetX;
-        v[3].shadowT = textureMidHShadowMinusOffsetY;
-        v[3].shapeS = textureMidWShadow;
-        v[3].shapeT = textureMidHShadow;
+        v[3].shadowS = (midW + clampedShadow - offsetX) * textureFactor + textureOffset;
+        v[3].shadowT = (midH + clampedShadow - offsetY) * textureFactor + textureOffset;
+        v[3].shapeS = (midW + clampedShadow) * textureFactor + textureOffset;
+        v[3].shapeT = (midH + clampedShadow) * textureFactor + textureOffset;
         v[3].color = packedColor;
-        x1 = qBound(cornerLimit, shadowOffsetX, midW);
-        y1 = qBound(cornerLimit, shadowOffsetY, midH);
-        x2 = qBound(cornerLimit, w - clampedShadow + offsetX, midW);
-        y2 = qBound(cornerLimit, h - clampedShadow + offsetY, midH);
+        x1 = qBound(cornerLimit, /*shadowOffsetX*/cornerLimit + offsetX, midW);
+        y1 = qBound(cornerLimit, /*shadowOffsetY*/cornerLimit + offsetY, midH);
+        x2 = qBound(cornerLimit, w - /*clampedShadow*/cornerLimit + offsetX, midW);
+        y2 = qBound(cornerLimit, h - /*clampedShadow*/cornerLimit + offsetY, midH);
         v[4].x = x1;
         v[4].y = y1;
         v[4].shadowS = (x1 + shadowMinusOffsetX) * textureFactor + textureOffset;
@@ -495,40 +489,39 @@ void UCShadowNode::updateGeometry(
         v[7].shapeT = (y2 + clampedShadow) * textureFactor + textureOffset;
         v[7].color = packedColor;
 
-        // Top-right quad, outer vertices.
+        // Top-right quad.
         v[8].x = midW;
         v[8].y = 0.0f;
-        v[8].shadowS = textureMidWShadowOffsetX;
-        v[8].shadowT = textureShadowMinusOffsetY;
-        v[8].shapeS = textureMidWShadow;
-        v[8].shapeT = textureShadow;
+        v[8].shadowS = (midW + midWOffset + clampedShadow + offsetX) * textureFactor + textureOffset;
+        v[8].shadowT = shadowMinusOffsetY * textureFactor + textureOffset;
+        v[8].shapeS = (midW + midWOffset + clampedShadow) * textureFactor + textureOffset;
+        v[8].shapeT = clampedShadow * textureFactor + textureOffset;
         v[8].color = packedColor;
         v[9].x = w;
         v[9].y = 0.0f;
-        v[9].shadowS = textureShadowOffsetX;
-        v[9].shadowT = textureShadowMinusOffsetY;
-        v[9].shapeS = textureShadow;
-        v[9].shapeT = textureShadow;
+        v[9].shadowS = shadowOffsetX * textureFactor + textureOffset;
+        v[9].shadowT = shadowMinusOffsetY * textureFactor + textureOffset;
+        v[9].shapeS = clampedShadow * textureFactor + textureOffset;
+        v[9].shapeT = clampedShadow * textureFactor + textureOffset;
         v[9].color = packedColor;
         v[10].x = midW;
         v[10].y = midH;
-        v[10].shadowS = textureMidWShadowOffsetX;
-        v[10].shadowT = textureMidHShadowMinusOffsetY;
-        v[10].shapeS = textureMidWShadow;
-        v[10].shapeT = textureMidHShadow;
+        v[10].shadowS = (midW + midWOffset + clampedShadow + offsetX) * textureFactor + textureOffset;
+        v[10].shadowT = (midH + clampedShadow - offsetY) * textureFactor + textureOffset;
+        v[10].shapeS = (midW + midWOffset + clampedShadow) * textureFactor + textureOffset;
+        v[10].shapeT = (midH + clampedShadow) * textureFactor + textureOffset;
         v[10].color = packedColor;
         v[11].x = w;
         v[11].y = midH;
-        v[11].shadowS = textureShadowOffsetX;
-        v[11].shadowT = textureMidHShadowMinusOffsetY;
-        v[11].shapeS = textureShadow;
-        v[11].shapeT = textureMidHShadow;
+        v[11].shadowS = shadowOffsetX * textureFactor + textureOffset;
+        v[11].shadowT = (midH + clampedShadow - offsetY) * textureFactor + textureOffset;
+        v[11].shapeS = clampedShadow * textureFactor + textureOffset;
+        v[11].shapeT = (midH + clampedShadow) * textureFactor + textureOffset;
         v[11].color = packedColor;
-        // Top-right quad, inner vertices.
-        x1 = qBound(midW, shadowOffsetX, w - cornerLimit);
-        y1 = qBound(cornerLimit, shadowOffsetY, midH);
-        x2 = qBound(midW, w - clampedShadow + offsetX, w - cornerLimit);
-        y2 = qBound(cornerLimit, h - clampedShadow + offsetY, midH);
+        x1 = qBound(midW, /*shadowOffsetX*/cornerLimit + offsetX, w - cornerLimit);
+        y1 = qBound(cornerLimit, /*shadowOffsetY*/cornerLimit + offsetY, midH);
+        x2 = qBound(midW, w - /*clampedShadow*/cornerLimit + offsetX, w - cornerLimit);
+        y2 = qBound(cornerLimit, h - /*clampedShadow*/cornerLimit + offsetY, midH);
         v[12].x = x1;
         v[12].y = y1;
         v[12].shadowS = (w - x1 + shadowOffsetX) * textureFactor + textureOffset;
@@ -558,40 +551,39 @@ void UCShadowNode::updateGeometry(
         v[15].shapeT = (y2 + clampedShadow) * textureFactor + textureOffset;
         v[15].color = packedColor;
 
-        // Bottom-left quad, outer vertices.
+        // Bottom-left quad.
         v[16].x = 0.0f;
         v[16].y = midH;
-        v[16].shadowS = textureShadowMinusOffsetX;
-        v[16].shadowT = textureMidHShadowOffsetY;
-        v[16].shapeS = textureShadow;
-        v[16].shapeT = textureMidHShadow;
+        v[16].shadowS = shadowMinusOffsetX * textureFactor + textureOffset;
+        v[16].shadowT = (midH + midHOffset + clampedShadow + offsetY) * textureFactor + textureOffset;
+        v[16].shapeS = clampedShadow * textureFactor + textureOffset;
+        v[16].shapeT = (midH + midHOffset + clampedShadow) * textureFactor + textureOffset;
         v[16].color = packedColor;
         v[17].x = midW;
         v[17].y = midH;
-        v[17].shadowS = textureMidWShadowMinusOffsetX;
-        v[17].shadowT = textureMidHShadowOffsetY;
-        v[17].shapeS = textureMidWShadow;
-        v[17].shapeT = textureMidHShadow;
+        v[17].shadowS = (midW + clampedShadow - offsetX) * textureFactor + textureOffset;
+        v[17].shadowT = (midH + midHOffset + clampedShadow + offsetY) * textureFactor + textureOffset;
+        v[17].shapeS = (midW + clampedShadow) * textureFactor + textureOffset;
+        v[17].shapeT = (midH + midHOffset + clampedShadow) * textureFactor + textureOffset;
         v[17].color = packedColor;
         v[18].x = 0.0f;
         v[18].y = h;
-        v[18].shadowS = textureShadowMinusOffsetX;
-        v[18].shadowT = textureShadowOffsetY;
-        v[18].shapeS = textureShadow;
-        v[18].shapeT = textureShadow;
+        v[18].shadowS = shadowMinusOffsetX * textureFactor + textureOffset;
+        v[18].shadowT = shadowOffsetY * textureFactor + textureOffset;
+        v[18].shapeS = clampedShadow * textureFactor + textureOffset;
+        v[18].shapeT = clampedShadow * textureFactor + textureOffset;
         v[18].color = packedColor;
         v[19].x = midW;
         v[19].y = h;
-        v[19].shadowS = textureMidWShadowMinusOffsetX;
-        v[19].shadowT = textureShadowOffsetY;
-        v[19].shapeS = textureMidWShadow;
-        v[19].shapeT = textureShadow;
+        v[19].shadowS = (midW + clampedShadow - offsetX) * textureFactor + textureOffset;
+        v[19].shadowT = shadowOffsetY * textureFactor + textureOffset;
+        v[19].shapeS = (midW + clampedShadow) * textureFactor + textureOffset;
+        v[19].shapeT = clampedShadow * textureFactor + textureOffset;
         v[19].color = packedColor;
-        // bottom-left quad, inner vertices.
-        x1 = qBound(cornerLimit, shadowOffsetX, midW);
-        y1 = qBound(midH, shadowOffsetY, h - cornerLimit);
-        x2 = qBound(cornerLimit, w - clampedShadow + offsetX, midW);
-        y2 = qBound(midH, h - clampedShadow + offsetY, h - cornerLimit);
+        x1 = qBound(cornerLimit, /*shadowOffsetX*/cornerLimit + offsetX, midW);
+        y1 = qBound(midH, /*shadowOffsetY*/cornerLimit + offsetY, h - cornerLimit);
+        x2 = qBound(cornerLimit, w - /*clampedShadow*/cornerLimit + offsetX, midW);
+        y2 = qBound(midH, h - /*clampedShadow*/cornerLimit + offsetY, h - cornerLimit);
         v[20].x = x1;
         v[20].y = y1;
         v[20].shadowS = (x1 + shadowMinusOffsetX) * textureFactor + textureOffset;
@@ -621,40 +613,39 @@ void UCShadowNode::updateGeometry(
         v[23].shapeT = (h - y2 + clampedShadow) * textureFactor + textureOffset;
         v[23].color = packedColor;
 
-        // Bottom-right quad, outer vertices.
+        // Bottom-right quad.
         v[24].x = midW;
         v[24].y = midH;
-        v[24].shadowS = textureMidWShadowOffsetX;
-        v[24].shadowT = textureMidHShadowOffsetY;
-        v[24].shapeS = textureMidWShadow;
-        v[24].shapeT = textureMidHShadow;
+        v[24].shadowS = (midW + midWOffset + clampedShadow + offsetX) * textureFactor + textureOffset;
+        v[24].shadowT = (midH + midHOffset + clampedShadow + offsetY) * textureFactor + textureOffset;
+        v[24].shapeS = (midW + midWOffset + clampedShadow) * textureFactor + textureOffset;
+        v[24].shapeT = (midH + midHOffset + clampedShadow) * textureFactor + textureOffset;
         v[24].color = packedColor;
         v[25].x = w;
         v[25].y = midH;
-        v[25].shadowS = textureShadowOffsetX;
-        v[25].shadowT = textureMidHShadowOffsetY;
-        v[25].shapeS = textureShadow;
-        v[25].shapeT = textureMidHShadow;
+        v[25].shadowS = shadowOffsetX * textureFactor + textureOffset;
+        v[25].shadowT = (midH + midHOffset + clampedShadow + offsetY) * textureFactor + textureOffset;
+        v[25].shapeS = clampedShadow * textureFactor + textureOffset;
+        v[25].shapeT = (midH + midHOffset + clampedShadow) * textureFactor + textureOffset;
         v[25].color = packedColor;
         v[26].x = midW;
         v[26].y = h;
-        v[26].shadowS = textureMidWShadowOffsetX;
-        v[26].shadowT = textureShadowOffsetY;
-        v[26].shapeS = textureMidWShadow;
-        v[26].shapeT = textureShadow;
+        v[26].shadowS = (midW + midWOffset + clampedShadow + offsetX) * textureFactor + textureOffset;
+        v[26].shadowT = shadowOffsetY * textureFactor + textureOffset;
+        v[26].shapeS = (midW + midWOffset + clampedShadow) * textureFactor + textureOffset;
+        v[26].shapeT = clampedShadow * textureFactor + textureOffset;
         v[26].color = packedColor;
         v[27].x = w;
         v[27].y = h;
-        v[27].shadowS = textureShadowOffsetX;
-        v[27].shadowT = textureShadowOffsetY;
-        v[27].shapeS = textureShadow;
-        v[27].shapeT = textureShadow;
+        v[27].shadowS = shadowOffsetX * textureFactor + textureOffset;
+        v[27].shadowT = shadowOffsetY * textureFactor + textureOffset;
+        v[27].shapeS = clampedShadow * textureFactor + textureOffset;
+        v[27].shapeT = clampedShadow * textureFactor + textureOffset;
         v[27].color = packedColor;
-        // Bottom-right quad, inner vertices.
-        x1 = qBound(midW, shadowOffsetX, w - cornerLimit);
-        y1 = qBound(midH, shadowOffsetY, h - cornerLimit);
-        x2 = qBound(midW, w - clampedShadow + offsetX, w - cornerLimit);
-        y2 = qBound(midH, h - clampedShadow + offsetY, h - cornerLimit);
+        x1 = qBound(midW, /*shadowOffsetX*/cornerLimit + offsetX, w - cornerLimit);
+        y1 = qBound(midH, /*shadowOffsetY*/cornerLimit + offsetY, h - cornerLimit);
+        x2 = qBound(midW, w - /*clampedShadow*/cornerLimit + offsetX, w - cornerLimit);
+        y2 = qBound(midH, h - /*clampedShadow*/cornerLimit + offsetY, h - cornerLimit);
         v[28].x = x1;
         v[28].y = y1;
         v[28].shadowS = (w - x1 + shadowOffsetX) * textureFactor + textureOffset;

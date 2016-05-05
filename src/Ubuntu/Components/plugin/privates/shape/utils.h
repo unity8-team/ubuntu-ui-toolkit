@@ -40,6 +40,17 @@
 const int defaultRadius = 50;
 const int maxRadius = 128;
 
+// Squircle SVG defintion and approximate normalised coverage at Pi/4 (used to
+// correctly set vertex positions and minimise the amount of rasterised
+// fragments of geometry nodes).
+const char squircleSvg[] =
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    "<svg><g>"
+    "<path d=\"M35.9998055,36.0003433 L0,36.000344 C0,3.372032 3.345315,0 35.999805,0 "
+    "          L35.9998055,36.0003433 Z\" fill=\"#ffffff\"></path>"
+    "</g></svg>";
+const float squircleCoverage = 0.172f;
+
 // Gaussian kernels. Changing one field requires an update of the others, use
 // creategaussianarrays in the tools folder.
 const int gaussianCount = 128;

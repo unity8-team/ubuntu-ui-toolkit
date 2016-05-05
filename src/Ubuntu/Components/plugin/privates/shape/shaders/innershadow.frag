@@ -16,6 +16,8 @@
  * Author: Loïc Molinari <loic.molinari@canonical.com>
  */
 
+#define DEBUG_VERTEX_LAYOUT 0
+
 uniform sampler2D texture;
 uniform lowp float opacity;
 varying mediump vec2 texCoord1;
@@ -29,6 +31,9 @@ void main(void)
     // Fused multiply-add friendly version of (shape * (1.0 - shadow))
     lowp float shapedShadow = (shape * -shadow) + shape;
     gl_FragColor = vec4(shapedShadow * opacity) * color;
-    //gl_FragColor = vec4(1.0 - shape, 1.0 - shape, 1.0 - shape, 1.0);
-    //gl_FragColor = vec4(1.0, 0.0, 1.0, 1.0);
+
+#if DEBUG_VERTEX_LAYOUT == 1
+    gl_FragColor = ((vec4(shapedShadow) * color)
+        + vec4(1.0, 0.0, 0.0, 1.0) * vec4(1.0 - (shapedShadow * color.a))) * vec4(opacity);
+#endif
 }

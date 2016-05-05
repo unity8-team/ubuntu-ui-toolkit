@@ -76,12 +76,6 @@ static QHash<QOpenGLContext*, KeyHash> contextHash;
 static QMutex contextHashMutex;
 
 // QSvgRenderer being reentrant, we use a static instance with local data.
-const char squircleSvg[] =
-    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
-    "<svg><g>"
-    "<path d=\"M35.9998055,36.0003433 L0,36.000344 C0,3.372032 3.345315,0 35.999805,0 "
-    "          L35.9998055,36.0003433 Z\" fill=\"#ffffff\"></path>"
-    "</g></svg>";
 static QSvgRenderer svg(QByteArray(squircleSvg), 0);
 
 template <int N>
@@ -439,10 +433,16 @@ quint32 TextureFactory<N>::shadowTexture(int index, Texture::Shape shape, int ra
                             GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, NULL);
     }
 
+    // FIXME(loicm) Should be filled at texture creation with the same size.
+    quint16* buffer = (quint16*) calloc(textureSize * textureSize, 2);
+    funcs->glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, textureSize, textureSize, GL_LUMINANCE_ALPHA,
+                           GL_UNSIGNED_BYTE, buffer);
+    free(buffer);
+
     // Render and upload texture data.
     const int size = 2 * shadow + radius;
     const int offset = textureSize - size;
-    quint16* buffer = renderShadowTexture(shape, radius, shadow);
+    buffer = renderShadowTexture(shape, radius, shadow);
     funcs->glTexSubImage2D(GL_TEXTURE_2D, 0, offset, offset, size, size, GL_LUMINANCE_ALPHA,
                            GL_UNSIGNED_BYTE, buffer);
     free(buffer);
