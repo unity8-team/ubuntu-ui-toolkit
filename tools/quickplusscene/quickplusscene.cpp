@@ -389,9 +389,8 @@ public:
     QuitAfterFrameCountListener(QQuickWindow *window, int count)
         : QObject(window), m_count(count), m_currentCount(0)
     {
-        // FIXME(loicm) Should be frameSwapped.
-        connect(window, &QQuickWindow::afterRendering,
-                this, &QuitAfterFrameCountListener::onAfterRendering, Qt::DirectConnection);
+        connect(window, &QQuickWindow::frameSwapped,
+                this, &QuitAfterFrameCountListener::onFrameSwapped, Qt::DirectConnection);
     }
     ~QuitAfterFrameCountListener()
     {
@@ -399,7 +398,7 @@ public:
     }
 
 private slots:
-    void onAfterRendering()
+    void onFrameSwapped()
     {
         if (++m_currentCount >= m_count) {
             deleteLater();
