@@ -731,6 +731,8 @@ void Logger::run()
             QTextStream stream(device);
             stream << counters.timeStamp << ' '
                    << counters.frameNumber << ' '
+                   << counters.frameWidth << ' '
+                   << counters.frameHeight << ' '
                    << counters.syncTime << ' '
                    << counters.renderTime << ' '
                    << counters.gpuTime << ' '
@@ -822,6 +824,7 @@ static const struct {
     { "vszMemory",   "%8u",   sizeof("vszMemory") - 1,   8 },
     { "rssMemory",   "%8u",   sizeof("rssMemory") - 1,   8 },
     { "frameNumber", "%7u",   sizeof("frameNumber") - 1, 7 },
+    { "frameSize",   "%9s",   sizeof("frameSize") - 1,   9 },
     { "deltaTime",   "%7.2f", sizeof("deltaTime") - 1,   7 },
     { "syncTime",    "%7.2f", sizeof("syncTime") - 1,    7 },
     { "renderTime",  "%7.2f", sizeof("renderTime") - 1,  7 },
@@ -831,7 +834,7 @@ static const struct {
 
 // The highest width field in the counterInfo struct.
 // Keep in sync with counterInfo!
-const int maxCounterWidth = 8;
+const int maxCounterWidth = 9;
 
 // Keep in sync with counterInfo!
 enum {
@@ -840,6 +843,7 @@ enum {
     VszMemory,
     RssMemory,
     FrameNumber,
+    FrameSize,
     DeltaTime,
     SyncTime,
     RenderTime,
@@ -852,17 +856,18 @@ static const char* const defaultOverlayText =
     "%qtVersion (%qtPlatform) with %glVersion\n"
     "%cpuModel\n"
     "%gpuModel\r"
-    " VSZ mem.: %vszMemory kB\n"
-    " RSS mem.: %rssMemory kB\n"
-    " Threads:       %threadCount\n"
-    " CPU usage:     %cpuUsage %%\r"
-    " Frame:     %frameNumber\n"
+    " VSZ mem.:   %vszMemory kB\n"
+    " RSS mem.:   %rssMemory kB\n"
+    " Threads:         %threadCount\n"
+    " CPU usage:       %cpuUsage %%\r"
+    " Size:      %frameSize\n"
+    " Number:      %frameNumber\n"
     // FIXME(loicm) should be removed once we have a timing histogram with swap included.
-    " Delta n-1: %deltaTime ms\n"
-    " SG sync:   %syncTime ms\n"
-    " SG render: %renderTime ms\n"
-    " GPU:       %gpuTime ms\n"
-    " Total:     %totalTime ms";
+    " Delta n-1:   %deltaTime ms\n"
+    " SG sync:     %syncTime ms\n"
+    " SG render:   %renderTime ms\n"
+    " GPU:         %gpuTime ms\n"
+    " Total:       %totalTime ms";
 
 // FIXME(loicm) Ideally, we should have:
 // " CPU(usage) ......... 4 %%\n"
@@ -1299,6 +1304,9 @@ void PerformanceMetricsPrivate::windowBeforeRendering()
 
     QMutexLocker locker(&m_mutex);
     if (m_flags & Initialised) {
+        const QSize size = m_window->size();
+        m_counters.frameWidth = size.width();
+        m_counters.frameHeight = size.height();
         m_sceneGraphTimer.start();
         if (m_flags & GpuTimerAvailable) {
             m_gpuTimer.start();
@@ -1422,6 +1430,15 @@ void PerformanceMetricsPrivate::updateOverlayText()
         case FrameNumber:
             snprintf(buffer, width + 1, format, m_counters.frameNumber);
             break;
+        case FrameSize: {
+            char frameSize[16];
+            int count = snprintf(frameSize, 5, "%d", m_counters.frameWidth);
+            frameSize[count++] = 'x';
+            count += snprintf(&frameSize[count], 5, "%d", m_counters.frameHeight);
+            frameSize[count] = '\0';
+            sprintf(buffer, format, frameSize);
+            break;
+        }
         case DeltaTime:
             snprintf(buffer, width + 1, format, m_deltaTime);
             break;
@@ -1458,6 +1475,7 @@ int PerformanceMetricsPrivate::cpuModel(char* buffer, int bufferSize)
     DASSERT(buffer);
     DASSERT(bufferSize > 0);
 
+    // FIXME(loicm) Use open/read/close instead.
     FILE* file = fopen("/proc/cpuinfo", "r");
     if (!file) {
         DWARN("QuickPlusPerformanceMetrics: can't open '/proc/cpuinfo'");

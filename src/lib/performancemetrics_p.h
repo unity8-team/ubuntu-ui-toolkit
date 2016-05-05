@@ -194,6 +194,8 @@ struct Counters
     quint32 cpuUsage;
     quint32 vszMemory;
     quint32 rssMemory;
+    quint16 frameWidth;
+    quint16 frameHeight;
     quint16 threadCount;
 };
 
