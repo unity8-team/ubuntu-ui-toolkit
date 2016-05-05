@@ -678,7 +678,6 @@ quint64 GPUTimer::stop()
         return time;
     }
 #endif
-
     // Finish.
     else {
         QOpenGLFunctions* functions = QOpenGLContext::currentContext()->functions();
@@ -690,6 +689,97 @@ quint64 GPUTimer::stop()
 
     DNOT_REACHED();
     return 0;
+}
+
+// --- Logger ---
+
+#define BREAK_ON_TEAR_DOWN_REQUEST()               \
+    if (Q_UNLIKELY(m_flags & TearDownRequested)) { \
+        m_mutex.unlock();                          \
+        break;                                     \
+    }
+
+void Logger::run()
+{
+    DLOG_FUNC();
+
+    while (true) {
+        // Wait for new counters in the log queue.
+        m_mutex.lock();
+        DASSERT(m_queueSize >= 0);
+        if (m_queueSize == 0) {
+            BREAK_ON_TEAR_DOWN_REQUEST();
+            m_flags |= Waiting;
+            m_condition.wait(&m_mutex);
+            BREAK_ON_TEAR_DOWN_REQUEST();
+            m_flags &= ~Waiting;
+        }
+
+        // Unqueue oldest counters from the log queue.
+        DASSERT(m_queueSize > 0);
+        Counters counters;
+        memcpy(&counters, &m_queue[m_queueIndex], sizeof(Counters));
+        m_queueIndex = (m_queueIndex + 1) % maxQueueSize;
+        m_queueSize--;
+
+        // Log.
+        QIODevice* device = m_device;
+        m_mutex.unlock();
+        if (device) {
+            QTextStream stream(device);
+            stream << counters.timeStamp << ' '
+                   << counters.frameNumber << ' '
+                   << counters.syncTime << ' '
+                   << counters.renderTime << ' '
+                   << counters.gpuTime << ' '
+                   << counters.swapTime << ' '
+                   << counters.cpuUsage << ' '
+                   << counters.vszMemory << ' '
+                   << counters.rssMemory << ' '
+                   << counters.threadCount << '\n';
+        }
+    }
+}
+
+void Logger::log(const Counters* counters)
+{
+    DLOG_FUNC();
+
+    // Ensure the log queue is not full.
+    m_mutex.lock();
+    DASSERT(m_queueSize <= maxQueueSize);
+    while (m_queueSize == maxQueueSize) {
+        m_mutex.unlock();
+        QThread::yieldCurrentThread();
+        m_mutex.lock();
+    }
+
+    // Push counters to the log queue.
+    DASSERT(m_queueSize < maxQueueSize);
+    memcpy(&m_queue[(m_queueIndex + m_queueSize++) % maxQueueSize], counters, sizeof(Counters));
+    if (m_flags & Waiting) {
+        m_condition.wakeOne();
+    }
+    m_mutex.unlock();
+}
+
+void Logger::setDevice(QIODevice* device)
+{
+    DLOG_FUNC();
+
+    QMutexLocker locker(&m_mutex);
+    m_device = device;
+}
+
+void Logger::tearDown()
+{
+    DLOG_FUNC();
+
+    QMutexLocker locker(&m_mutex);
+    m_flags |= TearDownRequested;
+    if (m_flags & Waiting) {
+        m_condition.wakeOne();
+    }
 }
 
 // --- QuickPlusPerformanceMetrics and PerformanceMetricsPrivate ---
@@ -765,6 +855,7 @@ static const char* const defaultOverlayText =
     " Threads:       %threadCount\n"
     " CPU usage:     %cpuUsage %%\r"
     " Frame:     %frameNumber\n"
+    // FIXME(loicm) should be removed once we have a timing histogram with swap included.
     " Delta n-1: %deltaTime ms\n"
     " SG sync:   %syncTime ms\n"
     " SG render: %renderTime ms\n"
@@ -845,15 +936,15 @@ PerformanceMetricsPrivate::PerformanceMetricsPrivate(QQuickWindow* window, bool 
     , m_overlayText(defaultOverlayText)
     , m_overlayPosition(5.0f, 5.0f)
     , m_overlayOpacity(0.85f)
-    , m_defaultLoggingDevice()
     , m_bitmapText()
     , m_gpuTimer()
     , m_deltaTime(0.0f)
+    , m_logger()
     , m_flags(DirtyText | DirtyTransform | DirtyOpacity | (overlayVisible ? OverlayVisible : 0))
 {
     DLOG_FUNC();
 
-    m_defaultLoggingDevice.open(stdout, QIODevice::WriteOnly);
+    m_logger.start();
     m_cpuOnlineCores = sysconf(_SC_NPROCESSORS_ONLN);
     m_pageSize = sysconf(_SC_PAGESIZE);
     m_timeStampTimer.start();
@@ -876,7 +967,10 @@ QuickPlusPerformanceMetrics::~QuickPlusPerformanceMetrics()
 PerformanceMetricsPrivate::~PerformanceMetricsPrivate()
 {
     DLOG_FUNC();
+
+    m_logger.tearDown();
     delete [] m_overlayTextParsed;
+    m_logger.wait();
 }
 
 void QuickPlusPerformanceMetrics::setWindow(QQuickWindow* window)
@@ -1039,15 +1133,24 @@ QuickPlusPerformanceMetrics::UpdatePolicy QuickPlusPerformanceMetrics::windowUpd
 void QuickPlusPerformanceMetrics::setLoggingDevice(QIODevice* loggingDevice)
 {
     DLOG_FUNC();
-    Q_D(PerformanceMetrics);
 
-    QMutexLocker locker(&d->m_mutex);
-    if (loggingDevice != d->m_loggingDevice) {
-        if (loggingDevice && loggingDevice->isWritable()) {
-            d->m_loggingDevice = loggingDevice;
+    d_func()->setLoggingDevice(loggingDevice);
+}
+
+void PerformanceMetricsPrivate::setLoggingDevice(QIODevice* loggingDevice)
+{
+    DLOG_FUNC();
+
+    QMutexLocker locker(&m_mutex);
+    if (loggingDevice != m_loggingDevice) {
+        if (loggingDevice) {
+            if (loggingDevice->isWritable()) {
+                m_loggingDevice = loggingDevice;
+            }
         } else {
-            d->m_loggingDevice = nullptr;
+            m_loggingDevice = nullptr;
         }
+        m_logger.setDevice(m_loggingDevice);
     }
 }
 
@@ -1281,18 +1384,7 @@ void PerformanceMetricsPrivate::windowFrameSwapped()
             m_counters.swapTime = m_sceneGraphTimer.nsecsElapsed();
         }
         if (m_flags & Logging ) {
-            // FIXME(loicm) Use a dedicated I/O thread.
-            QTextStream stream(m_loggingDevice ? m_loggingDevice : &m_defaultLoggingDevice);
-            stream << m_counters.timeStamp << ' '
-                   << m_counters.frameNumber << ' '
-                   << m_counters.syncTime << ' '
-                   << m_counters.renderTime << ' '
-                   << m_counters.gpuTime << ' '
-                   << m_counters.swapTime << ' '
-                   << m_counters.cpuUsage << ' '
-                   << m_counters.vszMemory << ' '
-                   << m_counters.rssMemory << ' '
-                   << m_counters.threadCount << '\n';
+            m_logger.log(&m_counters);
         }
     } else {
         // Get everything ready for the next frame.
@@ -1622,7 +1714,9 @@ void PerformanceMetricsPrivate::updateThreadCount()
 #else
     sscanf(&buffer[entryIndex], "%ld", &threadCount);
 #endif
-    m_counters.threadCount = threadCount;
+
+    // Subtract our I/O thread from the count.
+    m_counters.threadCount = threadCount - 1;
 
     fclose(file);
 }

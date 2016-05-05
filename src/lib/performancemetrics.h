@@ -29,7 +29,7 @@ class QUICK_PLUS_EXPORT QuickPlusPerformanceMetrics : public QObject
     Q_OBJECT
     Q_ENUMS(UpdatePolicy)
 
-  public:
+public:
     QuickPlusPerformanceMetrics(QQuickWindow* window=Q_NULLPTR, bool overlayVisible=false);
     ~QuickPlusPerformanceMetrics();
 

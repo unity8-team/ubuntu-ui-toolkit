@@ -389,6 +389,7 @@ public:
     QuitAfterFrameCountListener(QQuickWindow *window, int count)
         : QObject(window), m_count(count), m_currentCount(0)
     {
+        // FIXME(loicm) Should be frameSwapped.
         connect(window, &QQuickWindow::afterRendering,
                 this, &QuitAfterFrameCountListener::onAfterRendering, Qt::DirectConnection);
     }
@@ -465,17 +466,23 @@ static void setPerformanceMetricsOptions(QuickPlusPerformanceMetrics* metrics, O
     }
 
     if (options->performanceLogging) {
-        if (!options->performanceLogFile.isEmpty()) {
+        QFile* device;
+        bool opened;
+        if (options->performanceLogFile.isEmpty()) {
+            device = new QFile();
+            opened = device->open(stdout, QIODevice::WriteOnly);
+        } else {
             QString filename = options->performanceLogFile;
             if (QDir::isRelativePath(options->performanceLogFile)) {
                 filename.prepend(QDir::currentPath() + QDir::separator());
             }
-            QFile* loggingDevice = new QFile(filename);
-            if (loggingDevice->open(QFile::WriteOnly)) {
-                metrics->setLoggingDevice(loggingDevice);
-            }
+            device = new QFile(filename);
+            opened = device->open(QIODevice::WriteOnly);
         }
-        metrics->setLogging(true);
+        if (opened) {
+            metrics->setLoggingDevice(device);
+            metrics->setLogging(true);
+        }
     }
 
     if (options->continuousUpdate) {

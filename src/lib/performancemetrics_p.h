@@ -16,9 +16,10 @@
 // along with Quick+. If not, see <http://www.gnu.org/licenses/>.
 
 #include "performancemetrics.h"
+#include <QtCore/QThread>
 #include <QtCore/QMutex>
+#include <QtCore/QWaitCondition>
 #include <QtCore/QElapsedTimer>
-#include <QtGui/QVector4D>
 #include <QtGui/QOpenGLFunctions>
 #if defined(QT_OPENGL_ES)
 #include <EGL/egl.h>
@@ -182,6 +183,48 @@ private:
 #endif
 };
 
+struct Counters
+{
+    quint64 timeStamp;
+    quint64 syncTime;
+    quint64 renderTime;
+    quint64 gpuTime;
+    quint64 swapTime;
+    quint32 frameNumber;
+    quint32 cpuUsage;
+    quint32 vszMemory;
+    quint32 rssMemory;
+    quint16 threadCount;
+};
+
+class Logger : public QThread
+{
+public:
+    Logger() : m_device(nullptr), m_queueIndex(0), m_queueSize(0), m_flags(0) {}
+
+    void run();
+    void log(const Counters* counters);
+    void setDevice(QIODevice* device);
+    void tearDown();
+
+private:
+    enum {
+        Waiting           = (1 << 0),
+        TearDownRequested = (1 << 1)
+    };
+
+    static const int maxQueueSize = 16;
+
+    // FIXME(loicm) Consider potential false sharing issues.
+    QIODevice* m_device;
+    Counters m_queue[maxQueueSize];
+    qint8 m_queueIndex;
+    qint8 m_queueSize;
+    QMutex m_mutex;
+    QWaitCondition m_condition;
+    quint8 m_flags;
+};
+
 class PerformanceMetricsPrivate
 {
 public:
@@ -192,6 +235,7 @@ public:
     void setOverlayPosition(const QPointF& position);
     void setOverlayOpacity(float opacity);
     void setWindowUpdatePolicy(QuickPlusPerformanceMetrics::UpdatePolicy updatePolicy);
+    void setLoggingDevice(QIODevice* loggingDevice);
     void initialiseGpuResources();
     void windowSceneGraphInvalidated();
     void windowBeforeSynchronising();
@@ -250,18 +294,9 @@ public:
 
     float m_deltaTime;
 
-    struct Counters {
-        quint64 timeStamp;
-        quint64 syncTime;
-        quint64 renderTime;
-        quint64 gpuTime;
-        quint64 swapTime;
-        quint32 frameNumber;
-        quint32 cpuUsage;
-        quint32 vszMemory;
-        quint32 rssMemory;
-        quint16 threadCount;
-    } m_counters;
+    Counters m_counters;
+
+    Logger m_logger;
 
     QMutex m_mutex;
     quint8 m_flags;
