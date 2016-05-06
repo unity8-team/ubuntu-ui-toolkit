@@ -264,17 +264,18 @@ public:
         Logging           = (1 << 7)
     };
 
-    static const int maxOverlayIndices = 16;
+    static const int maxOverlayCounters = 16;
 
     QQuickWindow* m_window;
     QIODevice* m_loggingDevice;
 
     char* m_overlayTextParsed;
     struct {
-        quint16 counterIndex;
-        quint16 overlayTextParsedIndex;
-    } m_overlayIndices[maxOverlayIndices];
-    quint8 m_overlayIndicesSize;
+        quint16 index;
+        quint16 textIndex;
+        quint8 width;
+    } m_overlayCounters[maxOverlayCounters];
+    quint8 m_overlayCountersSize;
     QString m_overlayText;
     QPointF m_overlayPosition;
     float m_overlayOpacity;
@@ -293,7 +294,7 @@ public:
     clock_t m_cpuTicks;
     struct tms m_cpuTimes;
 
-    float m_deltaTime;
+    quint64 m_deltaTime;
 
     Counters m_counters;
 

@@ -304,11 +304,11 @@ void BitmapText::setText(const char* text)
     characterCount = 0;
     for (int i = 0; i < textLength; i++) {
         char character = text[i];
-        if (character >= 32 && character <= 126) {  // Printable characters.
+        if (character >= ' ' && character <= '~') {  // Printable characters.
             const int index = characterCount * 4;
             // The atlas stores 2 lines per font size, second line starts at
             // ASCII character 80 at position 49 in the bitmap.
-            const float s = ((character - 32) % 48) * fontWidthNormalised;
+            const float s = ((character - ' ') % '0') * fontWidthNormalised;
             const float t = (character < 80) ? t1 : t2;
             m_vertexBuffer[index].x = x;
             m_vertexBuffer[index].y = y;
@@ -362,7 +362,7 @@ void BitmapText::updateText(const char* text, int index, int length)
         int vertexBufferIndex = m_textToVertexBuffer[i];
         const char character = text[j];
         if (vertexBufferIndex != -1 && character >= 32 && character <= 126) {
-            const float s = ((character - 32) % 48) * fontWidthNormalised;
+            const float s = ((character - ' ') % '0') * fontWidthNormalised;
             const float t = (character < 80) ? t1 : t2;
             vertexBufferIndex *= 4;
             m_vertexBuffer[vertexBufferIndex].s = s;
@@ -791,83 +791,63 @@ void Logger::tearDown()
 // Keep in sync with corresponding enum!
 static const struct {
     const char* const name;
-    quint16 nameSize;
-} keywordInfo[] = {
+    quint16 size;
+} keywordInfo[]= {
     { "qtVersion",  sizeof("qtVersion") - 1  },
     { "qtPlatform", sizeof("qtPlatform") - 1 },
     { "glVersion",  sizeof("glVersion") - 1  },
     { "cpuModel",   sizeof("cpuModel") - 1   },
     { "gpuModel",   sizeof("gpuModel") - 1   }
 };
-
-// Keep in sync with keywordInfo!
 enum {
-    QtVersion = 0,
-    QtPlatform,
-    GlVersion,
-    CpuModel,
-    GpuModel,
-    KeywordCount
+    QtVersion = 0, QtPlatform, GlVersion, CpuModel, GpuModel, KeywordCount
 };
+Q_STATIC_ASSERT(ARRAY_SIZE(keywordInfo) == KeywordCount);
 
 const int maxKeywordStringSize = 128;
 
-// Keep in sync with maxCounterWidth and corresponding enum!
+// Keep in sync with corresponding enum!
 static const struct {
     const char* const name;
-    const char* const format;
-    quint16 nameSize;
-    quint16 width;
+    quint16 size;
+    quint16 defaultWidth;
 } counterInfo[] = {
-    { "cpuUsage",    "%3u",   sizeof("cpuUsage") - 1,    3 },
-    { "threadCount", "%3u",   sizeof("threadCount") - 1, 3 },
-    { "vszMemory",   "%8u",   sizeof("vszMemory") - 1,   8 },
-    { "rssMemory",   "%8u",   sizeof("rssMemory") - 1,   8 },
-    { "frameNumber", "%7u",   sizeof("frameNumber") - 1, 7 },
-    { "frameSize",   "%9s",   sizeof("frameSize") - 1,   9 },
-    { "deltaTime",   "%7.2f", sizeof("deltaTime") - 1,   7 },
-    { "syncTime",    "%7.2f", sizeof("syncTime") - 1,    7 },
-    { "renderTime",  "%7.2f", sizeof("renderTime") - 1,  7 },
-    { "gpuTime",     "%7.2f", sizeof("gpuTime") - 1,     7 },
-    { "totalTime",   "%7.2f", sizeof("totalTime") - 1,   7 }
+    { "cpuUsage",    sizeof("cpuUsage") - 1,    3 },
+    { "threadCount", sizeof("threadCount") - 1, 3 },
+    { "vszMemory",   sizeof("vszMemory") - 1,   8 },
+    { "rssMemory",   sizeof("rssMemory") - 1,   8 },
+    { "frameNumber", sizeof("frameNumber") - 1, 7 },
+    { "frameSize",   sizeof("frameSize") - 1,   9 },
+    { "deltaTime",   sizeof("deltaTime") - 1,   7 },
+    { "syncTime",    sizeof("syncTime") - 1,    7 },
+    { "renderTime",  sizeof("renderTime") - 1,  7 },
+    { "gpuTime",     sizeof("gpuTime") - 1,     7 },
+    { "totalTime",   sizeof("totalTime") - 1,   7 }
 };
-
-// The highest width field in the counterInfo struct.
-// Keep in sync with counterInfo!
-const int maxCounterWidth = 9;
-
-// Keep in sync with counterInfo!
 enum {
-    CpuUsage = 0,
-    ThreadCount,
-    VszMemory,
-    RssMemory,
-    FrameNumber,
-    FrameSize,
-    DeltaTime,
-    SyncTime,
-    RenderTime,
-    GpuTime,
-    TotalTime,
-    CounterCount
+    CpuUsage = 0, ThreadCount, VszMemory, RssMemory, FrameNumber, FrameSize, DeltaTime, SyncTime,
+    RenderTime, GpuTime, TotalTime, CounterCount
 };
+Q_STATIC_ASSERT(ARRAY_SIZE(counterInfo) == CounterCount);
+
+const int maxCounterWidth = 99;
 
 static const char* const defaultOverlayText =
-    "%qtVersion (%qtPlatform) with %glVersion\n"
-    "%cpuModel\n"
-    "%gpuModel\r"
-    " VSZ mem.:   %vszMemory kB\n"
-    " RSS mem.:   %rssMemory kB\n"
-    " Threads:         %threadCount\n"
-    " CPU usage:       %cpuUsage %%\r"
-    " Size:      %frameSize\n"
-    " Number:      %frameNumber\n"
+    "%qtVersion (%qtPlatform) - %glVersion\n"
+    "%cpuModel\n"  // FIXME(loicm) Should be included by default (takes space)?
+    "%gpuModel\r"  // FIXME(loicm) Should be included by default (takes space)?
+    " VSZ mem.:  %9vszMemory kB\n"
+    " RSS mem.:  %9rssMemory kB\n"
+    " Threads:   %9threadCount\n"
+    " CPU usage: %9cpuUsage %%\r"
+    " Size:      %9frameSize\n"
+    " Number:    %9frameNumber\n"
     // FIXME(loicm) should be removed once we have a timing histogram with swap included.
-    " Delta n-1:   %deltaTime ms\n"
-    " SG sync:     %syncTime ms\n"
-    " SG render:   %renderTime ms\n"
-    " GPU:         %gpuTime ms\n"
-    " Total:       %totalTime ms";
+    " Delta n-1: %9deltaTime ms\n"
+    " SG sync:   %9syncTime ms\n"
+    " SG render: %9renderTime ms\n"
+    " GPU:       %9gpuTime ms\n"
+    " Total:     %9totalTime ms";
 
 // FIXME(loicm) Ideally, we should have:
 // " CPU(usage) ......... 4 %%\n"
@@ -939,13 +919,13 @@ PerformanceMetricsPrivate::PerformanceMetricsPrivate(QQuickWindow* window, bool 
     : m_window(window)
     , m_loggingDevice(nullptr)
     , m_overlayTextParsed(new char [maxOverlayTextParsedSize])
-    , m_overlayIndicesSize(0)
+    , m_overlayCountersSize(0)
     , m_overlayText(defaultOverlayText)
     , m_overlayPosition(5.0f, 5.0f)
     , m_overlayOpacity(0.85f)
     , m_bitmapText()
     , m_gpuTimer()
-    , m_deltaTime(0.0f)
+    , m_deltaTime(0)
     , m_logger()
     , m_flags(DirtyText | DirtyTransform | DirtyOpacity | (overlayVisible ? OverlayVisible : 0))
 {
@@ -1388,7 +1368,7 @@ void PerformanceMetricsPrivate::windowFrameSwapped()
     if (m_flags & Initialised) {
         if (m_flags & (OverlayVisible | Logging)) {
             const quint64 timeStamp = m_timeStampTimer.nsecsElapsed();
-            m_deltaTime = (timeStamp - m_counters.timeStamp) * 0.000001f;
+            m_deltaTime = timeStamp - m_counters.timeStamp;
             m_counters.timeStamp = timeStamp;
             m_counters.swapTime = m_sceneGraphTimer.nsecsElapsed();
         }
@@ -1401,70 +1381,135 @@ void PerformanceMetricsPrivate::windowFrameSwapped()
     }
 }
 
+// Writes a 64-bit unsigned integer as text. The string is aligned to the
+// right. Returns the remaining width.
+static int integerCounterToText(quint64 counter, char* text, int width)
+{
+    DLOG_FUNC();
+    DASSERT(text);
+    DASSERT(width > 0);
+
+    do {
+        text[--width] = (counter % 10) + '0';
+        if (width == 0) return 0;
+        counter /= 10;
+    } while (counter != 0);
+
+    return width;
+}
+
+// Writes a 64-bit unsigned integer representing time in nanoseconds as
+// text. The string is aligned to the right. Returns the remaining width.
+static int timeCounterToText(quint64 counter, char* text, int width)
+{
+    DLOG_FUNC();
+    DASSERT(text);
+    DASSERT(width > 0);
+
+    counter /= 10000;  // 10^−9 to 10^−5 (to keep 2 valid decimal digits).
+    const int decimalCount = 2;
+    const char decimalPoint = '.';
+    int i = 0;
+
+    do {
+        // Handle the decimal digits part.
+        text[--width] = (counter % 10) + '0';
+        if (width == 0) return 0;
+        counter /= 10;
+    } while (++i < decimalCount && counter != 0);
+
+    if (counter != 0) {
+        // Handle the decimal point and integer parts.
+        text[--width] = decimalPoint;
+        if (width > 0) {
+            do {
+                text[--width] = (counter % 10) + '0';
+                counter /= 10;
+            } while (counter != 0 && width > 0);
+        }
+
+    } else {
+        // Handle counter ms value less than decimalCount digits.
+        if (i == 1) {
+            text[--width] = '0';
+            if (width == 0) return 0;
+        }
+        text[--width] = decimalPoint;
+        if (width > 0) {
+            text[--width] = '0';
+        }
+    }
+
+    return width;
+}
+
 void PerformanceMetricsPrivate::updateOverlayText()
 {
     DLOG_FUNC();
     DASSERT(m_flags & Initialised);
 
-    Q_STATIC_ASSERT(maxCounterWidth < 128);  // Prevent big stack allocation.
-    char buffer[maxCounterWidth + 1];
+    char text[maxCounterWidth + 1];
+    for (int i = 0; i < m_overlayCountersSize; i++) {
+        const int textWidth = m_overlayCounters[i].width;
+        DASSERT(textWidth <= maxCounterWidth);
 
-    for (int i = 0; i < m_overlayIndicesSize; i++) {
-        const char* const format = counterInfo[m_overlayIndices[i].counterIndex].format;
-        const int width = counterInfo[m_overlayIndices[i].counterIndex].width;
-        DASSERT(width <= maxCounterWidth);
-
-        switch (m_overlayIndices[i].counterIndex) {
+        switch (m_overlayCounters[i].index) {
         case CpuUsage:
-            snprintf(buffer, width + 1, format, m_counters.cpuUsage);
+            memset(text, ' ', integerCounterToText(m_counters.cpuUsage, text, textWidth));
             break;
         case ThreadCount:
-            snprintf(buffer, width + 1, format, m_counters.threadCount);
+            memset(text, ' ', integerCounterToText(m_counters.threadCount, text, textWidth));
             break;
         case VszMemory:
-            snprintf(buffer, width + 1, format, m_counters.vszMemory);
+            memset(text, ' ', integerCounterToText(m_counters.vszMemory, text, textWidth));
             break;
         case RssMemory:
-            snprintf(buffer, width + 1, format, m_counters.rssMemory);
+            memset(text, ' ', integerCounterToText(m_counters.rssMemory, text, textWidth));
             break;
         case FrameNumber:
-            snprintf(buffer, width + 1, format, m_counters.frameNumber);
+            memset(text, ' ', integerCounterToText(m_counters.frameNumber, text, textWidth));
             break;
         case FrameSize: {
-            char frameSize[16];
-            int count = snprintf(frameSize, 5, "%d", m_counters.frameWidth);
-            frameSize[count++] = 'x';
-            count += snprintf(&frameSize[count], 5, "%d", m_counters.frameHeight);
-            frameSize[count] = '\0';
-            sprintf(buffer, format, frameSize);
+            const int newTextWidth = integerCounterToText(m_counters.frameHeight, text, textWidth);
+            if (newTextWidth >= 2) {
+                text[newTextWidth - 1] = 'x';
+                integerCounterToText(m_counters.frameWidth, text, newTextWidth - 1);
+            } else if (newTextWidth == 1) {
+                text[newTextWidth - 1] = 'x';
+            }
             break;
         }
         case DeltaTime:
-            snprintf(buffer, width + 1, format, m_deltaTime);
+            memset(text, ' ', timeCounterToText(m_deltaTime, text, textWidth));
             break;
         case SyncTime:
-            snprintf(buffer, width + 1, format, m_counters.syncTime * 0.000001f);
+            memset(text, ' ', timeCounterToText(m_counters.syncTime, text, textWidth));
             break;
         case RenderTime:
-            snprintf(buffer, width + 1, format, m_counters.renderTime * 0.000001f);
+            memset(text, ' ', timeCounterToText(m_counters.renderTime, text, textWidth));
             break;
         case GpuTime:
             if (m_flags & GpuTimerAvailable) {
-                snprintf(buffer, width + 1, format, m_counters.gpuTime * 0.000001f);
+                memset(text, ' ', timeCounterToText(m_counters.gpuTime, text, textWidth));
             } else {
-                strncpy(buffer, "    N/A", width);
+                const char* const na = "N/A";
+                int naSize = sizeof("N/A") - 1;
+                int width = textWidth;
+                do { text[--width] = na[--naSize]; } while (width > 0 && naSize > 0);
+                memset(text, ' ', width);
             }
             break;
-        case TotalTime:
-            snprintf(buffer, width + 1, format, 0.000001f
-                     * (m_counters.syncTime + m_counters.renderTime + m_counters.gpuTime));
+        case TotalTime: {
+            const quint64 time = m_counters.syncTime + m_counters.renderTime + m_counters.gpuTime;
+            memset(text, ' ', timeCounterToText(time, text, textWidth));
             break;
+        }
         default:
             DNOT_REACHED();
             break;
         }
 
-        m_bitmapText.updateText(buffer, m_overlayIndices[i].overlayTextParsedIndex, width);
+        m_bitmapText.updateText(text, m_overlayCounters[i].textIndex, textWidth);
     }
 }
 
@@ -1599,13 +1644,11 @@ void PerformanceMetricsPrivate::parseOverlayText()
 {
     DLOG_FUNC();
 
-    const int keywordInfoSize = ARRAY_SIZE(keywordInfo);
-    const int counterInfoSize = ARRAY_SIZE(counterInfo);
     QByteArray overlayTextLatin1 = m_overlayText.toLatin1();
     const char* const overlayText = overlayTextLatin1.constData();
     const int overlayTextSize = overlayTextLatin1.size();
     char* keywordBuffer = nullptr;
-    int counters = 0;
+    int currentCounter = 0;
     int characters = 0;
 
     for (int i = 0; i <= overlayTextSize; i++) {
@@ -1620,8 +1663,8 @@ void PerformanceMetricsPrivate::parseOverlayText()
         } else {
             bool keywordFound = false;
             // Search for keywords.
-            for (int j = 0; j < keywordInfoSize; j++) {
-                if (!strncmp(&overlayText[i+1], keywordInfo[j].name, keywordInfo[j].nameSize)) {
+            for (int j = 0; j < KeywordCount; j++) {
+                if (!strncmp(&overlayText[i+1], keywordInfo[j].name, keywordInfo[j].size)) {
                     if (!keywordBuffer) {
                         keywordBuffer = new char [maxKeywordStringSize];
                     }
@@ -1629,25 +1672,40 @@ void PerformanceMetricsPrivate::parseOverlayText()
                     if (stringSize < maxOverlayTextParsedSize - characters) {
                         strcpy(&m_overlayTextParsed[characters], keywordBuffer);
                         characters += stringSize;
-                        i += keywordInfo[j].nameSize;
+                        i += keywordInfo[j].size;
                     }
                     keywordFound = true;
                     break;
                 }
             }
             // Search for counters.
-            if (!keywordFound && counters < maxOverlayIndices) {
-                for (int j = 0; j < counterInfoSize; j++) {
-                    if (!strncmp(&overlayText[i+1], counterInfo[j].name, counterInfo[j].nameSize)) {
-                        if (counterInfo[j].width < maxOverlayTextParsedSize - characters) {
-                            m_overlayIndices[counters].counterIndex = j;
-                            m_overlayIndices[counters].overlayTextParsedIndex = characters;
+            if (!keywordFound && currentCounter < maxOverlayCounters) {
+                for (int j = 0; j < CounterCount; j++) {
+                    int width, widthOffset = 0;
+                    if (!isdigit(overlayText[i+1])) {
+                        width = counterInfo[j].defaultWidth;
+                    } else {
+                        width = overlayText[i+1] - '0';
+                        widthOffset++;
+                        if (isdigit(overlayText[i+2])) {
+                            width = width * 10 + overlayText[i+2] - '0';
+                            widthOffset++;
+                        }
+                        width = qMax(width, 1);
+                    }
+                    DASSERT(width < maxCounterWidth);
+                    if (!strncmp(&overlayText[i+1+widthOffset], counterInfo[j].name,
+                                 counterInfo[j].size)) {
+                        if (width < maxOverlayTextParsedSize - characters) {
+                            m_overlayCounters[currentCounter].index = j;
+                            m_overlayCounters[currentCounter].textIndex = characters;
+                            m_overlayCounters[currentCounter].width = width;
                             // Must be initialised since it might contain non
                             // printable characters and break setText otherwise.
-                            memset(&m_overlayTextParsed[characters], '?', counterInfo[j].width);
-                            characters += counterInfo[j].width;
-                            i += counterInfo[j].nameSize;
-                            counters++;
+                            memset(&m_overlayTextParsed[characters], '?', width);
+                            characters += width;
+                            i += widthOffset + counterInfo[j].size;
+                            currentCounter++;
                         }
                         break;
                     }
@@ -1661,7 +1719,7 @@ void PerformanceMetricsPrivate::parseOverlayText()
         }
     }
 
-    m_overlayIndicesSize = counters;
+    m_overlayCountersSize = currentCounter;
     delete [] keywordBuffer;
 }
 
