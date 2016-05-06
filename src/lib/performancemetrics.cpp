@@ -261,8 +261,8 @@ void BitmapText::setText(const char* text)
         m_characterCount = characterCount;
         m_flags |= NotEmpty;
     } else {
-        // Early exit if the given text is null, empty or filled with
-        // non-printable characters.
+        // Early exit if the given text is null, empty or filled with non
+        // printable characters.
         m_vertexBuffer = nullptr;
         m_textToVertexBuffer = nullptr;
         m_textLength = 0;
@@ -1475,17 +1475,16 @@ int PerformanceMetricsPrivate::cpuModel(char* buffer, int bufferSize)
     DASSERT(buffer);
     DASSERT(bufferSize > 0);
 
-    // FIXME(loicm) Use open/read/close instead.
-    FILE* file = fopen("/proc/cpuinfo", "r");
-    if (!file) {
+    int fd = open("/proc/cpuinfo", O_RDONLY);
+    if (fd == -1) {
         DWARN("QuickPlusPerformanceMetrics: can't open '/proc/cpuinfo'");
         return 0;
     }
     const int sourceBufferSize = 128;
     char sourceBuffer[sourceBufferSize];
-    if (fread(sourceBuffer, sourceBufferSize, 1, file) < 1) {
+    if (read(fd, sourceBuffer, sourceBufferSize) != sourceBufferSize) {
         DWARN("QuickPlusPerformanceMetrics: can't read '/proc/cpuinfo'");
-        fclose(file);
+        close(fd);
         return 0;
     }
 
@@ -1501,7 +1500,7 @@ int PerformanceMetricsPrivate::cpuModel(char* buffer, int bufferSize)
             }
         } else {
             DNOT_REACHED();  // Consider increasing sourceBufferSize.
-            fclose(file);
+            close(fd);
             return 0;
         }
     }
@@ -1527,7 +1526,7 @@ int PerformanceMetricsPrivate::cpuModel(char* buffer, int bufferSize)
         }
     }
 
-    fclose(file);
+    close(fd);
     return index;
 }
 
@@ -1643,8 +1642,8 @@ void PerformanceMetricsPrivate::parseOverlayText()
                         if (counterInfo[j].width < maxOverlayTextParsedSize - characters) {
                             m_overlayIndices[counters].counterIndex = j;
                             m_overlayIndices[counters].overlayTextParsedIndex = characters;
-                            // Must be initialised since it might contain non-printable
-                            // and break setText otherwise.
+                            // Must be initialised since it might contain non
+                            // printable characters and break setText otherwise.
                             memset(&m_overlayTextParsed[characters], '?', counterInfo[j].width);
                             characters += counterInfo[j].width;
                             i += counterInfo[j].nameSize;
