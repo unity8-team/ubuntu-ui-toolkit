@@ -805,8 +805,6 @@ enum {
 };
 Q_STATIC_ASSERT(ARRAY_SIZE(keywordInfo) == KeywordCount);
 
-const int maxKeywordStringSize = 128;
-
 // Keep in sync with corresponding enum!
 static const struct {
     const char* const name;
@@ -831,8 +829,6 @@ enum {
 };
 Q_STATIC_ASSERT(ARRAY_SIZE(counterInfo) == CounterCount);
 
-const int maxCounterWidth = 99;
-
 static const char* const defaultOverlayText =
     "%qtVersion (%qtPlatform) - %glVersion\n"
     "%cpuModel\n"  // FIXME(loicm) Should be included by default?
@@ -849,6 +845,16 @@ static const char* const defaultOverlayText =
     " SG render : %9renderTime ms\n"
     "       GPU : %9gpuTime ms\n"
     "     Total : %9totalTime ms";
+
+const int maxCounterWidth = 32;
+const int maxKeywordStringSize = 128;
+const int procStatReadSize = 128;
+const int bufferSize = 128;
+Q_STATIC_ASSERT(
+    bufferSize >= maxCounterWidth
+    && bufferSize >= maxKeywordStringSize
+    && bufferSize >= procStatReadSize);
+const int bufferAlignment = 64;
 
 const int maxOverlayTextParsedSize = 1024;  // Including '\0'.
 
@@ -923,6 +929,11 @@ PerformanceMetricsPrivate::PerformanceMetricsPrivate(QQuickWindow* window, bool 
     DLOG_FUNC();
 
     m_logger.start();
+#if !defined(QT_NO_DEBUG)
+    ASSERT(posix_memalign(&m_buffer, bufferAlignment, bufferSize) == 0);
+#else
+    posix_memalign(&m_buffer, 32, bufferSize);
+#endif
     m_cpuOnlineCores = sysconf(_SC_NPROCESSORS_ONLN);
     m_pageSize = sysconf(_SC_PAGESIZE);
     m_timeStampTimer.start();
@@ -947,6 +958,7 @@ PerformanceMetricsPrivate::~PerformanceMetricsPrivate()
     DLOG_FUNC();
 
     m_logger.tearDown();
+    free(m_buffer);
     delete [] m_overlayTextParsed;
     m_logger.wait();
 }
@@ -1436,61 +1448,61 @@ void PerformanceMetricsPrivate::updateOverlayText()
 {
     DLOG_FUNC();
     DASSERT(m_flags & Initialised);
+    Q_STATIC_ASSERT(IS_POWER_OF_TWO(maxCounterWidth));
 
-    char text[maxCounterWidth + 1];
+    char* text = static_cast<char*>(m_buffer);
     for (int i = 0; i < m_overlayCountersSize; i++) {
         int textWidth = m_overlayCounters[i].width;
         DASSERT(textWidth <= maxCounterWidth);
+        memset(text, ' ', maxCounterWidth);
 
         switch (m_overlayCounters[i].index) {
         case CpuUsage:
-            memset(text, ' ', integerCounterToText(m_counters.cpuUsage, text, textWidth));
+            integerCounterToText(m_counters.cpuUsage, text, textWidth);
             break;
         case ThreadCount:
-            memset(text, ' ', integerCounterToText(m_counters.threadCount, text, textWidth));
+            integerCounterToText(m_counters.threadCount, text, textWidth);
             break;
         case VszMemory:
-            memset(text, ' ', integerCounterToText(m_counters.vszMemory, text, textWidth));
+            integerCounterToText(m_counters.vszMemory, text, textWidth);
             break;
         case RssMemory:
-            memset(text, ' ', integerCounterToText(m_counters.rssMemory, text, textWidth));
+            integerCounterToText(m_counters.rssMemory, text, textWidth);
             break;
         case FrameNumber:
-            memset(text, ' ', integerCounterToText(m_counters.frameNumber, text, textWidth));
+            integerCounterToText(m_counters.frameNumber, text, textWidth);
             break;
         case FrameSize: {
             textWidth = integerCounterToText(m_counters.frameHeight, text, textWidth);
             if (textWidth >= 2) {
                 text[textWidth - 1] = 'x';
-                textWidth = integerCounterToText(m_counters.frameWidth, text, textWidth - 1);
-                memset(text, ' ', textWidth);
+                integerCounterToText(m_counters.frameWidth, text, textWidth - 1);
             } else if (textWidth == 1) {
                 text[textWidth - 1] = 'x';
             }
             break;
         }
         case DeltaTime:
-            memset(text, ' ', timeCounterToText(m_deltaTime, text, textWidth));
+            timeCounterToText(m_deltaTime, text, textWidth);
             break;
         case SyncTime:
-            memset(text, ' ', timeCounterToText(m_counters.syncTime, text, textWidth));
+            timeCounterToText(m_counters.syncTime, text, textWidth);
             break;
         case RenderTime:
-            memset(text, ' ', timeCounterToText(m_counters.renderTime, text, textWidth));
+            timeCounterToText(m_counters.renderTime, text, textWidth);
             break;
         case GpuTime:
             if (m_flags & GpuTimerAvailable) {
-                memset(text, ' ', timeCounterToText(m_counters.gpuTime, text, textWidth));
+                timeCounterToText(m_counters.gpuTime, text, textWidth);
             } else {
                 const char* const na = "N/A";
                 int naSize = sizeof("N/A") - 1;
                 do { text[--textWidth] = na[--naSize]; } while (textWidth > 0 && naSize > 0);
-                memset(text, ' ', textWidth);
             }
             break;
         case TotalTime: {
             const quint64 time = m_counters.syncTime + m_counters.renderTime + m_counters.gpuTime;
-            memset(text, ' ', timeCounterToText(time, text, textWidth));
+            timeCounterToText(time, text, textWidth);
             break;
         }
         default:
@@ -1636,7 +1648,7 @@ void PerformanceMetricsPrivate::parseOverlayText()
     QByteArray overlayTextLatin1 = m_overlayText.toLatin1();
     const char* const overlayText = overlayTextLatin1.constData();
     const int overlayTextSize = overlayTextLatin1.size();
-    char* keywordBuffer = nullptr;
+    char* keywordBuffer = static_cast<char*>(m_buffer);
     int currentCounter = 0;
     int characters = 0;
 
@@ -1654,9 +1666,6 @@ void PerformanceMetricsPrivate::parseOverlayText()
             // Search for keywords.
             for (int j = 0; j < KeywordCount; j++) {
                 if (!strncmp(&overlayText[i+1], keywordInfo[j].name, keywordInfo[j].size)) {
-                    if (!keywordBuffer) {
-                        keywordBuffer = new char [maxKeywordStringSize];
-                    }
                     const int stringSize = keywordString(j, keywordBuffer, maxKeywordStringSize);
                     if (stringSize < maxOverlayTextParsedSize - characters) {
                         strcpy(&m_overlayTextParsed[characters], keywordBuffer);
@@ -1680,9 +1689,8 @@ void PerformanceMetricsPrivate::parseOverlayText()
                             width = width * 10 + overlayText[i+1+widthOffset] - '0';
                             widthOffset++;
                         }
-                        width = qMax(width, 1);
+                        width = qBound(1, width, maxCounterWidth);
                     }
-                    DASSERT(width < maxCounterWidth);
                     if (!strncmp(&overlayText[i+1+widthOffset], counterInfo[j].name,
                                  counterInfo[j].size)) {
                         if (width < maxOverlayTextParsedSize - characters) {
@@ -1709,7 +1717,6 @@ void PerformanceMetricsPrivate::parseOverlayText()
     }
 
     m_overlayCountersSize = currentCounter;
-    delete [] keywordBuffer;
 }
 
 void PerformanceMetricsPrivate::updateCpuUsage()
@@ -1734,20 +1741,19 @@ void PerformanceMetricsPrivate::updateCpuUsage()
     }
 }
 
+// FIXME(loicm) Should we throttle to minimise the (little) CPU impact?
 void PerformanceMetricsPrivate::updateProcStatCounters()
 {
     DLOG_FUNC();
 
-    // FIXME(loicm) Should we throttle to minimise the (little) CPU impact?
+    char* buffer = static_cast<char*>(m_buffer);
 
     int fd = open("/proc/self/stat", O_RDONLY);
     if (fd == -1) {
         DWARN("QuickPlusPerformanceMetrics: can't open '/proc/self/stat'");
         return;
     }
-    const int bufferSize = 128;
-    char buffer[bufferSize];
-    if (read(fd, buffer, bufferSize) != bufferSize) {
+    if (read(fd, buffer, procStatReadSize) != procStatReadSize) {
         DWARN("QuickPlusPerformanceMetrics: can't read '/proc/self/stat'");
         close(fd);
         return;
@@ -1765,12 +1771,12 @@ void PerformanceMetricsPrivate::updateProcStatCounters()
     quint16 entryIndices[lastEntry];
     entryIndices[sourceIndex] = 0;
     while (spaceCount < lastEntry) {
-        if (sourceIndex < bufferSize) {
+        if (sourceIndex < procStatReadSize) {
             if (buffer[sourceIndex++] == ' ') {
                 entryIndices[++spaceCount] = sourceIndex;
             }
         } else {
-            DNOT_REACHED();  // Consider increasing bufferSize.
+            DNOT_REACHED();  // Consider increasing procStatReadSize.
             close(fd);
             return;
         }

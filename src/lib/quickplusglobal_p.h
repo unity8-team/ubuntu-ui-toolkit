@@ -53,6 +53,8 @@
 // Compile-time constant representing the number of elements in an array.
 template<typename T, size_t N> constexpr size_t ARRAY_SIZE(T (&)[N]) { return N; }
 
+#define IS_POWER_OF_TWO(n) !((n) & ((n) - 1))
+
 #define QUICK_PLUS_PRIVATE_EXPORT QUICK_PLUS_EXPORT
 
 #endif  // QUICKPLUSGLOBAL_P_H

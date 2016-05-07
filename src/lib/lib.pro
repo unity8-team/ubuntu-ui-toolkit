@@ -3,6 +3,7 @@ TARGET = quickplus
 QT += core-private gui-private quick-private
 CONFIG += c++11 no_keywords
 DEFINES += QUICK_PLUS_BUILD
+QMAKE_CXXFLAGS_RELEASE += -Wno-unused-result
 
 include(../../version.pri)
 VERSION = $${QUICK_PLUS_VERSION}

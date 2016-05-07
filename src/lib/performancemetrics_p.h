@@ -268,6 +268,7 @@ public:
 
     QQuickWindow* m_window;
     QIODevice* m_loggingDevice;
+    void* m_buffer;
 
     char* m_overlayTextParsed;
     struct {
