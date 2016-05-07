@@ -834,30 +834,20 @@ const int maxCounterWidth = 99;
 
 static const char* const defaultOverlayText =
     "%qtVersion (%qtPlatform) - %glVersion\n"
-    "%cpuModel\n"  // FIXME(loicm) Should be included by default (takes space)?
-    "%gpuModel\r"  // FIXME(loicm) Should be included by default (takes space)?
-    " VSZ mem.:  %9vszMemory kB\n"
-    " RSS mem.:  %9rssMemory kB\n"
-    " Threads:   %9threadCount\n"
-    " CPU usage: %9cpuUsage %%\r"
-    " Size:      %9frameSize\n"
-    " Number:    %9frameNumber\n"
+    "%cpuModel\n"  // FIXME(loicm) Should be included by default?
+    "%gpuModel\r"  // FIXME(loicm) Should be included by default?
+    "  VSZ mem. : %9vszMemory kB\n"
+    "  RSS mem. : %9rssMemory kB\n"
+    "   Threads : %9threadCount\n"
+    " CPU usage : %9cpuUsage %%\r"
+    "      Size : %9frameSize\n"
+    "    Number : %9frameNumber\n"
     // FIXME(loicm) should be removed once we have a timing histogram with swap included.
-    " Delta n-1: %9deltaTime ms\n"
-    " SG sync:   %9syncTime ms\n"
-    " SG render: %9renderTime ms\n"
-    " GPU:       %9gpuTime ms\n"
-    " Total:     %9totalTime ms";
-
-// FIXME(loicm) Ideally, we should have:
-// " CPU(usage) ......... 4 %%\n"
-// " Threads ............ 6\n"
-// " Vsz .......... 3734672 kB\n"
-// " Rss .............76225 kB\r"
-// " Frame ............. 45\n"
-// " Sync(CPU) ....... 0.45 ms\n"
-// " Render(CPU) ..... 9.12 ms\n"
-// " Render(GPU) ..... 0.69 ms";
+    " Delta n-1 : %9deltaTime ms\n"
+    "  SG sync. : %9syncTime ms\n"
+    " SG render : %9renderTime ms\n"
+    "       GPU : %9gpuTime ms\n"
+    "     Total : %9totalTime ms";
 
 const int maxOverlayTextParsedSize = 1024;  // Including '\0'.
 
@@ -1417,7 +1407,6 @@ static int timeCounterToText(quint64 counter, char* text, int width)
         if (width == 0) return 0;
         counter /= 10;
     } while (++i < decimalCount && counter != 0);
-
     if (counter != 0) {
         // Handle the decimal point and integer parts.
         text[--width] = decimalPoint;
@@ -1427,7 +1416,6 @@ static int timeCounterToText(quint64 counter, char* text, int width)
                 counter /= 10;
             } while (counter != 0 && width > 0);
         }
-
     } else {
         // Handle counter ms value less than decimalCount digits.
         if (i == 1) {
@@ -1450,7 +1438,7 @@ void PerformanceMetricsPrivate::updateOverlayText()
 
     char text[maxCounterWidth + 1];
     for (int i = 0; i < m_overlayCountersSize; i++) {
-        const int textWidth = m_overlayCounters[i].width;
+        int textWidth = m_overlayCounters[i].width;
         DASSERT(textWidth <= maxCounterWidth);
 
         switch (m_overlayCounters[i].index) {
@@ -1470,12 +1458,13 @@ void PerformanceMetricsPrivate::updateOverlayText()
             memset(text, ' ', integerCounterToText(m_counters.frameNumber, text, textWidth));
             break;
         case FrameSize: {
-            const int newTextWidth = integerCounterToText(m_counters.frameHeight, text, textWidth);
-            if (newTextWidth >= 2) {
-                text[newTextWidth - 1] = 'x';
-                integerCounterToText(m_counters.frameWidth, text, newTextWidth - 1);
-            } else if (newTextWidth == 1) {
-                text[newTextWidth - 1] = 'x';
+            textWidth = integerCounterToText(m_counters.frameHeight, text, textWidth);
+            if (textWidth >= 2) {
+                text[textWidth - 1] = 'x';
+                textWidth = integerCounterToText(m_counters.frameWidth, text, textWidth - 1);
+                memset(text, ' ', textWidth);
+            } else if (textWidth == 1) {
+                text[textWidth - 1] = 'x';
             }
             break;
         }
@@ -1494,9 +1483,8 @@ void PerformanceMetricsPrivate::updateOverlayText()
             } else {
                 const char* const na = "N/A";
                 int naSize = sizeof("N/A") - 1;
-                int width = textWidth;
-                do { text[--width] = na[--naSize]; } while (width > 0 && naSize > 0);
-                memset(text, ' ', width);
+                do { text[--textWidth] = na[--naSize]; } while (textWidth > 0 && naSize > 0);
+                memset(text, ' ', textWidth);
             }
             break;
         case TotalTime: {
@@ -1509,7 +1497,7 @@ void PerformanceMetricsPrivate::updateOverlayText()
             break;
         }
 
-        m_bitmapText.updateText(text, m_overlayCounters[i].textIndex, textWidth);
+        m_bitmapText.updateText(text, m_overlayCounters[i].textIndex, m_overlayCounters[i].width);
     }
 }
 
@@ -1682,13 +1670,13 @@ void PerformanceMetricsPrivate::parseOverlayText()
             if (!keywordFound && currentCounter < maxOverlayCounters) {
                 for (int j = 0; j < CounterCount; j++) {
                     int width, widthOffset = 0;
-                    if (!isdigit(overlayText[i+1])) {
+                    if (!isdigit(overlayText[i+1+widthOffset])) {
                         width = counterInfo[j].defaultWidth;
                     } else {
-                        width = overlayText[i+1] - '0';
+                        width = overlayText[i+1+widthOffset] - '0';
                         widthOffset++;
-                        if (isdigit(overlayText[i+2])) {
-                            width = width * 10 + overlayText[i+2] - '0';
+                        if (isdigit(overlayText[i+1+widthOffset])) {
+                            width = width * 10 + overlayText[i+1+widthOffset] - '0';
                             widthOffset++;
                         }
                         width = qMax(width, 1);
