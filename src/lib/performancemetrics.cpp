@@ -435,6 +435,7 @@ void BitmapText::render()
         m_functions->glBindTexture(GL_TEXTURE_2D, m_texture);
         m_functions->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBuffer);
         m_functions->glDisable(GL_DEPTH_TEST);  // QtQuick renderers restore that at each draw call.
+        m_functions->glEnable(GL_BLEND);
         m_functions->glDrawElements(GL_TRIANGLES, 6 * m_characterCount, GL_UNSIGNED_SHORT, 0);
     }
 }
