@@ -216,6 +216,7 @@ Item {
         function cleanup() {
             textField.focus = false;
             textArea.focus = false;
+            scope.focus = false;
             cursorPositionSpy.clear();
             selectionStartSpy.clear();
             selectionEndSpy.clear();
@@ -229,7 +230,7 @@ Item {
             // Hide OSK if showing
             UbuntuApplication.inputMethod.visible = false;
             // Dismiss popover if any
-            mouseClick(testMain, testMain.width - units.gu(1), testMain.height - units.gu(1));
+            mouseClick(testMain, 1, 1);
             wait(500);
         }
 
@@ -577,6 +578,8 @@ Item {
             ];
         }
         function test_text_field_evokes_osk(data) {
+            waitForRendering(data.input);
+            compare(data.input.activeFocus, false, 'TextField is not yet focused');
             mouseClick(data.input);
             waitForRendering(data.input);
             compare(data.input.activeFocus, true, 'TextField is focused');
