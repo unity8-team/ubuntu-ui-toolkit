@@ -812,7 +812,7 @@ static const struct {
     const char* const name;
     quint16 size;
     quint16 defaultWidth;
-} counterInfo[] = {
+} metricInfo[] = {
     { "cpuUsage",    sizeof("cpuUsage") - 1,    3 },
     { "threadCount", sizeof("threadCount") - 1, 3 },
     { "vszMemory",   sizeof("vszMemory") - 1,   8 },
@@ -827,9 +827,9 @@ static const struct {
 };
 enum {
     CpuUsage = 0, ThreadCount, VszMemory, RssMemory, FrameNumber, FrameSize, DeltaTime, SyncTime,
-    RenderTime, GpuTime, TotalTime, CounterCount
+    RenderTime, GpuTime, TotalTime, MetricCount
 };
-Q_STATIC_ASSERT(ARRAY_SIZE(counterInfo) == CounterCount);
+Q_STATIC_ASSERT(ARRAY_SIZE(metricInfo) == MetricCount);
 
 static const char* const defaultOverlayText =
     "%qtVersion (%qtPlatform) - %glVersion\n"
@@ -848,12 +848,12 @@ static const char* const defaultOverlayText =
     "       GPU : %9gpuTime ms\n"
     "     Total : %9totalTime ms";
 
-const int maxCounterWidth = 32;
+const int maxMetricWidth = 32;
 const int maxKeywordStringSize = 128;
 const int procStatReadSize = 128;
 const int bufferSize = 128;
 Q_STATIC_ASSERT(
-    bufferSize >= maxCounterWidth
+    bufferSize >= maxMetricWidth
     && bufferSize >= maxKeywordStringSize
     && bufferSize >= procStatReadSize);
 const int bufferAlignment = 64;
@@ -917,7 +917,7 @@ QuickPlusPerformanceMetrics::QuickPlusPerformanceMetrics(QQuickWindow* window, b
 PerformanceMetricsPrivate::PerformanceMetricsPrivate(QQuickWindow* window, bool overlayVisible)
     : m_window(window)
     , m_overlayTextParsed(new char [maxOverlayTextParsedSize])
-    , m_overlayCountersSize(0)
+    , m_overlayMetricsSize(0)
     , m_overlayText(defaultOverlayText)
     , m_overlayPosition(5.0f, 5.0f)
     , m_overlayOpacity(0.85f)
@@ -940,7 +940,7 @@ PerformanceMetricsPrivate::PerformanceMetricsPrivate(QQuickWindow* window, bool 
     m_timeStampTimer.start();
     m_cpuTimer.start();
     m_cpuTicks = times(&m_cpuTimes);
-    memset(&m_counters, 0, sizeof(m_counters));
+    memset(&m_metrics, 0, sizeof(m_metrics));
 }
 
 QuickPlusPerformanceMetrics::~QuickPlusPerformanceMetrics()
@@ -1195,7 +1195,7 @@ void PerformanceMetricsPrivate::initialiseGpuResources()
 
     m_bitmapText.initialise();
     m_gpuTimer.initialise();
-    m_counters.frameNumber = 0;
+    m_metrics.frameNumber = 0;
     m_flags |=  Initialised | DirtyText | DirtyTransform | (!noGpuTimer ? GpuTimerAvailable : 0);
 }
 
@@ -1253,7 +1253,7 @@ void PerformanceMetricsPrivate::windowAfterSynchronising()
 
     QMutexLocker locker(&m_mutex);
     if (m_flags & Initialised) {
-        m_counters.syncTime = m_sceneGraphTimer.nsecsElapsed();
+        m_metrics.syncTime = m_sceneGraphTimer.nsecsElapsed();
     }
 }
 
@@ -1272,8 +1272,8 @@ void PerformanceMetricsPrivate::windowBeforeRendering()
     QMutexLocker locker(&m_mutex);
     if (m_flags & Initialised) {
         const QSize size = m_window->size();
-        m_counters.frameWidth = size.width();
-        m_counters.frameHeight = size.height();
+        m_metrics.frameWidth = size.width();
+        m_metrics.frameHeight = size.height();
         m_sceneGraphTimer.start();
         if (m_flags & GpuTimerAvailable) {
             m_gpuTimer.start();
@@ -1298,14 +1298,14 @@ void PerformanceMetricsPrivate::windowAfterRendering()
     if (m_flags & Initialised) {
         // Update GPU timer even if not overlaid nor logged to simplify logic
         // (GpuTimer can't be started or stopped twice in row).
-        m_counters.gpuTime = (m_flags & GpuTimerAvailable) ? m_gpuTimer.stop() : 0;
+        m_metrics.gpuTime = (m_flags & GpuTimerAvailable) ? m_gpuTimer.stop() : 0;
 
         if (m_flags & (OverlayVisible | Logging)) {
-            // Update counters.
-            m_counters.renderTime = m_sceneGraphTimer.nsecsElapsed();
-            m_counters.frameNumber++;
+            // Update metrics.
+            m_metrics.renderTime = m_sceneGraphTimer.nsecsElapsed();
+            m_metrics.frameNumber++;
             updateCpuUsage();
-            updateProcStatCounters();
+            updateProcStatMetrics();
         }
 
         // Update and render overlay.
@@ -1355,12 +1355,12 @@ void PerformanceMetricsPrivate::windowFrameSwapped()
     if (m_flags & Initialised) {
         if (m_flags & (OverlayVisible | Logging)) {
             const quint64 timeStamp = m_timeStampTimer.nsecsElapsed();
-            m_deltaTime = timeStamp - m_counters.timeStamp;
-            m_counters.timeStamp = timeStamp;
-            m_counters.swapTime = m_sceneGraphTimer.nsecsElapsed();
+            m_deltaTime = timeStamp - m_metrics.timeStamp;
+            m_metrics.timeStamp = timeStamp;
+            m_metrics.swapTime = m_sceneGraphTimer.nsecsElapsed();
         }
         if (m_flags & Logging) {
-            m_loggingThread.push(&m_counters);
+            m_loggingThread.push(&m_metrics);
         }
     } else {
         // Get everything ready for the next frame.
@@ -1370,17 +1370,17 @@ void PerformanceMetricsPrivate::windowFrameSwapped()
 
 // Writes a 64-bit unsigned integer as text. The string is right
 // aligned. Returns the remaining width.
-static int integerCounterToText(quint64 counter, char* text, int width)
+static int integerMetricToText(quint64 metric, char* text, int width)
 {
     DLOG_FUNC();
     DASSERT(text);
     DASSERT(width > 0);
 
     do {
-        text[--width] = (counter % 10) + '0';
+        text[--width] = (metric % 10) + '0';
         if (width == 0) return 0;
-        counter /= 10;
-    } while (counter != 0);
+        metric /= 10;
+    } while (metric != 0);
 
     return width;
 }
@@ -1388,34 +1388,34 @@ static int integerCounterToText(quint64 counter, char* text, int width)
 // Writes a 64-bit unsigned integer representing time in nanoseconds as text in
 // milliseconds with two decimal digits. The string is right aligned. Returns
 // the remaining width.
-static int timeCounterToText(quint64 counter, char* text, int width)
+static int timeMetricToText(quint64 metric, char* text, int width)
 {
     DLOG_FUNC();
     DASSERT(text);
     DASSERT(width > 0);
 
-    counter /= 10000;  // 10^−9 to 10^−5 (to keep 2 valid decimal digits).
+    metric /= 10000;  // 10^−9 to 10^−5 (to keep 2 valid decimal digits).
     const int decimalCount = 2;
     const char decimalPoint = '.';
     int i = 0;
 
     do {
         // Handle the decimal digits part.
-        text[--width] = (counter % 10) + '0';
+        text[--width] = (metric % 10) + '0';
         if (width == 0) return 0;
-        counter /= 10;
-    } while (++i < decimalCount && counter != 0);
-    if (counter != 0) {
+        metric /= 10;
+    } while (++i < decimalCount && metric != 0);
+    if (metric != 0) {
         // Handle the decimal point and integer parts.
         text[--width] = decimalPoint;
         if (width > 0) {
             do {
-                text[--width] = (counter % 10) + '0';
-                counter /= 10;
-            } while (counter != 0 && width > 0);
+                text[--width] = (metric % 10) + '0';
+                metric /= 10;
+            } while (metric != 0 && width > 0);
         }
     } else {
-        // Handle counter ms value less than decimalCount digits.
+        // Handle metric ms value less than decimalCount digits.
         if (i == 1) {
             text[--width] = '0';
             if (width == 0) return 0;
@@ -1433,52 +1433,52 @@ void PerformanceMetricsPrivate::updateOverlayText()
 {
     DLOG_FUNC();
     DASSERT(m_flags & Initialised);
-    Q_STATIC_ASSERT(IS_POWER_OF_TWO(maxCounterWidth));
+    Q_STATIC_ASSERT(IS_POWER_OF_TWO(maxMetricWidth));
 
     char* text = static_cast<char*>(m_buffer);
-    for (int i = 0; i < m_overlayCountersSize; i++) {
-        int textWidth = m_overlayCounters[i].width;
-        DASSERT(textWidth <= maxCounterWidth);
-        memset(text, ' ', maxCounterWidth);
+    for (int i = 0; i < m_overlayMetricsSize; i++) {
+        int textWidth = m_overlayMetrics[i].width;
+        DASSERT(textWidth <= maxMetricWidth);
+        memset(text, ' ', maxMetricWidth);
 
-        switch (m_overlayCounters[i].index) {
+        switch (m_overlayMetrics[i].index) {
         case CpuUsage:
-            integerCounterToText(m_counters.cpuUsage, text, textWidth);
+            integerMetricToText(m_metrics.cpuUsage, text, textWidth);
             break;
         case ThreadCount:
-            integerCounterToText(m_counters.threadCount, text, textWidth);
+            integerMetricToText(m_metrics.threadCount, text, textWidth);
             break;
         case VszMemory:
-            integerCounterToText(m_counters.vszMemory, text, textWidth);
+            integerMetricToText(m_metrics.vszMemory, text, textWidth);
             break;
         case RssMemory:
-            integerCounterToText(m_counters.rssMemory, text, textWidth);
+            integerMetricToText(m_metrics.rssMemory, text, textWidth);
             break;
         case FrameNumber:
-            integerCounterToText(m_counters.frameNumber, text, textWidth);
+            integerMetricToText(m_metrics.frameNumber, text, textWidth);
             break;
         case FrameSize: {
-            textWidth = integerCounterToText(m_counters.frameHeight, text, textWidth);
+            textWidth = integerMetricToText(m_metrics.frameHeight, text, textWidth);
             if (textWidth >= 2) {
                 text[textWidth - 1] = 'x';
-                integerCounterToText(m_counters.frameWidth, text, textWidth - 1);
+                integerMetricToText(m_metrics.frameWidth, text, textWidth - 1);
             } else if (textWidth == 1) {
                 text[textWidth - 1] = 'x';
             }
             break;
         }
         case DeltaTime:
-            timeCounterToText(m_deltaTime, text, textWidth);
+            timeMetricToText(m_deltaTime, text, textWidth);
             break;
         case SyncTime:
-            timeCounterToText(m_counters.syncTime, text, textWidth);
+            timeMetricToText(m_metrics.syncTime, text, textWidth);
             break;
         case RenderTime:
-            timeCounterToText(m_counters.renderTime, text, textWidth);
+            timeMetricToText(m_metrics.renderTime, text, textWidth);
             break;
         case GpuTime:
             if (m_flags & GpuTimerAvailable) {
-                timeCounterToText(m_counters.gpuTime, text, textWidth);
+                timeMetricToText(m_metrics.gpuTime, text, textWidth);
             } else {
                 const char* const na = "N/A";
                 int naSize = sizeof("N/A") - 1;
@@ -1486,8 +1486,8 @@ void PerformanceMetricsPrivate::updateOverlayText()
             }
             break;
         case TotalTime: {
-            const quint64 time = m_counters.syncTime + m_counters.renderTime + m_counters.gpuTime;
-            timeCounterToText(time, text, textWidth);
+            const quint64 time = m_metrics.syncTime + m_metrics.renderTime + m_metrics.gpuTime;
+            timeMetricToText(time, text, textWidth);
             break;
         }
         default:
@@ -1495,7 +1495,7 @@ void PerformanceMetricsPrivate::updateOverlayText()
             break;
         }
 
-        m_bitmapText.updateText(text, m_overlayCounters[i].textIndex, m_overlayCounters[i].width);
+        m_bitmapText.updateText(text, m_overlayMetrics[i].textIndex, m_overlayMetrics[i].width);
     }
 }
 
@@ -1634,7 +1634,7 @@ void PerformanceMetricsPrivate::parseOverlayText()
     const char* const overlayText = overlayTextLatin1.constData();
     const int overlayTextSize = overlayTextLatin1.size();
     char* keywordBuffer = static_cast<char*>(m_buffer);
-    int currentCounter = 0;
+    int currentMetric = 0;
     int characters = 0;
 
     for (int i = 0; i <= overlayTextSize; i++) {
@@ -1661,12 +1661,12 @@ void PerformanceMetricsPrivate::parseOverlayText()
                     break;
                 }
             }
-            // Search for counters.
-            if (!keywordFound && currentCounter < maxOverlayCounters) {
-                for (int j = 0; j < CounterCount; j++) {
+            // Search for metrics.
+            if (!keywordFound && currentMetric < maxOverlayMetrics) {
+                for (int j = 0; j < MetricCount; j++) {
                     int width, widthOffset = 0;
                     if (!isdigit(overlayText[i+1+widthOffset])) {
-                        width = counterInfo[j].defaultWidth;
+                        width = metricInfo[j].defaultWidth;
                     } else {
                         width = overlayText[i+1+widthOffset] - '0';
                         widthOffset++;
@@ -1674,20 +1674,20 @@ void PerformanceMetricsPrivate::parseOverlayText()
                             width = width * 10 + overlayText[i+1+widthOffset] - '0';
                             widthOffset++;
                         }
-                        width = qBound(1, width, maxCounterWidth);
+                        width = qBound(1, width, maxMetricWidth);
                     }
-                    if (!strncmp(&overlayText[i+1+widthOffset], counterInfo[j].name,
-                                 counterInfo[j].size)) {
+                    if (!strncmp(&overlayText[i+1+widthOffset], metricInfo[j].name,
+                                 metricInfo[j].size)) {
                         if (width < maxOverlayTextParsedSize - characters) {
-                            m_overlayCounters[currentCounter].index = j;
-                            m_overlayCounters[currentCounter].textIndex = characters;
-                            m_overlayCounters[currentCounter].width = width;
+                            m_overlayMetrics[currentMetric].index = j;
+                            m_overlayMetrics[currentMetric].textIndex = characters;
+                            m_overlayMetrics[currentMetric].width = width;
                             // Must be initialised since it might contain non
                             // printable characters and break setText otherwise.
                             memset(&m_overlayTextParsed[characters], '?', width);
                             characters += width;
-                            i += widthOffset + counterInfo[j].size;
-                            currentCounter++;
+                            i += widthOffset + metricInfo[j].size;
+                            currentMetric++;
                         }
                         break;
                     }
@@ -1701,7 +1701,7 @@ void PerformanceMetricsPrivate::parseOverlayText()
         }
     }
 
-    m_overlayCountersSize = currentCounter;
+    m_overlayMetricsSize = currentMetric;
 }
 
 void PerformanceMetricsPrivate::updateCpuUsage()
@@ -1719,7 +1719,7 @@ void PerformanceMetricsPrivate::updateCpuUsage()
         const clock_t ticks = newTicks - m_cpuTicks;
         const clock_t userTime = newCpuTimes.tms_utime - m_cpuTimes.tms_utime;
         const clock_t systemTime = newCpuTimes.tms_stime - m_cpuTimes.tms_stime;
-        m_counters.cpuUsage = ((userTime + systemTime) * 100) / (ticks * m_cpuOnlineCores);
+        m_metrics.cpuUsage = ((userTime + systemTime) * 100) / (ticks * m_cpuOnlineCores);
         m_cpuTimer.start();
         memcpy(&m_cpuTimes, &newCpuTimes, sizeof(struct tms));
         m_cpuTicks = newTicks;
@@ -1727,7 +1727,7 @@ void PerformanceMetricsPrivate::updateCpuUsage()
 }
 
 // FIXME(loicm) Should we throttle to minimise the (little) CPU impact?
-void PerformanceMetricsPrivate::updateProcStatCounters()
+void PerformanceMetricsPrivate::updateProcStatMetrics()
 {
     DLOG_FUNC();
 
@@ -1779,9 +1779,9 @@ void PerformanceMetricsPrivate::updateProcStatCounters()
     sscanf(&buffer[entryIndices[vsizeEntry-1]], "%lu %ld", &vsize, &rss);
 #endif
 
-    m_counters.vszMemory = vsize >> 10;
-    m_counters.rssMemory = (rss * m_pageSize) >> 10;
-    m_counters.threadCount = threadCount - 1;  // Subtract logger thread from the count.
+    m_metrics.vszMemory = vsize >> 10;
+    m_metrics.rssMemory = (rss * m_pageSize) >> 10;
+    m_metrics.threadCount = threadCount - 1;  // Subtract logger thread from the count.
 
     close(fd);
 }

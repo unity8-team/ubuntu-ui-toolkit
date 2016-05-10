@@ -239,7 +239,7 @@ public:
     int keywordString(int index, char* buffer, int bufferSize);
     void parseOverlayText();
     void updateCpuUsage();
-    void updateProcStatCounters();
+    void updateProcStatMetrics();
 
     // Flags.
     enum {
@@ -253,7 +253,7 @@ public:
         Logging           = (1 << 7)
     };
 
-    static const int maxOverlayCounters = 16;
+    static const int maxOverlayMetrics = 16;
 
     QQuickWindow* m_window;
     void* m_buffer;
@@ -263,8 +263,8 @@ public:
         quint16 index;
         quint16 textIndex;
         quint8 width;
-    } m_overlayCounters[maxOverlayCounters];
-    quint8 m_overlayCountersSize;
+    } m_overlayMetrics[maxOverlayMetrics];
+    quint8 m_overlayMetricsSize;
     QString m_overlayText;
     QPointF m_overlayPosition;
     float m_overlayOpacity;
@@ -283,7 +283,7 @@ public:
 
     quint64 m_deltaTime;
 
-    QuickPlusMetrics m_counters;
+    QuickPlusMetrics m_metrics;
 
     LoggingThread m_loggingThread;
 
