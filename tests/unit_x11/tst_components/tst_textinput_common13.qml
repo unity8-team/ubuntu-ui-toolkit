@@ -106,8 +106,6 @@ Item {
                 id: textFieldInMouseArea
                 text: 'Lorem ipsum dolor sit amet'
                 color: UbuntuColors.blue
-                focus: true
-                onVisibleChanged: if (visible) focus = true
             }
             MouseArea {
                 anchors.fill: parent
@@ -216,7 +214,6 @@ Item {
         function cleanup() {
             textField.focus = false;
             textArea.focus = false;
-            scope.focus = false;
             cursorPositionSpy.clear();
             selectionStartSpy.clear();
             selectionEndSpy.clear();
@@ -301,6 +298,10 @@ Item {
             keyClick(Qt.Key_Backspace);
             waitForRendering(data.input, 1000);
             compare(data.input.text, "", "The text has not been deleted");
+
+            // dismiss popover
+            mouseClick(testMain, testMain.width / 2, testMain.height / 2);
+            wait(200);
         }
 
         SignalSpy {
@@ -403,6 +404,10 @@ Item {
             waitForRendering(data.input);
             popupSpy.wait();
             verify(data.input.cursorPosition !== 0, "Cursor should be moved to the mouse click position.")
+
+            // dismiss popover
+            mouseClick(testMain, 0, 0);
+            wait(500);
         }
 
         function test_clear_selection_on_click_data() {
