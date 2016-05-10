@@ -1781,7 +1781,13 @@ void PerformanceMetricsPrivate::updateProcStatMetrics()
 
     m_metrics.vszMemory = vsize >> 10;
     m_metrics.rssMemory = (rss * m_pageSize) >> 10;
-    m_metrics.threadCount = threadCount - 1;  // Subtract logger thread from the count.
+#if !defined(DISABLE_LTTNG)
+    // FIXME(loic) Not sure LTTng always creates 2 threads...
+    const int externalThreads = 2 /*LTTng*/ + 1 /*Logging*/;
+#else
+    const int externalThreads = 1 /*Logging*/;
+#endif
+    m_metrics.threadCount = threadCount - externalThreads;
 
     close(fd);
 }

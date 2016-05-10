@@ -3,6 +3,7 @@ TARGET = quickplus
 QT += core-private gui-private quick-private
 CONFIG += c++11 no_keywords
 DEFINES += QUICK_PLUS_BUILD
+equals(DISABLE_LTTNG, "1"): DEFINES += DISABLE_LTTNG
 QMAKE_CXXFLAGS_RELEASE += -Wno-unused-result
 
 include(../../version.pri)
