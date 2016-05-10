@@ -16,6 +16,8 @@
 // along with Quick+. If not, see <http://www.gnu.org/licenses/>.
 
 #include "performancemetrics.h"
+#include "metricslogger.h"
+#include "metrics.h"
 #include <QtCore/QThread>
 #include <QtCore/QMutex>
 #include <QtCore/QWaitCondition>
@@ -183,30 +185,17 @@ private:
 #endif
 };
 
-struct Counters
-{
-    quint64 timeStamp;
-    quint64 syncTime;
-    quint64 renderTime;
-    quint64 gpuTime;
-    quint64 swapTime;
-    quint32 frameNumber;
-    quint32 cpuUsage;
-    quint32 vszMemory;
-    quint32 rssMemory;
-    quint16 frameWidth;
-    quint16 frameHeight;
-    quint16 threadCount;
-};
-
-class Logger : public QThread
+class LoggingThread : public QThread
 {
 public:
-    Logger() : m_device(nullptr), m_queueIndex(0), m_queueSize(0), m_flags(0) {}
+  LoggingThread() : m_logger(nullptr), m_queueIndex(0), m_queueSize(0), m_flags(0) {}
+    ~LoggingThread() { delete m_logger; }
 
-    void run();
-    void log(const Counters* counters);
-    void setDevice(QIODevice* device);
+    void run() override;
+
+    void setLogger(QuickPlusMetricsLogger* logger);
+    QuickPlusMetricsLogger* logger();
+    void push(const QuickPlusMetrics* metrics);
     void tearDown();
 
 private:
@@ -218,8 +207,9 @@ private:
     static const int maxQueueSize = 16;
 
     // FIXME(loicm) Consider potential false sharing issues.
-    QIODevice* m_device;
-    Counters m_queue[maxQueueSize];
+    QuickPlusMetricsLogger* m_logger;
+    // FIXME(loicm) Make that 64 bytes aligned so that memcpy is fast.
+    QuickPlusMetrics m_queue[maxQueueSize];
     qint8 m_queueIndex;
     qint8 m_queueSize;
     QMutex m_mutex;
@@ -237,7 +227,6 @@ public:
     void setOverlayPosition(const QPointF& position);
     void setOverlayOpacity(float opacity);
     void setWindowUpdatePolicy(QuickPlusPerformanceMetrics::UpdatePolicy updatePolicy);
-    void setLoggingDevice(QIODevice* loggingDevice);
     void initialiseGpuResources();
     void windowSceneGraphInvalidated();
     void windowBeforeSynchronising();
@@ -267,7 +256,6 @@ public:
     static const int maxOverlayCounters = 16;
 
     QQuickWindow* m_window;
-    QIODevice* m_loggingDevice;
     void* m_buffer;
 
     char* m_overlayTextParsed;
@@ -280,8 +268,6 @@ public:
     QString m_overlayText;
     QPointF m_overlayPosition;
     float m_overlayOpacity;
-
-    QFile m_defaultLoggingDevice;
 
     BitmapText m_bitmapText;
     GPUTimer m_gpuTimer;
@@ -297,9 +283,9 @@ public:
 
     quint64 m_deltaTime;
 
-    Counters m_counters;
+    QuickPlusMetrics m_counters;
 
-    Logger m_logger;
+    LoggingThread m_loggingThread;
 
     QMutex m_mutex;
     quint8 m_flags;

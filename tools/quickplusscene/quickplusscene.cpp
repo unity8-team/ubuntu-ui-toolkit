@@ -30,6 +30,10 @@
 #include <QtCore/QLibraryInfo>
 
 #include <quickplus/performancemetrics.h>
+#include <quickplus/metricslogger.h>
+#if !defined(DISABLE_LTTNG)
+#include <quickplus-lttng/lttngmetricslogger.h>
+#endif
 
 #ifdef QML_RUNTIME_TESTING
 class RenderStatistics
@@ -144,7 +148,7 @@ struct Options
     bool verbose;
     bool performanceOverlay;
     bool performanceLogging;
-    QString performanceLogFile;
+    QString performanceLoggingDevice;
     bool continuousUpdate;
     int quitAfterFrameCount;
     QVector<Qt::ApplicationAttribute> applicationAttributes;
@@ -345,8 +349,12 @@ static void usage()
     puts(" ");
     puts(" Quick+ options:");
     puts("  --performance-overlay ............ Enable the performance overlay");
-    puts("  --performance-logging ............ Enable performance logging");
-    puts("  --performance-log-file <path>..... Set performance log file (default is stdout)");
+    puts("  --performance-logging <device>.... Enable performance logging. <device> can be a \n"
+#if !defined(DISABLE_LTTNG)
+         "                                .... file, 'stdout' or 'lttng' (default is 'stdout')");
+#else
+         "                                .... file or 'stdout' (default is 'stdout')");
+#endif
     puts("  --continuous-update .............. Continuously update the window");
     puts("  --quit-after-frame-count <count>.. Quit after a number of rendered frames");
 
@@ -465,22 +473,22 @@ static void setPerformanceMetricsOptions(QuickPlusPerformanceMetrics* metrics, O
     }
 
     if (options->performanceLogging) {
-        QFile* device;
-        bool opened;
-        if (options->performanceLogFile.isEmpty()) {
-            device = new QFile();
-            opened = device->open(stdout, QIODevice::WriteOnly);
+        QuickPlusMetricsLogger* logger;
+        if (options->performanceLoggingDevice.isEmpty()
+            || options->performanceLoggingDevice == "stdout") {
+            logger = new QuickPlusFileMetricsLogger(stdout);
+#if !defined(DISABLE_LTTNG)
+        } else if (options->performanceLoggingDevice == "lttng") {
+            logger = new QuickPlusLTTNGMetricsLogger();
+#endif
         } else {
-            QString filename = options->performanceLogFile;
-            if (QDir::isRelativePath(options->performanceLogFile)) {
-                filename.prepend(QDir::currentPath() + QDir::separator());
-            }
-            device = new QFile(filename);
-            opened = device->open(QIODevice::WriteOnly);
+            logger = new QuickPlusFileMetricsLogger(options->performanceLoggingDevice);
         }
-        if (opened) {
-            metrics->setLoggingDevice(device);
+        if (logger->isOpen()) {
+            metrics->setLogger(logger);
             metrics->setLogging(true);
+        } else {
+            delete logger;
         }
     }
 
@@ -556,11 +564,13 @@ int main(int argc, char ** argv)
                 options.verbose = true;
             else if (lowerArgument == QLatin1String("--performance-overlay"))
                 options.performanceOverlay = true;
-            else if (lowerArgument == QLatin1String("--performance-logging"))
+            else if (lowerArgument == QLatin1String("--performance-logging")) {
                 options.performanceLogging = true;
-            else if (lowerArgument == QLatin1String("--performance-log-file"))
-                options.performanceLogFile = QString(argv[++i]);
-            else if (lowerArgument == QLatin1String("--continuous-update"))
+                if (!arguments.at(i+1).startsWith(QLatin1Char('-'))
+                    && !arguments.at(i+1).endsWith(QString(".qml"))) {
+                    options.performanceLoggingDevice = QString(argv[++i]);
+                }
+            } else if (lowerArgument == QLatin1String("--continuous-update"))
                 options.continuousUpdate = true;
             else if (lowerArgument == QLatin1String("--quit-after-frame-count"))
                 options.quitAfterFrameCount = atoi(argv[++i]);

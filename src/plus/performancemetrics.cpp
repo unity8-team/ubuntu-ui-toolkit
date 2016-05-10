@@ -18,9 +18,9 @@
 #include "performancemetrics_p.h"
 #include "bitmaptextfont_p.h"
 #include "quickplusglobal_p.h"
+#include "metricslogger.h"
 #include <QtGui/QGuiApplication>
 #include <QtCore/QLibraryInfo>
-#include <QtCore/QTextStream>
 #include <unistd.h>
 #include <fcntl.h>
 
@@ -693,7 +693,7 @@ quint64 GPUTimer::stop()
     return 0;
 }
 
-// --- Logger ---
+// --- LoggingThread ---
 
 #define BREAK_ON_TEAR_DOWN_REQUEST()               \
     if (Q_UNLIKELY(m_flags & TearDownRequested)) { \
@@ -702,12 +702,13 @@ quint64 GPUTimer::stop()
     }
 
 // Logging thread entry point.
-void Logger::run()
+void LoggingThread::run()
 {
     DLOG_FUNC();
 
+    DLOG("Entering logging thread.");
     while (true) {
-        // Wait for new counters in the log queue.
+        // Wait for new metrics in the log queue.
         m_mutex.lock();
         DASSERT(m_queueSize >= 0);
         if (m_queueSize == 0) {
@@ -718,35 +719,24 @@ void Logger::run()
             m_flags &= ~Waiting;
         }
 
-        // Unqueue oldest counters from the log queue.
+        // Unqueue oldest metrics from the log queue.
         DASSERT(m_queueSize > 0);
-        Counters counters;
-        memcpy(&counters, &m_queue[m_queueIndex], sizeof(Counters));
+        QuickPlusMetrics metrics;
+        memcpy(&metrics, &m_queue[m_queueIndex], sizeof(QuickPlusMetrics));
         m_queueIndex = (m_queueIndex + 1) % maxQueueSize;
         m_queueSize--;
 
         // Log.
-        QIODevice* device = m_device;
+        QuickPlusMetricsLogger* logger = m_logger;
         m_mutex.unlock();
-        if (device) {
-            QTextStream stream(device);
-            stream << counters.timeStamp << ' '
-                   << counters.frameNumber << ' '
-                   << counters.frameWidth << ' '
-                   << counters.frameHeight << ' '
-                   << counters.syncTime << ' '
-                   << counters.renderTime << ' '
-                   << counters.gpuTime << ' '
-                   << counters.swapTime << ' '
-                   << counters.cpuUsage << ' '
-                   << counters.vszMemory << ' '
-                   << counters.rssMemory << ' '
-                   << counters.threadCount << '\n';
+        if (logger) {
+            logger->log(metrics);
         }
     }
+    DLOG("Leaving logging thread.");
 }
 
-void Logger::log(const Counters* counters)
+void LoggingThread::push(const QuickPlusMetrics* metrics)
 {
     DLOG_FUNC();
 
@@ -759,24 +749,36 @@ void Logger::log(const Counters* counters)
         m_mutex.lock();
     }
 
-    // Push counters to the log queue.
+    // Push metrics to the log queue.
     DASSERT(m_queueSize < maxQueueSize);
-    memcpy(&m_queue[(m_queueIndex + m_queueSize++) % maxQueueSize], counters, sizeof(Counters));
+    memcpy(&m_queue[(m_queueIndex + m_queueSize++) % maxQueueSize], metrics,
+           sizeof(QuickPlusMetrics));
     if (m_flags & Waiting) {
         m_condition.wakeOne();
     }
     m_mutex.unlock();
 }
 
-void Logger::setDevice(QIODevice* device)
+void LoggingThread::setLogger(QuickPlusMetricsLogger* logger)
 {
     DLOG_FUNC();
 
     QMutexLocker locker(&m_mutex);
-    m_device = device;
+    if (m_logger != logger) {
+        delete m_logger;
+    }
+    m_logger = logger;
 }
 
-void Logger::tearDown()
+QuickPlusMetricsLogger* LoggingThread::logger()
+{
+    DLOG_FUNC();
+
+    QMutexLocker locker(&m_mutex);
+    return m_logger;
+}
+
+void LoggingThread::tearDown()
 {
     DLOG_FUNC();
 
@@ -914,7 +916,6 @@ QuickPlusPerformanceMetrics::QuickPlusPerformanceMetrics(QQuickWindow* window, b
 
 PerformanceMetricsPrivate::PerformanceMetricsPrivate(QQuickWindow* window, bool overlayVisible)
     : m_window(window)
-    , m_loggingDevice(nullptr)
     , m_overlayTextParsed(new char [maxOverlayTextParsedSize])
     , m_overlayCountersSize(0)
     , m_overlayText(defaultOverlayText)
@@ -923,12 +924,12 @@ PerformanceMetricsPrivate::PerformanceMetricsPrivate(QQuickWindow* window, bool 
     , m_bitmapText()
     , m_gpuTimer()
     , m_deltaTime(0)
-    , m_logger()
+    , m_loggingThread()
     , m_flags(DirtyText | DirtyTransform | DirtyOpacity | (overlayVisible ? OverlayVisible : 0))
 {
     DLOG_FUNC();
 
-    m_logger.start();
+    m_loggingThread.start();
 #if !defined(QT_NO_DEBUG)
     ASSERT(posix_memalign(&m_buffer, bufferAlignment, bufferSize) == 0);
 #else
@@ -957,10 +958,10 @@ PerformanceMetricsPrivate::~PerformanceMetricsPrivate()
 {
     DLOG_FUNC();
 
-    m_logger.tearDown();
+    m_loggingThread.tearDown();
     free(m_buffer);
     delete [] m_overlayTextParsed;
-    m_logger.wait();
+    m_loggingThread.wait();
 }
 
 void QuickPlusPerformanceMetrics::setWindow(QQuickWindow* window)
@@ -1120,35 +1121,18 @@ QuickPlusPerformanceMetrics::UpdatePolicy QuickPlusPerformanceMetrics::windowUpd
     return d->m_flags & PerformanceMetricsPrivate::ContinuousUpdate ? Continuous : Live;
 }
 
-void QuickPlusPerformanceMetrics::setLoggingDevice(QIODevice* loggingDevice)
+void QuickPlusPerformanceMetrics::setLogger(QuickPlusMetricsLogger* logger)
 {
     DLOG_FUNC();
 
-    d_func()->setLoggingDevice(loggingDevice);
+    d_func()->m_loggingThread.setLogger(logger);
 }
 
-void PerformanceMetricsPrivate::setLoggingDevice(QIODevice* loggingDevice)
+QuickPlusMetricsLogger* QuickPlusPerformanceMetrics::logger()
 {
     DLOG_FUNC();
 
-    QMutexLocker locker(&m_mutex);
-    if (loggingDevice != m_loggingDevice) {
-        if (loggingDevice) {
-            if (loggingDevice->isWritable()) {
-                m_loggingDevice = loggingDevice;
-            }
-        } else {
-            m_loggingDevice = nullptr;
-        }
-        m_logger.setDevice(m_loggingDevice);
-    }
-}
-
-QIODevice* QuickPlusPerformanceMetrics::loggingDevice() const
-{
-    DLOG_FUNC();
-
-    return d_func()->m_loggingDevice;
+    return d_func()->m_loggingThread.logger();
 }
 
 void QuickPlusPerformanceMetrics::setLogging(bool logging)
@@ -1375,8 +1359,8 @@ void PerformanceMetricsPrivate::windowFrameSwapped()
             m_counters.timeStamp = timeStamp;
             m_counters.swapTime = m_sceneGraphTimer.nsecsElapsed();
         }
-        if (m_flags & Logging ) {
-            m_logger.log(&m_counters);
+        if (m_flags & Logging) {
+            m_loggingThread.push(&m_counters);
         }
     } else {
         // Get everything ready for the next frame.
@@ -1384,8 +1368,8 @@ void PerformanceMetricsPrivate::windowFrameSwapped()
     }
 }
 
-// Writes a 64-bit unsigned integer as text. The string is aligned to the
-// right. Returns the remaining width.
+// Writes a 64-bit unsigned integer as text. The string is right
+// aligned. Returns the remaining width.
 static int integerCounterToText(quint64 counter, char* text, int width)
 {
     DLOG_FUNC();
@@ -1401,8 +1385,9 @@ static int integerCounterToText(quint64 counter, char* text, int width)
     return width;
 }
 
-// Writes a 64-bit unsigned integer representing time in nanoseconds as
-// text. The string is aligned to the right. Returns the remaining width.
+// Writes a 64-bit unsigned integer representing time in nanoseconds as text in
+// milliseconds with two decimal digits. The string is right aligned. Returns
+// the remaining width.
 static int timeCounterToText(quint64 counter, char* text, int width)
 {
     DLOG_FUNC();

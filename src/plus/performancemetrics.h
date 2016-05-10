@@ -15,6 +15,8 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with Quick+. If not, see <http://www.gnu.org/licenses/>.
 
+// FIXME(loicm) Rename QuickPlusPerformanceMetrics to QuickPlusMetricsTracker.
+
 #ifndef PERFORMANCEMETRICS_H
 #define PERFORMANCEMETRICS_H
 
@@ -22,6 +24,7 @@
 #include <QtQuick/QQuickWindow>
 
 class PerformanceMetricsPrivate;
+class QuickPlusMetricsLogger;
 
 // 
 class QUICK_PLUS_EXPORT QuickPlusPerformanceMetrics : public QObject
@@ -60,8 +63,8 @@ public:
     UpdatePolicy windowUpdatePolicy();
 
     // 
-    void setLoggingDevice(QIODevice* loggingDevice);
-    QIODevice* loggingDevice() const;
+    void setLogger(QuickPlusMetricsLogger* logger);
+    QuickPlusMetricsLogger* logger();
 
     // 
     void setLogging(bool logging);

@@ -1,4 +1,4 @@
-requires(linux:!android)  # FIXME(loicm) We simply have not tried on other systems.
+requires(linux:!android)
 requires(qtHaveModule(quick))
 
 defineTest(minQtVersion) {
@@ -25,8 +25,15 @@ defineTest(minQtVersion) {
 }
 
 !minQtVersion(5, 1, 0) {
-    message("Cannot build Quick+ with Qt version $${QT_VERSION}.")
-    error("Use at least Qt 5.1.0.")
+    message("Cannot build Quick+ without Qt version >= $${QT_VERSION}.")
+    error("Qt >= 5.1.0 required!")
+}
+
+!equals(DISABLE_LTTNG, "1") {
+    !packagesExist(lttng-ust) {
+        message("Cannot build Quick+ without lttng-ust.")
+        error("liblttng-ust-dev required!")
+    }
 }
 
 TEMPLATE = subdirs

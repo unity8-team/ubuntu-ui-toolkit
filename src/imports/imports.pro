@@ -2,7 +2,7 @@ CXX_MODULE = qml
 TARGET = quickplusplugin
 TARGETPATH = QuickPlus
 
-INCLUDEPATH = ../lib
+INCLUDEPATH = ../plus
 LIBS += -L../../lib -lquickplus
 
 SOURCES += \

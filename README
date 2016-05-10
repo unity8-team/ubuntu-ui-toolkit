@@ -32,3 +32,23 @@ Quick+ shell:
   $ ./scripts/shell.sh
   Entering Quick+ shell.
   [Quick+] $ _
+
+
+LTTng support
+=============
+
+LTTng support is built by default, it can be disable with:
+
+  $ qmake DISABLE_LTTNG=1
+
+When LTTng is enabled, a dedicated library providing LTTng metrics logging is
+built. The provider is "quickplus" and the tracepoint "metrics". The
+quick-plus-scene tool supports LTTng, it can be used like that:
+
+  $ lttng create
+  $ lttng enable-event --userspace quickplus:metrics
+  $ lttng start
+  $ quick-plus-scene --performance-logging lttng tests/RotatingLogo.qml
+  $ lttng stop
+  $ lttng view
+  $ lttng destroy

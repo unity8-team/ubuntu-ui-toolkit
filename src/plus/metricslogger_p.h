@@ -15,22 +15,19 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with Quick+. If not, see <http://www.gnu.org/licenses/>.
 
-#include "quickplus_p.h"
-#include "dropshadow_p.h"
+#include "metricslogger.h"
+#include <QtCore/QFile>
+#include <QtCore/QTextStream>
 
-static void initResources()
+class FileMetricsLoggerPrivate
 {
-    Q_INIT_RESOURCE(lib);
-}
+public:
+    FileMetricsLoggerPrivate(const QString& fileName);
+    FileMetricsLoggerPrivate(FILE* fileHandle);
 
-void QuickPlusModule::defineModule()
-{
-    initResources();
+    void log(const QuickPlusMetrics& metrics);
 
-    const char* uri = "QuickPlus";
-    qmlRegisterType<QuickPlusDropShadow>(uri, 0, 1, "DropShadow");
-}
-
-void QuickPlusModule::undefineModule()
-{
-}
+    QFile m_file;
+    QTextStream m_textStream;
+    bool m_open;
+};

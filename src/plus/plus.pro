@@ -10,6 +10,8 @@ VERSION = $${QUICK_PLUS_VERSION}
 
 PUBLIC_HEADERS = \
     $$PWD/quickplusglobal.h \
+    $$PWD/metrics.h \
+    $$PWD/metricslogger.h \
     $$PWD/performancemetrics.h
 
 HEADERS += \
@@ -19,11 +21,13 @@ HEADERS += \
     $$PWD/dropshadow_p.h \
     $$PWD/dropshadowtexture_p.h \
     $$PWD/bitmaptextfont_p.h \
+    $$PWD/metricslogger_p.h \
     $$PWD/performancemetrics_p.h
 
 SOURCES += \
     $$PWD/quickplus.cpp \
     $$PWD/dropshadow.cpp \
+    $$PWD/metricslogger.cpp \
     $$PWD/performancemetrics.cpp
 
 OTHER_FILES += \
@@ -33,7 +37,7 @@ OTHER_FILES += \
     $$PWD/shaders/dropshadow_core.frag
 
 RESOURCES = \
-    $$PWD/lib.qrc
+    $$PWD/plus.qrc
 
 headers.files = $${PUBLIC_HEADERS}
 headers.path = /usr/include/quickplus
