@@ -24,7 +24,7 @@
 
 class FileMetricsLoggerPrivate;
 
-// Logs metrics to a specific device.
+// Log metrics to a specific device.
 class QUICK_PLUS_EXPORT QuickPlusMetricsLogger
 {
 public:
@@ -37,7 +37,7 @@ public:
     virtual bool isOpen() = 0;
 };
 
-// 
+// Log metrics to a file.
 class QUICK_PLUS_EXPORT QuickPlusFileMetricsLogger : public QuickPlusMetricsLogger
 {
 public:

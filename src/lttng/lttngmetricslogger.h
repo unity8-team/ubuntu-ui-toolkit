@@ -21,7 +21,7 @@
 
 #include <quickplus/metricslogger.h>
 
-// 
+// Log metrics to LTTng.
 class QUICK_PLUS_EXPORT QuickPlusLTTNGMetricsLogger : public QuickPlusMetricsLogger
 {
 public:
