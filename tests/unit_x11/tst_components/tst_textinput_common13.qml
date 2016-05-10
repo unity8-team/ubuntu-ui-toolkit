@@ -407,6 +407,7 @@ Item {
 
             // dismiss popover
             mouseClick(testMain, 0, 0);
+            // add some timeout to get the event buffer cleaned
             wait(500);
         }
 
