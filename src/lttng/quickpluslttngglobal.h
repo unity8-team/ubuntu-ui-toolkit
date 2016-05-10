@@ -1,5 +1,6 @@
 // Copyright © 2016 Canonical Ltd.
-// Author: Loïc Molinari <loic.molinari@canonical.com>
+// Authors: Loïc Molinari <loic.molinari@canonical.com>
+//          Albert Astals Cid <albert.astals@canonical.com>
 //
 // This file is part of Quick+.
 //
