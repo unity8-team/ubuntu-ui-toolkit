@@ -13,7 +13,7 @@ PUBLIC_HEADERS = \
     $$PWD/quickplusglobal.h \
     $$PWD/metrics.h \
     $$PWD/metricslogger.h \
-    $$PWD/performancemetrics.h
+    $$PWD/metricstracker.h
 
 HEADERS += \
     $${PUBLIC_HEADERS} \
@@ -23,13 +23,13 @@ HEADERS += \
     $$PWD/dropshadowtexture_p.h \
     $$PWD/bitmaptextfont_p.h \
     $$PWD/metricslogger_p.h \
-    $$PWD/performancemetrics_p.h
+    $$PWD/metricstracker_p.h
 
 SOURCES += \
     $$PWD/quickplus.cpp \
     $$PWD/dropshadow.cpp \
     $$PWD/metricslogger.cpp \
-    $$PWD/performancemetrics.cpp
+    $$PWD/metricstracker.cpp
 
 OTHER_FILES += \
     $$PWD/shaders/dropshadow.vert \

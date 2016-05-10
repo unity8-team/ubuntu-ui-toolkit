@@ -29,7 +29,7 @@
 #include <QtCore/QTranslator>
 #include <QtCore/QLibraryInfo>
 
-#include <quickplus/performancemetrics.h>
+#include <quickplus/metricstracker.h>
 #include <quickplus/metricslogger.h>
 #if !defined(DISABLE_LTTNG)
 #include <quickplus-lttng/lttngmetricslogger.h>
@@ -456,7 +456,7 @@ static QUrl parseUrlArgument(const QString &arg)
     return url;
 }
 
-static void setPerformanceMetricsOptions(QuickPlusPerformanceMetrics* metrics, Options* options)
+static void setMetricsTrackerOptions(QuickPlusMetricsTracker* metrics, Options* options)
 {
     if (options->performanceOverlay) {
         QString filename(
@@ -493,7 +493,7 @@ static void setPerformanceMetricsOptions(QuickPlusPerformanceMetrics* metrics, O
     }
 
     if (options->continuousUpdate) {
-        metrics->setWindowUpdatePolicy(QuickPlusPerformanceMetrics::Continuous);
+        metrics->setWindowUpdatePolicy(QuickPlusMetricsTracker::Continuous);
     }
 }
 
@@ -705,8 +705,8 @@ int main(int argc, char ** argv)
                 QMetaObject::invokeMethod(QCoreApplication::instance(), "quit", Qt::QueuedConnection);
 
             // Quick+ performance metrics.
-            QuickPlusPerformanceMetrics metrics(window.data());
-            setPerformanceMetricsOptions(&metrics, &options);
+            QuickPlusMetricsTracker metrics(window.data());
+            setMetricsTrackerOptions(&metrics, &options);
 
             // Now would be a good time to inform the debug service to start listening.
 

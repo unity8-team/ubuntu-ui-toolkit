@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with Quick+. If not, see <http://www.gnu.org/licenses/>.
 
-#include "performancemetrics.h"
+#include "metricstracker.h"
 #include "metricslogger.h"
 #include "metrics.h"
 #include <QtCore/QThread>
@@ -217,16 +217,16 @@ private:
     quint8 m_flags;
 };
 
-class PerformanceMetricsPrivate
+class MetricsTrackerPrivate
 {
 public:
-    PerformanceMetricsPrivate(QQuickWindow* window, bool overlayVisible);
-    ~PerformanceMetricsPrivate();
+    MetricsTrackerPrivate(QQuickWindow* window, bool overlayVisible);
+    ~MetricsTrackerPrivate();
 
     void setOverlayText(const QString& text);
     void setOverlayPosition(const QPointF& position);
     void setOverlayOpacity(float opacity);
-    void setWindowUpdatePolicy(QuickPlusPerformanceMetrics::UpdatePolicy updatePolicy);
+    void setWindowUpdatePolicy(QuickPlusMetricsTracker::UpdatePolicy updatePolicy);
     void initialiseGpuResources();
     void windowSceneGraphInvalidated();
     void windowBeforeSynchronising();

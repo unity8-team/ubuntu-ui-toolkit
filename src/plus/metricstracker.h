@@ -15,26 +15,24 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with Quick+. If not, see <http://www.gnu.org/licenses/>.
 
-// FIXME(loicm) Rename QuickPlusPerformanceMetrics to QuickPlusMetricsTracker.
-
-#ifndef PERFORMANCEMETRICS_H
-#define PERFORMANCEMETRICS_H
+#ifndef METRICSTRACKER_H
+#define METRICSTRACKER_H
 
 #include "quickplusglobal.h"
 #include <QtQuick/QQuickWindow>
 
-class PerformanceMetricsPrivate;
+class MetricsTrackerPrivate;
 class QuickPlusMetricsLogger;
 
 // 
-class QUICK_PLUS_EXPORT QuickPlusPerformanceMetrics : public QObject
+class QUICK_PLUS_EXPORT QuickPlusMetricsTracker : public QObject
 {
     Q_OBJECT
     Q_ENUMS(UpdatePolicy)
 
 public:
-    QuickPlusPerformanceMetrics(QQuickWindow* window=Q_NULLPTR, bool overlayVisible=false);
-    ~QuickPlusPerformanceMetrics();
+    QuickPlusMetricsTracker(QQuickWindow* window=Q_NULLPTR, bool overlayVisible=false);
+    ~QuickPlusMetricsTracker();
 
     enum UpdatePolicy { Live, Continuous };
 
@@ -82,8 +80,8 @@ private Q_SLOTS:
     void windowFrameSwapped();
 
 private:
-    PerformanceMetricsPrivate* const d_ptr;
-    Q_DECLARE_PRIVATE(PerformanceMetrics);
+    MetricsTrackerPrivate* const d_ptr;
+    Q_DECLARE_PRIVATE(MetricsTracker);
 };
 
-#endif  // PERFORMANCEMETRICS_H
+#endif  // METRICSTRACKER_H

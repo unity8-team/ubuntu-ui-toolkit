@@ -22,7 +22,7 @@ import sys, subprocess, os, tempfile, math
 import matplotlib.pyplot as plot
 from matplotlib import rcParams
 
-COUNTERS = [
+METRICS = [
     { 'name':'frameCount',    'type':int,  'factor':1.0,      'label':'Frame count' },
     { 'name':'syncTime',      'type':long, 'factor':0.000001, 'label':'Sync time (ms)' },
     { 'name':'renderTime',    'type':long, 'factor':0.000001, 'label':'Render time (ms)' },
@@ -38,12 +38,12 @@ LIMIT_60HZ = 1000.0 / 60.0
 LIMIT_30HZ = 1000.0 / 30.0
 
 def show_usage_quit():
-    print 'Usage: ./compare-perf.py <counter> <filename1.qml> [filename2.qml, ...]'
+    print 'Usage: ./compare-perf.py <metric> <filename1.qml> [filename2.qml, ...]'
     print ''
-    print '  Plot and compare per-frame counter values of different QML files.'
+    print '  Plot and compare per-frame metrics of different QML files.'
     print ''
-    print '  counters: \'frameCount\', \'syncTime\', \'renderTime\', \'gpuRenderTime\','
-    print '            \'cpuUsage\', \'vszMemory\', \'rssMemory\''
+    print '  metrics: \'frameCount\', \'syncTime\', \'renderTime\', \'gpuRenderTime\','
+    print '           \'cpuUsage\', \'vszMemory\', \'rssMemory\''
     sys.exit(1)
 
 # Gets average, standard deviation, min, max.
@@ -68,10 +68,10 @@ def main(args):
     # Command line arguments.
     if len(args) < 2:
         show_usage_quit()
-    counter_index = 0
-    for i in range(0, len(COUNTERS)):
-        if COUNTERS[i]['name'] == args[0]:
-            counter_index = i
+    metric_index = 0
+    for i in range(0, len(METRICS)):
+        if METRICS[i]['name'] == args[0]:
+            metric_index = i
             break
     else:
         show_usage_quit()
@@ -96,9 +96,9 @@ def main(args):
     rcParams['font.size'] = PLOT_FONT_SIZE
     fig, axis = plot.subplots()
 
-    counters_type = []
-    for i in COUNTERS:
-        counters_type.append(i['type']);
+    metrics_type = []
+    for i in METRICS:
+        metrics_type.append(i['type']);
 
     min_value = sys.maxsize
     max_value = 0
@@ -122,10 +122,10 @@ def main(args):
         temp_file = os.fdopen(temp_fd, 'r')
         values = []
         for j in range(0, FRAME_COUNT):
-            counters_line = temp_file.readline()
-            counters_value = [ t(s) for t, s in zip(counters_type, counters_line.split()) ]
-            if len(counters_value) == len(COUNTERS):  # Prevents quick-scene-plus early exit issues
-                values.append(counters_value[counter_index] * COUNTERS[counter_index]['factor'])
+            metrics_line = temp_file.readline()
+            metrics_value = [ t(s) for t, s in zip(metrics_type, metrics_line.split()) ]
+            if len(metrics_value) == len(METRICS):  # Prevents quick-scene-plus early exit issues
+                values.append(metrics_value[metric_index] * METRICS[metric_index]['factor'])
         if len(values) == FRAME_COUNT:  # Prevents quick-scene-plus early exit issues
             (avg, stdev, min, max) = getStats(values)
             label = qml_files[i].split('/')[-1] + ' (avg=' + ('%.2f' % avg) + \
@@ -139,7 +139,7 @@ def main(args):
         os.remove(temp_name)
 
     # Draw 60 and 30 Hz limits.
-    # FIXME(loicm) Doesn't make sense for counters other than timers.
+    # FIXME(loicm) Doesn't make sense for metrics other than timers.
     if max_value > LIMIT_60HZ:
         axis.plot((1, FRAME_COUNT), (LIMIT_60HZ, LIMIT_60HZ), '-', color='orange')
     if max_value > LIMIT_30HZ:
@@ -150,11 +150,11 @@ def main(args):
     axis.legend(loc=0)
     axis.set_xlim(0, FRAME_COUNT + 1)
     if min_value > LIMIT_60HZ - 1:
-        # FIXME(loicm) Doesn't make sense for counters other than timers.
+        # FIXME(loicm) Doesn't make sense for metrics other than timers.
         axis.set_ylim(LIMIT_60HZ - 1)
     plot.title(title)
     plot.xlabel('Frame')
-    plot.ylabel(COUNTERS[counter_index]['label'])
+    plot.ylabel(METRICS[metric_index]['label'])
     plot.show()
 
 if __name__ == '__main__':

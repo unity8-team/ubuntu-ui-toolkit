@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with Quick+. If not, see <http://www.gnu.org/licenses/>.
 
-#include "performancemetrics_p.h"
+#include "metricstracker_p.h"
 #include "bitmaptextfont_p.h"
 #include "quickplusglobal_p.h"
 #include "metricslogger.h"
@@ -107,7 +107,7 @@ static GLuint createProgram(QOpenGLFunctions* functions, const char* vertexShade
     vertexShader = functions->glCreateShader(GL_VERTEX_SHADER);
     fragmentShader = functions->glCreateShader(GL_FRAGMENT_SHADER);
     if (vertexShader == 0 || fragmentShader == 0) {
-        DWARN("QuickPlusPerformanceMetrics: glCreateShader() failed (OpenGL error: %d)",
+        DWARN("QuickPlusMetricsTracker: glCreateShader() failed (OpenGL error: %d)",
               glGetError());
         return 0;
     }
@@ -119,7 +119,7 @@ static GLuint createProgram(QOpenGLFunctions* functions, const char* vertexShade
 #if !defined(QT_NO_DEBUG)
         char infoLog[2048];
         functions->glGetShaderInfoLog(vertexShader, 2048, nullptr, infoLog);
-        WARN("QuickPlusPerformanceMetrics: vertex shader compilation failed:\n%s\n", infoLog);
+        WARN("QuickPlusMetricsTracker: vertex shader compilation failed:\n%s\n", infoLog);
 #endif
         return 0;
     }
@@ -131,7 +131,7 @@ static GLuint createProgram(QOpenGLFunctions* functions, const char* vertexShade
 #if !defined(QT_NO_DEBUG)
         char infoLog[2048];
         functions->glGetShaderInfoLog(fragmentShader, 2048, nullptr, infoLog);
-        WARN("QuickPlusPerformanceMetrics: fragment shader compilation failed:\n%s\n", infoLog);
+        WARN("QuickPlusMetricsTracker: fragment shader compilation failed:\n%s\n", infoLog);
 #endif
         return 0;
     }
@@ -145,7 +145,7 @@ static GLuint createProgram(QOpenGLFunctions* functions, const char* vertexShade
 #if !defined(QT_NO_DEBUG)
         char infoLog[2048];
         functions->glGetProgramInfoLog(program, 2048, nullptr, infoLog);
-        WARN("QuickPlusPerformanceMetrics: shader linking failed:\n%s", infoLog);
+        WARN("QuickPlusMetricsTracker: shader linking failed:\n%s", infoLog);
 #endif
         return 0;
     }
@@ -477,7 +477,7 @@ void GPUTimer::initialise()
             EGLint (QOPENGLF_APIENTRYP)(EGLDisplay, EGLSyncKHR, EGLint, EGLTimeKHR)>(
                 eglGetProcAddress("eglClientWaitSyncKHR"));
         m_type = KHRFence;
-        DLOG("QuickPlusPerformanceMetrics: GpuTimer based on GL_OES_EGL_sync");
+        DLOG("QuickPlusMetricsTracker: GpuTimer based on GL_OES_EGL_sync");
 
     // NVFence.
     } else if (glExtensions.contains("GL_NV_fence")) {
@@ -492,7 +492,7 @@ void GPUTimer::initialise()
             eglGetProcAddress("glFinishFenceNV"));
         m_fenceNV.genFencesNV(2, m_fence);
         m_type = NVFence;
-        DLOG("QuickPlusPerformanceMetrics: GpuTimer based on GL_NV_fence");
+        DLOG("QuickPlusMetricsTracker: GpuTimer based on GL_NV_fence");
     }
 #else
     // We could use the thin QOpenGLTimerQuery wrapper from Qt 5.1, but the lack
@@ -518,7 +518,7 @@ void GPUTimer::initialise()
             context->getProcAddress("glQueryCounter"));
         m_timerQuery.genQueries(2, m_timer);
         m_type = ARBTimerQuery;
-        DLOG("QuickPlusPerformanceMetrics: GpuTimer based on GL_ARB_timer_query");
+        DLOG("QuickPlusMetricsTracker: GpuTimer based on GL_ARB_timer_query");
 
     // EXTTimerQuery.
     } else if (context->hasExtension(QByteArrayLiteral("GL_EXT_timer_query"))) {
@@ -536,13 +536,13 @@ void GPUTimer::initialise()
                 context->getProcAddress("glGetQueryObjectui64vEXT"));
         m_timerQuery.genQueries(1, m_timer);
         m_type = EXTTimerQuery;
-        DLOG("QuickPlusPerformanceMetrics: GpuTimer based on GL_EXT_timer_query");
+        DLOG("QuickPlusMetricsTracker: GpuTimer based on GL_EXT_timer_query");
     }
 #endif
 
     else {
         m_type = Finish;
-        DLOG("QuickPlusPerformanceMetrics: GpuTimer based on glFinish");
+        DLOG("QuickPlusMetricsTracker: GpuTimer based on glFinish");
     }
 }
 
@@ -789,7 +789,7 @@ void LoggingThread::tearDown()
     }
 }
 
-// --- QuickPlusPerformanceMetrics and PerformanceMetricsPrivate ---
+// --- QuickPlusMetricsTracker and MetricsTrackerPrivate ---
 
 // Keep in sync with corresponding enum!
 static const struct {
@@ -860,7 +860,7 @@ const int bufferAlignment = 64;
 
 const int maxOverlayTextParsedSize = 1024;  // Including '\0'.
 
-static void connectWindowSignals(QQuickWindow* window, QuickPlusPerformanceMetrics* metrics)
+static void connectWindowSignals(QQuickWindow* window, QuickPlusMetricsTracker* metrics)
 {
     DLOG_FUNC();
 
@@ -883,7 +883,7 @@ static void connectWindowSignals(QQuickWindow* window, QuickPlusPerformanceMetri
                      Qt::DirectConnection);
 }
 
-static void disconnectWindowSignals(QQuickWindow* window, QuickPlusPerformanceMetrics* metrics)
+static void disconnectWindowSignals(QQuickWindow* window, QuickPlusMetricsTracker* metrics)
 {
     DLOG_FUNC();
 
@@ -904,8 +904,8 @@ static void disconnectWindowSignals(QQuickWindow* window, QuickPlusPerformanceMe
     QObject::disconnect(window, SIGNAL(frameSwapped()), metrics, SLOT(windowFrameSwapped()));
 }
 
-QuickPlusPerformanceMetrics::QuickPlusPerformanceMetrics(QQuickWindow* window, bool overlayVisible)
-    : d_ptr(new PerformanceMetricsPrivate(window, overlayVisible))
+QuickPlusMetricsTracker::QuickPlusMetricsTracker(QQuickWindow* window, bool overlayVisible)
+    : d_ptr(new MetricsTrackerPrivate(window, overlayVisible))
 {
     DLOG_FUNC();
 
@@ -914,7 +914,7 @@ QuickPlusPerformanceMetrics::QuickPlusPerformanceMetrics(QQuickWindow* window, b
     }
 }
 
-PerformanceMetricsPrivate::PerformanceMetricsPrivate(QQuickWindow* window, bool overlayVisible)
+MetricsTrackerPrivate::MetricsTrackerPrivate(QQuickWindow* window, bool overlayVisible)
     : m_window(window)
     , m_overlayTextParsed(new char [maxOverlayTextParsedSize])
     , m_overlayMetricsSize(0)
@@ -943,10 +943,10 @@ PerformanceMetricsPrivate::PerformanceMetricsPrivate(QQuickWindow* window, bool 
     memset(&m_metrics, 0, sizeof(m_metrics));
 }
 
-QuickPlusPerformanceMetrics::~QuickPlusPerformanceMetrics()
+QuickPlusMetricsTracker::~QuickPlusMetricsTracker()
 {
     DLOG_FUNC();
-    Q_D(PerformanceMetrics);
+    Q_D(MetricsTracker);
 
     if (d->m_window) {
         disconnectWindowSignals(d->m_window, this);
@@ -954,7 +954,7 @@ QuickPlusPerformanceMetrics::~QuickPlusPerformanceMetrics()
     delete d_ptr;
 }
 
-PerformanceMetricsPrivate::~PerformanceMetricsPrivate()
+MetricsTrackerPrivate::~MetricsTrackerPrivate()
 {
     DLOG_FUNC();
 
@@ -964,10 +964,10 @@ PerformanceMetricsPrivate::~PerformanceMetricsPrivate()
     m_loggingThread.wait();
 }
 
-void QuickPlusPerformanceMetrics::setWindow(QQuickWindow* window)
+void QuickPlusMetricsTracker::setWindow(QQuickWindow* window)
 {
     DLOG_FUNC();
-    Q_D(PerformanceMetrics);
+    Q_D(MetricsTracker);
 
     QMutexLocker locker(&d->m_mutex);
     if (d->m_window != window) {
@@ -981,21 +981,21 @@ void QuickPlusPerformanceMetrics::setWindow(QQuickWindow* window)
     }
 }
 
-QQuickWindow* QuickPlusPerformanceMetrics::window() const
+QQuickWindow* QuickPlusMetricsTracker::window() const
 {
     DLOG_FUNC();
 
     return d_func()->m_window;
 }
 
-void QuickPlusPerformanceMetrics::setOverlayText(const QString& text)
+void QuickPlusMetricsTracker::setOverlayText(const QString& text)
 {
     DLOG_FUNC();
 
     d_func()->setOverlayText(text);
 }
 
-void PerformanceMetricsPrivate::setOverlayText(const QString& text)
+void MetricsTrackerPrivate::setOverlayText(const QString& text)
 {
     DLOG_FUNC();
 
@@ -1006,21 +1006,21 @@ void PerformanceMetricsPrivate::setOverlayText(const QString& text)
     }
 }
 
-QString QuickPlusPerformanceMetrics::overlayText() const
+QString QuickPlusMetricsTracker::overlayText() const
 {
     DLOG_FUNC();
 
     return d_func()->m_overlayText;
 }
 
-void QuickPlusPerformanceMetrics::setOverlayPosition(const QPointF& position)
+void QuickPlusMetricsTracker::setOverlayPosition(const QPointF& position)
 {
     DLOG_FUNC();
 
     d_func()->setOverlayPosition(position);
 }
 
-void PerformanceMetricsPrivate::setOverlayPosition(const QPointF& position)
+void MetricsTrackerPrivate::setOverlayPosition(const QPointF& position)
 {
     DLOG_FUNC();
 
@@ -1031,21 +1031,21 @@ void PerformanceMetricsPrivate::setOverlayPosition(const QPointF& position)
     }
 }
 
-QPointF QuickPlusPerformanceMetrics::overlayPosition() const
+QPointF QuickPlusMetricsTracker::overlayPosition() const
 {
     DLOG_FUNC();
 
     return d_func()->m_overlayPosition;
 }
 
-void QuickPlusPerformanceMetrics::setOverlayOpacity(float opacity)
+void QuickPlusMetricsTracker::setOverlayOpacity(float opacity)
 {
     DLOG_FUNC();
 
     d_func()->setOverlayOpacity(opacity);
 }
 
-void PerformanceMetricsPrivate::setOverlayOpacity(float opacity)
+void MetricsTrackerPrivate::setOverlayOpacity(float opacity)
 {
     DLOG_FUNC();
 
@@ -1056,52 +1056,52 @@ void PerformanceMetricsPrivate::setOverlayOpacity(float opacity)
     }
 }
 
-float QuickPlusPerformanceMetrics::overlayOpacity() const
+float QuickPlusMetricsTracker::overlayOpacity() const
 {
     DLOG_FUNC();
 
     return d_func()->m_overlayOpacity;
 }
 
-void QuickPlusPerformanceMetrics::setOverlayVisible(bool visible)
+void QuickPlusMetricsTracker::setOverlayVisible(bool visible)
 {
     DLOG_FUNC();
-    Q_D(PerformanceMetrics);
+    Q_D(MetricsTracker);
 
     QMutexLocker locker(&d->m_mutex);
     if (visible) {
-        d->m_flags |= PerformanceMetricsPrivate::OverlayVisible;
+        d->m_flags |= MetricsTrackerPrivate::OverlayVisible;
     } else {
-        d->m_flags &= ~PerformanceMetricsPrivate::OverlayVisible;
+        d->m_flags &= ~MetricsTrackerPrivate::OverlayVisible;
     }
 }
 
-bool QuickPlusPerformanceMetrics::overlayVisible()
+bool QuickPlusMetricsTracker::overlayVisible()
 {
     DLOG_FUNC();
-    Q_D(PerformanceMetrics);
+    Q_D(MetricsTracker);
 
     QMutexLocker locker(&d->m_mutex);
-    return d->m_flags & PerformanceMetricsPrivate::OverlayVisible ? true : false;
+    return d->m_flags & MetricsTrackerPrivate::OverlayVisible ? true : false;
 }
 
-void QuickPlusPerformanceMetrics::setWindowUpdatePolicy(UpdatePolicy updatePolicy)
+void QuickPlusMetricsTracker::setWindowUpdatePolicy(UpdatePolicy updatePolicy)
 {
     DLOG_FUNC();
 
     d_func()->setWindowUpdatePolicy(updatePolicy);
 }
 
-void PerformanceMetricsPrivate::setWindowUpdatePolicy(
-    QuickPlusPerformanceMetrics::UpdatePolicy updatePolicy)
+void MetricsTrackerPrivate::setWindowUpdatePolicy(
+    QuickPlusMetricsTracker::UpdatePolicy updatePolicy)
 {
     DLOG_FUNC();
 
     QMutexLocker locker(&m_mutex);
-    const QuickPlusPerformanceMetrics::UpdatePolicy policy = (m_flags & ContinuousUpdate) ?
-        QuickPlusPerformanceMetrics::Continuous : QuickPlusPerformanceMetrics::Live;
+    const QuickPlusMetricsTracker::UpdatePolicy policy = (m_flags & ContinuousUpdate) ?
+        QuickPlusMetricsTracker::Continuous : QuickPlusMetricsTracker::Live;
     if (updatePolicy != policy) {
-        if (updatePolicy == QuickPlusPerformanceMetrics::Continuous) {
+        if (updatePolicy == QuickPlusMetricsTracker::Continuous) {
             if (m_window) {
                 m_window->update();
             }
@@ -1112,80 +1112,80 @@ void PerformanceMetricsPrivate::setWindowUpdatePolicy(
     }
 }
 
-QuickPlusPerformanceMetrics::UpdatePolicy QuickPlusPerformanceMetrics::windowUpdatePolicy()
+QuickPlusMetricsTracker::UpdatePolicy QuickPlusMetricsTracker::windowUpdatePolicy()
 {
     DLOG_FUNC();
-    Q_D(PerformanceMetrics);
+    Q_D(MetricsTracker);
 
     QMutexLocker locker(&d->m_mutex);
-    return d->m_flags & PerformanceMetricsPrivate::ContinuousUpdate ? Continuous : Live;
+    return d->m_flags & MetricsTrackerPrivate::ContinuousUpdate ? Continuous : Live;
 }
 
-void QuickPlusPerformanceMetrics::setLogger(QuickPlusMetricsLogger* logger)
+void QuickPlusMetricsTracker::setLogger(QuickPlusMetricsLogger* logger)
 {
     DLOG_FUNC();
 
     d_func()->m_loggingThread.setLogger(logger);
 }
 
-QuickPlusMetricsLogger* QuickPlusPerformanceMetrics::logger()
+QuickPlusMetricsLogger* QuickPlusMetricsTracker::logger()
 {
     DLOG_FUNC();
 
     return d_func()->m_loggingThread.logger();
 }
 
-void QuickPlusPerformanceMetrics::setLogging(bool logging)
+void QuickPlusMetricsTracker::setLogging(bool logging)
 {
     DLOG_FUNC();
-    Q_D(PerformanceMetrics);
+    Q_D(MetricsTracker);
 
     QMutexLocker locker(&d->m_mutex);
     if (logging) {
-        d->m_flags |= PerformanceMetricsPrivate::Logging;
+        d->m_flags |= MetricsTrackerPrivate::Logging;
     } else {
-        d->m_flags &= ~PerformanceMetricsPrivate::Logging;
+        d->m_flags &= ~MetricsTrackerPrivate::Logging;
     }
 }
 
-bool QuickPlusPerformanceMetrics::logging()
+bool QuickPlusMetricsTracker::logging()
 {
     DLOG_FUNC();
-    Q_D(PerformanceMetrics);
+    Q_D(MetricsTracker);
 
     QMutexLocker locker(&d->m_mutex);
-    return !!(d->m_flags & PerformanceMetricsPrivate::Logging);
+    return !!(d->m_flags & MetricsTrackerPrivate::Logging);
 }
 
-void QuickPlusPerformanceMetrics::windowDestroyed(QObject*)
+void QuickPlusMetricsTracker::windowDestroyed(QObject*)
 {
     DLOG_FUNC();
-    Q_D(PerformanceMetrics);
+    Q_D(MetricsTracker);
 
     QMutexLocker locker(&d->m_mutex);
     d->m_window = nullptr;
 }
 
-void QuickPlusPerformanceMetrics::windowSizeChanged(int)
+void QuickPlusMetricsTracker::windowSizeChanged(int)
 {
     DLOG_FUNC();
-    Q_D(PerformanceMetrics);
+    Q_D(MetricsTracker);
     DASSERT(d->m_window);
 
     QMutexLocker locker(&d->m_mutex);
-    d->m_flags |= PerformanceMetricsPrivate::DirtyTransform;
+    d->m_flags |= MetricsTrackerPrivate::DirtyTransform;
 }
 
-void QuickPlusPerformanceMetrics::windowSceneGraphInitialised()
+void QuickPlusMetricsTracker::windowSceneGraphInitialised()
 {
     DLOG_FUNC();
-    Q_D(PerformanceMetrics);
+    Q_D(MetricsTracker);
 
     QMutexLocker locker(&d->m_mutex);
     d->initialiseGpuResources();
 }
 
-void PerformanceMetricsPrivate::initialiseGpuResources()
+void MetricsTrackerPrivate::initialiseGpuResources()
 {
     DLOG_FUNC();
     DASSERT(m_window);
@@ -1199,14 +1199,14 @@ void PerformanceMetricsPrivate::initialiseGpuResources()
     m_flags |=  Initialised | DirtyText | DirtyTransform | (!noGpuTimer ? GpuTimerAvailable : 0);
 }
 
-void QuickPlusPerformanceMetrics::windowSceneGraphInvalidated()
+void QuickPlusMetricsTracker::windowSceneGraphInvalidated()
 {
     DLOG_FUNC();
 
     d_func()->windowSceneGraphInvalidated();
 }
 
-void PerformanceMetricsPrivate::windowSceneGraphInvalidated()
+void MetricsTrackerPrivate::windowSceneGraphInvalidated()
 {
     DLOG_FUNC();
     DASSERT(m_window);
@@ -1221,14 +1221,14 @@ void PerformanceMetricsPrivate::windowSceneGraphInvalidated()
     }
 }
 
-void QuickPlusPerformanceMetrics::windowBeforeSynchronising()
+void QuickPlusMetricsTracker::windowBeforeSynchronising()
 {
     DLOG_FUNC();
 
     d_func()->windowBeforeSynchronising();
 }
 
-void PerformanceMetricsPrivate::windowBeforeSynchronising()
+void MetricsTrackerPrivate::windowBeforeSynchronising()
 {
     DLOG_FUNC();
     DASSERT(m_window);
@@ -1239,14 +1239,14 @@ void PerformanceMetricsPrivate::windowBeforeSynchronising()
     }
 }
 
-void QuickPlusPerformanceMetrics::windowAfterSynchronising()
+void QuickPlusMetricsTracker::windowAfterSynchronising()
 {
     DLOG_FUNC();
 
     d_func()->windowAfterSynchronising();
 }
 
-void PerformanceMetricsPrivate::windowAfterSynchronising()
+void MetricsTrackerPrivate::windowAfterSynchronising()
 {
     DLOG_FUNC();
     DASSERT(m_window);
@@ -1257,14 +1257,14 @@ void PerformanceMetricsPrivate::windowAfterSynchronising()
     }
 }
 
-void QuickPlusPerformanceMetrics::windowBeforeRendering()
+void QuickPlusMetricsTracker::windowBeforeRendering()
 {
     DLOG_FUNC();
 
     d_func()->windowBeforeRendering();
 }
 
-void PerformanceMetricsPrivate::windowBeforeRendering()
+void MetricsTrackerPrivate::windowBeforeRendering()
 {
     DLOG_FUNC();
     DASSERT(m_window);
@@ -1281,14 +1281,14 @@ void PerformanceMetricsPrivate::windowBeforeRendering()
     }
 }
 
-void QuickPlusPerformanceMetrics::windowAfterRendering()
+void QuickPlusMetricsTracker::windowAfterRendering()
 {
     DLOG_FUNC();
 
     d_func()->windowAfterRendering();
 }
 
-void PerformanceMetricsPrivate::windowAfterRendering()
+void MetricsTrackerPrivate::windowAfterRendering()
 {
     DLOG_FUNC();
     DASSERT(m_window);
@@ -1338,14 +1338,14 @@ void PerformanceMetricsPrivate::windowAfterRendering()
     }
 }
 
-void QuickPlusPerformanceMetrics::windowFrameSwapped()
+void QuickPlusMetricsTracker::windowFrameSwapped()
 {
     DLOG_FUNC();
 
     d_func()->windowFrameSwapped();
 }
 
-void PerformanceMetricsPrivate::windowFrameSwapped()
+void MetricsTrackerPrivate::windowFrameSwapped()
 {
     DLOG_FUNC();
     DASSERT(m_window);
@@ -1429,7 +1429,7 @@ static int timeMetricToText(quint64 metric, char* text, int width)
     return width;
 }
 
-void PerformanceMetricsPrivate::updateOverlayText()
+void MetricsTrackerPrivate::updateOverlayText()
 {
     DLOG_FUNC();
     DASSERT(m_flags & Initialised);
@@ -1500,7 +1500,7 @@ void PerformanceMetricsPrivate::updateOverlayText()
 }
 
 // That's the easy way, a more involved one would be to use CPUID.
-int PerformanceMetricsPrivate::cpuModel(char* buffer, int bufferSize)
+int MetricsTrackerPrivate::cpuModel(char* buffer, int bufferSize)
 {
     DLOG_FUNC();
     DASSERT(buffer);
@@ -1508,13 +1508,13 @@ int PerformanceMetricsPrivate::cpuModel(char* buffer, int bufferSize)
 
     int fd = open("/proc/cpuinfo", O_RDONLY);
     if (fd == -1) {
-        DWARN("QuickPlusPerformanceMetrics: can't open '/proc/cpuinfo'");
+        DWARN("QuickPlusMetricsTracker: can't open '/proc/cpuinfo'");
         return 0;
     }
     const int sourceBufferSize = 128;
     char sourceBuffer[sourceBufferSize];
     if (read(fd, sourceBuffer, sourceBufferSize) != sourceBufferSize) {
-        DWARN("QuickPlusPerformanceMetrics: can't read '/proc/cpuinfo'");
+        DWARN("QuickPlusMetricsTracker: can't read '/proc/cpuinfo'");
         close(fd);
         return 0;
     }
@@ -1564,7 +1564,7 @@ int PerformanceMetricsPrivate::cpuModel(char* buffer, int bufferSize)
 // Stores the keyword string corresponding to the given index in a preallocated
 // buffer of size bufferSize, the terminating null byte ('\0') is not
 // written. Returns the number of characters written.
-int PerformanceMetricsPrivate::keywordString(int index, char* buffer, int bufferSize)
+int MetricsTrackerPrivate::keywordString(int index, char* buffer, int bufferSize)
 {
     DLOG_FUNC();
     DASSERT(index < KeywordCount);
@@ -1626,7 +1626,7 @@ int PerformanceMetricsPrivate::keywordString(int index, char* buffer, int buffer
     return size;
 }
 
-void PerformanceMetricsPrivate::parseOverlayText()
+void MetricsTrackerPrivate::parseOverlayText()
 {
     DLOG_FUNC();
 
@@ -1704,7 +1704,7 @@ void PerformanceMetricsPrivate::parseOverlayText()
     m_overlayMetricsSize = currentMetric;
 }
 
-void PerformanceMetricsPrivate::updateCpuUsage()
+void MetricsTrackerPrivate::updateCpuUsage()
 {
     DLOG_FUNC();
 
@@ -1727,7 +1727,7 @@ void PerformanceMetricsPrivate::updateCpuUsage()
 }
 
 // FIXME(loicm) Should we throttle to minimise the (little) CPU impact?
-void PerformanceMetricsPrivate::updateProcStatMetrics()
+void MetricsTrackerPrivate::updateProcStatMetrics()
 {
     DLOG_FUNC();
 
@@ -1735,11 +1735,11 @@ void PerformanceMetricsPrivate::updateProcStatMetrics()
 
     int fd = open("/proc/self/stat", O_RDONLY);
     if (fd == -1) {
-        DWARN("QuickPlusPerformanceMetrics: can't open '/proc/self/stat'");
+        DWARN("QuickPlusMetricsTracker: can't open '/proc/self/stat'");
         return;
     }
     if (read(fd, buffer, procStatReadSize) != procStatReadSize) {
-        DWARN("QuickPlusPerformanceMetrics: can't read '/proc/self/stat'");
+        DWARN("QuickPlusMetricsTracker: can't read '/proc/self/stat'");
         close(fd);
         return;
     }
