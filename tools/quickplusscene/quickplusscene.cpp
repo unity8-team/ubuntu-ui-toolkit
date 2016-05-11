@@ -704,7 +704,7 @@ int main(int argc, char ** argv)
             if (options.quitImmediately)
                 QMetaObject::invokeMethod(QCoreApplication::instance(), "quit", Qt::QueuedConnection);
 
-            // Quick+ performance metrics.
+            // Quick+ metrics tracking.
             QuickPlusMetricsTracker metrics(window.data());
             setMetricsTrackerOptions(&metrics, &options);
 
