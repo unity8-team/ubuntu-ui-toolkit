@@ -23,7 +23,7 @@ import Ubuntu.Components.Popups 1.3
 Item {
     id: testMain
     width: units.gu(40)
-    height: units.gu(50)
+    height: units.gu(70)
 
     Component {
         id: popoverComponent
@@ -95,6 +95,32 @@ Item {
 
         TextField {
             id: textField
+        }
+
+        FocusScope {
+            id: scope
+            width: textFieldInMouseArea.implicitWidth
+            height: textFieldInMouseArea.implicitHeight
+            TextField {
+                anchors.fill: parent
+                id: textFieldInMouseArea
+                text: 'Lorem ipsum dolor sit amet'
+                color: UbuntuColors.blue
+            }
+            MouseArea {
+                anchors.fill: parent
+                enabled: !scope.activeFocus
+                onClicked: {
+                    textFieldInMouseArea.forceActiveFocus()
+                    textFieldInMouseArea.selectAll()
+                }
+                Rectangle {
+                    anchors.fill: parent
+                    color: UbuntuColors.blue
+                    opacity: 0.1
+                    visible: parent.enabled
+                }
+            }
         }
 
         TextField {
@@ -198,6 +224,11 @@ Item {
             cursorRectSpy.clear();
             scrollerSpy.clear();
             escapePressedSpy.clear();
+            // Hide OSK if showing
+            UbuntuApplication.inputMethod.visible = false;
+            // Dismiss popover if any
+            mouseClick(testMain, 1, 1);
+            wait(500);
         }
 
         function test_context_menu_items_data() {
@@ -542,6 +573,23 @@ Item {
 
             keyClick(Qt.Key_Escape);
             compare(escapePressedSpy.count, 1);
+        }
+
+        function test_a_text_field_evokes_osk_data() {
+            return [
+                { tag: 'textField', input: textField },
+                { tag: 'textField with icons', input: customTextField },
+                { tag: 'textArea', input: textArea },
+                { tag: 'focusScope', input: textFieldInMouseArea },
+            ];
+        }
+        function test_a_text_field_evokes_osk(data) {
+            waitForRendering(data.input);
+            compare(data.input.activeFocus, false, 'TextField is not yet focused');
+            mouseClick(data.input);
+            waitForRendering(data.input);
+            compare(data.input.activeFocus, true, 'TextField is focused');
+            compare(UbuntuApplication.inputMethod.visible, true, 'OSK is visible');
         }
     }
 }
