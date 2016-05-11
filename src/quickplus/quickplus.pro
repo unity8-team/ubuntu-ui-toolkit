@@ -4,6 +4,7 @@ QT += core-private gui-private quick-private
 CONFIG += c++11 no_keywords
 DEFINES += QUICK_PLUS_BUILD
 equals(DISABLE_LTTNG, "1"): DEFINES += DISABLE_LTTNG
+INCLUDEPATH += .. # To be able to include <quickplus/*.h> in public headers.
 QMAKE_CXXFLAGS_RELEASE += -Wno-unused-result
 
 include(../../version.pri)
@@ -38,7 +39,7 @@ OTHER_FILES += \
     $$PWD/shaders/dropshadow_core.frag
 
 RESOURCES = \
-    $$PWD/plus.qrc
+    $$PWD/quickplus.qrc
 
 headers.files = $${PUBLIC_HEADERS}
 headers.path = /usr/include/quickplus

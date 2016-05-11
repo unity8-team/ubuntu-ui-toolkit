@@ -18,8 +18,8 @@
 #ifndef METRICSLOGGER_H
 #define METRICSLOGGER_H
 
-#include "quickplusglobal.h"
-#include "metrics.h"
+#include <quickplus/quickplusglobal.h>
+#include <quickplus/metrics.h>
 #include <QtCore/QFile>
 
 class FileMetricsLoggerPrivate;

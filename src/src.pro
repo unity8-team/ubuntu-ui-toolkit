@@ -1,11 +1,11 @@
 TEMPLATE = subdirs
 
-SUBDIRS += plus
+SUBDIRS += quickplus
 
 !equals(DISABLE_LTTNG, "1") {
-    SUBDIRS += lttng
-    lttng.depends = plus
+    SUBDIRS += quickpluslttng
+    quickpluslttng.depends = quickplus
 }
 
 SUBDIRS += imports
-imports.depends = plus
+imports.depends = quickplus

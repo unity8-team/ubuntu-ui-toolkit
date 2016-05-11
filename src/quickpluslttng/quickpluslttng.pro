@@ -5,7 +5,8 @@ CONFIG += c++11 no_keywords
 DEFINES += QUICK_PLUS_LTTNG_BUILD
 INCLUDEPATH += \
     $${OUT_PWD}/../../include \
-    ../plus
+    ../quickplus # For quickplusglobal_p.h.
+    ..           # To be able to include <quickpluslttng/*.h> in public headers.
 LIBS += -L$${OUT_PWD}/../../lib -lquickplus
 unix {
     CONFIG += link_pkgconfig
@@ -29,13 +30,13 @@ SOURCES += \
        $$PWD/tracepoint.cpp
 
 headers.files = $${PUBLIC_HEADERS}
-headers.path = /usr/include/quickplus-lttng
+headers.path = /usr/include/quickpluslttng
 target.path = /usr/lib
 INSTALLS += headers target
 
 DESTDIR = ../../lib
 
-DESTDIR_HEADERS = ../../include/quickplus-lttng
+DESTDIR_HEADERS = ../../include/quickpluslttng
 QMAKE_POST_LINK += mkdir -p $${DESTDIR_HEADERS} && cp $${PUBLIC_HEADERS} $${DESTDIR_HEADERS}
 
 # Another way to do it with extra targets (not sure what is the best way).

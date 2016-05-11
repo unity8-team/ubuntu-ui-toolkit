@@ -16,7 +16,7 @@
 // along with Quick+. If not, see <http://www.gnu.org/licenses/>.
 
 #include <QtQml/QQmlExtensionPlugin>
-#include <quickplus_p.h>
+#include "quickplus_p.h"
 
 class QuickPlusPlugin : public QQmlExtensionPlugin
 {

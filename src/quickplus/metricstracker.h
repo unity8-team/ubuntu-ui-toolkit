@@ -18,7 +18,7 @@
 #ifndef METRICSTRACKER_H
 #define METRICSTRACKER_H
 
-#include "quickplusglobal.h"
+#include <quickplus/quickplusglobal.h>
 #include <QtQuick/QQuickWindow>
 
 class MetricsTrackerPrivate;

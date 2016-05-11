@@ -18,7 +18,7 @@
 #ifndef METRICS_H
 #define METRICS_H
 
-#include "quickplusglobal.h"
+#include <quickplus/quickplusglobal.h>
 
 struct QUICK_PLUS_EXPORT QuickPlusMetrics
 {

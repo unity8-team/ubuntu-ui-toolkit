@@ -20,7 +20,7 @@
 
 static void initResources()
 {
-    Q_INIT_RESOURCE(plus);
+    Q_INIT_RESOURCE(quickplus);
 }
 
 void QuickPlusModule::defineModule()

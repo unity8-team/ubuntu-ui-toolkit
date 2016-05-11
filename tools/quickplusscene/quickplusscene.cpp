@@ -32,7 +32,7 @@
 #include <quickplus/metricstracker.h>
 #include <quickplus/metricslogger.h>
 #if !defined(DISABLE_LTTNG)
-#include <quickplus-lttng/lttngmetricslogger.h>
+#include <quickpluslttng/lttngmetricslogger.h>
 #endif
 
 #ifdef QML_RUNTIME_TESTING
