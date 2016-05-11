@@ -774,8 +774,10 @@ QuickPlusMetricsLogger* LoggingThread::logger()
 {
     DLOG_FUNC();
 
-    QMutexLocker locker(&m_mutex);
-    return m_logger;
+    m_mutex.lock();
+    QuickPlusMetricsLogger* logger = m_logger;
+    m_mutex.unlock();
+    return logger;
 }
 
 void LoggingThread::tearDown()
@@ -1081,8 +1083,10 @@ bool QuickPlusMetricsTracker::overlayVisible()
     DLOG_FUNC();
     Q_D(MetricsTracker);
 
-    QMutexLocker locker(&d->m_mutex);
-    return d->m_flags & MetricsTrackerPrivate::OverlayVisible ? true : false;
+    d->m_mutex.lock();
+    bool visible = d->m_flags & MetricsTrackerPrivate::OverlayVisible ? true : false;
+    d->m_mutex.unlock();
+    return visible;
 }
 
 void QuickPlusMetricsTracker::setWindowUpdatePolicy(UpdatePolicy updatePolicy)
@@ -1117,8 +1121,11 @@ QuickPlusMetricsTracker::UpdatePolicy QuickPlusMetricsTracker::windowUpdatePolic
     DLOG_FUNC();
     Q_D(MetricsTracker);
 
-    QMutexLocker locker(&d->m_mutex);
-    return d->m_flags & MetricsTrackerPrivate::ContinuousUpdate ? Continuous : Live;
+    d->m_mutex.lock();
+    QuickPlusMetricsTracker::UpdatePolicy policy =
+        d->m_flags & MetricsTrackerPrivate::ContinuousUpdate ? Continuous : Live;
+    d->m_mutex.unlock();
+    return policy;
 }
 
 void QuickPlusMetricsTracker::setLogger(QuickPlusMetricsLogger* logger)
@@ -1153,8 +1160,10 @@ bool QuickPlusMetricsTracker::logging()
     DLOG_FUNC();
     Q_D(MetricsTracker);
 
-    QMutexLocker locker(&d->m_mutex);
-    return !!(d->m_flags & MetricsTrackerPrivate::Logging);
+    d->m_mutex.lock();
+    bool logging = !!(d->m_flags & MetricsTrackerPrivate::Logging);
+    d->m_mutex.unlock();
+    return logging;
 }
 
 void QuickPlusMetricsTracker::windowDestroyed(QObject*)
