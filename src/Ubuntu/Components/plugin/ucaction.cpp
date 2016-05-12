@@ -133,20 +133,6 @@ bool shortcutContextMatcher(QObject* object, Qt::ShortcutContext context)
  * as well as to define actions for pages, or when defining options in \c ListItemOptions.
  *
  * Examples: See \l Page
- *
- * \section2 Mnemonics
- * Since Ubuntu.Components 1.3 Action supports mnemonics. Mnemonics are shortcuts
- * defined in the \l text property, prefixed the shortcut letter with \&. For instance
- * \c "\&Call" will bint the \c "Alt-C" shortcut to the action. When a mnemonic
- * is detected on the Action and a keyboard is attached to the device, the \l text
- * property will provide a formatted text having the mnemonic letter underscored.
- * \qml
- * Action {
- *     id: call
- *     iconName: "call"
- *     text: "&Call"
- * }
- * \endqml
  */
 
 /*!
@@ -167,37 +153,9 @@ bool shortcutContextMatcher(QObject* object, Qt::ShortcutContext context)
 /*!
  * \qmlproperty string Action::text
  * The user visible primary label of the action.
- *
- * Mnemonics are shortcuts prefixed in the text with \&. If the text has multiple
- * occurences of the \& character, the first one will be considered for the shortcut.
- * The \& character cannot be used as shortcut.
  */
 QString UCAction::text()
 {
-    // if we have a mnemonic, underscore it
-    if (!m_mnemonic.isEmpty()) {
-
-        QString mnemonic = "&" + m_mnemonic.toString().remove("Alt+");
-        // patch special cases
-        mnemonic.replace("Space", " ");
-        int mnemonicIndex = m_text.indexOf(mnemonic);
-        if (mnemonicIndex < 0) {
-            // try lower case
-            mnemonic = mnemonic.toLower();
-            mnemonicIndex = m_text.indexOf(mnemonic);
-        }
-        ACT_TRACE("MNEM" << mnemonic);
-        QString displayText(m_text);
-        // FIXME: we need QInputDeviceInfo to detect the keyboard attechment
-        // https://bugs.launchpad.net/ubuntu/+source/ubuntu-ui-toolkit/+bug/1276808
-        if (QuickUtils::instance()->keyboardAttached()) {
-            // underscore the character
-            displayText.replace(mnemonicIndex, mnemonic.length(), "<u>" + mnemonic[1] + "</u>");
-        } else {
-            displayText.remove(mnemonicIndex, 1);
-        }
-        return displayText;
-    }
     return m_text;
 }
 void UCAction::setText(const QString &text)
@@ -206,31 +164,11 @@ void UCAction::setText(const QString &text)
         return;
     }
     m_text = text;
-    setMnemonicFromText(m_text);
     Q_EMIT textChanged();
 }
 void UCAction::resetText()
 {
     setText(QString());
-}
-
-void UCAction::setMnemonicFromText(const QString &text)
-{
-    QKeySequence sequence = QKeySequence::mnemonic(text);
-    if (sequence == m_mnemonic) {
-        return;
-    }
-    if (!m_mnemonic.isEmpty()) {
-        QGuiApplicationPrivate::instance()->shortcutMap.removeShortcut(0, this, m_mnemonic);
-    }
-
-    m_mnemonic = sequence;
-
-    if (!m_mnemonic.isEmpty()) {
-        ACT_TRACE("MNEMONIC SET" << m_mnemonic.toString());
-        Qt::ShortcutContext context = Qt::WindowShortcut;
-        QGuiApplicationPrivate::instance()->shortcutMap.addShortcut(this, m_mnemonic, context, shortcutContextMatcher);
-    }
 }
 
 /*!
@@ -295,10 +233,6 @@ UCAction::UCAction(QObject *parent)
     , m_published(false)
 {
     generateName();
-    // FIXME: we need QInputDeviceInfo to detect the keyboard attechment
-    // https://bugs.launchpad.net/ubuntu/+source/ubuntu-ui-toolkit/+bug/1276808
-    connect(QuickUtils::instance(), &QuickUtils::keyboardAttachedChanged,
-            this, &UCAction::onKeyboardAttached);
 }
 
 UCAction::~UCAction()
@@ -450,14 +384,6 @@ bool UCAction::event(QEvent *event)
     // do not call trigger() directly but invoke, as it may get overridden in QML
     invokeTrigger<UCAction>(this, QVariant());
     return true;
-}
-
-// trigger text changes whenever HW keyboad is attached/detached
-void UCAction::onKeyboardAttached()
-{
-    if (!m_mnemonic.isEmpty()) {
-        Q_EMIT textChanged();
-    }
 }
 
 /*!

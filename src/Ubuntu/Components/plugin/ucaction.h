@@ -47,6 +47,8 @@ inline void invokeTrigger(T *object, const QVariant &value)
     }
 }
 
+bool shortcutContextMatcher(QObject* object, Qt::ShortcutContext context);
+
 class QQmlComponent;
 class QQuickItem;
 class UCActionAttached;
@@ -154,7 +156,6 @@ private:
     void generateName();
     void setMnemonicFromText(const QString &text);
     bool event(QEvent *event);
-    void onKeyboardAttached();
 };
 QML_DECLARE_TYPE(UCAction)
 

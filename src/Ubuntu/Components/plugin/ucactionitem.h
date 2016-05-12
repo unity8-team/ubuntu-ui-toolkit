@@ -69,6 +69,8 @@ protected:
     Q_PRIVATE_SLOT(d_func(), void _q_visibleBinding())
     Q_PRIVATE_SLOT(d_func(), void _q_enabledBinding())
     Q_PRIVATE_SLOT(d_func(), void _q_invokeActionTrigger(const QVariant &value))
+    Q_PRIVATE_SLOT(d_func(), void _q_textBinding())
+    Q_PRIVATE_SLOT(d_func(), void _q_onKeyboardAttached())
 };
 
 #endif // UCACTIONITEM_H

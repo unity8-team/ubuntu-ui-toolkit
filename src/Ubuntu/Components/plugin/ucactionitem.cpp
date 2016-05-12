@@ -17,7 +17,12 @@
 #include "ucactionitem.h"
 #include "ucactionitem_p.h"
 #include "ucaction.h"
+#include "ucactioncontext.h"
 #include "ucstyleditembase_p.h"
+#include "quickutils.h"
+
+#include <QtQuick/qquickwindow.h>
+#include <private/qguiapplication_p.h>
 #define foreach Q_FOREACH
 #include <QtQml/private/qqmlbinding_p.h>
 #undef foreach
@@ -47,6 +52,21 @@ void UCActionItemPrivate::init()
  * If \l action is set, the values of the other properties will by default
  * be identical to the \l Action's property values. Setting the other properties
  * will override the properties copied from the \l Action.
+ *
+ * \section2 Mnemonics
+ * Since Ubuntu.Components 1.3 ActionItem supports mnemonics. Mnemonics are shortcuts
+ * defined in the \l text property, prefixed the shortcut letter with \&. For instance
+ * \c "\&Call" will bint the \c "Alt-C" shortcut to the action. When a mnemonic
+ * is detected on the ActionItem and a keyboard is attached to the device, the \l text
+ * property will provide a formatted text having the mnemonic letter underscored.
+ * \qml
+ * ActionItem {
+ *     id: call
+ *     iconName: "call"
+ *     text: "&Call"
+ * }
+ * \endqml
+
  */
 
 /*!
@@ -57,6 +77,11 @@ UCActionItem::UCActionItem(QQuickItem *parent)
     : UCStyledItemBase(*(new UCActionItemPrivate), parent)
 {
     d_func()->init();
+
+    // FIXME: we need QInputDeviceInfo to detect the keyboard attechment
+    // https://bugs.launchpad.net/ubuntu/+source/ubuntu-ui-toolkit/+bug/1276808
+    connect(QuickUtils::instance(), SIGNAL(keyboardAttachedChanged()),
+            this, SLOT(_q_onKeyboardAttached()), Qt::DirectConnection);
 }
 
 UCActionItem::UCActionItem(UCActionItemPrivate &dd, QQuickItem *parent)
@@ -106,6 +131,24 @@ void UCActionItemPrivate::_q_invokeActionTrigger(const QVariant &value)
     invokeTrigger<UCAction>(action, value);
 }
 
+// update the text property
+void UCActionItemPrivate::_q_textBinding()
+{
+    if (flags & CustomText) {
+        return;
+    }
+    updateMnemonicFromText();
+    Q_EMIT q_func()->textChanged();
+}
+
+// trigger text changes whenever HW keyboad is attached/detached
+void UCActionItemPrivate::_q_onKeyboardAttached()
+{
+    if (!m_mnemonic.isEmpty()) {
+        Q_EMIT q_func()->textChanged();
+    }
+}
+
 // setter called when bindings from QML set the value. Internal functions will
 // all use the setVisible setter, so initialization and (re)parenting related
 // visible alteration won't set the custom flag
@@ -124,9 +167,6 @@ void UCActionItem::setEnabled2(bool enabled)
 void UCActionItemPrivate::updateProperties()
 {
     Q_Q(UCActionItem);
-    if (!(flags & CustomText)) {
-        Q_EMIT q->textChanged();
-    }
     if (!(flags & CustomIconSource)) {
         Q_EMIT q->iconSourceChanged();
     }
@@ -151,8 +191,8 @@ void UCActionItemPrivate::attachAction(bool attach)
                     q, SLOT(_q_enabledBinding()), Qt::DirectConnection);
         }
         if (!(flags & CustomText)) {
-            QObject::connect(action, &UCAction::textChanged,
-                    q, &UCActionItem::textChanged, Qt::DirectConnection);
+            QObject::connect(action, SIGNAL(textChanged()),
+                    q, SLOT(_q_textBinding()), Qt::DirectConnection);
         }
         if (!(flags & CustomIconSource)) {
             QObject::connect(action, &UCAction::iconSourceChanged,
@@ -175,8 +215,8 @@ void UCActionItemPrivate::attachAction(bool attach)
                        q, SLOT(_q_enabledBinding()));
         }
         if (!(flags & CustomText)) {
-            QObject::disconnect(action, &UCAction::textChanged,
-                       q, &UCActionItem::textChanged);
+            QObject::disconnect(action, SIGNAL(textChanged()),
+                       q, SLOT(_q_textBinding()));
         }
         if (!(flags & CustomIconSource)) {
             QObject::disconnect(action, &UCAction::iconSourceChanged,
@@ -186,6 +226,33 @@ void UCActionItemPrivate::attachAction(bool attach)
             QObject::disconnect(action, &UCAction::iconNameChanged,
                        q, &UCActionItem::iconNameChanged);
         }
+
+        if (!m_mnemonic.isEmpty()) {
+            QGuiApplicationPrivate::instance()->shortcutMap.removeShortcut(0, action, m_mnemonic);
+            m_mnemonic = QKeySequence();
+        }
+    }
+}
+
+void UCActionItemPrivate::updateMnemonicFromText()
+{
+    if (!action) return;
+
+    const QString displayText = action ? action->text() : QString();
+
+    QKeySequence sequence = QKeySequence::mnemonic(displayText);
+    if (sequence == m_mnemonic) {
+        return;
+    }
+    if (!m_mnemonic.isEmpty()) {
+        QGuiApplicationPrivate::instance()->shortcutMap.removeShortcut(0, action, m_mnemonic);
+    }
+
+    m_mnemonic = sequence;
+
+    if (!m_mnemonic.isEmpty()) {
+        Qt::ShortcutContext context = Qt::WindowShortcut;
+        QGuiApplicationPrivate::instance()->shortcutMap.addShortcut(action, m_mnemonic, context, shortcutContextMatcher);
     }
 }
 
@@ -217,12 +284,17 @@ void UCActionItem::setAction(UCAction *action)
     }
     d->_q_visibleBinding();
     d->_q_enabledBinding();
+    d->_q_textBinding();
     d->updateProperties();
 }
 
 /*!
  * \qmlproperty string ActionItem::text
  * The title of the actionItem. Defaults to the \c action.text.
+ *
+ * Mnemonics are shortcuts prefixed in the text with \&. If the text has multiple
+ * occurences of the \& character, the first one will be considered for the shortcut.
+ * The \& character cannot be used as shortcut.
  */
 QString UCActionItem::text()
 {
@@ -230,7 +302,37 @@ QString UCActionItem::text()
     if (d->flags & UCActionItemPrivate::CustomText) {
         return d->text;
     }
-    return d->action ? d->action->text() : QString();
+
+    if (!d->action) {
+        return QString();
+    }
+
+    QString displayText(d->action->text());
+
+    // if we have a mnemonic, underscore it
+    if (!d->m_mnemonic.isEmpty()) {
+        QString mnemonic = "&" + d->m_mnemonic.toString().remove("Alt+");
+        // patch special cases
+        mnemonic.replace("Space", " ");
+        int mnemonicIndex = displayText.indexOf(mnemonic);
+        if (mnemonicIndex < 0) {
+            // try lower case
+            mnemonic = mnemonic.toLower();
+            mnemonicIndex = displayText.indexOf(mnemonic);
+        }
+        // FIXME: we need QInputDeviceInfo to detect the keyboard attechment
+        // https://bugs.launchpad.net/ubuntu/+source/ubuntu-ui-toolkit/+bug/1276808
+        if (QuickUtils::instance()->keyboardAttached()) {
+            // underscore the character
+            displayText.replace(mnemonicIndex, mnemonic.length(), "<u>" + mnemonic[1] + "</u>");
+        } else {
+            displayText.remove(mnemonicIndex, 1);
+        }
+
+        return displayText;
+    }
+
+    return displayText;
 }
 void UCActionItem::setText(const QString &text)
 {
@@ -238,8 +340,8 @@ void UCActionItem::setText(const QString &text)
 
     if (d->action && !(d->flags & UCActionItemPrivate::CustomText)) {
         // disconnect change signal from Action
-        disconnect(d->action, &UCAction::textChanged,
-                   this, &UCActionItem::textChanged);
+        disconnect(d->action, SIGNAL(textChanged()),
+                   this, SLOT(_q_textBinding()));
     }
     d->flags |= UCActionItemPrivate::CustomText;
 
@@ -256,8 +358,8 @@ void UCActionItem::resetText()
     d->flags &= ~UCActionItemPrivate::CustomText;
     if (d->action) {
         // re-connect change signal from Action
-        connect(d->action, &UCAction::textChanged,
-                this, &UCActionItem::textChanged, Qt::DirectConnection);
+        connect(d->action, SIGNAL(textChanged()),
+                this, SLOT(_q_textBinding()), Qt::DirectConnection);
     }
     Q_EMIT textChanged();
 }

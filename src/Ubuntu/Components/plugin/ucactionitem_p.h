@@ -37,11 +37,14 @@ public:
     bool hasBindingOnProperty(const QString &name);
     void updateProperties();
     void attachAction(bool attach);
+    void updateMnemonicFromText();
 
     // private slots
     void _q_visibleBinding();
     void _q_enabledBinding();
     void _q_invokeActionTrigger(const QVariant &value);
+    void _q_textBinding();
+    void _q_onKeyboardAttached();
 
     enum {
         CustomText = 0x01,
@@ -55,6 +58,7 @@ public:
     QUrl iconSource;
     UCAction *action;
     quint8 flags;
+    QKeySequence m_mnemonic;
 };
 
 #endif // UCACTIONITEM_P
