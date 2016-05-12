@@ -27,6 +27,38 @@
 #include <QtQml/private/qqmlbinding_p.h>
 #undef foreach
 
+UCActionContext* findActionContext(UCAction* action)
+{
+    QObject* window = action;
+    while (window && !window->isWindowType()) {
+        window = window->parent();
+        if (QQuickItem* item = qobject_cast<QQuickItem*>(window)) {
+            window = item->window();
+        }
+    }
+
+    if (window) {
+        // is the last action owner item in an active context?
+        QQuickItem *pl = action->lastOwningItem();
+
+        while (pl) {
+            UCActionContextAttached *attached = static_cast<UCActionContextAttached*>(
+                        qmlAttachedPropertiesObject<UCActionContext>(pl, false));
+            if (attached) {
+                return attached->context();
+            }
+            pl = pl->parentItem();
+        }
+
+        // check if the action is in an active context
+        UCActionContext *context = qobject_cast<UCActionContext*>(action->parent());
+        if (context) {
+            return context;
+        }
+    }
+    return Q_NULLPTR;
+}
+
 UCActionItemPrivate::UCActionItemPrivate()
     : action(Q_NULLPTR)
     , flags(0)
@@ -202,6 +234,17 @@ void UCActionItemPrivate::attachAction(bool attach)
             QObject::connect(action, &UCAction::iconNameChanged,
                     q, &UCActionItem::iconNameChanged, Qt::DirectConnection);
         }
+
+        if (m_actionContext) {
+            QObject::disconnect(m_actionContext, 0, q, 0);
+            m_actionContext.clear();
+        }
+
+        m_actionContext = findActionContext(action);
+        if (m_actionContext) {
+            QObject::connect(m_actionContext, SIGNAL(activeChanged()),
+                    q, SLOT(_q_textBinding()));
+        }
     } else {
         action->removeOwningItem(q);
         QObject::disconnect(q, SIGNAL(triggered(QVariant)),
@@ -230,6 +273,11 @@ void UCActionItemPrivate::attachAction(bool attach)
         if (!m_mnemonic.isEmpty()) {
             QGuiApplicationPrivate::instance()->shortcutMap.removeShortcut(0, action, m_mnemonic);
             m_mnemonic = QKeySequence();
+        }
+
+        if (m_actionContext) {
+            QObject::disconnect(m_actionContext, 0, q, 0);
+            m_actionContext.clear();
         }
     }
 }
@@ -295,6 +343,7 @@ void UCActionItem::setAction(UCAction *action)
  * Mnemonics are shortcuts prefixed in the text with \&. If the text has multiple
  * occurences of the \& character, the first one will be considered for the shortcut.
  * The \& character cannot be used as shortcut.
+ * The mnemonic will only show if the \l ActionContext is active.
  */
 QString UCActionItem::text()
 {
@@ -308,9 +357,14 @@ QString UCActionItem::text()
     }
 
     QString displayText(d->action->text());
-
     // if we have a mnemonic, underscore it
     if (!d->m_mnemonic.isEmpty()) {
+
+        // FIXME: we need QInputDeviceInfo to detect the keyboard attechment
+        // https://bugs.launchpad.net/ubuntu/+source/ubuntu-ui-toolkit/+bug/1276808
+        bool showMnemonic = QuickUtils::instance()->keyboardAttached() &&
+                            d->m_actionContext && d->m_actionContext->active();
+
         QString mnemonic = "&" + d->m_mnemonic.toString().remove("Alt+");
         // patch special cases
         mnemonic.replace("Space", " ");
@@ -320,18 +374,15 @@ QString UCActionItem::text()
             mnemonic = mnemonic.toLower();
             mnemonicIndex = displayText.indexOf(mnemonic);
         }
-        // FIXME: we need QInputDeviceInfo to detect the keyboard attechment
-        // https://bugs.launchpad.net/ubuntu/+source/ubuntu-ui-toolkit/+bug/1276808
-        if (QuickUtils::instance()->keyboardAttached()) {
+
+        if (showMnemonic) {
             // underscore the character
             displayText.replace(mnemonicIndex, mnemonic.length(), "<u>" + mnemonic[1] + "</u>");
         } else {
             displayText.remove(mnemonicIndex, 1);
         }
-
         return displayText;
     }
-
     return displayText;
 }
 void UCActionItem::setText(const QString &text)

@@ -22,6 +22,8 @@
 #include "ucactionitem.h"
 #include "ucstyleditembase_p.h"
 
+class UCActionContext;
+
 class UCActionItemPrivate : public UCStyledItemBasePrivate
 {
     Q_DECLARE_PUBLIC(UCActionItem)
@@ -57,6 +59,7 @@ public:
     QString iconName;
     QUrl iconSource;
     UCAction *action;
+    QPointer<UCActionContext> m_actionContext;
     quint8 flags;
     QKeySequence m_mnemonic;
 };
