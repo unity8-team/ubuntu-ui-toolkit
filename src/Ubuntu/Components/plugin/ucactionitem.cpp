@@ -27,36 +27,33 @@
 #include <QtQml/private/qqmlbinding_p.h>
 #undef foreach
 
-UCActionContext* findActionContext(UCAction* action)
+QList<QPointer<UCActionContext>> findActionContexts(UCAction* action)
 {
-    QObject* window = action;
-    while (window && !window->isWindowType()) {
-        window = window->parent();
-        if (QQuickItem* item = qobject_cast<QQuickItem*>(window)) {
-            window = item->window();
-        }
-    }
+    QList<QPointer<UCActionContext>> contexts;
 
-    if (window) {
-        // is the last action owner item in an active context?
-        QQuickItem *pl = action->lastOwningItem();
+    QQuickItem *pl = action->lastOwningItem();
 
-        while (pl) {
-            UCActionContextAttached *attached = static_cast<UCActionContextAttached*>(
-                        qmlAttachedPropertiesObject<UCActionContext>(pl, false));
-            if (attached) {
-                return attached->context();
+    // iterate down item heirachy till we find an inactive action context.
+    while (pl) {
+        UCActionContextAttached *attached = static_cast<UCActionContextAttached*>(
+                    qmlAttachedPropertiesObject<UCActionContext>(pl, false));
+        if (attached) {
+            contexts << attached->context();
+
+            // if context is not active, we can stop looking.
+            if (!attached->context()->active()) {
+                break;
             }
-            pl = pl->parentItem();
         }
-
-        // check if the action is in an active context
-        UCActionContext *context = qobject_cast<UCActionContext*>(action->parent());
-        if (context) {
-            return context;
-        }
+        pl = pl->parentItem();
     }
-    return Q_NULLPTR;
+
+    // check if the action is in an active context
+    UCActionContext *context = qobject_cast<UCActionContext*>(action->parent());
+    if (context) {
+        contexts << context;
+    }
+    return contexts;
 }
 
 UCActionItemPrivate::UCActionItemPrivate()
@@ -181,6 +178,29 @@ void UCActionItemPrivate::_q_onKeyboardAttached()
     }
 }
 
+void UCActionItemPrivate::_q_actionContextBinding()
+{
+    bool wasActive = !m_activeActionContext.isNull();
+    m_actionContexts = findActionContexts(action);
+
+    m_activeActionContext.clear();
+    Q_FOREACH(auto context, m_actionContexts) {
+        if (context) {
+            if (context->active()) {
+                m_activeActionContext = context;
+            } else {
+                m_activeActionContext.clear();
+                break;
+            }
+        }
+    }
+
+    bool isActive = !m_activeActionContext.isNull();
+    if (isActive != wasActive) {
+        Q_EMIT q_func()->textChanged();
+    }
+}
+
 // setter called when bindings from QML set the value. Internal functions will
 // all use the setVisible setter, so initialization and (re)parenting related
 // visible alteration won't set the custom flag
@@ -194,6 +214,16 @@ void UCActionItem::setEnabled2(bool enabled)
 {
     d_func()->flags |= UCActionItemPrivate::CustomEnabled;
     setEnabled(enabled);
+}
+
+void UCActionItem::componentComplete()
+{
+    Q_D(UCActionItem);
+
+    UCStyledItemBase::componentComplete();
+
+    d->attachActionContext(d->action);
+    d->_q_actionContextBinding();
 }
 
 void UCActionItemPrivate::updateProperties()
@@ -234,17 +264,6 @@ void UCActionItemPrivate::attachAction(bool attach)
             QObject::connect(action, &UCAction::iconNameChanged,
                     q, &UCActionItem::iconNameChanged, Qt::DirectConnection);
         }
-
-        if (m_actionContext) {
-            QObject::disconnect(m_actionContext, 0, q, 0);
-            m_actionContext.clear();
-        }
-
-        m_actionContext = findActionContext(action);
-        if (m_actionContext) {
-            QObject::connect(m_actionContext, SIGNAL(activeChanged()),
-                    q, SLOT(_q_textBinding()));
-        }
     } else {
         action->removeOwningItem(q);
         QObject::disconnect(q, SIGNAL(triggered(QVariant)),
@@ -274,10 +293,25 @@ void UCActionItemPrivate::attachAction(bool attach)
             QGuiApplicationPrivate::instance()->shortcutMap.removeShortcut(0, action, m_mnemonic);
             m_mnemonic = QKeySequence();
         }
+    }
+}
 
-        if (m_actionContext) {
-            QObject::disconnect(m_actionContext, 0, q, 0);
-            m_actionContext.clear();
+void UCActionItemPrivate::attachActionContext(UCAction* action)
+{
+    Q_Q(UCActionItem);
+
+    Q_FOREACH(auto context, m_actionContexts) {
+        if (context) {
+            QObject::disconnect(context, 0, q, 0);
+        }
+    }
+    m_actionContexts.clear();
+
+    m_actionContexts = findActionContexts(action);
+    Q_FOREACH(auto context, m_actionContexts) {
+        if (context) {
+            QObject::connect(context, SIGNAL(activeChanged()),
+                    q, SLOT(_q_actionContextBinding()));
         }
     }
 }
@@ -323,16 +357,19 @@ void UCActionItem::setAction(UCAction *action)
     }
     if (d->action) {
         d->attachAction(false);
+        d->attachActionContext(nullptr);
     }
     d->action = action;
     Q_EMIT actionChanged();
 
     if (d->action) {
         d->attachAction(true);
+        d->attachActionContext(d->action);
     }
     d->_q_visibleBinding();
     d->_q_enabledBinding();
     d->_q_textBinding();
+    d->_q_actionContextBinding();
     d->updateProperties();
 }
 
@@ -363,7 +400,7 @@ QString UCActionItem::text()
         // FIXME: we need QInputDeviceInfo to detect the keyboard attechment
         // https://bugs.launchpad.net/ubuntu/+source/ubuntu-ui-toolkit/+bug/1276808
         bool showMnemonic = QuickUtils::instance()->keyboardAttached() &&
-                            d->m_actionContext && d->m_actionContext->active();
+                            d->m_activeActionContext && d->m_activeActionContext->active();
 
         QString mnemonic = "&" + d->m_mnemonic.toString().remove("Alt+");
         // patch special cases
