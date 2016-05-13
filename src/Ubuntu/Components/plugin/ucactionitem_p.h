@@ -22,8 +22,6 @@
 #include "ucactionitem.h"
 #include "ucstyleditembase_p.h"
 
-class UCActionContext;
-
 class UCActionItemPrivate : public UCStyledItemBasePrivate
 {
     Q_DECLARE_PUBLIC(UCActionItem)
@@ -39,7 +37,6 @@ public:
     bool hasBindingOnProperty(const QString &name);
     void updateProperties();
     void attachAction(bool attach);
-    void attachActionContext(UCAction *action);
     void updateMnemonicFromText();
 
     // private slots
@@ -48,7 +45,6 @@ public:
     void _q_invokeActionTrigger(const QVariant &value);
     void _q_textBinding();
     void _q_onKeyboardAttached();
-    void _q_actionContextBinding();
 
     enum {
         CustomText = 0x01,
@@ -61,8 +57,6 @@ public:
     QString iconName;
     QUrl iconSource;
     UCAction *action;
-    QList<QPointer<UCActionContext>> m_actionContexts;
-    QPointer<UCActionContext> m_activeActionContext;
     quint8 flags;
     QKeySequence m_mnemonic;
 };

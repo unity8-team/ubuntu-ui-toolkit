@@ -27,35 +27,6 @@
 #include <QtQml/private/qqmlbinding_p.h>
 #undef foreach
 
-QList<QPointer<UCActionContext>> findActionContexts(UCAction* action)
-{
-    QList<QPointer<UCActionContext>> contexts;
-
-    QQuickItem *pl = action->lastOwningItem();
-
-    // iterate down item heirachy till we find an inactive action context.
-    while (pl) {
-        UCActionContextAttached *attached = static_cast<UCActionContextAttached*>(
-                    qmlAttachedPropertiesObject<UCActionContext>(pl, false));
-        if (attached) {
-            contexts << attached->context();
-
-            // if context is not active, we can stop looking.
-            if (!attached->context()->active()) {
-                break;
-            }
-        }
-        pl = pl->parentItem();
-    }
-
-    // check if the action is in an active context
-    UCActionContext *context = qobject_cast<UCActionContext*>(action->parent());
-    if (context) {
-        contexts << context;
-    }
-    return contexts;
-}
-
 UCActionItemPrivate::UCActionItemPrivate()
     : action(Q_NULLPTR)
     , flags(0)
@@ -178,29 +149,6 @@ void UCActionItemPrivate::_q_onKeyboardAttached()
     }
 }
 
-void UCActionItemPrivate::_q_actionContextBinding()
-{
-    bool wasActive = !m_activeActionContext.isNull();
-    m_actionContexts = findActionContexts(action);
-
-    m_activeActionContext.clear();
-    Q_FOREACH(auto context, m_actionContexts) {
-        if (context) {
-            if (context->active()) {
-                m_activeActionContext = context;
-            } else {
-                m_activeActionContext.clear();
-                break;
-            }
-        }
-    }
-
-    bool isActive = !m_activeActionContext.isNull();
-    if (isActive != wasActive) {
-        Q_EMIT q_func()->textChanged();
-    }
-}
-
 // setter called when bindings from QML set the value. Internal functions will
 // all use the setVisible setter, so initialization and (re)parenting related
 // visible alteration won't set the custom flag
@@ -214,16 +162,6 @@ void UCActionItem::setEnabled2(bool enabled)
 {
     d_func()->flags |= UCActionItemPrivate::CustomEnabled;
     setEnabled(enabled);
-}
-
-void UCActionItem::componentComplete()
-{
-    Q_D(UCActionItem);
-
-    UCStyledItemBase::componentComplete();
-
-    d->attachActionContext(d->action);
-    d->_q_actionContextBinding();
 }
 
 void UCActionItemPrivate::updateProperties()
@@ -296,26 +234,6 @@ void UCActionItemPrivate::attachAction(bool attach)
     }
 }
 
-void UCActionItemPrivate::attachActionContext(UCAction* action)
-{
-    Q_Q(UCActionItem);
-
-    Q_FOREACH(auto context, m_actionContexts) {
-        if (context) {
-            QObject::disconnect(context, 0, q, 0);
-        }
-    }
-    m_actionContexts.clear();
-
-    m_actionContexts = findActionContexts(action);
-    Q_FOREACH(auto context, m_actionContexts) {
-        if (context) {
-            QObject::connect(context, SIGNAL(activeChanged()),
-                    q, SLOT(_q_actionContextBinding()));
-        }
-    }
-}
-
 void UCActionItemPrivate::updateMnemonicFromText()
 {
     if (!action) return;
@@ -357,19 +275,16 @@ void UCActionItem::setAction(UCAction *action)
     }
     if (d->action) {
         d->attachAction(false);
-        d->attachActionContext(nullptr);
     }
     d->action = action;
     Q_EMIT actionChanged();
 
     if (d->action) {
         d->attachAction(true);
-        d->attachActionContext(d->action);
     }
     d->_q_visibleBinding();
     d->_q_enabledBinding();
     d->_q_textBinding();
-    d->_q_actionContextBinding();
     d->updateProperties();
 }
 
@@ -380,7 +295,6 @@ void UCActionItem::setAction(UCAction *action)
  * Mnemonics are shortcuts prefixed in the text with \&. If the text has multiple
  * occurences of the \& character, the first one will be considered for the shortcut.
  * The \& character cannot be used as shortcut.
- * The mnemonic will only show if the \l ActionContext is active.
  */
 QString UCActionItem::text()
 {
@@ -394,14 +308,9 @@ QString UCActionItem::text()
     }
 
     QString displayText(d->action->text());
+
     // if we have a mnemonic, underscore it
     if (!d->m_mnemonic.isEmpty()) {
-
-        // FIXME: we need QInputDeviceInfo to detect the keyboard attechment
-        // https://bugs.launchpad.net/ubuntu/+source/ubuntu-ui-toolkit/+bug/1276808
-        bool showMnemonic = QuickUtils::instance()->keyboardAttached() &&
-                            d->m_activeActionContext && d->m_activeActionContext->active();
-
         QString mnemonic = "&" + d->m_mnemonic.toString().remove("Alt+");
         // patch special cases
         mnemonic.replace("Space", " ");
@@ -411,15 +320,18 @@ QString UCActionItem::text()
             mnemonic = mnemonic.toLower();
             mnemonicIndex = displayText.indexOf(mnemonic);
         }
-
-        if (showMnemonic) {
+        // FIXME: we need QInputDeviceInfo to detect the keyboard attechment
+        // https://bugs.launchpad.net/ubuntu/+source/ubuntu-ui-toolkit/+bug/1276808
+        if (QuickUtils::instance()->keyboardAttached()) {
             // underscore the character
             displayText.replace(mnemonicIndex, mnemonic.length(), "<u>" + mnemonic[1] + "</u>");
         } else {
             displayText.remove(mnemonicIndex, 1);
         }
+
         return displayText;
     }
+
     return displayText;
 }
 void UCActionItem::setText(const QString &text)

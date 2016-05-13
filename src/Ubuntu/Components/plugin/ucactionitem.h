@@ -49,8 +49,6 @@ public:
     void setVisible2(bool visible);
     void setEnabled2(bool enabled);
 
-    void componentComplete() Q_DECL_OVERRIDE;
-
 Q_SIGNALS:
     void actionChanged();
     void textChanged();
@@ -73,7 +71,6 @@ protected:
     Q_PRIVATE_SLOT(d_func(), void _q_invokeActionTrigger(const QVariant &value))
     Q_PRIVATE_SLOT(d_func(), void _q_textBinding())
     Q_PRIVATE_SLOT(d_func(), void _q_onKeyboardAttached())
-    Q_PRIVATE_SLOT(d_func(), void _q_actionContextBinding())
 };
 
 #endif // UCACTIONITEM_H
