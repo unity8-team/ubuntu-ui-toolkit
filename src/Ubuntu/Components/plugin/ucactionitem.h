@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright 2015 Canonical Ltd.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -20,6 +20,7 @@
 
 class UCAction;
 class UCActionItemPrivate;
+class UCActionMnemonic;
 class UCActionItem : public UCStyledItemBase
 {
     Q_OBJECT
@@ -27,6 +28,7 @@ class UCActionItem : public UCStyledItemBase
     Q_PROPERTY(QString text READ text WRITE setText RESET resetText NOTIFY textChanged)
     Q_PROPERTY(QUrl iconSource READ iconSource WRITE setIconSource RESET resetIconSource NOTIFY iconSourceChanged)
     Q_PROPERTY(QString iconName READ iconName WRITE setIconName RESET resetIconName NOTIFY iconNameChanged)
+    Q_PROPERTY(UCActionMnemonic* mnemonic READ mnemonic CONSTANT FINAL)
 
     // overrides
     Q_PROPERTY(bool enabled READ isEnabled WRITE setEnabled2 NOTIFY enabledChanged2)
@@ -48,6 +50,8 @@ public:
 
     void setVisible2(bool visible);
     void setEnabled2(bool enabled);
+
+    UCActionMnemonic* mnemonic();
 
 Q_SIGNALS:
     void actionChanged();
@@ -71,6 +75,36 @@ protected:
     Q_PRIVATE_SLOT(d_func(), void _q_invokeActionTrigger(const QVariant &value))
     Q_PRIVATE_SLOT(d_func(), void _q_textBinding())
     Q_PRIVATE_SLOT(d_func(), void _q_onKeyboardAttached())
+    Q_PRIVATE_SLOT(d_func(), void _q_updateMnemonic())
+};
+
+class UCActionMnemonic : public QObject
+{
+    Q_OBJECT
+    Q_PROPERTY(bool visible READ visible WRITE setVisible NOTIFY visibleChanged)
+    Q_PROPERTY(int modifier READ modifier WRITE setModifier NOTIFY modifierChanged)
+    Q_PROPERTY(QKeySequence sequence READ sequence NOTIFY sequenceChanged)
+public:
+    UCActionMnemonic(QObject* parent = 0);
+
+    bool visible() const;
+    void setVisible(bool visible);
+
+    int modifier() const;
+    void setModifier(int modifier);
+
+    const QKeySequence& sequence() const;
+    void setSequence(const QKeySequence& sequence);
+
+Q_SIGNALS:
+    void visibleChanged();
+    void modifierChanged();
+    void sequenceChanged();
+
+private:
+    bool m_visible;
+    int m_modifier;
+    QKeySequence m_sequence;
 };
 
 #endif // UCACTIONITEM_H

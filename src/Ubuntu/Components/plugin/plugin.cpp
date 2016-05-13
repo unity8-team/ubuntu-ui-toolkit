@@ -235,6 +235,7 @@ void UbuntuComponentsPlugin::registerTypes(const char *uri)
     qmlRegisterType<UCPageTreeNode>(uri, 1, 3, "PageTreeNode");
     qmlRegisterType<UCPopupContext>(uri, 1, 3, "PopupContext");
     qmlRegisterType<UCMainViewBase>(uri, 1, 3, "MainViewBase");
+    qmlRegisterUncreatableType<UCActionMnemonic>(uri, 1, 3, "ActionMnemonic", "Not instantiable");
 }
 
 void UbuntuComponentsPlugin::initializeContextProperties(QQmlEngine *engine)

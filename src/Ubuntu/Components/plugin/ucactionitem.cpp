@@ -38,6 +38,9 @@ void UCActionItemPrivate::init()
     Q_Q(UCActionItem);
     QObject::connect(q, &UCActionItem::enabledChanged, q, &UCActionItem::enabledChanged2);
     QObject::connect(q, &UCActionItem::visibleChanged, q, &UCActionItem::visibleChanged2);
+
+    QObject::connect(&mnemonic, SIGNAL(visibleChanged()), q, SLOT(_q_textBinding()));
+    QObject::connect(&mnemonic, SIGNAL(modifierChanged()), q, SLOT(_q_updateMnemonic()));
 }
 
 /*!
@@ -137,15 +140,42 @@ void UCActionItemPrivate::_q_textBinding()
     if (flags & CustomText) {
         return;
     }
-    updateMnemonicFromText();
+    _q_updateMnemonic();
     Q_EMIT q_func()->textChanged();
 }
 
 // trigger text changes whenever HW keyboad is attached/detached
 void UCActionItemPrivate::_q_onKeyboardAttached()
 {
-    if (!m_mnemonic.isEmpty()) {
+    if (!mnemonic.sequence().isEmpty()) {
         Q_EMIT q_func()->textChanged();
+    }
+}
+
+void UCActionItemPrivate::_q_updateMnemonic()
+{
+    if (!action) return;
+
+    const QString displayText = action ? action->text() : QString();
+
+    QKeySequence sequence = QKeySequence::mnemonic(displayText);
+    if (!sequence.isEmpty()) {
+        sequence = sequence[0] & ~Qt::ALT;
+        sequence = sequence[0] | mnemonic.modifier();
+    }
+
+    if (sequence == mnemonic.sequence()) {
+        return;
+    }
+    if (!mnemonic.sequence().isEmpty()) {
+        QGuiApplicationPrivate::instance()->shortcutMap.removeShortcut(0, action, mnemonic.sequence());
+    }
+
+    mnemonic.setSequence(sequence);
+
+    if (!sequence.isEmpty()) {
+        Qt::ShortcutContext context = Qt::WindowShortcut;
+        QGuiApplicationPrivate::instance()->shortcutMap.addShortcut(action, sequence, context, shortcutContextMatcher);
     }
 }
 
@@ -162,6 +192,12 @@ void UCActionItem::setEnabled2(bool enabled)
 {
     d_func()->flags |= UCActionItemPrivate::CustomEnabled;
     setEnabled(enabled);
+}
+
+UCActionMnemonic *UCActionItem::mnemonic()
+{
+    Q_D(UCActionItem);
+    return &d->mnemonic;
 }
 
 void UCActionItemPrivate::updateProperties()
@@ -227,32 +263,10 @@ void UCActionItemPrivate::attachAction(bool attach)
                        q, &UCActionItem::iconNameChanged);
         }
 
-        if (!m_mnemonic.isEmpty()) {
-            QGuiApplicationPrivate::instance()->shortcutMap.removeShortcut(0, action, m_mnemonic);
-            m_mnemonic = QKeySequence();
+        if (!mnemonic.sequence().isEmpty()) {
+            QGuiApplicationPrivate::instance()->shortcutMap.removeShortcut(0, action, mnemonic.sequence());
+            mnemonic.setSequence(QKeySequence());
         }
-    }
-}
-
-void UCActionItemPrivate::updateMnemonicFromText()
-{
-    if (!action) return;
-
-    const QString displayText = action ? action->text() : QString();
-
-    QKeySequence sequence = QKeySequence::mnemonic(displayText);
-    if (sequence == m_mnemonic) {
-        return;
-    }
-    if (!m_mnemonic.isEmpty()) {
-        QGuiApplicationPrivate::instance()->shortcutMap.removeShortcut(0, action, m_mnemonic);
-    }
-
-    m_mnemonic = sequence;
-
-    if (!m_mnemonic.isEmpty()) {
-        Qt::ShortcutContext context = Qt::WindowShortcut;
-        QGuiApplicationPrivate::instance()->shortcutMap.addShortcut(action, m_mnemonic, context, shortcutContextMatcher);
     }
 }
 
@@ -310,8 +324,10 @@ QString UCActionItem::text()
     QString displayText(d->action->text());
 
     // if we have a mnemonic, underscore it
-    if (!d->m_mnemonic.isEmpty()) {
-        QString mnemonic = "&" + d->m_mnemonic.toString().remove("Alt+");
+    if (!d->mnemonic.sequence().isEmpty()) {
+        const QString modifier = QKeySequence(d->mnemonic.modifier()).toString();
+
+        QString mnemonic = "&" + d->mnemonic.sequence().toString().remove(modifier);
         // patch special cases
         mnemonic.replace("Space", " ");
         int mnemonicIndex = displayText.indexOf(mnemonic);
@@ -320,9 +336,10 @@ QString UCActionItem::text()
             mnemonic = mnemonic.toLower();
             mnemonicIndex = displayText.indexOf(mnemonic);
         }
+
         // FIXME: we need QInputDeviceInfo to detect the keyboard attechment
         // https://bugs.launchpad.net/ubuntu/+source/ubuntu-ui-toolkit/+bug/1276808
-        if (QuickUtils::instance()->keyboardAttached()) {
+        if (d->mnemonic.visible() && QuickUtils::instance()->keyboardAttached()) {
             // underscore the character
             displayText.replace(mnemonicIndex, mnemonic.length(), "<u>" + mnemonic[1] + "</u>");
         } else {
@@ -480,4 +497,51 @@ void UCActionItem::trigger(const QVariant &value)
     }
 }
 
+UCActionMnemonic::UCActionMnemonic(QObject *parent)
+    : QObject(parent)
+    , m_visible(true)
+    , m_modifier(Qt::ALT)
+{
+}
+
+bool UCActionMnemonic::visible() const
+{
+    return m_visible;
+}
+
+void UCActionMnemonic::setVisible(bool visible)
+{
+    if (visible != m_visible) {
+        m_visible = visible;
+        Q_EMIT visibleChanged();
+    }
+}
+
+int UCActionMnemonic::modifier() const
+{
+    return m_modifier;
+}
+
+void UCActionMnemonic::setModifier(int modifier)
+{
+    if (modifier != m_modifier) {
+        m_modifier = modifier;
+        Q_EMIT modifierChanged();
+    }
+}
+
+const QKeySequence& UCActionMnemonic::sequence() const
+{
+    return m_sequence;
+}
+
+void UCActionMnemonic::setSequence(const QKeySequence &sequence)
+{
+    if (m_sequence != sequence) {
+        m_sequence = sequence;
+        Q_EMIT sequenceChanged();
+    }
+}
+
 #include "moc_ucactionitem.cpp"
+
