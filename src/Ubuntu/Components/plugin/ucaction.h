@@ -25,6 +25,8 @@
 #include <QtQml/QQmlListProperty>
 #include <QtQml/private/qpodvector_p.h>
 
+Q_DECLARE_LOGGING_CATEGORY(ucAction)
+
 // the function detects whether QML has an overridden trigger() slot available
 // and invokes the one with the appropriate signature
 template<class T>
@@ -46,8 +48,6 @@ inline void invokeTrigger(T *object, const QVariant &value)
         object->trigger(value);
     }
 }
-
-bool shortcutContextMatcher(QObject* object, Qt::ShortcutContext context);
 
 class QQmlComponent;
 class QQuickItem;

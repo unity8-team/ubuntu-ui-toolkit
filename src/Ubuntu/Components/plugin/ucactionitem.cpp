@@ -27,6 +27,56 @@
 #include <QtQml/private/qqmlbinding_p.h>
 #undef foreach
 
+#define ACT_TRACE(params) qCDebug(ucAction) << params
+
+bool itemShortcutContextMatcher(QObject* object, Qt::ShortcutContext context)
+{
+    UCActionItem* actionItem = static_cast<UCActionItem*>(object);
+    UCAction* action = actionItem->action();
+    if (!action || !action->isEnabled()) {
+        return false;
+    }
+
+    switch (context) {
+    case Qt::ApplicationShortcut:
+        return true;
+    case Qt::WindowShortcut: {
+        QObject* window = actionItem->window();
+        bool activatable = window && window == QGuiApplication::focusWindow();
+
+        if (activatable) {
+            QQuickItem *pl = actionItem;
+            activatable = false;
+            while (pl) {
+                UCActionContextAttached *attached = static_cast<UCActionContextAttached*>(
+                            qmlAttachedPropertiesObject<UCActionContext>(pl, false));
+                if (attached) {
+                    activatable = attached->context()->active();
+                    if (!activatable) {
+                        ACT_TRACE(action << "Inactive context found" << attached->context());
+                        break;
+                    }
+                }
+                pl = pl->parentItem();
+            }
+            if (!activatable) {
+                // check if the action is in an active context
+                UCActionContext *context = qobject_cast<UCActionContext*>(action->parent());
+                activatable = context && context->active();
+            }
+        }
+        if (activatable) {
+            ACT_TRACE("SELECTED ACTION" << action);
+        }
+
+        return activatable;
+    }
+    default: break;
+    }
+    return false;
+}
+
+
 UCActionItemPrivate::UCActionItemPrivate()
     : action(Q_NULLPTR)
     , flags(0)
@@ -93,6 +143,29 @@ UCActionItem::UCActionItem(UCActionItemPrivate &dd, QQuickItem *parent)
     d_func()->init();
 }
 
+bool UCActionItem::event(QEvent *e)
+{
+    Q_D(UCActionItem);
+    if (e->type() == QEvent::Shortcut) {
+        if (!d->action) {
+            return false;
+        }
+
+        // when we reach this point, we can be sure the Action is used
+        // by a component belonging to an active ActionContext.
+        QShortcutEvent *shortcut_event(static_cast<QShortcutEvent*>(e));
+        if (shortcut_event->isAmbiguous()) {
+            qmlInfo(this) << "Ambiguous shortcut: " << shortcut_event->key().toString();
+            return false;
+        }
+
+        // do not call trigger() directly but invoke, as it may get overridden in QML
+        invokeTrigger<UCAction>(d->action, QVariant());
+        return true;
+    }
+    return UCStyledItemBase::event(e);
+}
+
 bool UCActionItemPrivate::hasBindingOnProperty(const QString &name)
 {
     Q_Q(UCActionItem);
@@ -154,6 +227,7 @@ void UCActionItemPrivate::_q_onKeyboardAttached()
 
 void UCActionItemPrivate::_q_updateMnemonic()
 {
+    Q_Q(UCActionItem);
     if (!action) return;
 
     const QString displayText = action ? action->text() : QString();
@@ -168,14 +242,14 @@ void UCActionItemPrivate::_q_updateMnemonic()
         return;
     }
     if (!mnemonic.sequence().isEmpty()) {
-        QGuiApplicationPrivate::instance()->shortcutMap.removeShortcut(0, action, mnemonic.sequence());
+        QGuiApplicationPrivate::instance()->shortcutMap.removeShortcut(0, q, mnemonic.sequence());
     }
 
     mnemonic.setSequence(sequence);
 
     if (!sequence.isEmpty()) {
         Qt::ShortcutContext context = Qt::WindowShortcut;
-        QGuiApplicationPrivate::instance()->shortcutMap.addShortcut(action, sequence, context, shortcutContextMatcher);
+        QGuiApplicationPrivate::instance()->shortcutMap.addShortcut(q, sequence, context, itemShortcutContextMatcher);
     }
 }
 
@@ -264,7 +338,7 @@ void UCActionItemPrivate::attachAction(bool attach)
         }
 
         if (!mnemonic.sequence().isEmpty()) {
-            QGuiApplicationPrivate::instance()->shortcutMap.removeShortcut(0, action, mnemonic.sequence());
+            QGuiApplicationPrivate::instance()->shortcutMap.removeShortcut(0, q, mnemonic.sequence());
             mnemonic.setSequence(QKeySequence());
         }
     }

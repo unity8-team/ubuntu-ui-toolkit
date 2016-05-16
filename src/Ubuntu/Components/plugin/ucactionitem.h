@@ -69,6 +69,8 @@ public Q_SLOTS:
 protected:
     UCActionItem(UCActionItemPrivate &, QQuickItem *parent);
 
+    bool event(QEvent *event);
+
     Q_DECLARE_PRIVATE(UCActionItem)
     Q_PRIVATE_SLOT(d_func(), void _q_visibleBinding())
     Q_PRIVATE_SLOT(d_func(), void _q_enabledBinding())
