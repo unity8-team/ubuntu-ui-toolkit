@@ -112,8 +112,10 @@ QML_FILES += 1.3/ActionBar.qml \
              1.3/Tab.qml \
              1.3/Tabs.qml \
              1.3/TextArea.qml \
+             1.3/TextArea14.qml \
              1.3/TextCursor.qml \
              1.3/TextField.qml \
+             1.3/TextField14.qml \
              1.3/TextInputPopover.qml \
              1.3/Toolbar.qml \
              1.3/ToolbarButton.qml \

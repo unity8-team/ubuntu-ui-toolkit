@@ -999,6 +999,8 @@ Ubuntu.ActionItem {
             verticalCenter: parent.verticalCenter
         }
         topMargin: internal.spacing
+        leftMargin: internal.spacing
+        rightMargin: internal.spacing
         bottomMargin: internal.spacing
         // do not allow rebounding
         boundsBehavior: Flickable.StopAtBounds

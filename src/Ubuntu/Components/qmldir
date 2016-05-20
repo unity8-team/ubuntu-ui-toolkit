@@ -110,8 +110,10 @@ TabBar 1.3 1.3/TabBar.qml
 Tabs 1.3 1.3/Tabs.qml
 ActivityIndicator 1.3 1.3/ActivityIndicator.qml
 ProgressBar 1.3 1.3/ProgressBar.qml
-TextField 1.3 1.3/TextField.qml
-TextArea 1.3 1.3/TextArea.qml
+# TextField 1.3 1.3/TextField.qml
+TextField 1.3 1.3/TextField14.qml
+# TextArea 1.3 1.3/TextArea.qml
+TextArea 1.3 1.3/TextArea14.qml
 Switch 1.3 1.3/Switch.qml
 CheckBox 1.3 1.3/CheckBox.qml
 Slider 1.3 1.3/Slider.qml

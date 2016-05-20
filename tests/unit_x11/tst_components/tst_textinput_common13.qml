@@ -18,12 +18,13 @@ import QtQuick 2.0
 import QtTest 1.0
 import Ubuntu.Test 1.3
 import Ubuntu.Components 1.3
+import Ubuntu.Components.Private 1.3
 import Ubuntu.Components.Popups 1.3
 
 Item {
     id: testMain
     width: units.gu(40)
-    height: units.gu(50)
+    height: units.gu(90)
 
     Component {
         id: popoverComponent
@@ -95,25 +96,38 @@ Item {
 
         TextField {
             id: textField
+            text: i18n.tr("Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.")
+            height: units.gu(6)
         }
 
         TextField {
             id: customTextField
-            text: 'Lorem ipsum dolor sit amet'
+            text: i18n.tr("Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.")
             primaryItem: AbstractButton {
                 id: primaryButton
-                height: parent.height
+                height: parent.height / 1.7
                 width: height
                 Image {
                     anchors.fill: parent
                     anchors.margins: units.gu(0.5)
                     source: 'image://theme/torch-on'
                 }
+                Frame {
+                    anchors.fill: parent
+                    anchors.margins: -units.gu(0.46)
+                    thickness: units.gu(0.21)
+                    radius: units.gu(1.7)
+                    color: theme.palette.normal.focus
+                    visible: parent.keyNavigationFocus
+                }
+                // FIXME: activeFocusOnTab: true
+                Component.onCompleted: activeFocusOnTab = true
             }
-            secondaryItem: AbstractButton {
+            secondaryItem: /*Abstract*/Button {
                 id: secondaryButton
-                height: parent.height
+                height: parent.height / 1.7
                 width: height
+                color: activeFocus ? UbuntuColors.orange : UbuntuColors.blue
                 Image {
                     anchors.fill: parent
                     anchors.margins: units.gu(0.5)
@@ -121,8 +135,38 @@ Item {
                 }
             }
         }
+
+        AbstractButton {
+            width: units.gu(10)
+            height: units.gu(5)
+            Component.onCompleted: activeFocusOnTab = true
+            Frame {
+                anchors.fill: parent
+                anchors.margins: units.gu(0.46)
+                thickness: units.gu(0.21)
+                radius: units.gu(1.7)
+                color: parent.keyNavigationFocus ? theme.palette.normal.focus : theme.palette.normal.foreground
+
+                AbstractButton {
+                    anchors.verticalCenter: parent.verticalCenter
+                    anchors.right: parent.right
+                    width: height
+                    height: parent.height / 1.2
+                    Component.onCompleted: activeFocusOnTab = true
+                    Frame {
+                        anchors.fill: parent
+                        anchors.margins: units.gu(0.46)
+                        thickness: units.gu(0.21)
+                        radius: units.gu(1.7)
+                        color: parent.keyNavigationFocus ? theme.palette.normal.focus : theme.palette.normal.foreground
+                    }
+                }
+            }
+        }
+
         TextArea {
             id: textArea
+            text: i18n.tr("Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.")
         }
         TextField {
             id: password

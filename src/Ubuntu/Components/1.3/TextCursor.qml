@@ -51,21 +51,13 @@ Ubuntu.StyledItem {
     }
     property int absY: {
         // Take parent flickable movement into account
-        var flickable = handler.main;
+        var flickable = handler.flickable;
         do {
             flickable = flickable.parent;
         } while (flickable && !flickable.contentY && flickable != fakeCursor.parent);
         return fakeCursor.parent.mapFromItem(handler.main, cursorItem.x, cursorItem.y).y
     }
 
-    // Returns "x" or "y" relative to the item handlers are a child of
-    function mappedCursorPosition(coordinate) {
-        var cpos = cursorItem["abs" + coordinate.toUpperCase()];
-        cpos += handler.frameDistance[coordinate];
-        cpos += handler.input[coordinate];
-        cpos -= handler.flickable["content" + coordinate.toUpperCase()];
-        return cpos;
-    }
     /*
         The function opens the text input popover setting the text cursor as caller.
       */
@@ -158,7 +150,6 @@ Ubuntu.StyledItem {
     property Item draggedItem: Item {
         objectName: cursorItem.positionProperty + "_draggeditem"
         width: caret.width + units.gu(2)
-        onWidthChanged: draggedItem.moveToCaret()
         height: cursorItem.height + caret.height + threshold
         property real threshold: units.gu(4)
         parent: fakeCursor.parent
@@ -177,12 +168,6 @@ Ubuntu.StyledItem {
             preventStealing: true
             cursorShape: Qt.IBeamCursor
             enabled: parent.width && parent.height && parent.visible && !handler.doubleTapInProgress
-            onPressedChanged: {
-                if (!pressed) {
-                    // when the dragging ends, reposition the dragger back to caret
-                    draggedItem.moveToCaret();
-                }
-            }
             Ubuntu.Mouse.forwardTo: [dragger]
             Ubuntu.Mouse.onClicked: openPopover()
             Ubuntu.Mouse.onPressAndHold: {
@@ -201,16 +186,9 @@ Ubuntu.StyledItem {
             }
         }
 
-        // aligns the draggedItem to the caret and resets the dragger
-        function moveToCaret() {
-            if (!caret) {
-                return;
-            }
-            // The style may render handlers either on top or bottom
-            var flip = caret.rotation == 180;
-            draggedItem.x = fakeCursor.x + (flip ? -caret.width : -draggedItem.width + caret.width);
-            draggedItem.y = fakeCursor.y + caret.y + caret.height - threshold;
-        }
+        property bool flip: caret.rotation == 180
+        x: fakeCursor.x + (flip ? -caret.width : -draggedItem.width + caret.width)
+        y: fakeCursor.y + caret.y + caret.height - threshold
         // positions caret to the dragged position
         function positionCaret() {
             if (dragger.dragActive) {
@@ -303,10 +281,8 @@ Ubuntu.StyledItem {
         height: cursorItem.height
         Component.onCompleted: caret.parent = fakeCursor
 
-        x: mappedCursorPosition("x")
-        y: mappedCursorPosition("y")
-        onXChanged: draggedItem.moveToCaret()
-        onYChanged: draggedItem.moveToCaret()
+        x: cursorItem.absX + handler.frameDistance.x + handler.input.x - handler.flickable.contentX
+        y: cursorItem.absY + handler.frameDistance.y + handler.input.y - handler.flickable.contentY
 
         // manual clipping: the caret should be visible only while the cursor's
         // top/bottom falls into the text area

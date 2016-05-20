@@ -884,9 +884,10 @@ Ubuntu.StyledItem {
         anchors.topMargin: -internal.frameSpacing
         anchors.rightMargin: -internal.frameSpacing
         anchors.bottomMargin: -internal.frameSpacing
+        __alwaysOnScrollbars: true
         Ubuntu.StyleHints {
             // No background color
-            troughColorSteppersStyle: Qt.rgba(0, 0, 0, 0)
+            // troughColorSteppersStyle: Qt.rgba(0, 0, 0, 0)
         }
     }
 
