@@ -28,7 +28,8 @@ class UCActionItem : public UCStyledItemBase
     Q_PROPERTY(QString text READ text WRITE setText RESET resetText NOTIFY textChanged)
     Q_PROPERTY(QUrl iconSource READ iconSource WRITE setIconSource RESET resetIconSource NOTIFY iconSourceChanged)
     Q_PROPERTY(QString iconName READ iconName WRITE setIconName RESET resetIconName NOTIFY iconNameChanged)
-    Q_PROPERTY(UCActionMnemonic* mnemonic READ mnemonic CONSTANT FINAL)
+    // 1.3
+    Q_PROPERTY(UCActionMnemonic* mnemonic READ mnemonic CONSTANT FINAL REVISION 1)
 
     // overrides
     Q_PROPERTY(bool enabled READ isEnabled WRITE setEnabled2 NOTIFY enabledChanged2)
