@@ -119,7 +119,6 @@ void UCActionItemPrivate::init()
  *     text: "&Call"
  * }
  * \endqml
-
  */
 
 /*!
