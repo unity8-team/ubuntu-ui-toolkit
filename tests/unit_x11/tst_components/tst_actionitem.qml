@@ -16,7 +16,7 @@
 
 import QtQuick 2.0
 import QtTest 1.0
-import Ubuntu.Components 1.1
+import Ubuntu.Components 1.3
 
 Item {
     id: main
@@ -58,6 +58,7 @@ Item {
     Action {
         id: action2
         objectName: "action2"
+        text: "&mnemonicActionText"
     }
 
     Loader {
@@ -86,6 +87,7 @@ Item {
         function cleanup() {
             loader.sourceComponent = null;
             item1.action = null;
+            item1.text = undefined;
             action1.visible = true;
             action1.enabled = true;
             action2.visible = true;
@@ -114,6 +116,12 @@ Item {
             compare(item1.text, newText, "text can be set")
             item1.text = ""
             compare(item1.text, "", "text can be unset")
+        }
+
+        function test_action_mnemonic() {
+            QuickUtils.keyboardAttached = true;
+            item1.action = action2;
+            compare(item1.text, "<u>m</u>nemonicActionText", "Text uses action text mnemonics");
         }
 
         // NOTE: This test must be run AFTER test_action(), otherwise setting the action will
