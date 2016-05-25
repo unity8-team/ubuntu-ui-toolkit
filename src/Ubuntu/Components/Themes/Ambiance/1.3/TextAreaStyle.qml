@@ -54,8 +54,6 @@ Item {
     anchors.fill: parent
     objectName: "textarea_style"
 
-    z: -1
-
     /*!
       Text input background
       */

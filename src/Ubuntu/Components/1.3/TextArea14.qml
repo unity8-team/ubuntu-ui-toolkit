@@ -20,24 +20,23 @@ Ubuntu.StyledItem {
             id: flickable
             anchors {
                 fill: parent
-                //margins: spacing
-                //verticalCenter: parent.verticalCenter
             }
             property real spacing: main.__styleInstance.frameSpacing
             topMargin: spacing
             leftMargin: spacing
-            rightMargin: spacing
-            bottomMargin: spacing
             boundsBehavior: Flickable.StopAtBounds
             clip: true
-            contentWidth: input.paintedWidth
-            contentHeight: input.paintedHeight
-            // height: input.contentHeight
+            contentX: -spacing
+            contentY: -spacing
+            contentWidth: input.paintedWidth + spacing
+            contentHeight: input.paintedHeight + spacing
+            interactive: contentHeight > height
+            flickableDirection: Flickable.VerticalFlick
 
             TextEdit {
                 id: input
-                width: main.width - 2 * flickable.spacing
-                height: Math.max(main.height - 2 * flickable.spacing, contentHeight)
+                width: flickable.width - flickable.spacing * 2
+                height: Math.max(flickable.height - flickable.spacing * 2, contentHeight + flickable.spacing * 2)
                 wrapMode: TextEdit.WrapAtWordBoundaryOrAnywhere
 
                 color: main.__styleInstance.color

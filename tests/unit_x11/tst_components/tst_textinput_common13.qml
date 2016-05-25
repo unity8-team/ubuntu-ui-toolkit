@@ -167,6 +167,36 @@ Item {
         TextArea {
             id: textArea
             text: i18n.tr("Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.")
+             + i18n.tr("Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.")
+             + i18n.tr("Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.")
+             + i18n.tr("Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.")
+        }
+        ScrollView {
+            width: units.gu(30)
+            height: units.gu(12)
+            Flickable {
+                id: flickable
+                anchors.fill: parent
+                contentWidth: textInput.paintedWidth
+                contentHeight: textInput.paintedHeight
+                topMargin: units.gu(2)
+                leftMargin: units.gu(2)
+                contentX: leftMargin
+                contentY: topMargin
+                TextEdit {
+                    id: textInput
+                    text: textArea.text
+                    width: flickable.width
+                    height: flickable.height
+                    wrapMode: TextEdit.WrapAtWordBoundaryOrAnywhere
+                }
+                Rectangle {
+                    anchors.fill: parent
+                    opacity: 0.3
+                    color: UbuntuColors.blue // theme.palette.normal.field
+                }
+
+            }
         }
         TextField {
             id: password
