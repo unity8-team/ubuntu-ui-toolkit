@@ -828,7 +828,7 @@ PageTreeNode {
                 property color backgroundColor: layout.__propagated.header.backgroundColor
 
                 // Enable red outline in the PageHeadStyle. See bug #1583636.
-                property bool showDeprecatedWarning: true
+                property bool showDeprecatedWarning: false
 
                 visible: !customHeader && holder.pageWrapper && holder.pageWrapper.active
 
