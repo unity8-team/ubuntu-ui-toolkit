@@ -22,14 +22,15 @@ import sys, subprocess, os, tempfile, math
 import matplotlib.pyplot as plot
 from matplotlib import rcParams
 
-METRICS = [
-    { 'name':'frameCount',    'type':int,  'factor':1.0,      'label':'Frame count' },
-    { 'name':'syncTime',      'type':long, 'factor':0.000001, 'label':'Sync time (ms)' },
-    { 'name':'renderTime',    'type':long, 'factor':0.000001, 'label':'Render time (ms)' },
-    { 'name':'gpuRenderTime', 'type':long, 'factor':0.000001, 'label':'GPU render time (ms)' },
-    { 'name':'cpuUsage',      'type':int,  'factor':1.0,      'label':'CPU usage (%)' },
-    { 'name':'vszMemory',     'type':int,  'factor':1.0,      'label':'Virtual size memory (kB)' },
-    { 'name':'rssMemory',     'type':int,  'factor':1.0,      'label':'RSS memory (kB)' }
+FRAME_METRICS = [
+    { 'name':'timeStamp',  'type':int,  'factor':1.0,      'label':'time stamp' },
+    { 'name':'window',     'type':int,  'factor':1.0,      'label':'Window id' },
+    { 'name':'number',     'type':int,  'factor':1.0,      'label':'Frame number' },
+    { 'name':'deltaTime',  'type':long, 'factor':0.000001, 'label':'Delta time (ms)' },
+    { 'name':'syncTime',   'type':long, 'factor':0.000001, 'label':'Sync time (ms)' },
+    { 'name':'renderTime', 'type':long, 'factor':0.000001, 'label':'Render time (ms)' },
+    { 'name':'gpuTime',    'type':long, 'factor':0.000001, 'label':'GPU time (ms)' },
+    { 'name':'swapTime',   'type':long, 'factor':0.000001, 'label':'Swap time (ms)' },
 ]
 PLOT_FONT_NAME = 'Ubuntu'
 PLOT_FONT_SIZE = 12
@@ -42,8 +43,8 @@ def show_usage_quit():
     print ''
     print '  Plot and compare per-frame metrics of different QML files.'
     print ''
-    print '  metrics: \'frameCount\', \'syncTime\', \'renderTime\', \'gpuRenderTime\','
-    print '           \'cpuUsage\', \'vszMemory\', \'rssMemory\''
+    print '  metrics: \'window\', \'number\', \'deltaTime\', \'syncTime\', \'renderTime\','
+    print '           \'gpuTime\', \'swapTime\''
     sys.exit(1)
 
 # Gets average, standard deviation, min, max.
@@ -69,8 +70,8 @@ def main(args):
     if len(args) < 2:
         show_usage_quit()
     metric_index = 0
-    for i in range(0, len(METRICS)):
-        if METRICS[i]['name'] == args[0]:
+    for i in range(0, len(FRAME_METRICS)):
+        if FRAME_METRICS[i]['name'] == args[0]:
             metric_index = i
             break
     else:
@@ -97,7 +98,7 @@ def main(args):
     fig, axis = plot.subplots()
 
     metrics_type = []
-    for i in METRICS:
+    for i in FRAME_METRICS:
         metrics_type.append(i['type']);
 
     min_value = sys.maxsize
@@ -108,8 +109,9 @@ def main(args):
         # Spawn quick-plus-scene.
         try:
             command = [
-                'quick-plus-scene', '--performance-logging', '--performance-log-file', temp_name,
-                '--continuous-update', '--quit-after-frame-count', str(FRAME_COUNT), qml_files[i]
+                'quick-plus-scene', '--performance-logging-minimal', '--performance-logging',
+                temp_name, '--continuous-updates', '--quit-after-frame-count', str(FRAME_COUNT),
+                qml_files[i]
             ]
             p = subprocess.Popen(command)
             p.wait()
@@ -121,12 +123,19 @@ def main(args):
         # Plot values.
         temp_file = os.fdopen(temp_fd, 'r')
         values = []
-        for j in range(0, FRAME_COUNT):
+        count = 0
+        while count < FRAME_COUNT:
             metrics_line = temp_file.readline()
-            metrics_value = [ t(s) for t, s in zip(metrics_type, metrics_line.split()) ]
-            if len(metrics_value) == len(METRICS):  # Prevents quick-scene-plus early exit issues
-                values.append(metrics_value[metric_index] * METRICS[metric_index]['factor'])
-        if len(values) == FRAME_COUNT:  # Prevents quick-scene-plus early exit issues
+            if len(metrics_line) > 0 and metrics_line[0] == 'F':
+                metrics_line = metrics_line[2:]
+                metrics_value = [ t(s) for t, s in zip(metrics_type, metrics_line.split()) ]
+                # Prevents quick-scene-plus early exit issues.
+                if len(metrics_value) == len(FRAME_METRICS):
+                    values.append(metrics_value[metric_index] *
+                                  FRAME_METRICS[metric_index]['factor'])
+                count += 1
+        # Prevents quick-scene-plus early exit issues.
+        if len(values) == FRAME_COUNT:
             (avg, stdev, min, max) = getStats(values)
             label = qml_files[i].split('/')[-1] + ' (avg=' + ('%.2f' % avg) + \
                 ', stdev=' + ('%.2f' % stdev) + ')'
@@ -154,7 +163,7 @@ def main(args):
         axis.set_ylim(LIMIT_60HZ - 1)
     plot.title(title)
     plot.xlabel('Frame')
-    plot.ylabel(METRICS[metric_index]['label'])
+    plot.ylabel(FRAME_METRICS[metric_index]['label'])
     plot.show()
 
 if __name__ == '__main__':

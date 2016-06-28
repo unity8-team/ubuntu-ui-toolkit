@@ -16,7 +16,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with Quick+. If not, see <http://www.gnu.org/licenses/>.
 
-#include "lttngmetricslogger_p.h"
+#include "lttnglogger_p.h"
 
 #undef TRACEPOINT_PROVIDER
 #define TRACEPOINT_PROVIDER quickplus
@@ -27,24 +27,44 @@
 #include <lttng/tracepoint.h>
 
 TRACEPOINT_EVENT(
-    quickplus, metrics,
+    quickplus, process,
     TP_ARGS(
-        TraceData*, traceData
+        TraceProcess*, traceProcess
     ),
     TP_FIELDS(
-        ctf_integer(quint64, timestamp, traceData->timeStamp)
-        ctf_integer(quint32, frame_number, traceData->frameNumber)
-        ctf_integer(quint16, frame_width, traceData->frameWidth)
-        ctf_integer(quint16, frame_height, traceData->frameHeight)
-        ctf_float(float, sg_sync, traceData->syncTime)
-        ctf_float(float, sg_render, traceData->renderTime)
-        ctf_float(float, gpu, traceData->gpuTime)
-        ctf_float(float, swap, traceData->swapTime)
-        ctf_float(float, total, traceData->totalTime)
-        ctf_integer(quint16, cpu_usage, traceData->cpuUsage)
-        ctf_integer(quint32, vsz_memory, traceData->vszMemory)
-        ctf_integer(quint32, rss_memory, traceData->rssMemory)
-        ctf_integer(quint16, thread_count, traceData->threadCount)
+        ctf_integer(quint16, cpu_usage, traceProcess->cpuUsage)
+        ctf_integer(quint32, vsz_memory, traceProcess->vszMemory)
+        ctf_integer(quint32, rss_memory, traceProcess->rssMemory)
+        ctf_integer(quint16, thread_count, traceProcess->threadCount)
+    )
+)
+
+TRACEPOINT_EVENT(
+    quickplus, frame,
+    TP_ARGS(
+        TraceFrame*, traceFrame
+    ),
+    TP_FIELDS(
+        ctf_integer(quint32, window, traceFrame->window)
+        ctf_integer(quint32, number, traceFrame->number)
+        ctf_float(float, delta_time, traceFrame->deltaTime)
+        ctf_float(float, sync_time, traceFrame->syncTime)
+        ctf_float(float, render_time, traceFrame->renderTime)
+        ctf_float(float, gpu_time, traceFrame->gpuTime)
+        ctf_float(float, swap_time, traceFrame->swapTime)
+    )
+)
+
+TRACEPOINT_EVENT(
+    quickplus, window,
+    TP_ARGS(
+        TraceWindow*, traceWindow
+    ),
+    TP_FIELDS(
+        ctf_integer(quint32, id, traceWindow->id)
+        ctf_string(state, traceWindow->state)
+        ctf_integer(quint16, width, traceWindow->width)
+        ctf_integer(quint16, height, traceWindow->height)
     )
 )
 

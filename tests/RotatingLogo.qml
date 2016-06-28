@@ -2,7 +2,7 @@ import QtQuick 2.0
 
 Rectangle {
     id: scene
-    width: 500
+    width: 700
     height: 500
     color: "black"
 

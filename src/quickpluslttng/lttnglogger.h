@@ -16,26 +16,20 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with Quick+. If not, see <http://www.gnu.org/licenses/>.
 
-#include "lttngmetricslogger.h"
-#include "lttngmetricslogger_p.h"
-#include "quickplusglobal_p.h"
-#include "tracepoint_p.h"
+#ifndef LTTNGLOGGER_H
+#define LTTNGLOGGER_H
 
-void QuickPlusLTTNGMetricsLogger::log(const QuickPlusMetrics& m)
+#include <quickplus/logger.h>
+
+// Log to LTTng.
+class QUICK_PLUS_EXPORT QuickPlusLTTNGLogger : public QuickPlusLogger
 {
-    DLOG_FUNC();
+public:
+    void log(const QuickPlusEvent& event) Q_DECL_OVERRIDE;
+    bool isOpen() Q_DECL_OVERRIDE;
 
-    TraceData traceData(
-        m.timeStamp, m.frameNumber, m.vszMemory, m.rssMemory, m.syncTime * 0.000001f,
-        m.renderTime * 0.000001f, m.gpuTime * 0.000001f, m.swapTime * 0.000001f,
-        (m.syncTime + m.renderTime + m.gpuTime + m.swapTime) * 0.000001f, m.frameWidth,
-        m.frameHeight, m.cpuUsage, m.threadCount);
-    tracepoint(quickplus, metrics, &traceData);
-}
+private:
+    void* __reserved;
+};
 
-bool QuickPlusLTTNGMetricsLogger::isOpen()
-{
-    DLOG_FUNC();
-
-    return true;
-}
+#endif  // LTTNGLOGGER_H

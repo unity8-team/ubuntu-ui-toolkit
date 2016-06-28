@@ -15,19 +15,28 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with Quick+. If not, see <http://www.gnu.org/licenses/>.
 
-#include "metricslogger.h"
-#include <QtCore/QFile>
-#include <QtCore/QTextStream>
+#ifndef EVENTS_P_H
+#define EVENTS_P_H
 
-class FileMetricsLoggerPrivate
+#include "events.h"
+#include <QtCore/QElapsedTimer>
+#include <sys/times.h>
+
+class EventUtilsPrivate
 {
 public:
-    FileMetricsLoggerPrivate(const QString& fileName);
-    FileMetricsLoggerPrivate(FILE* fileHandle);
+    EventUtilsPrivate();
+    ~EventUtilsPrivate();
 
-    void log(const QuickPlusMetrics& metrics);
+    void updateCpuUsage(QuickPlusEvent* event);
+    void updateProcStatMetrics(QuickPlusEvent* event);
 
-    QFile m_file;
-    QTextStream m_textStream;
-    bool m_open;
+    char* m_buffer;
+    QElapsedTimer m_cpuTimer;
+    struct tms m_cpuTimes;
+    clock_t m_cpuTicks;
+    quint16 m_cpuOnlineCores;
+    quint16 m_pageSize;
 };
+
+#endif  // EVENTS_P_H

@@ -1,6 +1,5 @@
 // Copyright © 2016 Canonical Ltd.
-// Authors: Loïc Molinari <loic.molinari@canonical.com>
-//          Albert Astals Cid <albert.astals@canonical.com>
+// Author: Loïc Molinari <loic.molinari@canonical.com>
 //
 // This file is part of Quick+.
 //
@@ -16,20 +15,31 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with Quick+. If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef LTTNGMETRICSLOGGER_H
-#define LTTNGMETRICSLOGGER_H
+#ifndef LOGGER_P_H
+#define LOGGER_P_H
 
-#include <quickplus/metricslogger.h>
+#include "logger.h"
+#include "events.h"
+#include <QtCore/QFile>
+#include <QtCore/QTextStream>
 
-// Log metrics to LTTng.
-class QUICK_PLUS_EXPORT QuickPlusLTTNGMetricsLogger : public QuickPlusMetricsLogger
+class FileLoggerPrivate
 {
 public:
-    void log(const QuickPlusMetrics& metrics) Q_DECL_OVERRIDE;
-    bool isOpen() Q_DECL_OVERRIDE;
+    enum {
+        Open    = (1 << 0),
+        Colored = (1 << 1),
+        Minimal = (1 << 2)
+    };
 
-private:
-    void* __reserved;
+    FileLoggerPrivate(const QString& fileName);
+    FileLoggerPrivate(FILE* fileHandle);
+
+    void log(const QuickPlusEvent& event);
+
+    QFile m_file;
+    QTextStream m_textStream;
+    quint8 m_flags;
 };
 
-#endif  // LTTNGMETRICSLOGGER_H
+#endif  // LOGGER_P_H

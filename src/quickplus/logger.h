@@ -15,42 +15,45 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with Quick+. If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef METRICSLOGGER_H
-#define METRICSLOGGER_H
+#ifndef LOGGER_H
+#define LOGGER_H
 
 #include <quickplus/quickplusglobal.h>
-#include <quickplus/metrics.h>
 #include <QtCore/QFile>
 
-class FileMetricsLoggerPrivate;
+class QuickPlusEvent;
+class FileLoggerPrivate;
 
-// Log metrics to a specific device.
-class QUICK_PLUS_EXPORT QuickPlusMetricsLogger
+// Log events to a specific device.
+class QUICK_PLUS_EXPORT QuickPlusLogger
 {
 public:
-    virtual ~QuickPlusMetricsLogger() {}
+    virtual ~QuickPlusLogger() {}
 
-    // Log metrics.
-    virtual void log(const QuickPlusMetrics& metrics) = 0;
+    // Log events.
+    virtual void log(const QuickPlusEvent& event) = 0;
 
     // Get whether the target device has been opened successfully or not.
     virtual bool isOpen() = 0;
 };
 
-// Log metrics to a file.
-class QUICK_PLUS_EXPORT QuickPlusFileMetricsLogger : public QuickPlusMetricsLogger
+// Log events to a file.
+class QUICK_PLUS_EXPORT QuickPlusFileLogger : public QuickPlusLogger
 {
 public:
-    QuickPlusFileMetricsLogger(const QString& filename);
-    QuickPlusFileMetricsLogger(FILE* fileHandle);
-    ~QuickPlusFileMetricsLogger();
+    QuickPlusFileLogger(const QString& filename);
+    QuickPlusFileLogger(FILE* fileHandle);
+    ~QuickPlusFileLogger();
 
-    void log(const QuickPlusMetrics& metrics) Q_DECL_OVERRIDE;
+    void log(const QuickPlusEvent& event) Q_DECL_OVERRIDE;
     bool isOpen() Q_DECL_OVERRIDE;
 
+    void setMinimal(bool minimal);
+    bool minimal();
+
 private:
-    FileMetricsLoggerPrivate* const d_ptr;
-    Q_DECLARE_PRIVATE(FileMetricsLogger);
+    FileLoggerPrivate* const d_ptr;
+    Q_DECLARE_PRIVATE(FileLogger);
 };
 
-#endif  // METRICSLOGGER_H
+#endif  // LOGGER_H

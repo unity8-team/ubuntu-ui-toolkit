@@ -12,9 +12,9 @@ VERSION = $${QUICK_PLUS_VERSION}
 
 PUBLIC_HEADERS = \
     $$PWD/quickplusglobal.h \
-    $$PWD/metrics.h \
-    $$PWD/metricslogger.h \
-    $$PWD/metricstracker.h
+    $$PWD/events.h \
+    $$PWD/logger.h \
+    $$PWD/applicationmonitor.h
 
 HEADERS += \
     $${PUBLIC_HEADERS} \
@@ -23,14 +23,22 @@ HEADERS += \
     $$PWD/dropshadow_p.h \
     $$PWD/dropshadowtexture_p.h \
     $$PWD/bitmaptextfont_p.h \
-    $$PWD/metricslogger_p.h \
-    $$PWD/metricstracker_p.h
+    $$PWD/events_p.h \
+    $$PWD/logger_p.h \
+    $$PWD/gputimer_p.h \
+    $$PWD/bitmaptext_p.h \
+    $$PWD/overlay_p.h \
+    $$PWD/applicationmonitor_p.h
 
 SOURCES += \
     $$PWD/quickplus.cpp \
     $$PWD/dropshadow.cpp \
-    $$PWD/metricslogger.cpp \
-    $$PWD/metricstracker.cpp
+    $$PWD/events.cpp \
+    $$PWD/logger.cpp \
+    $$PWD/gputimer.cpp \
+    $$PWD/bitmaptext.cpp \
+    $$PWD/overlay.cpp \
+    $$PWD/applicationmonitor.cpp
 
 OTHER_FILES += \
     $$PWD/shaders/dropshadow.vert \

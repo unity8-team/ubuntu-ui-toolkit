@@ -34,6 +34,25 @@ Quick+ shell:
   [Quick+] $ _
 
 
+Environment variables
+=====================
+
+A few environment variables are supported:
+
+  QUICKPLUS_NO_GPU_TIMER
+      Disable precise GPU rendering time measurement. Since the GPU timers imply
+      a flush of GPU rendering commands at each frame, the GPU doesn't exactly
+      run as it does without monitoring. This environment variable allows to run
+      without explicit flushing of commands. The GPU time will appear in the
+      swap time but, because of its asynchronous nature and potential long
+      command queue, it is quite possible that it will correspond to the swap
+      time of a previous frame.
+
+  QUICKPLUS_NO_LOGGER_COLOR
+      Disable coloured logging on stdout and stderr using terminal codes
+      (ANSI/VT100).
+
+
 LTTng support
 =============
 
@@ -46,7 +65,9 @@ built. The provider is "quickplus" and the tracepoint "metrics". The
 quick-plus-scene tool supports LTTng, it can be used like that:
 
   $ lttng create
-  $ lttng enable-event --userspace quickplus:metrics
+  $ lttng enable-event --userspace quickplus:window
+  $ lttng enable-event --userspace quickplus:frame
+  $ lttng enable-event --userspace quickplus:process
   $ lttng start
   $ quick-plus-scene --performance-logging lttng tests/RotatingLogo.qml
   $ lttng stop

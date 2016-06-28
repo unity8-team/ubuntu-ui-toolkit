@@ -18,15 +18,15 @@ VERSION = $${QUICK_PLUS_VERSION}
 
 PUBLIC_HEADERS = \
     $$PWD/quickpluslttngglobal.h \
-    $$PWD/lttngmetricslogger.h
+    $$PWD/lttnglogger.h
 
 HEADERS += \
     $${PUBLIC_HEADERS} \
-    $$PWD/lttngmetricslogger_p.h \
+    $$PWD/lttnglogger_p.h \
     $$PWD/tracepoint_p.h
 
 SOURCES += \
-    $$PWD/lttngmetricslogger.cpp \
+    $$PWD/lttnglogger.cpp \
        $$PWD/tracepoint.cpp
 
 headers.files = $${PUBLIC_HEADERS}

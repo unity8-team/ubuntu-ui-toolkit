@@ -29,10 +29,9 @@
 #include <QtCore/QTranslator>
 #include <QtCore/QLibraryInfo>
 
-#include <quickplus/metricstracker.h>
-#include <quickplus/metricslogger.h>
+#include <quickplus/applicationmonitor.h>
 #if !defined(DISABLE_LTTNG)
-#include <quickpluslttng/lttngmetricslogger.h>
+#include <quickpluslttng/lttnglogger.h>
 #endif
 
 #ifdef QML_RUNTIME_TESTING
@@ -126,6 +125,7 @@ struct Options
         , verbose(false)
         , performanceOverlay(false)
         , performanceLogging(false)
+        , performanceLoggingMinimal(false)
         , continuousUpdate(false)
     {
         // QtWebEngine needs a shared context in order for the GPU thread to
@@ -148,6 +148,7 @@ struct Options
     bool verbose;
     bool performanceOverlay;
     bool performanceLogging;
+    bool performanceLoggingMinimal;
     QString performanceLoggingDevice;
     bool continuousUpdate;
     int quitAfterFrameCount;
@@ -355,7 +356,8 @@ static void usage()
 #else
          "                                .... file or 'stdout' (default is 'stdout')");
 #endif
-    puts("  --continuous-update .............. Continuously update the window");
+    puts("  --performance-logging-minimal .... Enable minimal file performance logging");
+    puts("  --continuous-updates ............. Continuously update the window");
     puts("  --quit-after-frame-count <count>.. Quit after a number of rendered frames");
 
     puts(" ");
@@ -456,46 +458,88 @@ static QUrl parseUrlArgument(const QString &arg)
     return url;
 }
 
-static void setMetricsTrackerOptions(QuickPlusMetricsTracker* metrics, Options* options)
+static void setApplicationMonitorOptions(Options* options)
 {
-    if (options->performanceOverlay) {
-        QString filename(
-            QStandardPaths::locate(QStandardPaths::ConfigLocation, "QuickPlusSceneOverlay.txt"));
-        if (!filename.isEmpty()) {
-            QFile file(filename);
-            if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-                if (!file.atEnd()) {
-                    metrics->setOverlayText(QString(file.readAll()));
+    if (options->performanceOverlay || options->performanceLogging) {
+        QuickPlusApplicationMonitor::MonitorFlags flags = 0;
+        if (options->continuousUpdate) {
+            flags |= QuickPlusApplicationMonitor::ContinuousUpdates;
+        }
+        if (options->performanceLogging) {
+            QuickPlusLogger* logger;
+            if (options->performanceLoggingDevice.isEmpty()
+                || options->performanceLoggingDevice == "stdout") {
+                logger = new QuickPlusFileLogger(stdout);
+                if (options->performanceLoggingMinimal) {
+                    static_cast<QuickPlusFileLogger*>(logger)->setMinimal(true);
+                }
+#if !defined(DISABLE_LTTNG)
+            } else if (options->performanceLoggingDevice == "lttng") {
+                logger = new QuickPlusLTTNGLogger();
+#endif
+            } else {
+                logger = new QuickPlusFileLogger(options->performanceLoggingDevice);
+                if (options->performanceLoggingMinimal) {
+                    static_cast<QuickPlusFileLogger*>(logger)->setMinimal(true);
                 }
             }
+            if (logger->isOpen()) {
+                flags |= QuickPlusApplicationMonitor::Logging;
+                QuickPlusApplicationMonitor::installLogger(logger);
+            } else {
+                delete logger;
+            }
         }
-        metrics->setOverlayVisible(true);
-    }
-
-    if (options->performanceLogging) {
-        QuickPlusMetricsLogger* logger;
-        if (options->performanceLoggingDevice.isEmpty()
-            || options->performanceLoggingDevice == "stdout") {
-            logger = new QuickPlusFileMetricsLogger(stdout);
-#if !defined(DISABLE_LTTNG)
-        } else if (options->performanceLoggingDevice == "lttng") {
-            logger = new QuickPlusLTTNGMetricsLogger();
-#endif
-        } else {
-            logger = new QuickPlusFileMetricsLogger(options->performanceLoggingDevice);
+        if (options->performanceOverlay) {
+            flags |= QuickPlusApplicationMonitor::Overlay;
         }
-        if (logger->isOpen()) {
-            metrics->setLogger(logger);
-            metrics->setLogging(true);
-        } else {
-            delete logger;
-        }
-    }
-
-    if (options->continuousUpdate) {
-        metrics->setWindowUpdatePolicy(QuickPlusMetricsTracker::Continuous);
+        QuickPlusApplicationMonitor::setFlags(flags);
+        QuickPlusApplicationMonitor::start();
     }
 }
+
+// #include <unistd.h>
+// class EventFilter : public QObject
+// {
+//     Q_OBJECT
+
+// private:
+//     bool eventFilter(QObject* obj, QEvent* event);
+// };
+
+// bool EventFilter::eventFilter(QObject* obj, QEvent* event)
+// {
+//     if (event->type() == QEvent::KeyPress) {
+//         switch (static_cast<QKeyEvent*>(event)->key()) {
+//         case Qt::Key_A: {
+//             QQuickWindow* w = new QQuickWindow();
+//             w->resize(600, 400);
+//             w->show();
+//             return true;
+//         }
+//         case Qt::Key_F: {
+//             static int count = 0;
+//             const QuickPlusApplicationMonitor::MonitorFlag flags =
+//                 static_cast<QuickPlusApplicationMonitor::MonitorFlag>(count++ % 8);
+//             QuickPlusApplicationMonitor::setFlags(flags);
+//             qDebug() << flags;
+//             return true;
+//         }
+//         case Qt::Key_Z: {
+//             QuickPlusApplicationMonitor::start();
+//             return true;
+//         }
+//         case Qt::Key_E: {
+//             QuickPlusApplicationMonitor::stop();
+//             return true;
+//         }
+//         default: {
+//             break;
+//         }
+//         }
+//     }
+//     return QObject::eventFilter(obj, event);
+// }
 
 int main(int argc, char ** argv)
 {
@@ -570,7 +614,9 @@ int main(int argc, char ** argv)
                     && !arguments.at(i+1).endsWith(QString(".qml"))) {
                     options.performanceLoggingDevice = QString(argv[++i]);
                 }
-            } else if (lowerArgument == QLatin1String("--continuous-update"))
+            } else if (lowerArgument == QLatin1String("--performance-logging-minimal"))
+                options.performanceLoggingMinimal = true;
+            else if (lowerArgument == QLatin1String("--continuous-updates"))
                 options.continuousUpdate = true;
             else if (lowerArgument == QLatin1String("--quit-after-frame-count"))
                 options.quitAfterFrameCount = atoi(argv[++i]);
@@ -704,13 +750,13 @@ int main(int argc, char ** argv)
             if (options.quitImmediately)
                 QMetaObject::invokeMethod(QCoreApplication::instance(), "quit", Qt::QueuedConnection);
 
-            // Quick+ metrics tracking.
-            QuickPlusMetricsTracker metrics(window.data());
-            setMetricsTrackerOptions(&metrics, &options);
+            setApplicationMonitorOptions(&options);
 
             // Now would be a good time to inform the debug service to start listening.
 
             exitCode = app.exec();
+
+            QuickPlusApplicationMonitor::clearLoggers();
 
 #ifdef QML_RUNTIME_TESTING
             RenderStatistics::printTotalStats();
