@@ -19,8 +19,6 @@
 // font in different sizes. The output is a header file containing a structure
 // to be accessed by the bitmap text implementation.
 
-#define STRONG_OUTLINE 0
-
 #include <QtCore/QFile>
 #include <QtCore/QTextStream>
 #include <QtGui/QGuiApplication>
@@ -28,17 +26,24 @@
 #include <QtGui/QImage>
 
 // Input data.
-//FIXME(loicm) Make that command line arguments.
+// FIXME(loicm) Make that command line arguments.
 const char* fileName = "bitmaptextfont_p.h";
 const char* fontFamily = "Ubuntu Mono";  // Must be monospace.
 const int fontPixelSizeMin = 12;  // Must be an even number.
 const int fontPixelSizeMax = 20;  // Must be an even number, higher than fontPixelSizeMin.
+const bool outline = false;
+const bool strongOutline = false;
+const bool saveImage = false;
+const quint32 backgroundColor = 0xcc000000;  // AABBGGRR (premultiplied).
+const quint32 fontColor = 0xffffffff;  // AARRGGBB.
+const quint32 outlineColor = 0xff000000;  // AARRGGBB.
 
 // Several drivers prefer power-of-two or (at least) multiples of 32 for
 // performance reasons.
 // FIXME(loicm) Compute texture size programmatically (based on selected font).
 const int textureWidth = 736;
 const int textureHeight = 224;
+const int textureSize = textureWidth * textureHeight;
 
 // From 32 to 126 (without the non-printing control characters).
 const QString asciiCodes[2] = {
@@ -51,7 +56,7 @@ int main(int argc, char* argv[])
     // Prevents slow texture layout, as well as making sure the code writing
     // texture data in the header stores everything correctly (loop stores
     // pixels 4 by 4).
-    Q_STATIC_ASSERT(((textureWidth * textureHeight) % 4) == 0);
+    Q_STATIC_ASSERT(((textureSize) % 4) == 0);
     // Prevents incorrect font sizes.
     Q_STATIC_ASSERT((fontPixelSizeMin & 1) != 1);
     Q_STATIC_ASSERT((fontPixelSizeMax & 1) != 1);
@@ -79,54 +84,65 @@ int main(int argc, char* argv[])
             << "    short int textureWidth;   // Width of the texture.\n"
             << "    short int textureHeight;  // Height of the texture.\n"
             << "    const unsigned char textureData["
-            << textureWidth * textureHeight * 4  + 1 << "];"  // Don't forget string terminator.
+            << textureSize * 4  + 1 << "];"  // Don't forget string terminator.
             << "  // Data (premultiplied 32-bit RGBA).\n"
             << "} g_bitmapTextFont = {\n"
             << "    " << (fontPixelSizeMax - fontPixelSizeMin + 2) / 2 << ",\n"
             << "    {\n";
 
     // Create texture data.
-    uchar* data = new uchar[textureWidth * textureHeight * 4];
-    memset(data, 0, textureWidth * textureHeight * 4);
+    quint32* data = new quint32 [textureSize];
+    for (int i = 0; i < textureSize; ++i) {
+        data[i] = backgroundColor;
+    }
 
     // Setup painter to render the fonts in the texture data.
     QPainter painter;
-    QImage image(data, textureWidth, textureHeight, QImage::Format_RGBA8888_Premultiplied);
+    QImage image(reinterpret_cast<uchar*>(data), textureWidth, textureHeight,
+                 QImage::Format_RGBA8888_Premultiplied);
     painter.begin(&image);
     painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
     QFont font(fontFamily);
     font.setHintingPreference(QFont::PreferVerticalHinting);
     font.setStyleStrategy(QFont::ForceIntegerMetrics);
     font.setBold(true);
-    font.setLetterSpacing(QFont::AbsoluteSpacing, 2.0);  // For the font outline.
+    if (outline) {
+        font.setLetterSpacing(QFont::AbsoluteSpacing, 2);
+    }
 
     for (int i = fontPixelSizeMin, y = 0; i <= fontPixelSizeMax; i += 2) {
         font.setPixelSize(i);
         painter.setFont(font);
         const QFontMetrics metrics(font);
         const int initialY = y;
-        // Render font and its outline (not using QPainterPath for quality
-        // reasons).
         for (int j = 0; j < 2; j++) {
-            y += metrics.ascent() + 2;  // Add 2 for the font outline.
-            painter.setPen(Qt::black);
-            painter.drawText(1, y - 2, asciiCodes[j]);
-            painter.drawText(0, y - 1, asciiCodes[j]);
-            painter.drawText(2, y - 1, asciiCodes[j]);
-            painter.drawText(1, y, asciiCodes[j]);
-#if STRONG_OUTLINE == 1
-            painter.drawText(0, y - 2, asciiCodes[j]);
-            painter.drawText(2, y - 2, asciiCodes[j]);
-            painter.drawText(0, y, asciiCodes[j]);
-            painter.drawText(2, y, asciiCodes[j]);
-#endif
-            painter.setPen(Qt::white);
-            painter.drawText(1, y - 1, asciiCodes[j]);
+            if (outline) {
+                // Not using QPainterPath for quality reasons.
+                y += metrics.ascent() + 2;
+                painter.setPen(QColor(outlineColor));
+                painter.drawText(1, y - 2, asciiCodes[j]);
+                painter.drawText(0, y - 1, asciiCodes[j]);
+                painter.drawText(2, y - 1, asciiCodes[j]);
+                painter.drawText(1, y, asciiCodes[j]);
+                if (strongOutline) {
+                    painter.drawText(0, y - 2, asciiCodes[j]);
+                    painter.drawText(2, y - 2, asciiCodes[j]);
+                    painter.drawText(0, y, asciiCodes[j]);
+                    painter.drawText(2, y, asciiCodes[j]);
+                }
+                painter.setPen(QColor(fontColor));
+                painter.drawText(1, y - 1, asciiCodes[j]);
+            } else {
+                y += metrics.ascent();
+                painter.setPen(QColor(fontColor));
+                painter.drawText(0, y, asciiCodes[j]);
+            }
             y += metrics.descent() + 1;  // Add 1 for the base line (see QFontMetrics docs).
         }
+
         // Write font info.
-        const int w = metrics.maxWidth() + 2;
-        const int h = metrics.ascent() + metrics.descent() + 3;
+        const int w = metrics.maxWidth() + (outline ? 2 : 0);
+        const int h = metrics.ascent() + metrics.descent() + (outline ? 3 : 1);
         fileOut << "        { " << i << ", " << initialY << ", " << w << ", " << h
                 << ((i != fontPixelSizeMax) ? " },\n" : " }\n");
     }
@@ -138,13 +154,8 @@ int main(int argc, char* argv[])
     fileOut.setIntegerBase(16);
     fileOut.setFieldWidth(2);
     fileOut.setPadChar('0');
-    for (int i = 0; i < textureWidth * textureHeight; i += 4) {
-        const unsigned int pixel[4] = {
-            reinterpret_cast<unsigned int*>(data)[i],
-            reinterpret_cast<unsigned int*>(data)[i+1],
-            reinterpret_cast<unsigned int*>(data)[i+2],
-            reinterpret_cast<unsigned int*>(data)[i+3]
-        };
+    for (int i = 0; i < textureSize; i += 4) {
+        const quint32 pixel[4] = { data[i], data[i+1], data[i+2], data[i+3] };
         fileOut << "    \""
                 << "\\x" << (pixel[0] & 0xff)
                 << "\\x" << ((pixel[0] >> 8) & 0xff)
@@ -168,7 +179,9 @@ int main(int argc, char* argv[])
     }
     fileOut << "};\n";
 
-    //image.save("bitmaptextfont.png");
+    if (saveImage) {
+        image.save("bitmaptextfont.png");
+    }
 
     delete [] data;
     return 0;

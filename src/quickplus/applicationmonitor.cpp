@@ -27,9 +27,9 @@ static const char* const defaultOverlayText =
     "%qtVersion (%qtPlatform) - %glVersion\n"
     "%cpuModel\n"  // FIXME(loicm) Should be included by default?
     "%gpuModel\r"  // FIXME(loicm) Should be included by default?
-    "    Window : %9windowId\n"
+    "    Window : %9windowId   \n"
     "      Size : %9windowSize px\r"
-    "     Frame : %9frameNumber\n"
+    "     Frame : %9frameNumber   \n"
     // FIXME(loicm) should be removed once we have a timing histogram with swap included.
     " Delta n-1 : %9deltaTime ms\n"
     "  SG sync. : %9syncTime ms\n"
@@ -38,8 +38,8 @@ static const char* const defaultOverlayText =
     "     Total : %9totalTime ms\r"
     "  VSZ mem. : %9vszMemory kB\n"
     "  RSS mem. : %9rssMemory kB\n"
-    "   Threads : %9threadCount\n"
-    " CPU usage : %9cpuUsage %%";
+    "   Threads : %9threadCount   \n"
+    " CPU usage : %9cpuUsage %% ";
 
 const int logQueueSize = 16;
 const int logQueueAlignment = 64;

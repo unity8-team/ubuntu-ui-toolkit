@@ -51,7 +51,7 @@ static const GLchar* bitmapTextFragmentShaderSource =
     "    gl_FragColor = texture2D(texture, textureCoord) * vec4(opacity); \n"
     "} \n";
 
-const int bitmapTextDefaultFontSize = 14;
+const int bitmapTextDefaultFontSize = 16;
 const float bitmapTextDefaultOpacity = 1.0f;
 const float bitmapTextCarriageReturnHeight = 1.5f;
 
