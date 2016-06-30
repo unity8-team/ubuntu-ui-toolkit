@@ -59,6 +59,6 @@ private:
     void backup();
 };
 
-} // namespace UbuntuToolkit
+UT_NAMESPACE_END
 
 #endif // PROPERTYCHANGE_P_H
