@@ -1,2 +1,4 @@
+#!/usr/bin/dh-exec
 usr/lib/*/qt5/qml/Ubuntu/Layouts/libUbuntuLayouts.so
+<!cross> usr/lib/*/qt5/qml/Ubuntu/Layouts/plugins.qmltypes
 usr/lib/*/qt5/qml/Ubuntu/Layouts/qmldir
