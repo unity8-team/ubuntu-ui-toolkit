@@ -115,7 +115,7 @@ Item {
         property int pressCountToActivate: 4
 
         anchors.fill: parent
-        visible: performanceOverlayEnabled
+        visible: performanceOverlayEnabled  && !overlay.active
 
         onPressed: {
             mouse.accepted = false;
