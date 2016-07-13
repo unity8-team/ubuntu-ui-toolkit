@@ -12,6 +12,7 @@ QMLDIR_FILE = qmldir
 qmldir_file.installPath = $$installPath
 qmldir_file.files = $$QMLDIR_FILE
 
+!cross_build {
 plugins_qmltypes.path = $$installPath
 plugins_qmltypes.files = plugins.qmltypes
 # Silence spam on stderr due to fonts
@@ -22,3 +23,4 @@ plugins_qmltypes.extra = $$[QT_INSTALL_BINS]/qmlplugindump -notrelocatable Ubunt
 UBUNTU_QML_MODULE_FILES += qmldir_file
 
 INSTALLS += plugins_qmltypes
+}

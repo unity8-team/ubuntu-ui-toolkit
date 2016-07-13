@@ -5,6 +5,14 @@ load(ubuntu_enable_testing)
 
 #hacky hacks to build the qmltypes
 
+QMAKE_SPEC=$$[QMAKE_SPEC]
+equals(QMAKE_SPEC, $$[QMAKE_XSPEC]) {
+    message("DETECTED HOST")
+} else {
+    message("DETECTED CROSS")
+    CONFIG += cross_build
+}
+
 !build_with_qt{
     #should be already set by the qml_plugin.prf, but lets be safe
     isEmpty(IMPORT_VERSION): error("Must set IMPORT_VERSION")
@@ -55,6 +63,7 @@ load(ubuntu_enable_testing)
 
     TARGETPATHBASE = $$replace(TARGETPATH, \\.\\d+\$, )
 
+    !cross_build {
     QMLTYPEFILE = $$instbase/$$TARGETPATH/plugins.qmltypes
     autobld_qmltypes.target = $$QMLTYPEFILE
     autobld_qmltypes.commands = $$QMLPLUGINDUMP -nonrelocatable $$replace(TARGETPATHBASE, /, .) $$IMPORT_VERSION > $$QMLTYPEFILE
@@ -69,6 +78,7 @@ load(ubuntu_enable_testing)
 
     INSTALLS+=autobld_install_qmltypes
     QMAKE_EXTRA_TARGETS += autobld_qmltypes
+    }
 }
 
 # when building against the system Qt we pick up the CXX_FLAGS for a release build
