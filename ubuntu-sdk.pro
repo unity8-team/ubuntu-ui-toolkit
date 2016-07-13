@@ -1,21 +1,9 @@
 #include( documentation/documentation.pri )
-message("QMAKE_HOST.arch $$QMAKE_HOST.arch")
-message("QMAKE_TARGET.arch $$QMAKE_TARGET.arch")
-message("QT_ARCH $$QT_ARCH")
-message("QT_TARGET_ARCH $$QT_TARGET_ARCH")
-message("QMAKE_SPEC $$[QMAKE_SPEC]")
-message("QMAKE_XSPEC $$[QMAKE_XSPEC]")
-QMAKE_SPEC=$$[QMAKE_SPEC]
-#QMAKE_HOST_ARCH=$$QMAKE_HOST.arch
-#equals(QMAKE_HOST_ARCH, $$QT_ARCH) {
-equals(QMAKE_SPEC, $$[QMAKE_XSPEC]) {
-    message("DETECTED HOST")
-} else {
-    message("DETECTED CROSS")
+
+QMAKE_HOST_ARCH=$$QMAKE_HOST.arch
+!equals(QMAKE_HOST_ARCH, $$QT_ARCH) {
     CONFIG += cross_build
 }
-
-
 
 BUILD_PATH_CONTENTS="SRC_DIR=\"$$PWD\"" \
                     "BUILD_DIR=\"$$OUT_PWD\""

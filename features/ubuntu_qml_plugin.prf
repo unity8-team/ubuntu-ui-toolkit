@@ -1,17 +1,14 @@
 load(qml_plugin)
 CONFIG -= hide_symbols
 
+QMAKE_HOST_ARCH=$$QMAKE_HOST.arch
+!equals(QMAKE_HOST_ARCH, $$QT_ARCH) {
+    CONFIG += cross_build
+}
+
 load(ubuntu_enable_testing)
 
 #hacky hacks to build the qmltypes
-
-QMAKE_SPEC=$$[QMAKE_SPEC]
-equals(QMAKE_SPEC, $$[QMAKE_XSPEC]) {
-    message("DETECTED HOST")
-} else {
-    message("DETECTED CROSS")
-    CONFIG += cross_build
-}
 
 !build_with_qt{
     #should be already set by the qml_plugin.prf, but lets be safe
