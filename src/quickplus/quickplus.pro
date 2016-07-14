@@ -2,12 +2,15 @@ TEMPLATE = lib
 TARGET = quickplus
 QT += core-private gui-private quick-private
 CONFIG += c++11 no_keywords
-contains(QT_CONFIG, opengles2): CONFIG += egl
-DEFINES += MESA_EGL_NO_X11_HEADERS
 DEFINES += QUICK_PLUS_BUILD
 equals(DISABLE_LTTNG, "1"): DEFINES += DISABLE_LTTNG
 INCLUDEPATH += .. # To be able to include <quickplus/*.h> in public headers.
 QMAKE_CXXFLAGS_RELEASE += -Wno-unused-result
+
+contains(QT_CONFIG, opengles2) {
+    CONFIG += egl
+    DEFINES += MESA_EGL_NO_X11_HEADERS
+}
 
 include(../../version.pri)
 VERSION = $${QUICK_PLUS_VERSION}
