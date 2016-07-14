@@ -628,7 +628,7 @@ WindowMonitor::WindowMonitor(
         event.window.id = id;
         event.window.width = m_frameSize.width();
         event.window.height = m_frameSize.height();
-        event.window.state = 1;
+        event.window.state = QuickPlusWindowEvent::Shown;
         loggingThread->push(&event);
     }
 }
@@ -645,7 +645,7 @@ WindowMonitor::~WindowMonitor()
         event.window.id = m_id;
         event.window.width = m_frameSize.width();
         event.window.height = m_frameSize.height();
-        event.window.state = 0;
+        event.window.state = QuickPlusWindowEvent::Hidden;
         m_loggingThread->push(&event);
     }
 
@@ -729,7 +729,7 @@ void WindowMonitor::windowBeforeRendering()
             event.window.id = m_id;
             event.window.width = frameSize.width();
             event.window.height = frameSize.height();
-            event.window.state = 2;
+            event.window.state = QuickPlusWindowEvent::Resized;
             m_loggingThread->push(&event);
         }
     }

@@ -45,7 +45,7 @@ void QuickPlusLTTNGLogger::log(const QuickPlusEvent& e)
 
     case QuickPlusEvent::Window: {
         const char* stateString[] = { "Hidden", "Shown", "Resized" };
-        Q_STATIC_ASSERT(ARRAY_SIZE(stateString) == QuickPlusEvent::TypeCount);
+        Q_STATIC_ASSERT(ARRAY_SIZE(stateString) == QuickPlusWindowEvent::StateCount);
         TraceWindow traceWindow(
             e.window.id, stateString[e.window.state], e.window.width, e.window.height);
         tracepoint(quickplus, window, &traceWindow);

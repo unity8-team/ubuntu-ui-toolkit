@@ -47,6 +47,8 @@ Q_STATIC_ASSERT(sizeof(QuickPlusProcessEvent) == 112);
 
 struct QUICK_PLUS_EXPORT QuickPlusWindowEvent
 {
+    enum State { Hidden = 0, Shown = 1, Resized = 2, StateCount = 3 };
+
     // Window id.
     quint32 id;
 
@@ -56,8 +58,8 @@ struct QUICK_PLUS_EXPORT QuickPlusWindowEvent
     // Height of the window.
     quint16 height;
 
-    // State of the window. 0 for "Hidden", 1 for "Shown", 2 for "Resized".
-    quint8 state;
+    // State of the window.
+    State state : 8;
 
     // The whole struct must take 112 bytes to allow future additions and best
     // memory alignment, don't forget to update when adding new metrics.
