@@ -618,12 +618,12 @@ WindowMonitor::WindowMonitor(
                      SLOT(windowSceneGraphAboutToStop()), Qt::DirectConnection);
 
     memset(&m_frameEvent, 0, sizeof(m_frameEvent));
-    m_frameEvent.type = QuickPlusEventType::Frame;
+    m_frameEvent.type = QuickPlusEvent::Frame;
     m_frameEvent.frame.window = id;
 
     if (flags & QuickPlusApplicationMonitor::Logging) {
         QuickPlusEvent event;
-        event.type = QuickPlusEventType::Window;
+        event.type = QuickPlusEvent::Window;
         event.timeStamp = QuickPlusEventUtils::timeStamp();
         event.window.id = id;
         event.window.width = m_frameSize.width();
@@ -640,7 +640,7 @@ WindowMonitor::~WindowMonitor()
 
     if (m_flags & QuickPlusApplicationMonitor::Logging) {
         QuickPlusEvent event;
-        event.type = QuickPlusEventType::Window;
+        event.type = QuickPlusEvent::Window;
         event.timeStamp = QuickPlusEventUtils::timeStamp();
         event.window.id = m_id;
         event.window.width = m_frameSize.width();
@@ -724,7 +724,7 @@ void WindowMonitor::windowBeforeRendering()
         m_frameSize = frameSize;
         if (m_flags & QuickPlusApplicationMonitor::Logging) {
             QuickPlusEvent event;
-            event.type = QuickPlusEventType::Window;
+            event.type = QuickPlusEvent::Window;
             event.timeStamp = QuickPlusEventUtils::timeStamp();
             event.window.id = m_id;
             event.window.width = frameSize.width();
@@ -802,7 +802,7 @@ void WindowMonitor::windowSceneGraphAboutToStop()
 void WindowMonitor::setProcessEvent(const QuickPlusEvent& event)
 {
     DLOG_FUNC();
-    DASSERT(event.type == QuickPlusEventType::Process);
+    DASSERT(event.type == QuickPlusEvent::Process);
 
     if (m_flags & QuickPlusApplicationMonitor::Overlay) {
         m_mutex.lock();

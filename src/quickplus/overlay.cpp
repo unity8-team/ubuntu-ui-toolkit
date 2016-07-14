@@ -45,20 +45,20 @@ static const struct {
     const char* const name;
     quint16 size;
     quint16 defaultWidth;
-    QuickPlusEventType type;
+    QuickPlusEvent::Type type;
 } metricInfo[] = {
-    { "cpuUsage",    sizeof("cpuUsage") - 1,    3, QuickPlusEventType::Process },
-    { "threadCount", sizeof("threadCount") - 1, 3, QuickPlusEventType::Process },
-    { "vszMemory",   sizeof("vszMemory") - 1,   8, QuickPlusEventType::Process },
-    { "rssMemory",   sizeof("rssMemory") - 1,   8, QuickPlusEventType::Process },
-    { "windowId",    sizeof("windowId") - 1,    2, QuickPlusEventType::Window  },
-    { "windowSize",  sizeof("windowSize") - 1,  9, QuickPlusEventType::Window  },
-    { "frameNumber", sizeof("frameNumber") - 1, 7, QuickPlusEventType::Frame   },
-    { "deltaTime",   sizeof("deltaTime") - 1,   7, QuickPlusEventType::Frame   },
-    { "syncTime",    sizeof("syncTime") - 1,    7, QuickPlusEventType::Frame   },
-    { "renderTime",  sizeof("renderTime") - 1,  7, QuickPlusEventType::Frame   },
-    { "gpuTime",     sizeof("gpuTime") - 1,     7, QuickPlusEventType::Frame   },
-    { "totalTime",   sizeof("totalTime") - 1,   7, QuickPlusEventType::Frame   }
+    { "cpuUsage",    sizeof("cpuUsage") - 1,    3, QuickPlusEvent::Process },
+    { "threadCount", sizeof("threadCount") - 1, 3, QuickPlusEvent::Process },
+    { "vszMemory",   sizeof("vszMemory") - 1,   8, QuickPlusEvent::Process },
+    { "rssMemory",   sizeof("rssMemory") - 1,   8, QuickPlusEvent::Process },
+    { "windowId",    sizeof("windowId") - 1,    2, QuickPlusEvent::Window  },
+    { "windowSize",  sizeof("windowSize") - 1,  9, QuickPlusEvent::Window  },
+    { "frameNumber", sizeof("frameNumber") - 1, 7, QuickPlusEvent::Frame   },
+    { "deltaTime",   sizeof("deltaTime") - 1,   7, QuickPlusEvent::Frame   },
+    { "syncTime",    sizeof("syncTime") - 1,    7, QuickPlusEvent::Frame   },
+    { "renderTime",  sizeof("renderTime") - 1,  7, QuickPlusEvent::Frame   },
+    { "gpuTime",     sizeof("gpuTime") - 1,     7, QuickPlusEvent::Frame   },
+    { "totalTime",   sizeof("totalTime") - 1,   7, QuickPlusEvent::Frame   }
 };
 enum {
     CpuUsage = 0, ThreadCount, VszMemory, RssMemory, WindowId, WindowSize, FrameNumber, DeltaTime,
@@ -95,7 +95,7 @@ Overlay::Overlay(const char* text, int windowId)
 
     m_buffer = aligned_alloc(bufferAlignment, bufferSize);
     memset(&m_processEvent, 0, sizeof(m_processEvent));
-    m_processEvent.type = QuickPlusEventType::Process;
+    m_processEvent.type = QuickPlusEvent::Process;
 }
 
 Overlay::~Overlay()
@@ -145,7 +145,7 @@ void Overlay::finalise()
 void Overlay::setProcessEvent(const QuickPlusEvent& processEvent)
 {
     DLOG_FUNC();
-    DASSERT(processEvent.type == QuickPlusEventType::Process);
+    DASSERT(processEvent.type == QuickPlusEvent::Process);
 
     memcpy(&m_processEvent, &processEvent, sizeof(m_processEvent));
     m_flags |= DirtyProcessEvent;
@@ -244,12 +244,12 @@ void Overlay::updateFrameMetrics(const QuickPlusEvent& event)
     Q_STATIC_ASSERT(IS_POWER_OF_TWO(maxMetricWidth));
 
     char* text = static_cast<char*>(m_buffer);
-    for (int i = 0; i < m_metricsSize[QuickPlusEventType::Frame]; i++) {
-        int textWidth = m_metrics[QuickPlusEventType::Frame][i].width;
+    for (int i = 0; i < m_metricsSize[QuickPlusEvent::Frame]; i++) {
+        int textWidth = m_metrics[QuickPlusEvent::Frame][i].width;
         DASSERT(textWidth <= maxMetricWidth);
         memset(text, ' ', maxMetricWidth);
 
-        switch (m_metrics[QuickPlusEventType::Frame][i].index) {
+        switch (m_metrics[QuickPlusEvent::Frame][i].index) {
         case FrameNumber:
             integerMetricToText(event.frame.number, text, textWidth);
             break;
@@ -283,8 +283,8 @@ void Overlay::updateFrameMetrics(const QuickPlusEvent& event)
         }
 
         m_bitmapText.updateText(
-            text, m_metrics[QuickPlusEventType::Frame][i].textIndex,
-            m_metrics[QuickPlusEventType::Frame][i].width);
+            text, m_metrics[QuickPlusEvent::Frame][i].textIndex,
+            m_metrics[QuickPlusEvent::Frame][i].width);
     }
 }
 
@@ -295,12 +295,12 @@ void Overlay::updateWindowMetrics(quint32 windowId, const QSize& frameSize)
     Q_STATIC_ASSERT(IS_POWER_OF_TWO(maxMetricWidth));
 
     char* text = static_cast<char*>(m_buffer);
-    for (int i = 0; i < m_metricsSize[QuickPlusEventType::Window]; i++) {
-        int textWidth = m_metrics[QuickPlusEventType::Window][i].width;
+    for (int i = 0; i < m_metricsSize[QuickPlusEvent::Window]; i++) {
+        int textWidth = m_metrics[QuickPlusEvent::Window][i].width;
         DASSERT(textWidth <= maxMetricWidth);
         memset(text, ' ', maxMetricWidth);
 
-        switch (m_metrics[QuickPlusEventType::Window][i].index) {
+        switch (m_metrics[QuickPlusEvent::Window][i].index) {
         case WindowId:
             textWidth = integerMetricToText(windowId, text, textWidth);
             break;
@@ -320,8 +320,8 @@ void Overlay::updateWindowMetrics(quint32 windowId, const QSize& frameSize)
         }
 
         m_bitmapText.updateText(
-            text, m_metrics[QuickPlusEventType::Window][i].textIndex,
-            m_metrics[QuickPlusEventType::Window][i].width);
+            text, m_metrics[QuickPlusEvent::Window][i].textIndex,
+            m_metrics[QuickPlusEvent::Window][i].width);
     }
 }
 
@@ -332,12 +332,12 @@ void Overlay::updateProcessMetrics()
     Q_STATIC_ASSERT(IS_POWER_OF_TWO(maxMetricWidth));
 
     char* text = static_cast<char*>(m_buffer);
-    for (int i = 0; i < m_metricsSize[QuickPlusEventType::Process]; i++) {
-        int textWidth = m_metrics[QuickPlusEventType::Process][i].width;
+    for (int i = 0; i < m_metricsSize[QuickPlusEvent::Process]; i++) {
+        int textWidth = m_metrics[QuickPlusEvent::Process][i].width;
         DASSERT(textWidth <= maxMetricWidth);
         memset(text, ' ', maxMetricWidth);
 
-        switch (m_metrics[QuickPlusEventType::Process][i].index) {
+        switch (m_metrics[QuickPlusEvent::Process][i].index) {
         case CpuUsage:
             integerMetricToText(m_processEvent.process.cpuUsage, text, textWidth);
             break;
@@ -356,8 +356,8 @@ void Overlay::updateProcessMetrics()
         }
 
         m_bitmapText.updateText(
-            text, m_metrics[QuickPlusEventType::Process][i].textIndex,
-            m_metrics[QuickPlusEventType::Process][i].width);
+            text, m_metrics[QuickPlusEvent::Process][i].textIndex,
+            m_metrics[QuickPlusEvent::Process][i].width);
     }
 }
 
@@ -551,7 +551,7 @@ void Overlay::parseText()
                 for (int j = 0; j < MetricCount; j++) {
                     const int type = metricInfo[j].type;
                     DASSERT(type >= 0);
-                    DASSERT(type < QuickPlusEventType::Count);
+                    DASSERT(type < QuickPlusEvent::TypeCount);
                     if (m_metricsSize[type] < maxMetricsPerType &&
                         !strncmp(&text[i+1+widthOffset], metricInfo[j].name, metricInfo[j].size)) {
                         if (width == -1) {

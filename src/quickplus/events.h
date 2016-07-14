@@ -24,8 +24,6 @@
 //     C++11 compiler. That also makes the use of Q_NULLPTR and Q_OVERRIDE in
 //     other public headers useless.
 
-enum QuickPlusEventType { Process = 0, Window = 1, Frame = 2, Count = 3 };
-
 struct QUICK_PLUS_EXPORT QuickPlusProcessEvent
 {
     // Virtual size of the process in kilobytes.
@@ -101,8 +99,10 @@ Q_STATIC_ASSERT(sizeof(QuickPlusFrameEvent) == 112);
 
 struct QUICK_PLUS_EXPORT QuickPlusEvent
 {
+    enum Type { Process = 0, Window = 1, Frame = 2, TypeCount = 3 };
+
     // Event type.
-    QuickPlusEventType type;
+    Type type;
 
     // Time stamp in nanoseconds.
     alignas(8) quint64 timeStamp;

@@ -27,14 +27,14 @@ void QuickPlusLTTNGLogger::log(const QuickPlusEvent& e)
     DLOG_FUNC();
 
     switch (e.type) {
-    case QuickPlusEventType::Process: {
+    case QuickPlusEvent::Process: {
         TraceProcess traceProcess(
             e.process.vszMemory, e.process.rssMemory, e.process.cpuUsage, e.process.threadCount);
         tracepoint(quickplus, process, &traceProcess);
         break;
     }
 
-    case QuickPlusEventType::Frame: {
+    case QuickPlusEvent::Frame: {
         TraceFrame traceFrame(
             e.frame.window, e.frame.number, e.frame.deltaTime * 0.000001f,
             e.frame.syncTime * 0.000001f, e.frame.renderTime * 0.000001f,
@@ -43,9 +43,9 @@ void QuickPlusLTTNGLogger::log(const QuickPlusEvent& e)
         break;
     }
 
-    case QuickPlusEventType::Window: {
+    case QuickPlusEvent::Window: {
         const char* stateString[] = { "Hidden", "Shown", "Resized" };
-        Q_STATIC_ASSERT(ARRAY_SIZE(stateString) == QuickPlusEventType::Count);
+        Q_STATIC_ASSERT(ARRAY_SIZE(stateString) == QuickPlusEvent::TypeCount);
         TraceWindow traceWindow(
             e.window.id, stateString[e.window.state], e.window.width, e.window.height);
         tracepoint(quickplus, window, &traceWindow);

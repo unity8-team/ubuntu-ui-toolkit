@@ -72,8 +72,8 @@ private:
       quint16 index;
       quint16 textIndex;
       quint8 width;
-    } m_metrics[QuickPlusEventType::Count][maxMetricsPerType];
-    quint8 m_metricsSize[QuickPlusEventType::Count];
+    } m_metrics[QuickPlusEvent::TypeCount][maxMetricsPerType];
+    quint8 m_metricsSize[QuickPlusEvent::TypeCount];
     BitmapText m_bitmapText;
     QSize m_frameSize;
     quint32 m_windowId;

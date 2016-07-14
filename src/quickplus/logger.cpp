@@ -116,7 +116,7 @@ void FileLoggerPrivate::log(const QuickPlusEvent& event)
         QString timeString = timeStamp.toString(!timeStamp.hour() ? "mm:ss:zzz" : "hh:mm:ss:zzz");
 
         switch (event.type) {
-        case QuickPlusEventType::Process: {
+        case QuickPlusEvent::Process: {
             if (m_flags & Minimal) {
                 m_textStream
                     << "P "
@@ -138,7 +138,7 @@ void FileLoggerPrivate::log(const QuickPlusEvent& event)
             break;
         }
 
-        case QuickPlusEventType::Frame:
+        case QuickPlusEvent::Frame:
             if (m_flags & Minimal) {
                 m_textStream
                     << "F "
@@ -164,7 +164,7 @@ void FileLoggerPrivate::log(const QuickPlusEvent& event)
             }
             break;
 
-        case QuickPlusEventType::Window: {
+        case QuickPlusEvent::Window: {
             if (m_flags & Minimal) {
                 m_textStream
                     << "W "
@@ -175,7 +175,7 @@ void FileLoggerPrivate::log(const QuickPlusEvent& event)
                     << event.window.height << '\n' << flush;
             } else {
                 const char* const stateString[] = { "Hidden", "Shown", "Resized" };
-                Q_STATIC_ASSERT(ARRAY_SIZE(stateString) == QuickPlusEventType::Count);
+                Q_STATIC_ASSERT(ARRAY_SIZE(stateString) == QuickPlusEvent::TypeCount);
                 m_textStream
                     << (m_flags & Colored ? "\033[35mW\033[00m " : "W ")
                     << dim << timeString << reset << ' '

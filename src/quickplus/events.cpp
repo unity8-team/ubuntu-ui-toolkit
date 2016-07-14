@@ -66,7 +66,7 @@ void QuickPlusEventUtils::updateProcessEvent(QuickPlusEvent* event)
     DASSERT(event);
     Q_D(EventUtils);
 
-    event->type = QuickPlusEventType::Process;
+    event->type = QuickPlusEvent::Process;
     event->timeStamp = QuickPlusEventUtils::timeStamp();
     d->updateCpuUsage(event);
     d->updateProcStatMetrics(event);
