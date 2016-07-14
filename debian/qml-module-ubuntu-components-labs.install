@@ -1,4 +1,4 @@
 #!/usr/bin/dh-exec
-usr/lib/*/qt5/qml/Ubuntu/Components/Labs/libUbuntuComponentsLabs.so
 <!cross> usr/lib/*/qt5/qml/Ubuntu/Components/Labs/plugins.qmltypes
+usr/lib/*/qt5/qml/Ubuntu/Components/Labs/libUbuntuComponentsLabs.so
 usr/lib/*/qt5/qml/Ubuntu/Components/Labs/qmldir
