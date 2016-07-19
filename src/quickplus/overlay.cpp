@@ -491,7 +491,7 @@ int Overlay::keywordString(int index, char* buffer, int bufferSize)
             if (vendor[i] == '\0') break;
             buffer[size] = vendor[i];
         }
-        if ((size + 3) < bufferSize) {
+        if (size < (bufferSize - 3)) {  // ((size + 3) < bufferSize) triggers a Wstrict-overflow.
             memcpy(&buffer[size], " - ", 3);
             size += 3;
         }
