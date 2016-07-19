@@ -455,13 +455,11 @@ int Overlay::keywordString(int index, char* buffer, int bufferSize)
         break;
     }
     case GlVersion: {
-        const char* gl = QOpenGLContext::openGLModuleType() == QOpenGLContext::LibGL
-            ? "OpenGL " : "OpenGL ES ";
         QOpenGLFunctions* functions = QOpenGLContext::currentContext()->functions();
         const char* version = reinterpret_cast<const char*>(functions->glGetString(GL_VERSION));
-        for (int i = 0; size < bufferSize; i++, size++) {
-            if (gl[i] == '\0') break;
-            buffer[size] = gl[i];
+        if (size < (bufferSize - 7) && QOpenGLContext::openGLModuleType() == QOpenGLContext::LibGL) {
+            memcpy(&buffer[size], "OpenGL ", 7);
+            size += 7;
         }
         for (int i = 0; size < bufferSize; i++, size++) {
             if (version[i] == '\0') break;
@@ -491,7 +489,7 @@ int Overlay::keywordString(int index, char* buffer, int bufferSize)
             if (vendor[i] == '\0') break;
             buffer[size] = vendor[i];
         }
-        if (size < (bufferSize - 3)) {  // ((size + 3) < bufferSize) triggers a Wstrict-overflow.
+        if (size < (bufferSize - 3)) {
             memcpy(&buffer[size], " - ", 3);
             size += 3;
         }
