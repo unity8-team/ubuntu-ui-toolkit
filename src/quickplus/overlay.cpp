@@ -17,6 +17,7 @@
 
 #include "overlay_p.h"
 #include "quickplusglobal_p.h"
+#include <QtCore/QSysInfo>
 #include <QtGui/QGuiApplication>
 #include <unistd.h>
 #include <fcntl.h>
@@ -361,51 +362,63 @@ void Overlay::updateProcessMetrics()
     }
 }
 
-// That's the easy way, a more involved one would be to use CPUID.
 static int cpuModel(char* buffer, int bufferSize)
 {
     DLOG_FUNC();
     DASSERT(buffer);
     DASSERT(bufferSize > 0);
 
-    int fd = open("/proc/cpuinfo", O_RDONLY);
-    if (fd == -1) {
-        DWARN("ApplicationMonitor: Can't open '/proc/cpuinfo'.");
-        return 0;
-    }
+    const char* architecture = QSysInfo::currentCpuArchitecture().toLatin1().constData();
     const int sourceBufferSize = 128;
     char sourceBuffer[sourceBufferSize];
-    if (read(fd, sourceBuffer, sourceBufferSize) != sourceBufferSize) {
-        DWARN("ApplicationMonitor: Can't read '/proc/cpuinfo'.");
-        close(fd);
-        return 0;
-    }
+    int index = 0;
 
-    // Skip the five first ': ' occurences to reach model name.
-    int sourceIndex = 0, colonCount = 0;
-    while (colonCount < 5) {
-        if (sourceIndex < sourceBufferSize - 1) {
-            if (sourceBuffer[sourceIndex] != ':' || sourceBuffer[sourceIndex + 1] != ' ') {
-                sourceIndex++;
-            } else {
-                sourceIndex += 2;
-                colonCount++;
-            }
-        } else {
-            DNOT_REACHED();  // Consider increasing sourceBufferSize.
+    if (!strncmp(architecture, "x86", 3) || !strncmp(architecture, "X86", 3)) {
+        // /proc/cpuinfo depends on the architecture, this only works on x86.
+
+        int fd = open("/proc/cpuinfo", O_RDONLY);
+        if (fd == -1) {
+            DWARN("ApplicationMonitor: Can't open '/proc/cpuinfo'.");
+            return 0;
+        }
+        if (read(fd, sourceBuffer, sourceBufferSize) != sourceBufferSize) {
+            DWARN("ApplicationMonitor: Can't read '/proc/cpuinfo'.");
             close(fd);
             return 0;
         }
-    }
+        close(fd);
 
-    int index = 0;
-    while (sourceBuffer[sourceIndex] != '\n' && index < bufferSize) {
-        if (sourceIndex < sourceBufferSize) {
-            buffer[index++] = sourceBuffer[sourceIndex++];
-        } else {
-            DNOT_REACHED();  // Consider increasing sourceBufferSize.
-            index = 0;
-            break;
+        // Skip the five first ': ' occurences to reach model name.
+        int sourceIndex = 0, colonCount = 0;
+        while (colonCount < 5) {
+            if (sourceIndex < sourceBufferSize - 1) {
+                if (sourceBuffer[sourceIndex] != ':' || sourceBuffer[sourceIndex + 1] != ' ') {
+                    sourceIndex++;
+                } else {
+                    sourceIndex += 2;
+                    colonCount++;
+                }
+            } else {
+                DNOT_REACHED();  // Consider increasing sourceBufferSize.
+                return 0;
+            }
+        }
+
+        while (sourceBuffer[sourceIndex] != '\n' && index < bufferSize) {
+            if (sourceIndex < sourceBufferSize) {
+                buffer[index++] = sourceBuffer[sourceIndex++];
+            } else {
+                DNOT_REACHED();  // Consider increasing sourceBufferSize.
+                index = 0;
+                break;
+            }
+        }
+
+    } else {
+        // Symply use the CPU architecture.
+        for (; index < bufferSize; index++) {
+            if (architecture[index] == '\0') break;
+            buffer[index] = architecture[index];
         }
     }
 
@@ -420,7 +433,6 @@ static int cpuModel(char* buffer, int bufferSize)
         }
     }
 
-    close(fd);
     return index;
 }
 
