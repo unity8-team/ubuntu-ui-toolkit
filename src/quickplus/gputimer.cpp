@@ -214,7 +214,8 @@ quint64 GPUTimer::stop()
             m_fenceSyncKHR.clientWaitSyncKHR(dpy, m_beforeSync, 0, EGL_FOREVER_KHR);
         quint64 beforeTime = timer.nsecsElapsed();
         EGLint afterSyncValue =
-            m_fenceSyncKHR.clientWaitSyncKHR(dpy, afterSync, 0, EGL_FOREVER_KHR);
+            m_fenceSyncKHR.clientWaitSyncKHR(
+                dpy, afterSync, EGL_SYNC_FLUSH_COMMANDS_BIT_KHR, EGL_FOREVER_KHR);
         quint64 afterTime = timer.nsecsElapsed();
         m_fenceSyncKHR.destroySyncKHR(dpy, afterSync);
         m_fenceSyncKHR.destroySyncKHR(dpy, m_beforeSync);

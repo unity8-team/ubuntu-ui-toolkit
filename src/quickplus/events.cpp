@@ -96,59 +96,60 @@ void EventUtilsPrivate::updateCpuUsage(QuickPlusEvent* event)
 
 void EventUtilsPrivate::updateProcStatMetrics(QuickPlusEvent* event)
 {
-    DLOG_FUNC();
+    Q_UNUSED(event);
+//     DLOG_FUNC();
 
-    int fd = open("/proc/self/stat", O_RDONLY);
-    if (fd == -1) {
-        DWARN("EventUtils: can't open '/proc/self/stat'");
-        return;
-    }
-    if (read(fd, m_buffer, bufferSize) != bufferSize) {
-        DWARN("EventUtils: can't read '/proc/self/stat'");
-        close(fd);
-        return;
-    }
+//     int fd = open("/proc/self/stat", O_RDONLY);
+//     if (fd == -1) {
+//         DWARN("EventUtils: can't open '/proc/self/stat'");
+//         return;
+//     }
+//     if (read(fd, m_buffer, bufferSize) != bufferSize) {
+//         DWARN("EventUtils: can't read '/proc/self/stat'");
+//         close(fd);
+//         return;
+//     }
 
-    // Entries starting from 1 (as listed by 'man proc').
-    const int numThreadsEntry = 20;
-    const int vsizeEntry = 23;
-    const int rssEntry = 24;
-    const int lastEntry = rssEntry;
+//     // Entries starting from 1 (as listed by 'man proc').
+//     const int numThreadsEntry = 20;
+//     const int vsizeEntry = 23;
+//     const int rssEntry = 24;
+//     const int lastEntry = rssEntry;
 
-    // Get the indices of num_threads, vsize and rss entries and check if
-    // the buffer is big enough.
-    int sourceIndex = 0, spaceCount = 0;
-    quint16 entryIndices[lastEntry];
-    entryIndices[sourceIndex] = 0;
-    while (spaceCount < lastEntry) {
-        if (sourceIndex < bufferSize) {
-            if (m_buffer[sourceIndex++] == ' ') {
-                entryIndices[++spaceCount] = sourceIndex;
-            }
-        } else {
-            DNOT_REACHED();  // Consider increasing bufferSize.
-            close(fd);
-            return;
-        }
-    }
+//     // Get the indices of num_threads, vsize and rss entries and check if
+//     // the buffer is big enough.
+//     int sourceIndex = 0, spaceCount = 0;
+//     quint16 entryIndices[lastEntry];
+//     entryIndices[sourceIndex] = 0;
+//     while (spaceCount < lastEntry) {
+//         if (sourceIndex < bufferSize) {
+//             if (m_buffer[sourceIndex++] == ' ') {
+//                 entryIndices[++spaceCount] = sourceIndex;
+//             }
+//         } else {
+//             DNOT_REACHED();  // Consider increasing bufferSize.
+//             close(fd);
+//             return;
+//         }
+//     }
 
-    unsigned long vsize;
-    long threadCount, rss;
-#if !defined(QT_NO_DEBUG)
-    int value = sscanf(&m_buffer[entryIndices[numThreadsEntry-1]], "%ld", &threadCount);
-    ASSERT(value == 1);
-    value = sscanf(&m_buffer[entryIndices[vsizeEntry-1]], "%lu %ld", &vsize, &rss);
-    ASSERT(value == 2);
-#else
-    sscanf(&m_buffer[entryIndices[numThreadsEntry-1]], "%ld", &threadCount);
-    sscanf(&m_buffer[entryIndices[vsizeEntry-1]], "%lu %ld", &vsize, &rss);
-#endif
+//     unsigned long vsize;
+//     long threadCount, rss;
+// #if !defined(QT_NO_DEBUG)
+//     int value = sscanf(&m_buffer[entryIndices[numThreadsEntry-1]], "%ld", &threadCount);
+//     ASSERT(value == 1);
+//     value = sscanf(&m_buffer[entryIndices[vsizeEntry-1]], "%lu %ld", &vsize, &rss);
+//     ASSERT(value == 2);
+// #else
+//     sscanf(&m_buffer[entryIndices[numThreadsEntry-1]], "%ld", &threadCount);
+//     sscanf(&m_buffer[entryIndices[vsizeEntry-1]], "%lu %ld", &vsize, &rss);
+// #endif
 
-    event->process.vszMemory = vsize >> 10;
-    event->process.rssMemory = (rss * m_pageSize) >> 10;
-    event->process.threadCount = threadCount;
+//     event->process.vszMemory = vsize >> 10;
+//     event->process.rssMemory = (rss * m_pageSize) >> 10;
+//     event->process.threadCount = threadCount;
 
-    close(fd);
+//     close(fd);
 }
 
 // static.
