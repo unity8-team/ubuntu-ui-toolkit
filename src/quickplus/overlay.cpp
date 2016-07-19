@@ -485,10 +485,19 @@ int Overlay::keywordString(int index, char* buffer, int bufferSize)
     }
     case GpuModel: {
         QOpenGLFunctions* functions = QOpenGLContext::currentContext()->functions();
+        const char* vendor = reinterpret_cast<const char*>(functions->glGetString(GL_VENDOR));
         const char* renderer = reinterpret_cast<const char*>(functions->glGetString(GL_RENDERER));
-        for (; size < bufferSize; size++) {
-            if (renderer[size] == '\0') break;
-            buffer[size] = renderer[size];
+        for (int i = 0; size < bufferSize; i++, size++) {
+            if (vendor[i] == '\0') break;
+            buffer[size] = vendor[i];
+        }
+        if ((size + 3) < bufferSize) {
+            memcpy(&buffer[size], " - ", 3);
+            size += 3;
+        }
+        for (int i = 0; size < bufferSize; i++, size++) {
+            if (renderer[i] == '\0') break;
+            buffer[size] = renderer[i];
         }
         break;
     }
