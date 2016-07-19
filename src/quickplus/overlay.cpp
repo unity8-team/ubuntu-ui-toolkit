@@ -501,9 +501,8 @@ int Overlay::keywordString(int index, char* buffer, int bufferSize)
             if (vendor[i] == '\0') break;
             buffer[size] = vendor[i];
         }
-        if (size < (bufferSize - 3)) {
-            memcpy(&buffer[size], " - ", 3);
-            size += 3;
+        if (size < (bufferSize - 1)) {
+            buffer[size++] = ' ';
         }
         for (int i = 0; size < bufferSize; i++, size++) {
             if (renderer[i] == '\0') break;
