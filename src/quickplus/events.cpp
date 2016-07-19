@@ -104,7 +104,8 @@ void EventUtilsPrivate::updateProcStatMetrics(QuickPlusEvent* event)
         DWARN("EventUtils: can't open '/proc/self/stat'");
         return;
     }
-    if (read(fd, m_buffer, bufferSize) != bufferSize) {
+    int readSize;
+    if ((readSize = read(fd, m_buffer, bufferSize)) == 0) {
         DWARN("EventUtils: can't read '/proc/self/stat'");
         close(fd);
         return;
@@ -119,14 +120,15 @@ void EventUtilsPrivate::updateProcStatMetrics(QuickPlusEvent* event)
     // Get the indices of num_threads, vsize and rss entries and check if
     // the buffer is big enough.
     int sourceIndex = 0, spaceCount = 0;
-    quint16 entryIndices[lastEntry];
+    quint16 entryIndices[lastEntry + 1];
     entryIndices[sourceIndex] = 0;
     while (spaceCount < lastEntry) {
-        if (sourceIndex < bufferSize) {
+        if (sourceIndex < readSize) {
             if (m_buffer[sourceIndex++] == ' ') {
                 entryIndices[++spaceCount] = sourceIndex;
             }
         } else {
+            DASSERT(readSize == bufferSize); // Missing entries in /proc/self/stat.
             DNOT_REACHED();  // Consider increasing bufferSize.
             close(fd);
             return;
