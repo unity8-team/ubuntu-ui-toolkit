@@ -12,34 +12,19 @@
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * Author: Christian Dywan <christian.dywan@canonical.com>
  */
 
 import QtQuick 2.4
 import Ubuntu.Components 1.3
-import Ubuntu.Components.Private 1.3
 
-Frame {
-    anchors.fill: parent
-    anchors.margins: -units.gu(0.46)
-    color: styledItem.enabled
-                ? theme.palette.normal.focus
-                : theme.palette.disabled.focus
-    thickness: units.dp(2)
-    radius: units.gu(1.7)
-    visible: styledItem.keyNavigationFocus
+Item {
+    width: units.gu(40)
+    height: units.gu(71)
 
-    Behavior on anchors.margins {
-        UbuntuNumberAnimation {
-            duration: UbuntuAnimation.FastDuration
+    Button {
+        StyleHints {
+            ignoreUnknownProperties: false
+            gradientProxy.invalidProperty: 10
         }
-    }
-
-    Binding {
-        target: styledItem
-        property: "activeFocusOnTab"
-        value: true
-        when: styledItem
     }
 }
