@@ -60,7 +60,7 @@ class ActionSelectionPopoverTestCase(tests.QMLFileAppTestCase):
             popover.click_action_button, 'actionTwo')
         self.assertEqual(
             str(error),
-            'Action with objectName "actionTwo" not found.')
+            'Action with objectName "actionTwo_button" not found.')
 
     def test_click_disabled_button_by_object_name(self):
         self._open_popover()
