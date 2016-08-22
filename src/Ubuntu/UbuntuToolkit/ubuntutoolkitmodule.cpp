@@ -215,7 +215,6 @@ void UbuntuToolkitModule::registerTypesToVersion(const char *uri, int major, int
     qmlRegisterType<UCMouse>(uri, major, minor, "Mouse");
     qmlRegisterType<UCInverseMouse>(uri, major, minor, "InverseMouse");
     qmlRegisterType<UCActionItem>(uri, major, minor, "ActionItem");
-    qmlRegisterType<UCActionMnemonic>();
     qmlRegisterSimpleSingletonType<UCHaptics>(uri, major, minor, "Haptics");
     qmlRegisterSimpleSingletonType<UCMathUtils>(uri, major, minor, "MathUtils");
     qmlRegisterSimpleSingletonType<ColorUtils>(uri, major, minor, "ColorUtils");
@@ -375,6 +374,8 @@ void UbuntuToolkitModule::defineModule()
     qmlRegisterType<UCPageTreeNode>(uri, 1, 3, "PageTreeNode");
     qmlRegisterType<UCPopupContext>(uri, 1, 3, "PopupContext");
     qmlRegisterType<UCMainViewBase>(uri, 1, 3, "MainViewBase");
+    qmlRegisterType<UCActionItem, 1>(uri, 1, 3, "ActionItem");
+    qmlRegisterUncreatableType<UCActionMnemonic>(uri, 1, 3, "ActionMnemonic", "Not instantiable");
 }
 
 void UbuntuToolkitModule::undefineModule()
