@@ -20,7 +20,7 @@ import Ubuntu.Components.Popups 1.3
 
 /*!
     \qmltype ComboButton
-    \inqmlmodule Ubuntu.Components 1.1
+    \inqmlmodule Ubuntu.Components
     \ingroup ubuntu
     \brief Ubuntu button providing a drop-down panel visualizing custom options.
 
@@ -301,6 +301,15 @@ AbstractButton {
 
     // update sensing area to report clicks only on the main button area
     // area excluding dropDown button and combo list
+    Component.onCompleted: {
+        __mouseArea.anchors.rightMargin = Qt.binding(function() {
+            return combo.__styleInstance.dropDownWidth;
+        });
+        __mouseArea.anchors.bottomMargin = Qt.binding(function () {
+            return combo.expanded ? (combo.height - combo.collapsedHeight) : 0;
+        });
+    }
+
     sensingMargins {
         bottom: -(combo.height - combo.collapsedHeight)
         right: -combo.__styleInstance.dropDownWidth
@@ -321,6 +330,19 @@ AbstractButton {
         // open dropdown when pressed, not when clicked
         onClicked: {
             // toggle expanded
+            combo.expanded = !combo.expanded;
+            combo.forceActiveFocus()
+        }
+    }
+
+    Keys.onReleased: {
+        if (event.key == Qt.Key_Enter || event.key == Qt.Key_Return) {
+            // Enter or Return should trigger, not expand
+            event.accepted = true;
+            combo.trigger();
+        } else if (event.key == Qt.Key_Space) {
+            // Space should expand, not trigger
+            event.accepted = true;
             combo.expanded = !combo.expanded;
         }
     }

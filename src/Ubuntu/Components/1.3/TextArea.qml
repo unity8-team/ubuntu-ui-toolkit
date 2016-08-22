@@ -20,7 +20,7 @@ import Ubuntu.Components.Popups 1.3
 
 /*!
     \qmltype TextArea
-    \inqmlmodule Ubuntu.Components 1.1
+    \inqmlmodule Ubuntu.Components
     \ingroup ubuntu
     \brief The TextArea item displays a block of editable, scrollable, formatted
     text.
@@ -400,9 +400,9 @@ Ubuntu.StyledItem {
 
     /*!
       Whether the TextArea should keep the selection visible when it loses active
-      focus to another item in the scene. By default this is set to true;
+      focus to another item in the scene. By default this is set to true.
 
-      \qmlproperty enumeration persistentSelection
+      \qmlproperty bool persistentSelection
       */
     property alias persistentSelection: editor.persistentSelection
 
@@ -769,6 +769,7 @@ Ubuntu.StyledItem {
         property string displayText: editor.getText(0, editor.length)
         property real frameSpacing: control.__styleInstance.frameSpacing
         property real minimumSize: units.gu(4)
+        property real scrollbarSpacing: rightScrollbar.__interactive ? units.gu(2) : 0
 
         function linesHeight(lines)
         {
@@ -824,15 +825,6 @@ Ubuntu.StyledItem {
     }
 
     //scrollbars and flickable
-    Scrollbar {
-        id: rightScrollbar
-        flickableItem: flicker
-    }
-    Scrollbar {
-        id: bottomScrollbar
-        flickableItem: flicker
-        align: Qt.AlignBottom
-    }
     Flickable {
         id: flicker
         objectName: "input_scroller"
@@ -853,10 +845,11 @@ Ubuntu.StyledItem {
             objectName: "text_input"
             readOnly: false
             id: editor
-            width: control.contentWidth
+            width: control.contentWidth - internal.scrollbarSpacing
             height: Math.max(control.contentHeight, editor.contentHeight)
             wrapMode: TextEdit.WrapAtWordBoundaryOrAnywhere
             mouseSelectionMode: TextEdit.SelectWords
+            persistentSelection: true
             selectByMouse: true
             cursorDelegate: TextCursor {
                 handler: inputHandler
@@ -882,6 +875,19 @@ Ubuntu.StyledItem {
                 flickable: flicker
             }
         }
+    }
+
+    /*! \internal */
+    property Item __rightScrollbar: rightScrollbar
+    Scrollbar {
+        id: rightScrollbar
+        flickableItem: flicker
+        // Attach right inside the frame
+        // Flickable uses anchors.margins relative to the frame
+        // rather than *Margin which would scroll with the content
+        anchors.topMargin: -internal.frameSpacing
+        anchors.rightMargin: -internal.frameSpacing
+        anchors.bottomMargin: -internal.frameSpacing
     }
 
     styleName: "TextAreaStyle"

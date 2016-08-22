@@ -18,7 +18,7 @@ import QtQuick 2.4
 
 /*!
     \qmltype ActivityIndicator
-    \inqmlmodule Ubuntu.Components 1.1
+    \inqmlmodule Ubuntu.Components
     \ingroup ubuntu
     \brief The ActivityIndicator component visually indicates that a task of
     unknown duration is in progress, e.g. busy indication, connection in progress
@@ -51,9 +51,6 @@ AnimatedItem {
        continues until deactivated (set to false).
     */
     property bool running: false
-
-    implicitWidth: units.gu(3)
-    implicitHeight: units.gu(3)
 
     style: Theme.createStyleComponent("ActivityIndicatorStyle.qml", indicator)
 }

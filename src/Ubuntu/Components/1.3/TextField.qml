@@ -20,7 +20,7 @@ import Ubuntu.Components.Popups 1.3
 
 /*!
     \qmltype TextField
-    \inqmlmodule Ubuntu.Components 1.1
+    \inqmlmodule Ubuntu.Components
     \ingroup ubuntu
     \brief The TextField element displays a single line of editable plain text.
     Input constraints can be set through validator or inputMask. Setting echoMode
@@ -995,11 +995,11 @@ Ubuntu.ActionItem {
         anchors {
             left: leftPane.right
             right: clearButton.left
-            top: parent.top
-            bottom: parent.bottom
             margins: internal.spacing
+            verticalCenter: parent.verticalCenter
         }
         topMargin: internal.spacing
+        bottomMargin: internal.spacing
         // do not allow rebounding
         boundsBehavior: Flickable.StopAtBounds
         // need to forward events as events occurred on topMargin area are not grabbed by the MouseArea.
@@ -1008,13 +1008,12 @@ Ubuntu.ActionItem {
         clip: true
         contentWidth: editor.contentWidth
         contentHeight: editor.contentHeight
+        height: editor.contentHeight
 
         TextInput {
             id: editor
             objectName: "text_input"
             // FocusScope will forward focus to this component
-            anchors.verticalCenter: parent.verticalCenter
-            verticalAlignment: TextInput.AlignVCenter
             width: flicker.width
             height: flicker.height
             cursorDelegate: TextCursor {
@@ -1031,6 +1030,7 @@ Ubuntu.ActionItem {
 
             // overrides
             selectByMouse: true
+            persistentSelection: false
 
             // input selection and navigation handling
             Ubuntu.Mouse.forwardTo: [inputHandler]

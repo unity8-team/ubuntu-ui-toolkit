@@ -21,7 +21,7 @@ import Ubuntu.Components.Private 1.3
 
 /*!
   \qmltype AdaptivePageLayout
-  \inqmlmodule Ubuntu.Components 1.3
+  \inqmlmodule Ubuntu.Components
   \since Ubuntu.Components 1.3
   \ingroup ubuntu
   \brief View with multiple columns of Pages.
@@ -728,7 +728,6 @@ PageTreeNode {
         }
     }
 
-
     // Page holder component, can have only one Page as child at a time, all stacked pages
     // will be parented into hiddenPool
     Component {
@@ -774,8 +773,15 @@ PageTreeNode {
                 onHeaderChanged: body.updateHeaderHeight(0)
             }
             Connections {
+                ignoreUnknownSignals: true
                 target: page ? page.header : null
-                onImplicitHeightChanged: body.updateHeaderHeight(page.header.implicitHeight)
+                onImplicitHeightChanged: {
+                    if (page.header.hasOwnProperty("automaticHeight") &&
+                            page.header.automaticHeight) {
+                        body.updateHeaderHeight(page.header.implicitHeight)
+                    }
+                }
+                onAutomaticHeightChanged: body.updateHeaderHeight(0)
             }
 
             // prevent the pages from taking the app header height into account.
@@ -788,7 +794,7 @@ PageTreeNode {
                     bottom: parent.bottom
                     left: parent.left
                     right: parent.right
-                    rightMargin: dividerThickness
+                    rightMargin: dividerThickness + verticalDivider.width
                 }
                 Item {
                     id: hiddenItem
@@ -797,8 +803,7 @@ PageTreeNode {
                 }
             }
 
-            // subHeader is to be deprecated in UITK 1.4 and will be replaced
-            //  by the Page.header property (introduced in 1.3).
+            // FIXME: subHeader is deprecated and will be replaced by Page.header. See bug #1583587.
             property alias head: subHeader
             StyledItem {
                 id: subHeader
@@ -806,6 +811,7 @@ PageTreeNode {
                     left: parent.left
                     top: parent.top
                     right: parent.right
+                    rightMargin: dividerThickness + verticalDivider.width
                 }
                 height: body.headerHeight
 
@@ -822,9 +828,15 @@ PageTreeNode {
                 property PageHeadConfiguration config: null
                 property Item contents: null
 
-                property color dividerColor: layout.__propagated.header.dividerColor
-                property color panelColor: layout.__propagated.header.panelColor
-                property color backgroundColor: layout.__propagated.header.backgroundColor
+
+                property AppHeader appHeader: layout.__propagated && layout.__propagated.header ?
+                                                layout.__propagated.header : null
+                property color dividerColor: appHeader ? appHeader.dividerColor : "black"
+                property color panelColor: appHeader ? appHeader.panelColor : "grey"
+                property color backgroundColor: appHeader ? appHeader.backgroundColor : "white"
+
+                // Enable red outline in the PageHeadStyle. See bug #1583636.
+                property bool showDeprecatedWarning: true
 
                 visible: !customHeader && holder.pageWrapper && holder.pageWrapper.active
 
@@ -856,7 +868,7 @@ PageTreeNode {
                     right: parent.right
                     rightMargin: dividerThickness
                 }
-                width: (column == (d.columns - 1)) || !pageWrapper ? 0 : units.dp(1)
+                width: (column == (d.columns - 1)) ? 0 : units.dp(1)
                 color: theme.palette.normal.base
                 MouseArea {
                     id: resizerSensing
@@ -923,7 +935,7 @@ PageTreeNode {
                 wrapper.active = false;
                 subHeader.config = null;
                 pageWrapper = null;
-                wrapper.parent = hiddenPool;
+                wrapper.parent = hiddenItem;
                 wrapper.pageHolder = null;
                 return wrapper;
             }
@@ -972,7 +984,10 @@ PageTreeNode {
                 for (i = 0; i < children.length; i++) {
                     page = children[i].page;
                     if (page && page.hasOwnProperty("header") && page.header) {
-                        subHeight = page.header.implicitHeight;
+                        if (page.header.hasOwnProperty("automaticHeight") &&
+                                page.header.automaticHeight) {
+                            subHeight = page.header.implicitHeight;
+                        }
                     } else {
                         subHeight = children[i].head.preferredHeight;
                     }
@@ -981,10 +996,12 @@ PageTreeNode {
                 body.headerHeight = h;
             }
 
-            // Update all the Page.header heights.
+            // Update the Page.header heights.
             for (i = 0; i < body.children.length; i++) {
                 page = body.children[i].page;
-                if (page && page.hasOwnProperty("header") && page.header) {
+                if (page && page.hasOwnProperty("header") && page.header &&
+                        page.header.hasOwnProperty("automaticHeight") &&
+                        page.header.automaticHeight) {
                     page.header.height = headerHeight;
                 }
             }
