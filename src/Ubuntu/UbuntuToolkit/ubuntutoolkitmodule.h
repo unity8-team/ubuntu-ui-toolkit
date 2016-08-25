@@ -84,6 +84,14 @@ public:
     static void undefineModule();
 };
 
+class UBUNTUTOOLKIT_EXPORT UbuntuPrivateModule
+{
+public:
+    static void initializeModule(QQmlEngine *engine, QQmlExtensionPlugin *plugin);
+    static void defineModule(const char *uri);
+    static void undefineModule();
+};
+
 UT_NAMESPACE_END
 
 #endif // UBUNTUTOOLKITMODULE_H

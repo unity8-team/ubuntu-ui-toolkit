@@ -94,6 +94,8 @@
 #include <menu_p.h>
 #include <menubar_p.h>
 #include <menugroup_p.h>
+#include <privates/popupwindow_p.h>
+#include <privates/quickiteminstancemodel_p.h>
 
 // styles
 #include <ucbottomedgestyle_p.h>
@@ -245,16 +247,6 @@ QUrl UbuntuToolkitModule::baseUrl(QQmlEngine *engine)
 void UbuntuToolkitModule::initializeModule(QQmlEngine *engine, const QUrl &pluginBaseUrl)
 {
     UbuntuToolkitModule *module = create(engine, pluginBaseUrl);
-
-    // Register private types.
-    const char *privateUri = "Ubuntu.Components.Private";
-    qmlRegisterType<UCFrame>(privateUri, 1, 3, "Frame");
-    qmlRegisterType<UCPageWrapper>(privateUri, 1, 3, "PageWrapper");
-    qmlRegisterType<UCAppHeaderBase>(privateUri, 1, 3, "AppHeaderBase");
-    qmlRegisterType<Tree>(privateUri, 1, 3, "Tree");
-
-    //FIXME: move to a more generic location, i.e StyledItem or QuickUtils
-    qmlRegisterSimpleSingletonType<UCScrollbarUtils>(privateUri, 1, 3, "PrivateScrollbarUtils");
 
     // allocate all context property objects prior we register them
     initializeContextProperties(engine);
@@ -428,3 +420,30 @@ void UbuntuLabsModule::undefineModule()
 }
 
 UT_NAMESPACE_END
+
+void UbuntuPrivateModule::initializeModule(QQmlEngine *engine, QQmlExtensionPlugin *plugin)
+{
+    Q_UNUSED(engine);
+    Q_UNUSED(plugin);
+}
+
+void UbuntuPrivateModule::defineModule(const char *uri)
+{
+    // Register private types.
+    qmlRegisterType<UCFrame>(uri, 1, 3, "Frame");
+    qmlRegisterType<UCPageWrapper>(uri, 1, 3, "PageWrapper");
+    qmlRegisterType<UCAppHeaderBase>(uri, 1, 3, "AppHeaderBase");
+    qmlRegisterType<Tree>(uri, 1, 3, "Tree");
+
+    //FIXME: move to a more generic location, i.e StyledItem or QuickUtils
+    qmlRegisterSimpleSingletonType<UCScrollbarUtils>(uri, 1, 3, "PrivateScrollbarUtils");
+
+    qmlRegisterType<PopupPosition>(uri, 1, 3, "PopupPosition");
+    qmlRegisterType<PopupWindow>(uri, 1, 3, "PopupWindow");
+    qmlRegisterType<QQuickItemInstanceModel>(uri, 1, 3, "ItemInstanceModel");
+}
+
+void UbuntuPrivateModule::undefineModule()
+{
+    // nothing yet
+}

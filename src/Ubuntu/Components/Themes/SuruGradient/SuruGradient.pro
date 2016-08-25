@@ -15,3 +15,5 @@ QML_FILES += MainViewStyle.qml \
     $$DEPRECATED_FILE
 
 load(ubuntu_qml_module)
+
+OTHER_FILES+=qmldir

@@ -159,7 +159,9 @@ HEADERS += \
     ucbottomedgeregion_p_p.h \
     privates/ucscrollbarutils_p.h \
     actionlist_p.h \
-    exclusivegroup_p.h
+    exclusivegroup_p.h \
+    privates/quickiteminstancemodel_p.h \
+    privates/popupwindow_p.h
 
 SOURCES += \
     uctheme.cpp \
@@ -238,7 +240,9 @@ SOURCES += \
     privates/appheaderbase.cpp \
     privates/ucscrollbarutils.cpp \
     actionlist.cpp \
-    exclusivegroup.cpp
+    exclusivegroup.cpp \
+    privates/quickiteminstancemodel.cpp \
+    privates/popupwindow.cpp
 
 # adapters
 SOURCES += $$PWD/adapters/alarmsadapter_organizer.cpp

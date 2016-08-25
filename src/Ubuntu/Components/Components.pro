@@ -6,4 +6,5 @@ SUBDIRS += ListItems \
            Popups    \
            Styles    \
            Themes    \
-           Labs
+           Labs      \
+           Private

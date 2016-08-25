@@ -20,3 +20,5 @@ QML_FILES += 1.2/ActionSelectionPopover.qml \
              1.3/SheetBase.qml
 
 load(ubuntu_qml_module)
+
+OTHER_FILES+= qmldir

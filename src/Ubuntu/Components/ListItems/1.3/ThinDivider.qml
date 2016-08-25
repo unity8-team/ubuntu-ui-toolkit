@@ -50,7 +50,7 @@ Rectangle {
         left: (parent) ? parent.left : null
         right: (parent) ? parent.right : null
     }
-    height: (visible) ? units.dp(2) : 0
+    implicitHeight: (visible) ? units.dp(2) : 0
     // a private property to catch theme background color change
     // use private property instead of embedding it into a QtObject to avoid further
     // performance decrease
