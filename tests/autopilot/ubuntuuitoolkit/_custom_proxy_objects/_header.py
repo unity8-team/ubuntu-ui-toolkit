@@ -18,6 +18,7 @@ import logging
 
 from autopilot import logging as autopilot_logging
 from autopilot.introspection import dbus
+from ubuntuuitoolkit import units
 
 from ubuntuuitoolkit._custom_proxy_objects import (
     _common,
@@ -55,7 +56,7 @@ class AppHeader(_common.UbuntuUIToolkitCustomProxyObjectBase):
         # Workarounds https://bugs.launchpad.net/mir/+bug/1399690
         rate = 10
         start_x = stop_x = self.globalRect.x + self.globalRect.width // 2
-        start_y = top_container.globalRect.y + 5
+        start_y = top_container.globalRect.y + units.gu(2)
         stop_y = start_y + self.globalRect.height // rate * rate
         self.pointing_device.drag(start_x, start_y, stop_x, stop_y, rate)
         self.y.wait_for(0)
