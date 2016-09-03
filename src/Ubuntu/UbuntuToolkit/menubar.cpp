@@ -252,11 +252,11 @@ PlatformMenuWrapper::PlatformMenuWrapper(Menu *target, MenuBar* bar)
     , m_target(target)
     , m_inserted(false)
 {
-    connect(m_target, &Menu::visibleChanged, this, &PlatformMenuWrapper::updateVisible);
-    connect(m_target, &Menu::textChanged, this, &PlatformMenuWrapper::updateText);
-    connect(m_target, &Menu::enabledChanged, this, &PlatformMenuWrapper::updateEnabled);
-    connect(m_target, &Menu::iconSourceChanged, this, &PlatformMenuWrapper::updateIcon);
-    connect(m_target, &Menu::iconNameChanged, this, &PlatformMenuWrapper::updateIcon);
+    connect(m_target.data(), &Menu::visibleChanged, this, &PlatformMenuWrapper::updateVisible);
+    connect(m_target.data(), &Menu::textChanged, this, &PlatformMenuWrapper::updateText);
+    connect(m_target.data(), &Menu::enabledChanged, this, &PlatformMenuWrapper::updateEnabled);
+    connect(m_target.data(), &Menu::iconSourceChanged, this, &PlatformMenuWrapper::updateIcon);
+    connect(m_target.data(), &Menu::iconNameChanged, this, &PlatformMenuWrapper::updateIcon);
 
     syncPlatformMenu();
 }
