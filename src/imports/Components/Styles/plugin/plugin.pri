@@ -1,6 +1,4 @@
-QT *= qml quick UbuntuToolkit UbuntuToolkit_private
-
-INCLUDEPATH+=$$PWD
+QT = qml quick UbuntuToolkit
 
 SOURCES += \
     $$PWD/plugin.cpp

@@ -1,9 +1,10 @@
 TEMPLATE = subdirs
 
-SUBDIRS += ListItems \
-           ComponentModule.pro \
-           Pickers   \
-           Popups    \
-           Styles    \
-           Themes    \
-           Labs
+SUBDIRS += \
+    ListItems \
+    ComponentModule.pro \
+    Pickers \
+    Popups \
+    Styles \
+    Themes \
+    Labs

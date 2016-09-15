@@ -17,7 +17,8 @@
  */
 
 #include <QtQml/QQmlExtensionPlugin>
-#include <ubuntutoolkitmodule.h>
+
+#include <UbuntuToolkit/ubuntutoolkitmodule.h>
 
 class UbuntuComponentsStylesPlugin : public QQmlExtensionPlugin
 {

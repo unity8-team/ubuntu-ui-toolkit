@@ -1,4 +1,4 @@
-QT = qml quick UbuntuToolkit
+QT += qml UbuntuMetrics
 
 SOURCES += \
     $$PWD/plugin.cpp

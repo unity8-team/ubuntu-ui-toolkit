@@ -1,21 +1,20 @@
-QT *= qml quick
+QT = qml quick
 
-# Input
 SOURCES += \
-    $$PWD/upmplugin.cpp \
-    $$PWD/upmgraphmodel.cpp \
-    $$PWD/upmtexturefromimage.cpp \
-    $$PWD/upmrenderingtimes.cpp \
+    $$PWD/rendertimer.cpp \
     $$PWD/upmcpuusage.cpp \
-    $$PWD/rendertimer.cpp
+    $$PWD/upmgraphmodel.cpp \
+    $$PWD/upmplugin.cpp \
+    $$PWD/upmrenderingtimes.cpp \
+    $$PWD/upmtexturefromimage.cpp
 
 HEADERS += \
-    $$PWD/upmplugin.h \
-    $$PWD/upmgraphmodel.h \
-    $$PWD/upmtexturefromimage.h \
-    $$PWD/upmrenderingtimes.h \
+    $$PWD/rendertimer.h \
     $$PWD/upmcpuusage.h \
-    $$PWD/rendertimer.h
+    $$PWD/upmgraphmodel.h \
+    $$PWD/upmplugin.h \
+    $$PWD/upmrenderingtimes.h \
+    $$PWD/upmtexturefromimage.h
 
 contains(QT_CONFIG, opengles2) {
     CONFIG += egl

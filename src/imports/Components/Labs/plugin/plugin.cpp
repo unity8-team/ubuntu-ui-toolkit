@@ -17,7 +17,8 @@
  */
 
 #include <QtQml/QQmlExtensionPlugin>
-#include <ubuntutoolkitmodule.h>
+
+#include <UbuntuToolkit/ubuntutoolkitmodule.h>
 
 class UbuntuComponentsLabsPlugin : public QQmlExtensionPlugin
 {
@@ -44,4 +45,3 @@ public:
 };
 
 #include "plugin.moc"
-
