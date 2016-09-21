@@ -42,13 +42,17 @@ HEADERS += \
     $$PWD/mousetouchadaptor_p.h \
     $$PWD/mousetouchadaptor_p_p.h \
     $$PWD/privates/appheaderbase_p.h \
-    $$PWD/privates/frame_p.h \
     $$PWD/privates/listitemdragarea_p.h \
     $$PWD/privates/listitemdraghandler_p.h \
     $$PWD/privates/listitemselection_p.h \
     $$PWD/privates/listviewextensions_p.h \
     $$PWD/privates/splitviewhandler_p.h \
     $$PWD/privates/threelabelsslot_p.h \
+    $$PWD/privates/ucshapefill_p.h \
+    $$PWD/privates/ucshapeframe_p.h \
+    $$PWD/privates/ucshapeshadow_p.h \
+    $$PWD/privates/ucshapetexturefactory_p.h \
+    $$PWD/privates/ucshapeutils_p.h \
     $$PWD/privates/ucpagewrapper_p.h \
     $$PWD/privates/ucpagewrapper_p_p.h \
     $$PWD/privates/ucpagewrapperincubator_p.h \
@@ -152,7 +156,6 @@ SOURCES += \
     $$PWD/menugroup.cpp \
     $$PWD/mousetouchadaptor.cpp \
     $$PWD/privates/appheaderbase.cpp \
-    $$PWD/privates/frame.cpp \
     $$PWD/privates/listitemdragarea.cpp \
     $$PWD/privates/listitemdraghandler.cpp \
     $$PWD/privates/listitemexpansion.cpp \
@@ -160,6 +163,11 @@ SOURCES += \
     $$PWD/privates/listviewextensions.cpp \
     $$PWD/privates/splitviewhandler.cpp \
     $$PWD/privates/threelabelsslot_p.cpp \
+    $$PWD/privates/ucshapefill.cpp \
+    $$PWD/privates/ucshapeframe.cpp \
+    $$PWD/privates/ucshapeshadow.cpp \
+    $$PWD/privates/ucshapetexturefactory.cpp \
+    $$PWD/privates/ucshapeutils.cpp \
     $$PWD/privates/ucpagewrapper.cpp \
     $$PWD/privates/ucpagewrapperincubator.cpp \
     $$PWD/privates/ucscrollbarutils.cpp \
@@ -228,13 +236,19 @@ RESOURCES += \
     $$PWD/resources.qrc
 
 OTHER_FILES += \
-    $$PWD/shaders/shape.vert \
+    $$PWD/privates/shaders/color.frag \
+    $$PWD/privates/shaders/color.vert \
+    $$PWD/privates/shaders/frame.frag \
+    $$PWD/privates/shaders/innershadow.frag \
+    $$PWD/privates/shaders/luminance.frag \
+    $$PWD/privates/shaders/opaquecolor.frag \
+    $$PWD/privates/shaders/texture.vert \
+    $$PWD/privates/shaders/texture2.vert \
     $$PWD/shaders/shape.frag \
+    $$PWD/shaders/shape.vert \
     $$PWD/shaders/shape_no_dfdy.frag \
-    $$PWD/shaders/shapeoverlay.vert \
     $$PWD/shaders/shapeoverlay.frag \
-    $$PWD/shaders/shapeoverlay_no_dfdy.frag \
-    $$PWD/privates/shaders/frame.vert \
-    $$PWD/privates/shaders/frame.frag
+    $$PWD/shaders/shapeoverlay.vert \
+    $$PWD/shaders/shapeoverlay_no_dfdy.frag
 
 load(ubuntu_qt_module)

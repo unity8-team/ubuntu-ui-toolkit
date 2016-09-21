@@ -13,26 +13,22 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Author: Christian Dywan <christian.dywan@canonical.com>
+ * Author: Loïc Molinari <loic.molinari@canonical.com>
  */
 
-import QtQuick 2.4
-import Ubuntu.Components 1.3
-import Ubuntu.Components.Private 1.3
+uniform highp mat4 matrix;
+attribute highp vec4 positionAttrib;
+attribute mediump vec2 texCoord1Attrib;
+attribute mediump vec2 texCoord2Attrib;
+attribute lowp vec4 colorAttrib;
+varying mediump vec2 texCoord1;
+varying mediump vec2 texCoord2;
+varying lowp vec4 color;
 
-ShapeFrame {
-    anchors.fill: parent
-    anchors.margins: -units.gu(0.46)
-    color: styledItem.enabled
-                ? theme.palette.normal.focus
-                : theme.palette.disabled.focus
-    thickness: units.dp(2)
-    radius: units.gu(1.7)
-    visible: styledItem.keyNavigationFocus
-
-    Behavior on anchors.margins {
-        UbuntuNumberAnimation {
-            duration: UbuntuAnimation.FastDuration
-        }
-    }
+void main()
+{
+    texCoord1 = texCoord1Attrib;
+    texCoord2 = texCoord2Attrib;
+    color = colorAttrib;
+    gl_Position = matrix * positionAttrib;
 }

@@ -18,17 +18,11 @@
 
 uniform highp mat4 matrix;
 attribute highp vec4 positionAttrib;
-attribute mediump vec2 outerCoordAttrib;
-attribute mediump vec2 innerCoordAttrib;
 attribute lowp vec4 colorAttrib;
-varying mediump vec2 outerCoord;
-varying mediump vec2 innerCoord;
 varying lowp vec4 color;
 
 void main()
 {
-    outerCoord = outerCoordAttrib;
-    innerCoord = innerCoordAttrib;
     color = colorAttrib;
     gl_Position = matrix * positionAttrib;
 }

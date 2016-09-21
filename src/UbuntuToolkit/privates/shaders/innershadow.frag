@@ -16,7 +16,9 @@
  * Author: Loïc Molinari <loic.molinari@canonical.com>
  */
 
-uniform sampler2D texture[2];
+#define DEBUG_VERTEX_LAYOUT 0
+
+uniform sampler2D texture;
 uniform lowp float opacity;
 varying mediump vec2 texCoord1;
 varying mediump vec2 texCoord2;
@@ -24,9 +26,14 @@ varying lowp vec4 color;
 
 void main(void)
 {
-    lowp float outerShape = texture2D(texture[0], texCoord1).r;
-    lowp float innerShape = texture2D(texture[1], texCoord2).r;
-    // Fused multiply-add friendly version of (outerShape * (1.0 - innerShape))
-    lowp float shape = (outerShape * -innerShape) + outerShape;
-    gl_FragColor = vec4(shape * opacity) * color;
+    lowp float shadow = texture2D(texture, texCoord1).r;
+    lowp float shape = texture2D(texture, texCoord2).a;
+    // Fused multiply-add friendly version of (shape * (1.0 - shadow))
+    lowp float shapedShadow = (shape * -shadow) + shape;
+    gl_FragColor = vec4(shapedShadow * opacity) * color;
+
+#if DEBUG_VERTEX_LAYOUT == 1
+    gl_FragColor = ((vec4(shapedShadow) * color)
+        + vec4(1.0, 0.0, 0.0, 1.0) * vec4(1.0 - (shapedShadow * color.a))) * vec4(opacity);
+#endif
 }
