@@ -151,12 +151,12 @@ public:
         QRgb color);
 
     int vertexCount(UCShadow::Style style) const {
-        STATIC_ASSERT(UCShadow::Outer == 0 && UCShadow::Inner == 1);
+        Q_STATIC_ASSERT(UCShadow::Outer == 0 && UCShadow::Inner == 1);
         const int count[2] = { 9, 32 };
         return count[static_cast<int>(style)];
     }
     int indexCount(UCShadow::Style style) const {
-        STATIC_ASSERT(UCShadow::Outer == 0 && UCShadow::Inner == 1);
+        Q_STATIC_ASSERT(UCShadow::Outer == 0 && UCShadow::Inner == 1);
         const int count[2] = { 14, 46 };
         return count[static_cast<int>(style)];
     }

@@ -237,7 +237,7 @@ const quint16* UCShadowNode::indices(UCShadow::Style style)
         24, 28, 25, 29, 27, 31, 26, 30, 24, 28
     };
 
-    STATIC_ASSERT(UCShadow::Outer == 0 && UCShadow::Inner == 1);
+    Q_STATIC_ASSERT(UCShadow::Outer == 0 && UCShadow::Inner == 1);
     const quint16* indices[2] = { outerIndices, innerIndices };
     return indices[static_cast<int>(style)];
 }
@@ -257,7 +257,7 @@ const QSGGeometry::AttributeSet& UCShadowNode::attributeSet(UCShadow::Style styl
         QSGGeometry::Attribute::create(3, 4, GL_UNSIGNED_BYTE)
     };
 
-    STATIC_ASSERT(UCShadow::Outer == 0 && UCShadow::Inner == 1);
+    Q_STATIC_ASSERT(UCShadow::Outer == 0 && UCShadow::Inner == 1);
     static const QSGGeometry::AttributeSet attributeSet[2] = {
         { 3, sizeof(OuterVertex), outerAttributes },
         { 4, sizeof(InnerVertex), innerAttributes }
@@ -731,7 +731,7 @@ void UCShadow::setShape(Shape shape)
 
 void UCShadow::setSize(qreal size)
 {
-    STATIC_ASSERT(maxShadow <= 255);  // Quantized to 8 bits.
+    Q_STATIC_ASSERT(maxShadow <= 255);  // Quantized to 8 bits.
     const quint8 quantizedSize = static_cast<quint8>(qBound(0, qRound(size), maxShadow));
     if (m_size != quantizedSize) {
         m_size = quantizedSize;
@@ -742,7 +742,7 @@ void UCShadow::setSize(qreal size)
 
 void UCShadow::setRadius(qreal radius)
 {
-    STATIC_ASSERT(maxRadius <= 255);  // Quantized to 8 bits.
+    Q_STATIC_ASSERT(maxRadius <= 255);  // Quantized to 8 bits.
     const quint8 quantizedRadius = static_cast<quint8>(qBound(0, qRound(radius), maxRadius));
     if (m_radius != quantizedRadius) {
         m_radius = quantizedRadius;
