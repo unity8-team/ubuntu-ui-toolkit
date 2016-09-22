@@ -28,7 +28,7 @@ HEADERS += \
     $$PWD/colorutils_p.h \
     $$PWD/exclusivegroup_p.h \
     $$PWD/filterbehavior_p.h \
-    $$PWD/i18n_p.h
+    $$PWD/i18n_p.h \
     $$PWD/inversemouseareatype_p.h \
     $$PWD/label_p.h \
     $$PWD/listener_p.h \
