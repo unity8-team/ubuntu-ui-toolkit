@@ -2,7 +2,7 @@ TARGET = UbuntuToolkit
 QT = core-private gui-private qml-private quick-private testlib dbus svg organizer \
      UbuntuGestures-private UbuntuMetrics
 
-unix {
+linux {
     CONFIG += link_pkgconfig
     PKGCONFIG += gio-2.0 dbus-1 libnih libnih-dbus
 }
@@ -28,7 +28,7 @@ HEADERS += \
     $$PWD/colorutils_p.h \
     $$PWD/exclusivegroup_p.h \
     $$PWD/filterbehavior_p.h \
-    $$PWD/i18n_p.h \
+    $$PWD/i18n_p.h
     $$PWD/inversemouseareatype_p.h \
     $$PWD/label_p.h \
     $$PWD/listener_p.h \
@@ -142,7 +142,6 @@ SOURCES += \
     $$PWD/colorutils.cpp \
     $$PWD/exclusivegroup.cpp \
     $$PWD/filterbehavior.cpp \
-    $$PWD/i18n.cpp \
     $$PWD/inversemouseareatype.cpp \
     $$PWD/listener.cpp \
     $$PWD/livetimer.cpp \
@@ -236,5 +235,23 @@ OTHER_FILES += \
     $$PWD/shaders/shapeoverlay_no_dfdy.frag \
     $$PWD/privates/shaders/frame.vert \
     $$PWD/privates/shaders/frame.frag
+
+macx { 
+    # OSX and iOS specific
+    SOURCES += \
+        $$PWD/i18n-osx.cpp 
+} else:android {
+    # Android specific
+    SOURCES += \
+        $$PWD/i18n-android.cpp 
+} else:windows {
+    # Windows specific
+    SOURCES += \
+        $$PWD/i18n-windows.cpp 
+} else {
+    # Ubuntu specific
+    SOURCES += \
+        $$PWD/i18n-ubuntu.cpp 
+}
 
 load(ubuntu_qt_module)
