@@ -1,25 +1,36 @@
 TARGET = UbuntuToolkit
-QT = core-private gui-private qml-private quick-private testlib dbus svg organizer \
+QT = core-private gui-private qml-private quick-private testlib dbus svg \
      UbuntuGestures-private UbuntuMetrics
 
-unix {
+linux {
+    QT += organizer
     CONFIG += link_pkgconfig
     PKGCONFIG += gio-2.0 dbus-1 libnih libnih-dbus
-}
-
-!contains(QT_ARCH, arm) {
-    DEFINES += UBUNTUTOOLKIT_ENABLE_X11_TOUCH_EMULATION
-    LIBS += -lX11 -lxcb -lXi
-    SOURCES += mousetouchadaptor_x11.cpp
 }
 
 # Uncomment to compile out qDebug() calls.
 # DEFINES += QT_NO_DEBUG_OUTPUT
 
+# platform specific adaptations
+linux {
+    HEADERS += \
+        $$PWD/adapters/alarmsadapter_p.h
+    SOURCES += \
+        $$PWD/adapters/alarmsadapter_organizer.cpp
+
+    !contains(QT_ARCH, arm) {
+        DEFINES += UBUNTUTOOLKIT_ENABLE_X11_TOUCH_EMULATION
+        LIBS += -lX11 -lxcb -lXi
+        SOURCES += $$PWD/adapters/mousetouchadaptor_x11.cpp
+    }
+} else:macx {
+    SOURCES += \
+        $$PWD/adapters/alarmsadapter_dummy.cpp
+}
+
 HEADERS += \
     $$PWD/actionlist_p.h \
     $$PWD/adapters/actionsproxy_p.h \
-    $$PWD/adapters/alarmsadapter_p.h \
     $$PWD/adapters/dbuspropertywatcher_p.h \
     $$PWD/alarmmanager_p.h \
     $$PWD/alarmmanager_p_p.h \
@@ -135,8 +146,8 @@ HEADERS += \
 SOURCES += \
     $$PWD/actionlist.cpp \
     $$PWD/adapters/actionsproxy_p.cpp \
-    $$PWD/adapters/alarmsadapter_organizer.cpp \
     $$PWD/adapters/dbuspropertywatcher_p.cpp \
+    $$PWD/adapters/mousetouchadaptor.cpp \
     $$PWD/alarmmanager_p.cpp \
     $$PWD/asyncloader.cpp \
     $$PWD/colorutils.cpp \
@@ -150,7 +161,6 @@ SOURCES += \
     $$PWD/menu.cpp \
     $$PWD/menubar.cpp \
     $$PWD/menugroup.cpp \
-    $$PWD/mousetouchadaptor.cpp \
     $$PWD/privates/appheaderbase.cpp \
     $$PWD/privates/frame.cpp \
     $$PWD/privates/listitemdragarea.cpp \
@@ -222,7 +232,7 @@ SOURCES += \
     $$PWD/ucurihandler.cpp \
     $$PWD/ucviewitemsattached.cpp \
     $$PWD/unitythemeiconprovider.cpp \
-    $$PWD/unixsignalhandler_p.cpp
+    $$PWD/unixsignalhandler_p.cpp \
 
 RESOURCES += \
     $$PWD/resources.qrc

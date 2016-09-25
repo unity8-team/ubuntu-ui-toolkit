@@ -25,7 +25,9 @@
 #include <QtCore/private/qobject_p.h>
 #include <QtGui/QWindow>
 
+#ifdef UBUNTUTOOLKIT_ENABLE_X11_TOUCH_EMULATION
 #include <xcb/xcb.h>
+#endif
 
 UT_NAMESPACE_BEGIN
 
