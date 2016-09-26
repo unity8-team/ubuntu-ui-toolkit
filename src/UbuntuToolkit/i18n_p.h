@@ -28,6 +28,7 @@ class QQmlEngine;
 
 UT_NAMESPACE_BEGIN
 
+class UbuntuI18nPrivate;
 class UBUNTUTOOLKIT_EXPORT UbuntuI18n : public QObject
 {
     Q_OBJECT
@@ -40,15 +41,7 @@ private:
     ~UbuntuI18n();
 
 public:
-    static UbuntuI18n *instance(QObject *parent = Q_NULLPTR) {
-        if (!m_i18) {
-            if (!parent) {
-                qFatal("Creating i18n singleton requires a parent object!");
-            }
-            m_i18 = new UbuntuI18n(parent);
-        }
-        return m_i18;
-    }
+    static UbuntuI18n *instance(QObject *parent = Q_NULLPTR);
 
     Q_INVOKABLE void bindtextdomain(const QString& domain_name, const QString& dir_name);
     Q_INVOKABLE QString tr(const QString& text);
@@ -74,9 +67,7 @@ Q_SIGNALS:
     void languageChanged();
 
 private:
-    static UbuntuI18n *m_i18;
-    QString m_domain;
-    QString m_language;
+    Q_DECLARE_PRIVATE(UbuntuI18n)
 };
 
 UT_NAMESPACE_END

@@ -16,7 +16,8 @@ linux {
     HEADERS += \
         $$PWD/adapters/alarmsadapter_p.h
     SOURCES += \
-        $$PWD/adapters/alarmsadapter_organizer.cpp
+        $$PWD/adapters/alarmsadapter_organizer.cpp \
+        $$PWD/adapters/i18n_gettext.cpp
 
     !contains(QT_ARCH, arm) {
         DEFINES += UBUNTUTOOLKIT_ENABLE_X11_TOUCH_EMULATION
@@ -25,7 +26,8 @@ linux {
     }
 } else:macx {
     SOURCES += \
-        $$PWD/adapters/alarmsadapter_dummy.cpp
+        $$PWD/adapters/alarmsadapter_dummy.cpp \
+        $$PWD/adapters/i18n_tr.cpp
 }
 
 HEADERS += \
@@ -40,6 +42,7 @@ HEADERS += \
     $$PWD/exclusivegroup_p.h \
     $$PWD/filterbehavior_p.h \
     $$PWD/i18n_p.h \
+    $$PWD/i18n_p_p.h \
     $$PWD/inversemouseareatype_p.h \
     $$PWD/label_p.h \
     $$PWD/listener_p.h \
@@ -232,7 +235,7 @@ SOURCES += \
     $$PWD/ucurihandler.cpp \
     $$PWD/ucviewitemsattached.cpp \
     $$PWD/unitythemeiconprovider.cpp \
-    $$PWD/unixsignalhandler_p.cpp \
+    $$PWD/unixsignalhandler_p.cpp
 
 RESOURCES += \
     $$PWD/resources.qrc
