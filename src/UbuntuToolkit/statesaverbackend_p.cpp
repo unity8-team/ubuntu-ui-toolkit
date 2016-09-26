@@ -174,7 +174,7 @@ int StateSaverBackend::load(const QString &id, QObject *item, const QStringList 
         QQmlProperty qmlProperty(
             item, QString::fromLatin1(propertyName.toLocal8Bit().constData()), qmlContext(item));
         if (qmlProperty.isValid() && qmlProperty.isWritable()) {
-            QVariant type = m_archive.data()->value(propertyName + "_TYPE");
+            QVariant type = m_archive.data()->value(propertyName + QStringLiteral("_TYPE"));
             value.convert(type.toInt());
             bool writeSuccess = qmlProperty.write(value);
             if (writeSuccess) {
@@ -228,7 +228,7 @@ int StateSaverBackend::save(const QString &id, QObject *item, const QStringList 
                  *
                  * See Qt Bug: https://bugreports.qt-project.org/browse/QTBUG-40474
                  */
-                m_archive.data()->setValue(propertyName + "_TYPE", QVariant::fromValue((int)value.type()));
+                m_archive.data()->setValue(propertyName + QStringLiteral("_TYPE"), QVariant::fromValue((int)value.type()));
                 result++;
             }
         }

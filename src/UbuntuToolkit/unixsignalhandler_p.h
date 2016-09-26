@@ -18,6 +18,7 @@
 #define UNIXSIGNALHANDLER_P_H
 
 #include <signal.h>
+#include <array>
 
 #include <QtCore/QHash>
 #include <QtCore/QObject>
