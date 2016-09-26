@@ -96,9 +96,9 @@ QString UCStateSaverAttachedPrivate::absoluteId(const QString &id)
     QUrl url(cdata->url);
 #endif
     QQmlData *ddata = QQmlData::get(m_attachee);
-    QString path = url.path().replace('/', '_') + ':'
-            + QString::number(ddata->lineNumber) + ':'
-            + QString::number(ddata->columnNumber) + ':' + id;
+    QString path = url.path().replace('/', '_') + QStringLiteral(":")
+            + QString::number(ddata->lineNumber) + QStringLiteral(":")
+            + QString::number(ddata->columnNumber) + QStringLiteral(":") + id;
     QObject *parent = m_attachee->parent();
 
     // check whether we have an "index" context property defined
@@ -111,7 +111,7 @@ QString UCStateSaverAttachedPrivate::absoluteId(const QString &id)
         QString parentId = qmlContext(parent)->nameForObject(parent);
         QString className = QuickUtils::instance()->className(parent);
         if (!parentId.isEmpty()) {
-            path.prepend(className + '-' + parentId + ":");
+            path.prepend(className + QStringLiteral("-") + parentId + QStringLiteral(":"));
         } else {
             qmlInfo(parent) << QStringLiteral("All the parents must have an id.\nState saving disabled for %1, class %2").
                                arg(path).arg(className);
