@@ -369,7 +369,7 @@ bool UCStyledItemBasePrivate::loadStyleItem(bool animated)
     QQmlComponent *component = styleComponent;
     UCTheme *theme = q->getTheme();
     if (!component && theme) {
-        component = theme->createStyleComponent(styleDocument + ".qml", q, styleVersion);
+        component = theme->createStyleComponent(styleDocument + QStringLiteral(".qml"), q, styleVersion);
     }
     if (!component) {
         return false;

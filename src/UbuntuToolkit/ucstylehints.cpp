@@ -89,7 +89,7 @@ void UCStyleHints::decodeBinding(const QString &propertyPrefix, const QV4::Compi
 
         const QV4::CompiledData::Object *subObj = qmlUnit->objectAt(binding->value.objectIndex);
         const QV4::CompiledData::Binding *subBinding = subObj->bindingTable();
-        QString pre = propertyName + ".";
+        QString pre = propertyName + QStringLiteral(".");
         for (quint32 i = 0; i < subObj->nBindings; ++i, ++subBinding) {
             decodeBinding(pre, qmlUnit, subBinding);
         }

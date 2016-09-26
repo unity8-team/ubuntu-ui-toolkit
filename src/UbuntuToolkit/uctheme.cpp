@@ -190,7 +190,7 @@ QStringList themeSearchPath()
     QStringList result;
     Q_FOREACH(const QString &path, pathList) {
         if (QDir(path).exists()) {
-            result << path + '/';
+            result << path + QStringLiteral("/");
         }
     }
     // prepend current folder
@@ -209,8 +209,8 @@ UCTheme::ThemeRecord pathFromThemeName(QString themeName)
         // QUrl needs a trailing slash to understand it's a directory
         QString absoluteThemeFolder = QDir(themeFolder).absolutePath().append('/');
         if (QDir(absoluteThemeFolder).exists()) {
-            record.deprecated = QFile::exists(absoluteThemeFolder + "deprecated");
-            record.shared = QFile::exists(absoluteThemeFolder + "qmldir");
+            record.deprecated = QFile::exists(absoluteThemeFolder + QStringLiteral("deprecated"));
+            record.shared = QFile::exists(absoluteThemeFolder + QStringLiteral("qmldir"));
             record.path = QUrl::fromLocalFile(absoluteThemeFolder);
             break;
         }
