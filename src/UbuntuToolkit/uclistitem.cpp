@@ -1255,7 +1255,7 @@ void UCListItemPrivate::showContextMenu()
     pressAndHoldTimer.stop();
 
     QString versionString(QStringLiteral("%1.%2").arg(MAJOR_VERSION(version)).arg(MINOR_VERSION(version)));
-    const QString relativeUrl = versionString + "/ListItemPopover.qml";    
+    const QString relativeUrl = versionString + QStringLiteral("/ListItemPopover.qml");
     QUrl url(UbuntuToolkitModule::baseUrl(qmlEngine(q)).resolved(relativeUrl));
 
     // Open Popover
