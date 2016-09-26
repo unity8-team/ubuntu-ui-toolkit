@@ -191,8 +191,8 @@ QString UCUnits::resolveResource(const QUrl& url)
         }
     }
 
-    const QString prefix = fileInfo.dir().absolutePath() + "/" + fileInfo.baseName();
-    const QString suffix = "." + fileInfo.completeSuffix();
+    const QString prefix = fileInfo.dir().absolutePath() + QStringLiteral("/") + fileInfo.baseName();
+    const QString suffix = QStringLiteral(".") + fileInfo.completeSuffix();
 
     /* Use file with expected grid unit suffix if it exists.
        For example, if m_gridUnit = 10, look for resource@10.png.
@@ -220,7 +220,7 @@ QString UCUnits::resolveResource(const QUrl& url)
        than resource@18.png.
     */
     QStringList nameFilters;
-    nameFilters << fileInfo.baseName() + "@[0-9]*" + suffix;
+    nameFilters << fileInfo.baseName() + QStringLiteral("@[0-9]*") + suffix;
     const QStringList files = fileInfo.dir().entryList(nameFilters, QDir::Files);
 
     if (!files.empty()) {
@@ -236,7 +236,7 @@ QString UCUnits::resolveResource(const QUrl& url)
 
         path = prefix + suffixForGridUnit(selectedGridUnitSuffix) + suffix;
         float scaleFactor = m_gridUnit / selectedGridUnitSuffix;
-        return QString::number(scaleFactor) + "/" + path;
+        return QString::number(scaleFactor) + QStringLiteral("/") + path;
     }
 
     return QString();
@@ -244,7 +244,7 @@ QString UCUnits::resolveResource(const QUrl& url)
 
 QString UCUnits::suffixForGridUnit(float gridUnit)
 {
-    return "@" + QString::number(gridUnit);
+    return QStringLiteral("@") + QString::number(gridUnit);
 }
 
 float UCUnits::gridUnitSuffixFromFileName(const QString& fileName)
