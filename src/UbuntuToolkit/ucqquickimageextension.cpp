@@ -90,7 +90,7 @@ void UCQQuickImageExtension::reloadSource()
     int separatorPosition = resolved.indexOf(QStringLiteral("/"));
     QString scaleFactor = resolved.left(separatorPosition);
     QString selectedFilePath = resolved.mid(separatorPosition+1);
-    QString fragment(m_source.hasFragment() ? "#" + m_source.fragment() : QStringLiteral(""));
+    QString fragment(m_source.hasFragment() ? QStringLiteral("#") + m_source.fragment() : QStringLiteral(""));
 
     if (scaleFactor == QStringLiteral("1")) {
         if (qFuzzyCompare(qGuiApp->devicePixelRatio(), (qreal)1.0)
@@ -103,7 +103,7 @@ void UCQQuickImageExtension::reloadSource()
         } else {
             // Need to scale the pixel-based image to suit the devicePixelRatio setting ourselves.
             // If we let Qt do it, Qt will not choose the UITK-supported "@gu" scaled images.
-            m_image->setSource(QUrl("image://scaling/1/" + selectedFilePath + fragment));
+            m_image->setSource(QUrl(QStringLiteral("image://scaling/1/") + selectedFilePath + fragment));
             // explicitly set the source size in the QQuickImageBase, this persuades it that the
             // supplied image is suitable for the current devicePixelRatio.
             m_image->setSourceSize(m_image->sourceSize());
@@ -112,7 +112,7 @@ void UCQQuickImageExtension::reloadSource()
         // Prepend "image://scaling" for the image to be loaded by UCScalingImageProvider.
         if (!m_source.path().endsWith(QStringLiteral(".sci"))) {
           // Regular image file
-            m_image->setSource(QUrl("image://scaling/" + resolved + fragment));
+            m_image->setSource(QUrl(QStringLiteral("image://scaling/") + resolved + fragment));
         } else {
             // .sci image file. Rewrite the .sci file into a temporary file.
             bool rewritten = true;
@@ -125,7 +125,7 @@ void UCQQuickImageExtension::reloadSource()
             rewrittenSciFile = UCQQuickImageExtension::s_rewrittenSciFiles.value(m_source).data();
             if (rewrittenSciFile == NULL) {
                 rewrittenSciFile = new QTemporaryFile;
-                rewrittenSciFile->setFileTemplate(QDir::tempPath() + "/XXXXXX.sci");
+                rewrittenSciFile->setFileTemplate(QDir::tempPath() + QStringLiteral("/XXXXXX.sci"));
                 rewrittenSciFile->open();
                 QTextStream output(rewrittenSciFile);
 
@@ -181,14 +181,14 @@ QString UCQQuickImageExtension::scaledBorder(const QString &border, const QStrin
     // Rewrite the border line with a scaled border value
     QStringList parts = border.split(QStringLiteral(":"));
     float scaledValue = parts[1].toFloat() * scaleFactor.toFloat();
-    return parts[0] + ": " + QString::number(qRound(scaledValue));
+    return parts[0] + QStringLiteral(": ") + QString::number(qRound(scaledValue));
 }
 
 QString UCQQuickImageExtension::scaledSource(QString source, const QString &sciFilePath, const QString &scaleFactor)
 {
     // Rewrite the source line by prepending "image://scaling" to the source value
-    QString sciDirectory = QFileInfo(sciFilePath).dir().path() + "/";
-    QString baseUrl = "image://scaling/" + scaleFactor + "/" + sciDirectory;
+    QString sciDirectory = QFileInfo(sciFilePath).dir().path() + QStringLiteral("/");
+    QString baseUrl = QStringLiteral("image://scaling/") + scaleFactor + QStringLiteral("/") + sciDirectory;
 
     // If the source url is between quotes "", remove them
     const QChar quote = '"';
@@ -202,7 +202,7 @@ QString UCQQuickImageExtension::scaledSource(QString source, const QString &sciF
     }
 
     return source.replace(
-        QStringLiteral("source: "), "source: " + QString(quote) + baseUrl).append(quote);
+        QStringLiteral("source: "), QStringLiteral("source: ") + QString(quote) + baseUrl).append(quote);
 }
 
 UT_NAMESPACE_END
