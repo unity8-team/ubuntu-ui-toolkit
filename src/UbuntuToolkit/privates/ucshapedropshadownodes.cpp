@@ -219,7 +219,6 @@ void UCShapeDropShadowNode::update(
     float s, c;
     sincosf((180.0f - angle) * (M_PI / 180.0f), &s, &c);
 
-    // if (m_style == UCShadow::Outer) {
     UCShapeDropShadowNode::Vertex* v =
         reinterpret_cast<UCShapeDropShadowNode::Vertex*>(m_geometry.vertexData());
     const float midW = w * 0.5f;
