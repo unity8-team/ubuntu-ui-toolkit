@@ -197,98 +197,98 @@ void UCShapeDropShadowNode::update(
     const QSizeF& itemSize, UCShapeType type, float radius, float size, float angle, float distance,
     QRgb color)
 {
-    Q_UNUSED(itemSize);Q_UNUSED(type);Q_UNUSED(radius);Q_UNUSED(size);Q_UNUSED(angle);Q_UNUSED(distance);Q_UNUSED(color)
-//     const float devicePixelRatio = qGuiApp->devicePixelRatio();
-//     const float w = static_cast<float>(itemSize.width());
-//     const float h = static_cast<float>(itemSize.height());
-//     // Rounded down since renderShape() doesn't support sub-pixel rendering.
-//     const float maxSize = floorf(qMin(w, h) * 0.5f);
-//     const float clampedSize = qMin(floorf(size), maxSize);
-//     // FIXME(loicm) The diagonal at rounded integers pos prevents rasterising
-//     //     pixels on a side.
-//     const float clampedRadius = qMin(floorf(radius), maxSize);
-//     const float textureSize = (2.0f * clampedSize + clampedRadius) * devicePixelRatio;
-//     const float textureSizeRounded = getStride(static_cast<int>(textureSize), 1, textureStride);
-//     const float textureOffset = (textureSizeRounded - textureSize) / textureSizeRounded;
-//     const float textureFactor = ((1.0f - textureOffset) * devicePixelRatio) / textureSize;
-//     const quint32 packedColor = packColor(color);
+    // Q_UNUSED(itemSize);Q_UNUSED(type);Q_UNUSED(radius);Q_UNUSED(size);Q_UNUSED(angle);Q_UNUSED(distance);Q_UNUSED(color)
 
-//     // Get the offsets. Adding 180° to cast the shadow according to the virtual
-//     // light position and using the opposite angle to rotate counter clockwise.
-//     float s, c;
-//     sincosf((180.0f - angle) * (M_PI / 180.0f), &s, &c);
+    const float devicePixelRatio = qGuiApp->devicePixelRatio();
+    const float w = static_cast<float>(itemSize.width());
+    const float h = static_cast<float>(itemSize.height());
+    // Rounded down since renderShape() doesn't support sub-pixel rendering.
+    const float maxSize = floorf(qMin(w, h) * 0.5f);
+    const float clampedSize = qMin(floorf(size), maxSize);
+    // FIXME(loicm) The diagonal at rounded integers pos prevents rasterising
+    //     pixels on a side.
+    const float clampedRadius = qMin(floorf(radius), maxSize);
+    const float textureSize = (2.0f * clampedSize + clampedRadius) * devicePixelRatio;
+    const float textureSizeRounded = getStride(static_cast<int>(textureSize), 1, textureStride);
+    const float textureOffset = (textureSizeRounded - textureSize) / textureSizeRounded;
+    const float textureFactor = ((1.0f - textureOffset) * devicePixelRatio) / textureSize;
+    const quint32 packedColor = packColor(color);
 
-//     // if (m_style == UCShadow::Outer) {
-//         UCShapeDropShadowNode::Vertex* v =
-//             reinterpret_cast<UCShapeDropShadowNode::Vertex*>(m_geometry.vertexData());
-//         const float midW = w * 0.5f;
-//         const float midH = h * 0.5f;
-//         const float textureMidWShadow = (midW + clampedSize) * textureFactor + textureOffset;
-//         const float textureMidHShadow = (midH + clampedSize) * textureFactor + textureOffset;
-//         const float offsetX = c * distance;
-//         const float offsetY = s * distance;
+    // Get the offsets. Adding 180° to cast the shadow according to the virtual
+    // light position and using the opposite angle to rotate counter clockwise.
+    float s, c;
+    sincosf((180.0f - angle) * (M_PI / 180.0f), &s, &c);
 
-//         // 1st row.
-//         v[0].x = -clampedSize + offsetX;
-//         v[0].y = -clampedSize + offsetY;
-//         v[0].s = textureOffset;
-//         v[0].t = textureOffset;
-//         v[0].color = packedColor;
-//         v[1].x = midW + offsetX;
-//         v[1].y = -clampedSize + offsetY;
-//         v[1].s = textureMidWShadow;
-//         v[1].t = textureOffset;
-//         v[1].color = packedColor;
-//         v[2].x = w + clampedSize + offsetX;
-//         v[2].y = -clampedSize + offsetY;
-//         v[2].s = textureOffset;
-//         v[2].t = textureOffset;
-//         v[2].color = packedColor;
-//         // 2nd row.
-//         v[3].x = -clampedSize + offsetX;
-//         v[3].y = midH + offsetY;
-//         v[3].s = textureOffset;
-//         v[3].t = textureMidHShadow;
-//         v[3].color = packedColor;
-//         v[4].x = midW + offsetX;
-//         v[4].y = midH + offsetY;
-//         v[4].s = textureMidWShadow;
-//         v[4].t = textureMidHShadow;
-//         v[4].color = packedColor;
-//         v[5].x = w + clampedSize + offsetX;
-//         v[5].y = midH + offsetY;
-//         v[5].s = textureOffset;
-//         v[5].t = textureMidHShadow;
-//         v[5].color = packedColor;
-//         // 3rd row.
-//         v[6].x = -clampedSize + offsetX;
-//         v[6].y = h + clampedSize + offsetY;
-//         v[6].s = textureOffset;
-//         v[6].t = textureOffset;
-//         v[6].color = packedColor;
-//         v[7].x = midW + offsetX;
-//         v[7].y = h + clampedSize + offsetY;
-//         v[7].s = textureMidWShadow;
-//         v[7].t = textureOffset;
-//         v[7].color = packedColor;
-//         v[8].x = w + clampedSize + offsetX;
-//         v[8].y = h + clampedSize + offsetY;
-//         v[8].s = textureOffset;
-//         v[8].t = textureOffset;
-//         v[8].color = packedColor;
+    // if (m_style == UCShadow::Outer) {
+    UCShapeDropShadowNode::Vertex* v =
+        reinterpret_cast<UCShapeDropShadowNode::Vertex*>(m_geometry.vertexData());
+    const float midW = w * 0.5f;
+    const float midH = h * 0.5f;
+    const float textureMidWShadow = (midW + clampedSize) * textureFactor + textureOffset;
+    const float textureMidHShadow = (midH + clampedSize) * textureFactor + textureOffset;
+    const float offsetX = c * distance;
+    const float offsetY = s * distance;
 
-    // markDirty(QSGNode::DirtyGeometry);
+    // 1st row.
+    v[0].x = -clampedSize + offsetX;
+    v[0].y = -clampedSize + offsetY;
+    v[0].s = textureOffset;
+    v[0].t = textureOffset;
+    v[0].color = packedColor;
+    v[1].x = midW + offsetX;
+    v[1].y = -clampedSize + offsetY;
+    v[1].s = textureMidWShadow;
+    v[1].t = textureOffset;
+    v[1].color = packedColor;
+    v[2].x = w + clampedSize + offsetX;
+    v[2].y = -clampedSize + offsetY;
+    v[2].s = textureOffset;
+    v[2].t = textureOffset;
+    v[2].color = packedColor;
+    // 2nd row.
+    v[3].x = -clampedSize + offsetX;
+    v[3].y = midH + offsetY;
+    v[3].s = textureOffset;
+    v[3].t = textureMidHShadow;
+    v[3].color = packedColor;
+    v[4].x = midW + offsetX;
+    v[4].y = midH + offsetY;
+    v[4].s = textureMidWShadow;
+    v[4].t = textureMidHShadow;
+    v[4].color = packedColor;
+    v[5].x = w + clampedSize + offsetX;
+    v[5].y = midH + offsetY;
+    v[5].s = textureOffset;
+    v[5].t = textureMidHShadow;
+    v[5].color = packedColor;
+    // 3rd row.
+    v[6].x = -clampedSize + offsetX;
+    v[6].y = h + clampedSize + offsetY;
+    v[6].s = textureOffset;
+    v[6].t = textureOffset;
+    v[6].color = packedColor;
+    v[7].x = midW + offsetX;
+    v[7].y = h + clampedSize + offsetY;
+    v[7].s = textureMidWShadow;
+    v[7].t = textureOffset;
+    v[7].color = packedColor;
+    v[8].x = w + clampedSize + offsetX;
+    v[8].y = h + clampedSize + offsetY;
+    v[8].s = textureOffset;
+    v[8].t = textureOffset;
+    v[8].color = packedColor;
+    markDirty(QSGNode::DirtyGeometry);
 
-    // // Update data for the preprocess() call.
-    // const quint8 deviceSize = static_cast<quint8>(clampedSize * devicePixelRatio);
-    // if (m_size != deviceSize) {
-    //     m_newSize = deviceSize;
-    // }
-    // const quint8 deviceRadius = static_cast<quint8>(clampedRadius * devicePixelRatio);
-    // if (m_radius != deviceRadius) {
-    //     m_newRadius = deviceRadius;
-    // }
-    // if (m_type != static_cast<quint8>(type)) {
-    //     m_newType = static_cast<quint8>(type);
-    // }
+    // Update data for the preprocess() call.
+    const quint8 deviceSize = static_cast<quint8>(clampedSize * devicePixelRatio);
+    if (m_size != deviceSize) {
+        m_newSize = deviceSize;
+    }
+    const quint8 deviceRadius = static_cast<quint8>(clampedRadius * devicePixelRatio);
+    if (m_radius != deviceRadius) {
+        m_newRadius = deviceRadius;
+    }
+    if (m_type != static_cast<quint8>(type)) {
+        m_newType = static_cast<quint8>(type);
+    }
 }
