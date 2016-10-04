@@ -20,7 +20,7 @@ import Ubuntu.Components.Private 1.3
 
 Item {
     id: root
-    width: 700
+    width: 800
     height: 500
     focus: true
 
@@ -49,7 +49,8 @@ Item {
         Quad {
             id: quad
             anchors.fill: parent
-            anchors.margins: 200.0
+            anchors.leftMargin: 300
+            anchors.margins: 100
             visible: true
         }
     }
