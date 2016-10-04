@@ -255,7 +255,7 @@ int UCShapeFrameCornersMaterial::compare(const QSGMaterial* other) const
 void UCShapeFrameCornersMaterial::updateTexture(int index, UCShapeType type, quint16 radius)
 {
     DASSERT(index >= 0 && index < 2);
-    DASSERT(radius >= 0);
+    //DASSERT(radius >= 0);
     m_textureId[index] = m_textureFactory.maskTexture(index, type, radius);
 }
 
