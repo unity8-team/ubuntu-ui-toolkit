@@ -38,6 +38,7 @@
 #include "quickutils_p.h"
 
 Q_LOGGING_CATEGORY(ucBottomEdge, "ubuntu.components.BottomEdge", QtMsgType::QtWarningMsg)
+#define LOG qCDebug(ucBottomEdge)
 
 UT_NAMESPACE_BEGIN
 

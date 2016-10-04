@@ -132,7 +132,7 @@ UCShapeDropShadowNode::UCShapeDropShadowNode()
     , m_newType(0)
     , m_visible(1)
 {
-    qDebug() << "creating UCShapeDropShadowNode";
+    DLOG("creating UCShapeDropShadowNode");
     setFlag(QSGNode::UsePreprocess);
     memcpy(m_geometry.indexData(), indices(), 14 * sizeof(quint16));
     m_geometry.setDrawingMode(GL_TRIANGLE_STRIP);
@@ -186,7 +186,7 @@ void UCShapeDropShadowNode::preprocess()
 
 void UCShapeDropShadowNode::setVisible(bool visible)
 {
-    qDebug() << "UCShapeDropShadowNode::setVisible" << visible;
+    DLOG("UCShapeDropShadowNode::setVisible %d", visible);
     if (m_visible != visible) {
         m_visible = visible;
         markDirty(DirtySubtreeBlocked);
@@ -218,12 +218,10 @@ void UCShapeDropShadowNode::update(
 //     float s, c;
 //     sincosf((180.0f - angle) * (M_PI / 180.0f), &s, &c);
 
-//     qDebug() << "updategeom" << textureSizeRounded << textureOffset;
-
 //     // if (m_style == UCShadow::Outer) {
 //         UCShapeDropShadowNode::Vertex* v =
 //             reinterpret_cast<UCShapeDropShadowNode::Vertex*>(m_geometry.vertexData());
-// ù        const float midW = w * 0.5f;
+//         const float midW = w * 0.5f;
 //         const float midH = h * 0.5f;
 //         const float textureMidWShadow = (midW + clampedSize) * textureFactor + textureOffset;
 //         const float textureMidHShadow = (midH + clampedSize) * textureFactor + textureOffset;

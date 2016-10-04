@@ -29,7 +29,7 @@ UCShapeFrameEdgesNode::UCShapeFrameEdgesNode()
     , m_visible(1)
     , m_blending(0)
 {
-    qDebug() << "creating UCShapeFrameEdgesNode";
+    DLOG("creating UCShapeFrameEdgesNode");
     memcpy(m_geometry.indexData(), indices(), 22 * sizeof(quint16));
     m_geometry.setDrawingMode(GL_TRIANGLE_STRIP);
     m_geometry.setIndexDataPattern(QSGGeometry::StaticPattern);
@@ -80,7 +80,7 @@ const QSGGeometry::AttributeSet& UCShapeFrameEdgesNode::attributeSet()
 
 void UCShapeFrameEdgesNode::setVisible(bool visible)
 {
-    qDebug() << "UCShapeFrameEdgesNode::setVisible" << visible;
+    DLOG("UCShapeFrameEdgesNode::setVisible %d", visible);
     if (m_visible != visible) {
         m_visible = visible;
         markDirty(DirtySubtreeBlocked);
@@ -269,7 +269,7 @@ UCShapeFrameCornersNode::UCShapeFrameCornersNode()
     , m_newType(0)
     , m_visible(1)
 {
-    qDebug() << "creating UCShapeFrameCornersNode";
+    DLOG("creating UCShapeFrameCornersNode");
     setFlag(QSGNode::UsePreprocess);
     memcpy(m_geometry.indexData(), indices(), 26 * sizeof(quint16));
     m_geometry.setDrawingMode(GL_TRIANGLE_STRIP);
@@ -336,7 +336,7 @@ void UCShapeFrameCornersNode::preprocess()
 
 void UCShapeFrameCornersNode::setVisible(bool visible)
 {
-    qDebug() << "UCShapeFrameCornersNode::setVisible" << visible;
+    DLOG("UCShapeFrameCornersNode::setVisible %d", visible);
     if (m_visible != visible) {
         m_visible = visible;
         markDirty(DirtySubtreeBlocked);

@@ -48,7 +48,7 @@ public:
     static const QSGGeometry::AttributeSet& attributeSet();
 
     UCShapeFillCenterNode();
-    ~UCShapeFillCenterNode() { qDebug() << "detroying UCShapeFillCenterNode"; }
+    ~UCShapeFillCenterNode() { DLOG("detroying UCShapeFillCenterNode"); }
 
     bool isSubtreeBlocked() const Q_DECL_OVERRIDE { return m_visible == 0; }
 
@@ -75,7 +75,7 @@ public:
     static const QSGGeometry::AttributeSet& attributeSet();
 
     UCShapeFillCornersNode();
-    ~UCShapeFillCornersNode() { qDebug() << "detroying UCShapeFillCornersNode"; }
+    ~UCShapeFillCornersNode() { DLOG("detroying UCShapeFillCornersNode"); }
 
     void preprocess() Q_DECL_OVERRIDE;
     bool isSubtreeBlocked() const Q_DECL_OVERRIDE { return m_visible == 0; }

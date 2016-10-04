@@ -23,6 +23,8 @@
 #include <QtQuick/QSGMaterial>
 
 // Logging macros, debug macros are compiled out for release builds.
+#define LOG(...) qDebug(__VA_ARGS__)
+#define WARN(...) qWarning(__VA_ARGS__)
 #define ASSERT(cond) do { if (Q_UNLIKELY(!(cond))) \
     qFatal("Assertion `"#cond"' failed in file %s, line %d", __FILE__, __LINE__); } while (0)
 #define ASSERT_X(cond,message) do { if (Q_UNLIKELY(!(cond))) \
@@ -30,13 +32,17 @@
 #define NOT_REACHED() \
     qFatal("Assertion `not reached' failed in file %s, line %d", __FILE__, __LINE__);
 #if !defined(QT_NO_DEBUG)
-#define DNOT_REACHED(...) NOT_REACHED()
+#define DLOG(...) LOG(__VA_ARGS__)
+#define DWARN(...) WARN(__VA_ARGS__)
 #define DASSERT(cond) ASSERT(cond)
 #define DASSERT_X(cond,message) ASSERT(cond, message)
+#define DNOT_REACHED(...) NOT_REACHED()
 #else
-#define DNOT_REACHED(...) qt_noop()
+#define DLOG(...) qt_noop()
+#define DWARN(...) qt_noop()
 #define DASSERT(cond) qt_noop()
 #define DASSERT_X(cond,message) qt_noop()
+#define DNOT_REACHED(...) qt_noop()
 #endif
 
 // Compile-time constant representing the number of elements in an array.

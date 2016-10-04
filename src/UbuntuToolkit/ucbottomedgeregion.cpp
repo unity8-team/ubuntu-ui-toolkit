@@ -23,6 +23,8 @@
 #include "propertychange_p.h"
 #include "ucbottomedge_p_p.h"
 
+#define LOG qCDebug(ucBottomEdge)
+
 UT_NAMESPACE_BEGIN
 
 UCBottomEdgeRegionPrivate::UCBottomEdgeRegionPrivate()

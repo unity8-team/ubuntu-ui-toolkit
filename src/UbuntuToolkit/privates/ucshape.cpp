@@ -375,8 +375,8 @@ void UCShape::setFrameColor(const QColor& color)
 class UCShapeNode : public QSGNode
 {
 public:
-    UCShapeNode() : QSGNode(), m_nodes{} { qDebug() << "creating UCShapeNode"; }
-    ~UCShapeNode() { qDebug() << "detroying UCShapeNode"; }
+    UCShapeNode() : QSGNode(), m_nodes{} { DLOG("creating UCShapeNode"); }
+    ~UCShapeNode() { DLOG("detroying UCShapeNode"); }
 
     // Sorted by rendering order from back to front.
     enum NodeType {

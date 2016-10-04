@@ -447,6 +447,5 @@ quint32 UCShapeTextureFactory<N>::shadowTexture(
                            GL_UNSIGNED_BYTE, buffer);
     free(buffer);
 
-    qDebug() << "texfactory" << textureSize << offset;
     return textureId;
 }

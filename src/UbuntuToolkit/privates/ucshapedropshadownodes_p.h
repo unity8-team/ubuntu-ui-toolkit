@@ -48,7 +48,7 @@ public:
     static const QSGGeometry::AttributeSet& attributeSet();
 
     UCShapeDropShadowNode();
-    ~UCShapeDropShadowNode() { qDebug() << "detroying UCShapeDropShadowNode"; }
+    ~UCShapeDropShadowNode() { DLOG("detroying UCShapeDropShadowNode"); }
 
     void preprocess() Q_DECL_OVERRIDE;
     bool isSubtreeBlocked() const Q_DECL_OVERRIDE { return m_visible == 0; }
