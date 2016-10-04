@@ -20,14 +20,12 @@ import QtQuick 2.4
 import Ubuntu.Components 1.3
 import Ubuntu.Components.Private 1.3
 
-ShapeFrame {
+Quad {
     anchors.fill: parent
     anchors.margins: -units.gu(0.46)
-    color: styledItem.enabled
-                ? theme.palette.normal.focus
-                : theme.palette.disabled.focus
-    thickness: units.dp(2)
     radius: units.gu(1.7)
+    frameThickness: units.dp(2)
+    frameColor: styledItem.enabled ? theme.palette.normal.focus : theme.palette.disabled.focus
     visible: styledItem.keyNavigationFocus
 
     Behavior on anchors.margins {
