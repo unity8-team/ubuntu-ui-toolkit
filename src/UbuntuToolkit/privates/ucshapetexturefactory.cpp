@@ -26,13 +26,7 @@
 #include <QtGui/QPainter>
 #include <QtSvg/QSvgRenderer>
 
-#if defined(Q_CC_GNU)
-#define RESTRICT __restrict__
-#elif defined(Q_CC_MSVC)
 #define RESTRICT __restrict
-#else
-#define RESTRICT
-#endif
 
 // FIXME(loicm) Add a define to log ref counting info.
 
@@ -42,19 +36,19 @@
 #include <QtCore/QElapsedTimer>
 #endif
 
-// We use explicit template instantiation for TextureFactory so that we can
-// separate the implementation from the header. The drawback is that we have to
-// keep it in sync with the shape items.
-template class TextureFactory<1>;  // Used by UCCornerMaterial (fill.[h,cpp]).
-template class TextureFactory<2>;  // Used by UCFrameCornerMaterial (frame.[h,cpp]).
+// We use explicit template instantiation for UCShapeTextureFactory so that we
+// can separate the implementation from the header. The drawback is that we have
+// to keep it in sync with the shape items.
+template class UCShapeTextureFactory<1>;  // Used by UCCornerMaterial (fill.[h,cpp]).
+template class UCShapeTextureFactory<2>;  // Used by UCFrameCornerMaterial (frame.[h,cpp]).
 
 // Reference counted wrapper for key hashed textures.
 class KeyHash
 {
 public:
-    KeyHash() : m_data(new QHash<quint32, Texture>()), m_refCount(0) {}
+    KeyHash() : m_data(new QHash<quint32, UCShapeTexture>()), m_refCount(0) {}
 
-    QHash<quint32, Texture>* ref() {
+    QHash<quint32, UCShapeTexture>* ref() {
         DASSERT(m_refCount < UINT_MAX);
         m_refCount++;
         return m_data;
@@ -65,11 +59,11 @@ public:
         return m_refCount;
     }
 #if !defined(QT_NO_DEBUG)
-    QHash<quint32, Texture>* data() const { return m_data; }
+    QHash<quint32, UCShapeTexture>* data() const { return m_data; }
 #endif
 
 private:
-    QHash<quint32, Texture>* m_data;
+    QHash<quint32, UCShapeTexture>* m_data;
     quint32 m_refCount;
 };
 
@@ -80,7 +74,7 @@ static QMutex contextHashMutex;
 static QSvgRenderer svg(QByteArray(squircleSvg), 0);
 
 template <int N>
-TextureFactory<N>::TextureFactory()
+UCShapeTextureFactory<N>::UCShapeTextureFactory()
     : m_context(QOpenGLContext::currentContext())
 {
     DASSERT(m_context);
@@ -96,7 +90,7 @@ TextureFactory<N>::TextureFactory()
 }
 
 template <int N>
-TextureFactory<N>::~TextureFactory()
+UCShapeTextureFactory<N>::~UCShapeTextureFactory()
 {
     DASSERT(QOpenGLContext::currentContext() == m_context);
 
@@ -127,7 +121,7 @@ TextureFactory<N>::~TextureFactory()
 }
 
 template <int N>
-quint32 TextureFactory<N>::acquireTexture(
+quint32 UCShapeTextureFactory<N>::acquireTexture(
     int index, quint32 currentKey, quint32 newKey, bool* needsUpdate, bool* isNewTexture)
 {
     DASSERT(index >= 0 && index < N);
@@ -142,7 +136,7 @@ quint32 TextureFactory<N>::acquireTexture(
         quint32 textureId = currentIt.value().id();
         m_keyHash->erase(currentIt);
         if (newIt == m_keyHash->end()) {
-            m_keyHash->insert(newKey, Texture(textureId));
+            m_keyHash->insert(newKey, UCShapeTexture(textureId));
             *needsUpdate = true;
             *isNewTexture = false;
             return textureId;
@@ -156,7 +150,7 @@ quint32 TextureFactory<N>::acquireTexture(
         if (newIt == m_keyHash->end()) {
             quint32 textureId;
             m_context->functions()->glGenTextures(1, &textureId);
-            m_keyHash->insert(newKey, Texture(textureId));
+            m_keyHash->insert(newKey, UCShapeTexture(textureId));
             *needsUpdate = true;
             *isNewTexture = true;
             return textureId;
@@ -168,7 +162,9 @@ quint32 TextureFactory<N>::acquireTexture(
     }
 }
 
-static quint8* renderShapeTexture(Texture::Shape shape, int radius)
+// static
+template <int N>
+quint8* UCShapeTextureFactory<N>::renderMaskTexture(UCShapeType type, int radius)
 {
     DASSERT(radius > 0);
 
@@ -186,7 +182,7 @@ static quint8* renderShapeTexture(Texture::Shape shape, int radius)
     QImage image(reinterpret_cast<quint8*>(painterBufferU32), radius, radius, radius * 4,
                  QImage::Format_ARGB32_Premultiplied);
     QPainter painter(&image);
-    if (shape == Texture::Squircle) {
+    if (type == UCShapeType::Squircle) {
         svg.render(&painter);
     } else {
         painter.setBrush(Qt::white);
@@ -220,14 +216,14 @@ static quint8* renderShapeTexture(Texture::Shape shape, int radius)
 // FIXME(loicm) We should maybe use a texture atlas storing all the radii to
 //     improve batching.
 template <int N>
-quint32 TextureFactory<N>::shapeTexture(int index, Texture::Shape shape, int radius)
+quint32 UCShapeTextureFactory<N>::maskTexture(int index, UCShapeType type, quint16 radius)
 {
     DASSERT(index >= 0 && index < N);
-    DASSERT(radius >= 0);
+    DASSERT((radius & 0xf000) == 0);
     DASSERT(QOpenGLContext::currentContext() == m_context);
 
     const quint32 currentKey = m_keys[index];
-    const quint32 newKey = makeShapeTextureKey(shape, radius);
+    const quint32 newKey = makeMaskTextureKey(type, radius);
     bool needsUpdate, isNewTexture;
     quint32 textureId = acquireTexture(index, currentKey, newKey, &needsUpdate, &isNewTexture);
     if (!needsUpdate) {
@@ -237,7 +233,7 @@ quint32 TextureFactory<N>::shapeTexture(int index, Texture::Shape shape, int rad
     // Bind the texture, initialise states and allocate space. The texture size
     // is a multiple of textureStride to allow GPUs to speed up uploads and
     // optimise storage.
-    const int textureSize = shapeTextureSize(radius);
+    const int textureSize = maskTextureSize(radius);
     QOpenGLFunctions* funcs = m_context->functions();
     funcs->glBindTexture(GL_TEXTURE_2D, textureId);
     if (isNewTexture) {
@@ -247,14 +243,14 @@ quint32 TextureFactory<N>::shapeTexture(int index, Texture::Shape shape, int rad
         funcs->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         funcs->glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, textureSize, textureSize, 0,
                             GL_LUMINANCE, GL_UNSIGNED_BYTE, NULL);
-    } else if (shapeTextureSizeFromKey(currentKey) != textureSize) {
+    } else if (maskTextureSizeFromKey(currentKey) != textureSize) {
         funcs->glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, textureSize, textureSize, 0,
                             GL_LUMINANCE, GL_UNSIGNED_BYTE, NULL);
     }
 
     // Render and upload texture data.
     quint8* buffer = (radius > 0) ?
-        renderShapeTexture(shape, radius) :
+        renderMaskTexture(type, radius) :
         static_cast<quint8*>(calloc(textureSize * textureSize, 1));
     funcs->glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, textureSize, textureSize, GL_LUMINANCE,
                            GL_UNSIGNED_BYTE, buffer);
@@ -263,13 +259,14 @@ quint32 TextureFactory<N>::shapeTexture(int index, Texture::Shape shape, int rad
     return textureId;
 }
 
-static quint16* renderShadowTexture(Texture::Shape shape, int radius, int shadow)
+// static
+template <int N>
+quint16* UCShapeTextureFactory<N>::renderShadowTexture(UCShapeType type, int radius, int shadow)
 {
-    // FIXME(loicm) Was shadow > 0 before but when the shadow item is
-    //     shrinked because if its size, the given shadow can be 0. 1)
-    //     Rendering with shadow == 0 hasn't been tested, 2) Shouldn't
-    //     we clamp to 1?
-    DASSERT(shadow >= 0);  // DASSERT(shadow > 0);
+    // FIXME(loicm) shadow > 0 was asserted before but when the shadow item is
+    //     shrinked because if its size, the given shadow can be 0. 1) Rendering
+    //     with shadow == 0 hasn't been tested, 2) Shouldn't we clamp to 1?
+    DASSERT(shadow >= 0);
     DASSERT(radius >= 0);
 
     const int shadowPlusRadius = shadow + radius;
@@ -293,7 +290,7 @@ static quint16* renderShadowTexture(Texture::Shape shape, int radius, int shadow
         QImage image((quint8*)&dataF32[textureWidthPlusGutters * shadow + gutter + shadow], radius,
                      radius, textureWidthPlusGutters * 4, QImage::Format_ARGB32_Premultiplied);
         QPainter painter(&image);
-        if (shape == Texture::Squircle) {
+        if (type == UCShapeType::Squircle) {
             svg.render(&painter);
         } else {
             painter.setBrush(Qt::white);
@@ -402,14 +399,16 @@ static quint16* renderShadowTexture(Texture::Shape shape, int radius, int shadow
 }
 
 template <int N>
-quint32 TextureFactory<N>::shadowTexture(int index, Texture::Shape shape, int radius, int shadow)
+quint32 UCShapeTextureFactory<N>::shadowTexture(
+    int index, UCShapeType type, quint16 radius, quint16 shadow)
 {
     DASSERT(index >= 0 && index < N);
-    DASSERT(radius >= 0);
+    DASSERT((radius & 0xf000) == 0);
+    DASSERT((shadow & 0xf000) == 0);
     DASSERT(QOpenGLContext::currentContext() == m_context);
 
     const quint32 currentKey = m_keys[index];
-    const quint32 newKey = makeShadowTextureKey(shape, radius, shadow);
+    const quint32 newKey = makeShadowTextureKey(type, radius, shadow);
     bool needsUpdate, isNewTexture;
     quint32 textureId = acquireTexture(index, currentKey, newKey, &needsUpdate, &isNewTexture);
     if (!needsUpdate) {
@@ -443,10 +442,11 @@ quint32 TextureFactory<N>::shadowTexture(int index, Texture::Shape shape, int ra
     // Render and upload texture data.
     const int size = 2 * shadow + radius;
     const int offset = textureSize - size;
-    buffer = renderShadowTexture(shape, radius, shadow);
+    buffer = renderShadowTexture(type, radius, shadow);
     funcs->glTexSubImage2D(GL_TEXTURE_2D, 0, offset, offset, size, size, GL_LUMINANCE_ALPHA,
                            GL_UNSIGNED_BYTE, buffer);
     free(buffer);
 
+    qDebug() << "texfactory" << textureSize << offset;
     return textureId;
 }

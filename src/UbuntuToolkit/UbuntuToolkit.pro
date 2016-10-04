@@ -48,9 +48,10 @@ HEADERS += \
     $$PWD/privates/listviewextensions_p.h \
     $$PWD/privates/splitviewhandler_p.h \
     $$PWD/privates/threelabelsslot_p.h \
-    $$PWD/privates/ucshapefill_p.h \
-    $$PWD/privates/ucshapeframe_p.h \
-    $$PWD/privates/ucshapeshadow_p.h \
+    $$PWD/privates/ucshape_p.h \
+    $$PWD/privates/ucshapedropshadownodes_p.h \
+    $$PWD/privates/ucshapefillnodes_p.h \
+    $$PWD/privates/ucshapeframenodes_p.h \
     $$PWD/privates/ucshapetexturefactory_p.h \
     $$PWD/privates/ucshapeutils_p.h \
     $$PWD/privates/ucpagewrapper_p.h \
@@ -163,9 +164,10 @@ SOURCES += \
     $$PWD/privates/listviewextensions.cpp \
     $$PWD/privates/splitviewhandler.cpp \
     $$PWD/privates/threelabelsslot_p.cpp \
-    $$PWD/privates/ucshapefill.cpp \
-    $$PWD/privates/ucshapeframe.cpp \
-    $$PWD/privates/ucshapeshadow.cpp \
+    $$PWD/privates/ucshape.cpp \
+    $$PWD/privates/ucshapedropshadownodes.cpp \
+    $$PWD/privates/ucshapefillnodes.cpp \
+    $$PWD/privates/ucshapeframenodes.cpp \
     $$PWD/privates/ucshapetexturefactory.cpp \
     $$PWD/privates/ucshapeutils.cpp \
     $$PWD/privates/ucpagewrapper.cpp \

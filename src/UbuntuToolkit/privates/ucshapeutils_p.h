@@ -22,21 +22,27 @@
 #include <QtGui/QColor>
 #include <QtQuick/QSGMaterial>
 
-// Debug macros compiled out for release builds.
-#if !defined(QT_NO_DEBUG)
-#define DLOG(...) qDebug(__VA_ARGS__)
-#define DLOG_IF(cond,...) do { if (cond) qDebug(__VA_ARGS__); } while (0)
-#define DASSERT(cond) do { if (Q_UNLIKELY(!(cond))) \
+// Logging macros, debug macros are compiled out for release builds.
+#define ASSERT(cond) do { if (Q_UNLIKELY(!(cond))) \
     qFatal("Assertion `"#cond"' failed in file %s, line %d", __FILE__, __LINE__); } while (0)
+#define ASSERT_X(cond,message) do { if (Q_UNLIKELY(!(cond))) \
+    qFatal("Assertion "#message" failed in file %s, line %d", __FILE__, __LINE__); } while (0)
+#define NOT_REACHED() \
+    qFatal("Assertion `not reached' failed in file %s, line %d", __FILE__, __LINE__);
+#if !defined(QT_NO_DEBUG)
+#define DNOT_REACHED(...) NOT_REACHED()
+#define DASSERT(cond) ASSERT(cond)
+#define DASSERT_X(cond,message) ASSERT(cond, message)
 #else
-#define DLOG(...) qt_noop()
-#define DLOG_IF(cond,...) qt_noop()
+#define DNOT_REACHED(...) qt_noop()
 #define DASSERT(cond) qt_noop()
+#define DASSERT_X(cond,message) qt_noop()
 #endif
 
-// Common constants for shape items.
-const int defaultRadius = 50;
-const int maxRadius = 128;
+// Compile-time constant representing the number of elements in an array.
+template<typename T, size_t N> Q_CONSTEXPR size_t ARRAY_SIZE(T (&)[N]) { return N; }
+
+#define IS_POWER_OF_TWO(n) !((n) & ((n) - 1))
 
 // Squircle SVG defintion and approximate normalised coverage at Pi/4 (used to
 // correctly set vertex positions and minimise the amount of rasterised
@@ -55,10 +61,6 @@ const int gaussianCount = 128;
 extern const int gaussianOffsets[];
 extern const float gaussianKernels[];
 extern const float gaussianSums[];
-
-// maxRadius can't be higher than gaussianCount. If maxRadius needs to
-// be increased, the gaussian kernels must be adapted too.
-Q_STATIC_ASSERT(maxRadius == gaussianCount);
 
 // Get the stride of a buffer of the given width and bytes per pixel for a
 // specific alignment.
@@ -80,38 +82,44 @@ static inline quint32 packColor(QRgb color)
     return (a << 24) | ((b & 0xff) << 16) | ((g & 0xff) << 8) | (r & 0xff);
 }
 
-// Quantize a value in the range [0, higherBound] from F32 to U16.
-static inline quint16 quantizeToU16(float value, float higherBound)
+Q_CONSTEXPR qreal quantizedU16Max = 4096.0;
+Q_CONSTEXPR qreal u16Max = static_cast<qreal>(std::numeric_limits<quint16>::max());
+Q_STATIC_ASSERT(quantizedU16Max >= 1.0 && quantizedU16Max <= u16Max);
+
+// Quantize a value in the range [0, quantizedU16Max] from qreal to U16.
+static inline quint16 quantizeToU16Clamped(qreal value)
 {
-    const float u16Max = static_cast<float>(std::numeric_limits<quint16>::max());
-    DASSERT(higherBound >= 0.0f || higherBound <= u16Max);
-    DASSERT(value >= 0.0f || value <= u16Max);
-    return static_cast<quint16>((value * (u16Max / higherBound)) + 0.5f);
+    DASSERT(value >= 0.0 && value <= quantizedU16Max);
+    return static_cast<quint16>((value * (u16Max / quantizedU16Max)) + 0.5);
 }
 
-// Unquantize a value in the range [0, higherBound] from U16 to F32.
-static inline float unquantizeFromU16(quint16 value, float higherBound)
+// Clamp value to the range [0, quantizedU16Max] and quantize from qreal to U16.
+static inline quint16 quantizeToU16(qreal value)
 {
-    const float u16Max = static_cast<float>(std::numeric_limits<quint16>::max());
-    DASSERT(higherBound >= 0.0f || higherBound <= u16Max);
-    return static_cast<float>(value) * (higherBound / u16Max);
+    return quantizeToU16Clamped(qBound(0.0, value, quantizedU16Max));
+}
+
+// Unquantize a value in the range [0, quantizedU16Max] from U16 to qreal.
+static inline qreal unquantizeFromU16(quint16 value)
+{
+    return static_cast<qreal>(value) * (quantizedU16Max / u16Max);
 }
 
 // Opaque color material common to most shape items.
-class UCOpaqueColorMaterial : public QSGMaterial
+class UCShapeOpaqueColorMaterial : public QSGMaterial
 {
 public:
-    UCOpaqueColorMaterial(bool blending = false);
+    UCShapeOpaqueColorMaterial(bool blending = false);
     int compare(const QSGMaterial* other) const override;
     QSGMaterialType* type() const override;
     QSGMaterialShader* createShader() const override;
 };
 
 // Color material common to most shape items.
-class UCColorMaterial : public UCOpaqueColorMaterial
+class UCShapeColorMaterial : public UCShapeOpaqueColorMaterial
 {
 public:
-    UCColorMaterial();
+    UCShapeColorMaterial();
     QSGMaterialType* type() const override;
     QSGMaterialShader* createShader() const override;
 };

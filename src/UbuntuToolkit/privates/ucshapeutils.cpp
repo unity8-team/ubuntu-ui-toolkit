@@ -210,40 +210,40 @@ private:
     int m_opacityId;
 };
 
-UCOpaqueColorMaterial::UCOpaqueColorMaterial(bool blending)
+UCShapeOpaqueColorMaterial::UCShapeOpaqueColorMaterial(bool blending)
 {
     setFlag(Blending, blending);
 }
 
-QSGMaterialType* UCOpaqueColorMaterial::type() const
+QSGMaterialType* UCShapeOpaqueColorMaterial::type() const
 {
     static QSGMaterialType type;
     return &type;
 }
 
-QSGMaterialShader* UCOpaqueColorMaterial::createShader() const
+QSGMaterialShader* UCShapeOpaqueColorMaterial::createShader() const
 {
     return new OpaqueColorShader;
 }
 
-int UCOpaqueColorMaterial::compare(const QSGMaterial* other) const
+int UCShapeOpaqueColorMaterial::compare(const QSGMaterial* other) const
 {
     Q_UNUSED(other);
     return 0;
 }
 
-UCColorMaterial::UCColorMaterial()
+UCShapeColorMaterial::UCShapeColorMaterial()
 {
     setFlag(Blending, true);
 }
 
-QSGMaterialType* UCColorMaterial::type() const
+QSGMaterialType* UCShapeColorMaterial::type() const
 {
     static QSGMaterialType type;
     return &type;
 }
 
-QSGMaterialShader* UCColorMaterial::createShader() const
+QSGMaterialShader* UCShapeColorMaterial::createShader() const
 {
     return new ColorShader;
 }

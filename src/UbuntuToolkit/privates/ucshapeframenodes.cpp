@@ -16,32 +16,171 @@
  * Author: Loïc Molinari <loic.molinari@canonical.com>
  */
 
-#include "ucshapeframe_p.h"
+#include "ucshapeframenodes_p.h"
 
 #include <QtGui/QGuiApplication>
 #include <QtGui/QOpenGLFunctions>
 
-const UCFrame::Shape defaultShape = UCFrame::Squircle;
-const QRgb defaultColor = qRgba(255, 255, 255, 255);
-const int defaultThickness = 10;
+UCShapeFrameEdgesNode::UCShapeFrameEdgesNode()
+    : QSGGeometryNode()
+    , m_opaqueMaterial()
+    , m_material()
+    , m_geometry(attributeSet(), 16, 22, GL_UNSIGNED_SHORT)
+    , m_visible(1)
+    , m_blending(0)
+{
+    qDebug() << "creating UCShapeFrameEdgesNode";
+    memcpy(m_geometry.indexData(), indices(), 22 * sizeof(quint16));
+    m_geometry.setDrawingMode(GL_TRIANGLE_STRIP);
+    m_geometry.setIndexDataPattern(QSGGeometry::StaticPattern);
+    m_geometry.setVertexDataPattern(QSGGeometry::AlwaysUploadPattern);
+    setGeometry(&m_geometry);
+    setOpaqueMaterial(&m_opaqueMaterial);
+    setMaterial(&m_material);
+    qsgnode_set_description(this, QLatin1String("shapeframeedges"));
+}
 
-// --- Shader ---
+// static
+const quint16* UCShapeFrameEdgesNode::indices()
+{
+    // The geometry is made of 16 vertices indexed with a triangle strip mode.
+    //        0 ----- 1
+    //         2 --- 3
+    //     4             5
+    //     | 6         7 |
+    //     | |         | |
+    //     | 8         9 |
+    //    10             11
+    //        12 --- 13
+    //       14 ----- 15
+    static const quint16 indices[] = {
+        0, 2, 1, 3,
+        3, 4,  // Degenerate triangle.
+        4, 10, 6, 8,
+        8, 7,  // Degenerate triangle.
+        7, 9, 5, 11,
+        11, 12,  // Degenerate triangle.
+        12, 14, 13, 15
+    };
+    return indices;
+}
 
-class FrameCornerShader : public QSGMaterialShader
+// static
+const QSGGeometry::AttributeSet& UCShapeFrameEdgesNode::attributeSet()
+{
+    static const QSGGeometry::Attribute attributes[] = {
+        QSGGeometry::Attribute::create(0, 2, GL_FLOAT, true),
+        QSGGeometry::Attribute::create(1, 4, GL_UNSIGNED_BYTE)
+    };
+    static const QSGGeometry::AttributeSet attributeSet = {
+        2, sizeof(Vertex), attributes
+    };
+    return attributeSet;
+}
+
+void UCShapeFrameEdgesNode::setVisible(bool visible)
+{
+    qDebug() << "UCShapeFrameEdgesNode::setVisible" << visible;
+    if (m_visible != visible) {
+        m_visible = visible;
+        markDirty(DirtySubtreeBlocked);
+    }
+}
+
+void UCShapeFrameEdgesNode::update(
+    const QSizeF& itemSize, float radius, float thickness, float space, QRgb color)
+{
+    Q_UNUSED(space);
+    // FIXME(loicm) Add space support.
+
+    UCShapeFrameEdgesNode::Vertex* v =
+        reinterpret_cast<UCShapeFrameEdgesNode::Vertex*>(m_geometry.vertexData());
+    const float w = static_cast<float>(itemSize.width());
+    const float h = static_cast<float>(itemSize.height());
+    // FIXME(loicm) Rounded down since renderShape() doesn't support sub-pixel rendering.
+    const float maxSize = floorf(qMin(w, h) * 0.5f);
+    const float clampedThickness = qMin(floorf(thickness), maxSize);
+    const float outerRadius = qMin(floorf(radius), maxSize);
+    // FIXME(loicm) Rounded down since renderShape() doesn't support sub-pixel rendering.
+    const float innerRadius = floorf(outerRadius * ((maxSize - clampedThickness) / maxSize));
+    const quint32 packedColor = packColor(color);
+
+    v[0].x = outerRadius;
+    v[0].y = 0.0f;
+    v[0].color = packedColor;
+    v[1].x = w - outerRadius;
+    v[1].y = 0.0f;
+    v[1].color = packedColor;
+    v[2].x = clampedThickness + innerRadius;
+    v[2].y = clampedThickness;
+    v[2].color = packedColor;
+    v[3].x = w - clampedThickness - innerRadius;
+    v[3].y = clampedThickness;
+    v[3].color = packedColor;
+    v[4].x = 0.0f;
+    v[4].y = outerRadius;
+    v[4].color = packedColor;
+    v[5].x = w;
+    v[5].y = outerRadius;
+    v[5].color = packedColor;
+    v[6].x = clampedThickness;
+    v[6].y = clampedThickness + innerRadius;
+    v[6].color = packedColor;
+    v[7].x = w - clampedThickness;
+    v[7].y = clampedThickness + innerRadius;
+    v[7].color = packedColor;
+    v[8].x = clampedThickness;
+    v[8].y = h - clampedThickness - innerRadius;
+    v[8].color = packedColor;
+    v[9].x = w - clampedThickness;
+    v[9].y = h - clampedThickness - innerRadius;
+    v[9].color = packedColor;
+    v[10].x = 0.0f;
+    v[10].y = h - outerRadius;
+    v[10].color = packedColor;
+    v[11].x = w;
+    v[11].y = h - outerRadius;
+    v[11].color = packedColor;
+    v[12].x = clampedThickness + innerRadius;
+    v[12].y = h - clampedThickness;
+    v[12].color = packedColor;
+    v[13].x = w - clampedThickness - innerRadius;
+    v[13].y = h - clampedThickness;
+    v[13].color = packedColor;
+    v[14].x = outerRadius;
+    v[14].y = h;
+    v[14].color = packedColor;
+    v[15].x = w - outerRadius;
+    v[15].y = h;
+    v[15].color = packedColor;
+    markDirty(QSGNode::DirtyGeometry);
+
+    // Update the blending state of the opaque material (in QSG terms, an opaque
+    // material is the material automatically used when the opacity is 1, but
+    // even if the opacity is 1 we have to handle the case where the alpha of
+    // the specified color is less than 1).
+    const bool blending = qAlpha(color) < 255;
+    if (blending != static_cast<bool>(m_blending)) {
+        m_opaqueMaterial.setFlag(QSGMaterial::Blending, blending);
+        markDirty(QSGNode::DirtyMaterial);
+    }
+}
+
+class UCShapeFrameCornersShader : public QSGMaterialShader
 {
 public:
-    FrameCornerShader();
-    char const* const* attributeNames() const override;
-    void initialize() override;
+    UCShapeFrameCornersShader();
+    char const* const* attributeNames() const Q_DECL_OVERRIDE;
+    void initialize() Q_DECL_OVERRIDE;
     void updateState(
-        const RenderState& state, QSGMaterial* newEffect, QSGMaterial* oldEffect) override;
+        const RenderState& state, QSGMaterial* newEffect, QSGMaterial* oldEffect) Q_DECL_OVERRIDE;
 
 private:
     int m_matrixId;
     int m_opacityId;
 };
 
-FrameCornerShader::FrameCornerShader()
+UCShapeFrameCornersShader::UCShapeFrameCornersShader()
 {
     setShaderSourceFile(QOpenGLShader::Vertex,
                         QStringLiteral(":/uc/privates/shaders/texture2.vert"));
@@ -49,7 +188,7 @@ FrameCornerShader::FrameCornerShader()
                         QStringLiteral(":/uc/privates/shaders/frame.frag"));
 }
 
-char const* const* FrameCornerShader::attributeNames() const
+char const* const* UCShapeFrameCornersShader::attributeNames() const
 {
     static char const* const attributes[] = {
         "positionAttrib", "texCoord1Attrib", "texCoord2Attrib", "colorAttrib", 0
@@ -57,7 +196,7 @@ char const* const* FrameCornerShader::attributeNames() const
     return attributes;
 }
 
-void FrameCornerShader::initialize()
+void UCShapeFrameCornersShader::initialize()
 {
     QSGMaterialShader::initialize();
     program()->bind();
@@ -67,13 +206,13 @@ void FrameCornerShader::initialize()
     m_opacityId = program()->uniformLocation("opacity");
 }
 
-void FrameCornerShader::updateState(
+void UCShapeFrameCornersShader::updateState(
     const RenderState& state, QSGMaterial* newEffect, QSGMaterial* oldEffect)
 {
     Q_UNUSED(oldEffect);
 
     QOpenGLFunctions* funcs = QOpenGLContext::currentContext()->functions();
-    UCFrameCornerMaterial* material = static_cast<UCFrameCornerMaterial*>(newEffect);
+    UCShapeFrameCornersMaterial* material = static_cast<UCShapeFrameCornersMaterial*>(newEffect);
     funcs->glActiveTexture(GL_TEXTURE1);
     funcs->glBindTexture(GL_TEXTURE_2D, material->innerTextureId());
     funcs->glActiveTexture(GL_TEXTURE0);
@@ -87,54 +226,50 @@ void FrameCornerShader::updateState(
     }
 }
 
-// --- Material ---
-
-UCFrameCornerMaterial::UCFrameCornerMaterial()
+UCShapeFrameCornersMaterial::UCShapeFrameCornersMaterial()
 {
     setFlag(Blending, true);
 }
 
-QSGMaterialType* UCFrameCornerMaterial::type() const
+QSGMaterialType* UCShapeFrameCornersMaterial::type() const
 {
     static QSGMaterialType type;
     return &type;
 }
 
-QSGMaterialShader* UCFrameCornerMaterial::createShader() const
+QSGMaterialShader* UCShapeFrameCornersMaterial::createShader() const
 {
-    return new FrameCornerShader;
+    return new UCShapeFrameCornersShader;
 }
 
-int UCFrameCornerMaterial::compare(const QSGMaterial* other) const
+int UCShapeFrameCornersMaterial::compare(const QSGMaterial* other) const
 {
-    const UCFrameCornerMaterial* otherFrameCornerMaterial =
-        static_cast<const UCFrameCornerMaterial*>(other);
-    if (otherFrameCornerMaterial->outerTextureId() != m_textureId[0]) {
+    const UCShapeFrameCornersMaterial* otherFrameCornersMaterial =
+        static_cast<const UCShapeFrameCornersMaterial*>(other);
+    if (otherFrameCornersMaterial->outerTextureId() != m_textureId[0]) {
         return -1;
     }
-    return otherFrameCornerMaterial->innerTextureId() - m_textureId[1];
+    return otherFrameCornersMaterial->innerTextureId() - m_textureId[1];
 }
 
-void UCFrameCornerMaterial::updateTexture(int index, UCFrame::Shape shape, int radius)
+void UCShapeFrameCornersMaterial::updateTexture(int index, UCShapeType type, quint16 radius)
 {
     DASSERT(index >= 0 && index < 2);
     DASSERT(radius >= 0);
-    m_textureId[index] = m_textureFactory.shapeTexture(
-        index, static_cast<Texture::Shape>(shape), radius);
+    m_textureId[index] = m_textureFactory.maskTexture(index, type, radius);
 }
 
-// --- Node ---
-
-UCFrameCornerNode::UCFrameCornerNode(UCFrame::Shape shape, bool visible)
+UCShapeFrameCornersNode::UCShapeFrameCornersNode()
     : QSGGeometryNode()
     , m_material()
     , m_geometry(attributeSet(), 20, 26, GL_UNSIGNED_SHORT)
     , m_radius{0, 0}
     , m_newRadius{0, 0}
-    , m_shape(shape)
-    , m_newShape(shape)
-    , m_visible(visible)
+    , m_type(0)
+    , m_newType(0)
+    , m_visible(1)
 {
+    qDebug() << "creating UCShapeFrameCornersNode";
     setFlag(QSGNode::UsePreprocess);
     memcpy(m_geometry.indexData(), indices(), 26 * sizeof(quint16));
     m_geometry.setDrawingMode(GL_TRIANGLE_STRIP);
@@ -142,11 +277,11 @@ UCFrameCornerNode::UCFrameCornerNode(UCFrame::Shape shape, bool visible)
     m_geometry.setVertexDataPattern(QSGGeometry::AlwaysUploadPattern);
     setMaterial(&m_material);
     setGeometry(&m_geometry);
-    qsgnode_set_description(this, QLatin1String("shapeframecorner"));
+    qsgnode_set_description(this, QLatin1String("shapeframecorners"));
 }
 
 // static
-const quint16* UCFrameCornerNode::indices()
+const quint16* UCShapeFrameCornersNode::indices()
 {
     // The geometry is made of 20 vertices indexed with a triangle strip mode.
     //     0 -1       2- 3
@@ -171,7 +306,7 @@ const quint16* UCFrameCornerNode::indices()
 }
 
 // static
-const QSGGeometry::AttributeSet& UCFrameCornerNode::attributeSet()
+const QSGGeometry::AttributeSet& UCShapeFrameCornersNode::attributeSet()
 {
     static const QSGGeometry::Attribute attributes[] = {
         QSGGeometry::Attribute::create(0, 2, GL_FLOAT, true),
@@ -185,42 +320,53 @@ const QSGGeometry::AttributeSet& UCFrameCornerNode::attributeSet()
     return attributeSet;
 }
 
-void UCFrameCornerNode::preprocess()
+void UCShapeFrameCornersNode::preprocess()
 {
-    const bool hasNewshape = m_newShape != m_shape;
+    const bool hasNewType = m_newType != m_type;
     for (int i = 0; i < 2; i++) {
-        if (hasNewshape || m_newRadius[i] != m_radius[i]) {
-            m_material.updateTexture(i, static_cast<UCFrame::Shape>(m_newShape), m_newRadius[i]);
+        if (hasNewType || m_newRadius[i] != m_radius[i]) {
+            m_material.updateTexture(i, static_cast<UCShapeType>(m_newType), m_newRadius[i]);
             m_radius[i] = m_newRadius[i];
         }
     }
-    if (hasNewshape) {
-        m_shape = m_newShape;
+    if (hasNewType) {
+        m_type = m_newType;
     }
 }
 
-void UCFrameCornerNode::setVisible(bool visible)
+void UCShapeFrameCornersNode::setVisible(bool visible)
 {
+    qDebug() << "UCShapeFrameCornersNode::setVisible" << visible;
     if (m_visible != visible) {
         m_visible = visible;
         markDirty(DirtySubtreeBlocked);
     }
 }
 
-void UCFrameCornerNode::updateGeometry(
-    const QSizeF& itemSize, float thickness, float radius, QRgb color)
+void UCShapeFrameCornersNode::update(
+    const QSizeF& itemSize, UCShapeType type, float radius, float thickness, float space,
+    QRgb color)
 {
-    UCFrameCornerNode::Vertex* v =
-        reinterpret_cast<UCFrameCornerNode::Vertex*>(m_geometry.vertexData());
+    Q_UNUSED(space);
+    // FIXME(loicm) Add space support.
+
+    // FIXME(loicm) Temp hack to hide the broken rendering of corners which
+    //     slightly appears when the thickness is less than 1.
+    if (thickness < 1.0f) {
+        radius = 0.0f;
+    }
+
+    UCShapeFrameCornersNode::Vertex* v =
+        reinterpret_cast<UCShapeFrameCornersNode::Vertex*>(m_geometry.vertexData());
     const float devicePixelRatio = qGuiApp->devicePixelRatio();
     const float w = static_cast<float>(itemSize.width());
     const float h = static_cast<float>(itemSize.height());
     // FIXME(loicm) Rounded down since renderShape() doesn't support sub-pixel rendering.
     const float maxSize = floorf(qMin(w, h) * 0.5f);
-    const float clampedThickness = qMin(thickness, maxSize);
+    const float clampedThickness = qMin(floorf(thickness), maxSize);
     const float deviceThickness = clampedThickness * devicePixelRatio;
     const float border = 1.0f;
-    const float outerRadius = qMin(radius, maxSize);
+    const float outerRadius = qMin(floorf(radius), maxSize);
     const float deviceOuterRadius = outerRadius * devicePixelRatio;
     // FIXME(loicm) Rounded down since renderShape() doesn't support sub-pixel rendering.
     const float outerRadiusRounded =
@@ -405,234 +551,7 @@ void UCFrameCornerNode::updateGeometry(
     if (m_radius[1] != static_cast<quint8>(deviceInnerRadius)) {
         m_newRadius[1] = static_cast<quint8>(deviceInnerRadius);
     }
-}
-
-UCFrameNode::UCFrameNode(bool blending)
-    : QSGGeometryNode()
-    , m_opaqueMaterial(blending)
-    , m_geometry(attributeSet(), 16, 22, GL_UNSIGNED_SHORT)
-{
-    memcpy(m_geometry.indexData(), indices(), 22 * sizeof(quint16));
-    m_geometry.setDrawingMode(GL_TRIANGLE_STRIP);
-    m_geometry.setIndexDataPattern(QSGGeometry::StaticPattern);
-    m_geometry.setVertexDataPattern(QSGGeometry::AlwaysUploadPattern);
-    setGeometry(&m_geometry);
-    setOpaqueMaterial(&m_opaqueMaterial);
-    setMaterial(&m_material);
-    qsgnode_set_description(this, QLatin1String("shapeframe"));
-}
-
-// static
-const quint16* UCFrameNode::indices()
-{
-    // The geometry is made of 16 vertices indexed with a triangle strip mode.
-    //        0 ----- 1
-    //         2 --- 3
-    //     4             5
-    //     | 6         7 |
-    //     | |         | |
-    //     | 8         9 |
-    //    10             11
-    //        12 --- 13
-    //       14 ----- 15
-    static const quint16 indices[] = {
-        0, 2, 1, 3,
-        3, 4,  // Degenerate triangle.
-        4, 10, 6, 8,
-        8, 7,  // Degenerate triangle.
-        7, 9, 5, 11,
-        11, 12,  // Degenerate triangle.
-        12, 14, 13, 15
-    };
-    return indices;
-}
-
-// static
-const QSGGeometry::AttributeSet& UCFrameNode::attributeSet()
-{
-    static const QSGGeometry::Attribute attributes[] = {
-        QSGGeometry::Attribute::create(0, 2, GL_FLOAT, true),
-        QSGGeometry::Attribute::create(1, 4, GL_UNSIGNED_BYTE)
-    };
-    static const QSGGeometry::AttributeSet attributeSet = {
-        2, sizeof(Vertex), attributes
-    };
-    return attributeSet;
-}
-
-void UCFrameNode::updateBlending(bool blending)
-{
-    m_opaqueMaterial.setFlag(QSGMaterial::Blending, blending);
-    markDirty(QSGNode::DirtyMaterial);
-}
-
-void UCFrameNode::updateGeometry(const QSizeF& itemSize, float thickness, float radius, QRgb color)
-{
-    UCFrameNode::Vertex* v =
-        reinterpret_cast<UCFrameNode::Vertex*>(m_geometry.vertexData());
-    const float w = static_cast<float>(itemSize.width());
-    const float h = static_cast<float>(itemSize.height());
-    // FIXME(loicm) Rounded down since renderShape() doesn't support sub-pixel rendering.
-    const float maxSize = floorf(qMin(w, h) * 0.5f);
-    const float clampedThickness = qMin(thickness, maxSize);
-    const float outerRadius = qMin(radius, maxSize);
-    // FIXME(loicm) Rounded down since renderShape() doesn't support sub-pixel rendering.
-    const float innerRadius = floorf(outerRadius * ((maxSize - clampedThickness) / maxSize));
-    const quint32 packedColor = packColor(color);
-
-    v[0].x = outerRadius;
-    v[0].y = 0.0f;
-    v[0].color = packedColor;
-    v[1].x = w - outerRadius;
-    v[1].y = 0.0f;
-    v[1].color = packedColor;
-    v[2].x = clampedThickness + innerRadius;
-    v[2].y = clampedThickness;
-    v[2].color = packedColor;
-    v[3].x = w - clampedThickness - innerRadius;
-    v[3].y = clampedThickness;
-    v[3].color = packedColor;
-    v[4].x = 0.0f;
-    v[4].y = outerRadius;
-    v[4].color = packedColor;
-    v[5].x = w;
-    v[5].y = outerRadius;
-    v[5].color = packedColor;
-    v[6].x = clampedThickness;
-    v[6].y = clampedThickness + innerRadius;
-    v[6].color = packedColor;
-    v[7].x = w - clampedThickness;
-    v[7].y = clampedThickness + innerRadius;
-    v[7].color = packedColor;
-    v[8].x = clampedThickness;
-    v[8].y = h - clampedThickness - innerRadius;
-    v[8].color = packedColor;
-    v[9].x = w - clampedThickness;
-    v[9].y = h - clampedThickness - innerRadius;
-    v[9].color = packedColor;
-    v[10].x = 0.0f;
-    v[10].y = h - outerRadius;
-    v[10].color = packedColor;
-    v[11].x = w;
-    v[11].y = h - outerRadius;
-    v[11].color = packedColor;
-    v[12].x = clampedThickness + innerRadius;
-    v[12].y = h - clampedThickness;
-    v[12].color = packedColor;
-    v[13].x = w - clampedThickness - innerRadius;
-    v[13].y = h - clampedThickness;
-    v[13].color = packedColor;
-    v[14].x = outerRadius;
-    v[14].y = h;
-    v[14].color = packedColor;
-    v[15].x = w - outerRadius;
-    v[15].y = h;
-    v[15].color = packedColor;
-
-    markDirty(QSGNode::DirtyGeometry);
-}
-
-// --- Item ---
-
-UCFrame::UCFrame(QQuickItem* parent)
-    : QQuickItem(parent)
-    , m_color(defaultColor)
-    , m_thickness(defaultThickness)
-    , m_radius(defaultRadius)
-    , m_shape(defaultShape)
-    , m_flags(DirtyShape | DirtyCornerVisibility)
-{
-    setFlag(ItemHasContents);
-}
-
-void UCFrame::setShape(Shape shape)
-{
-    const quint8 newShape = shape;
-    if (m_shape != newShape) {
-        m_shape = newShape;
-        m_flags |= DirtyShape;
-        update();
-        Q_EMIT shapeChanged();
+    if (m_type != static_cast<quint8>(type)) {
+        m_newType = static_cast<quint8>(type);
     }
-}
-
-void UCFrame::setThickness(qreal thickness)
-{
-    const quint16 clampedThickness = static_cast<quint8>(qBound(0, qRound(thickness), 0xffff));
-    if (m_thickness != clampedThickness) {
-        m_thickness = clampedThickness;
-        update();
-        Q_EMIT thicknessChanged();
-    }
-}
-
-void UCFrame::setRadius(qreal radius)
-{
-    const quint8 clampedRadius = static_cast<quint8>(qBound(0, qRound(radius), maxRadius));
-    if (m_radius != clampedRadius) {
-        if (clampedRadius == 0 || m_radius == 0) {
-            m_flags |= DirtyCornerVisibility;
-        }
-        m_radius = clampedRadius;
-        update();
-        Q_EMIT radiusChanged();
-    }
-}
-
-void UCFrame::setColor(const QColor& color)
-{
-    const QRgb rgbColor = qRgba(color.red(), color.green(), color.blue(), color.alpha());
-    if (m_color != rgbColor) {
-        if ((qAlpha(m_color) < 255) != (qAlpha(rgbColor) < 255)) {
-            m_flags |= DirtyBlending;
-        }
-        m_color = rgbColor;
-        update();
-        Q_EMIT colorChanged();
-    }
-}
-
-QSGNode* UCFrame::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData* data)
-{
-    Q_UNUSED(data);
-
-    const QSizeF itemSize(width(), height());
-    if (itemSize.isEmpty() || m_thickness == 0 || qAlpha(m_color) == 0) {
-        delete oldNode;
-        return Q_NULLPTR;
-    }
-
-    UCFrameNode* frameNode;
-    UCFrameCornerNode* frameCornerNode;
-
-    if (oldNode) {
-        frameNode = static_cast<UCFrameNode*>(oldNode->firstChild());
-        if (m_flags & DirtyBlending) {
-            frameNode->updateBlending(qAlpha(m_color) < 255);
-        }
-        frameCornerNode = static_cast<UCFrameCornerNode*>(oldNode->lastChild());
-        if (m_flags & DirtyShape) {
-            frameCornerNode->setShape(static_cast<Shape>(m_shape));
-        }
-        if (m_flags & DirtyCornerVisibility) {
-            frameCornerNode->setVisible(m_radius > 0);
-        }
-    } else {
-        oldNode = new QSGNode;
-        frameNode = new UCFrameNode(qAlpha(m_color) < 255);
-        frameCornerNode = new UCFrameCornerNode(static_cast<Shape>(m_shape), m_radius > 0);
-        oldNode->appendChildNode(frameNode);
-        oldNode->appendChildNode(frameCornerNode);
-    }
-
-    frameNode->updateGeometry(
-        itemSize, static_cast<float>(m_thickness), static_cast<float>(m_radius), m_color);
-    if (m_radius > 0) {
-        frameCornerNode->updateGeometry(
-            itemSize, static_cast<float>(m_thickness), static_cast<float>(m_radius), m_color);
-    }
-
-    m_flags = 0;
-
-    return oldNode;
 }

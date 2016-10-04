@@ -45,9 +45,7 @@
 #include "privates/appheaderbase_p.h"
 #include "privates/ucpagewrapper_p.h"
 #include "privates/ucscrollbarutils_p.h"
-#include "privates/ucshapefill_p.h"
-#include "privates/ucshapeframe_p.h"
-#include "privates/ucshapeshadow_p.h"
+#include "privates/ucshape_p.h"
 #include "qquickclipboard_p.h"
 #include "qquickmimedata_p.h"
 #include "quickutils_p.h"
@@ -257,9 +255,7 @@ void UbuntuToolkitModule::initializeModule(QQmlEngine *engine, const QUrl &plugi
     qmlRegisterType<UCPageWrapper>(privateUri, 1, 3, "PageWrapper");
     qmlRegisterType<UCAppHeaderBase>(privateUri, 1, 3, "AppHeaderBase");
     qmlRegisterType<Tree>(privateUri, 1, 3, "Tree");
-    qmlRegisterType<UCFrame>(privateUri, 1, 3, "ShapeFrame");
-    qmlRegisterType<UCFill>(privateUri, 1, 3, "ShapeFill");
-    qmlRegisterType<UCShadow>(privateUri, 1, 3, "ShapeShadow");
+    qmlRegisterType<UCShape>(privateUri, 1, 3, "Quad");
 
     //FIXME: move to a more generic location, i.e StyledItem or QuickUtils
     qmlRegisterSimpleSingletonType<UCScrollbarUtils>(privateUri, 1, 3, "PrivateScrollbarUtils");
