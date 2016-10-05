@@ -111,6 +111,26 @@ static inline qreal unquantizeFromU16(quint16 value)
     return static_cast<qreal>(value) * (quantizedU16Max / u16Max);
 }
 
+// Allocates size bytes and returns an pointer to the aligned memory. alignment
+// must be a power-of-two and size a multiple of alignment.
+// FIXME(loicm) Add a statically compiled lib in src/ to share functions like
+//     that between the different UITK libs.
+static inline void* alignedAlloc(size_t alignment, size_t size)
+{
+    DASSERT(IS_POWER_OF_TWO(alignment));
+    // DASSERT(((size % alignment) == 0));  // FIXME(loicm) ASSERT doesn't support '%'...
+
+#if defined(__APPLE__)
+    void* pointer;
+    posix_memalign(&pointer, alignment, size);
+    return pointer;
+#elif defined(_WIN32)
+    return _aligned_malloc(size, alignment);
+#else
+    return aligned_alloc(alignment, size);
+#endif
+}
+
 // Opaque color material common to most shape items.
 class UCShapeOpaqueColorMaterial : public QSGMaterial
 {

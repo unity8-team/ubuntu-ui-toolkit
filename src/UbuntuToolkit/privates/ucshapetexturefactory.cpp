@@ -172,7 +172,8 @@ quint8* UCShapeTextureFactory<N>::renderMaskTexture(UCShapeType type, int radius
     const int height = width;
     const int finalBufferSize = stride * height * sizeof(quint8);
     const int painterBufferSize = radius * radius * sizeof(quint32);
-    quint8* __restrict bufferU8 = static_cast<quint8*>(malloc(finalBufferSize + painterBufferSize));
+    quint8* __restrict bufferU8 = static_cast<quint8*>(
+        alignedAlloc(32, finalBufferSize + painterBufferSize));
     quint32* __restrict painterBufferU32 = reinterpret_cast<quint32*>(&bufferU8[finalBufferSize]);
 
     // Render the shape with QPainter.
@@ -272,7 +273,7 @@ quint16* UCShapeTextureFactory<N>::renderShadowTexture(UCShapeType type, int rad
     const int gutter = shadow;
     const int textureWidthPlusGutters = 2 * gutter + textureWidth;
     const int bufferSize = 2 * textureWidth * textureWidthPlusGutters * sizeof(float);
-    quint16* __restrict dataU16 = (quint16*) malloc(bufferSize);
+    quint16* __restrict dataU16 = (quint16*) alignedAlloc(32, bufferSize);
     float* __restrict dataF32 = (float*) dataU16;
 
     // FIXME(loicm) Try filling unset bytes instead.
