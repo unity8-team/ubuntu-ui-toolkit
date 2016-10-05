@@ -385,7 +385,7 @@ public:
 
     QSGNode* node(NodeType type, bool instantiate = true)
     {
-        DASSERT(static_cast<quint32>(type < NodeTypeCount));
+        DASSERT(static_cast<quint32>(type) < NodeTypeCount);
 
         if (m_nodes[type]) {
             return m_nodes[type];
@@ -400,7 +400,7 @@ public:
                 case FrameCorners: m_nodes[FrameCorners] = new UCShapeFrameCornersNode; break;
                 default: DNOT_REACHED(); return Q_NULLPTR;
             }
-            for (int i = static_cast<int>(type) + 1; i < static_cast<int>(NodeTypeCount); ++i) {
+            for (int i = type + 1; i < NodeTypeCount; ++i) {
                 if (m_nodes[i]) {
                     insertChildNodeBefore(m_nodes[type], m_nodes[i]);
                     return m_nodes[type];
@@ -412,7 +412,7 @@ public:
     }
 
 private:
-    QSGNode* m_nodes[static_cast<int>(NodeTypeCount)];
+    QSGNode* m_nodes[NodeTypeCount];
 };
 
 QSGNode* UCShape::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData* data)
