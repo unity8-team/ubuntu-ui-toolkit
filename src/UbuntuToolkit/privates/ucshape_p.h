@@ -35,7 +35,7 @@ class UCShape : public QQuickItem
     Q_PROPERTY(qreal radius READ radius WRITE setRadius NOTIFY radiusChanged)
 
     // Fill color of the shape.
-    Q_PROPERTY(QColor color READ color WRITE setColor NOTIFY colorChanged)
+    Q_PROPERTY(QColor fillColor READ fillColor WRITE setFillColor NOTIFY fillColorChanged)
 
     // Size of the drop shadow in pixels.
     Q_PROPERTY(qreal dropShadowSize READ dropShadowSize WRITE setDropShadowSize
@@ -90,8 +90,8 @@ public:
     void setShape(Shape shape);
     qreal radius() const;
     void setRadius(qreal radius);
-    QColor color() const;
-    void setColor(const QColor& color);
+    QColor fillColor() const;
+    void setFillColor(const QColor& fillColor);
     qreal dropShadowSize() const;
     void setDropShadowSize(qreal size);
     qreal dropShadowDistance() const;
@@ -118,7 +118,7 @@ public:
 Q_SIGNALS:
     void shapeChanged();
     void radiusChanged();
-    void colorChanged();
+    void fillColorChanged();
     void dropShadowSizeChanged();
     void dropShadowDistanceChanged();
     void dropShadowAngleChanged();
@@ -152,7 +152,7 @@ private:
                      | DirtyFrameCornersVisibility
     };
 
-    QRgb m_color;
+    QRgb m_fillColor;
     QRgb m_dropShadowColor;
     QRgb m_innerShadowColor;
     QRgb m_frameColor;

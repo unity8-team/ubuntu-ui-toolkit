@@ -29,7 +29,7 @@ Item {
     property string textOverlayString:
         "shape ............... (a): " + shapes[quad.shape] + "\n" +
         "radius ............ (z/Z): " + quad.radius.toFixed(2) + "\n" +
-        "color ............... (e): " + quad.color + "\n\n" +
+        "fillColor ............(e): " + quad.fillColor + "\n\n" +
         "dropShadowSize .... (r/R): " + quad.dropShadowSize.toFixed(2) + "\n" +
         "dropshadowDistance  (t/T): " + quad.dropShadowDistance.toFixed(2) + "\n" +
         "dropshadowAngle ... (y/Y): " + quad.dropShadowAngle.toFixed(2) + "\n" +
@@ -90,7 +90,7 @@ Item {
         } else if (event.key == Qt.Key_Z) {
             quad.radius = quad.radius + (shift ? 0.25 : -0.25);
         } else if (event.key == Qt.Key_E) {
-            quad.color = Qt.rgba(Math.random(), Math.random(), Math.random(), 1.0);
+            quad.fillColor = Qt.rgba(Math.random(), Math.random(), Math.random(), 1.0);
         } else if (event.key == Qt.Key_R) {
             quad.dropShadowSize = quad.dropShadowSize + (shift ? 0.25 : -0.25);
         } else if (event.key == Qt.Key_T) {

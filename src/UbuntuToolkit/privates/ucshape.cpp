@@ -34,7 +34,7 @@ Q_STATIC_ASSERT(static_cast<int>(maxRadius) <= gaussianCount);
 UCShape::UCShape(QQuickItem* parent)
     : QQuickItem(parent)
     // Transparent by default to avoid instantiating the fill nodes.
-    , m_color(qRgba(255, 255, 255, 0))
+    , m_fillColor(qRgba(255, 255, 255, 0))
     , m_dropShadowColor(qRgba(0, 0, 0, 255))
     , m_innerShadowColor(qRgba(0, 0, 0, 255))
     , m_frameColor(qRgba(255, 255, 255, 255))
@@ -79,14 +79,14 @@ void UCShape::setRadius(qreal radius)
     if (m_radius != quantizedRadius) {
         if ((m_radius > 0) != (quantizedRadius > 0)) {
             if (quantizedRadius > 0) {
-                if (qAlpha(m_color) > 0) {
+                if (qAlpha(m_fillColor) > 0) {
                     m_flags |= FillCornersVisible | DirtyFillCornersVisibility;
                 }
                 if ((m_frameThickness > 0) && (qAlpha(m_frameColor) > 0)) {
                     m_flags |= FrameCornersVisible | DirtyFrameCornersVisibility;
                 }
             } else {
-                if (qAlpha(m_color) > 0) {
+                if (qAlpha(m_fillColor) > 0) {
                     m_flags &= ~FillCornersVisible;
                     m_flags |= DirtyFillCornersVisibility;
                 }
@@ -102,16 +102,16 @@ void UCShape::setRadius(qreal radius)
     }
 }
 
-QColor UCShape::color() const
+QColor UCShape::fillColor() const
 {
-    return QColor(qRed(m_color), qGreen(m_color), qBlue(m_color), qAlpha(m_color));
+    return QColor(qRed(m_fillColor), qGreen(m_fillColor), qBlue(m_fillColor), qAlpha(m_fillColor));
 }
 
-void UCShape::setColor(const QColor& color)
+void UCShape::setFillColor(const QColor& color)
 {
     const QRgb rgbColor = qRgba(color.red(), color.green(), color.blue(), color.alpha());
-    if (m_color != rgbColor) {
-        if ((qAlpha(m_color) > 0) != (qAlpha(rgbColor) > 0)) {
+    if (m_fillColor != rgbColor) {
+        if ((qAlpha(m_fillColor) > 0) != (qAlpha(rgbColor) > 0)) {
             if (qAlpha(rgbColor) > 0) {
                 m_flags |= FillCenterVisible | DirtyFillCenterVisibility;
                 if (m_radius > 0) {
@@ -126,9 +126,9 @@ void UCShape::setColor(const QColor& color)
                 }
             }
         }
-        m_color = rgbColor;
+        m_fillColor = rgbColor;
         update();
-        Q_EMIT colorChanged();
+        Q_EMIT fillColorChanged();
     }
 }
 
@@ -454,9 +454,9 @@ QSGNode* UCShape::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData* data)
     const bool fillCenterVisible = static_cast<bool>(m_flags & FillCenterVisible);
     if (fillCenterVisible) {
         static_cast<UCShapeFillCenterNode*>(shapeNode->node(UCShapeNode::FillCenter))->update(
-            itemSize, unquantizeFromU16(m_radius), m_color, unquantizeFromU16(m_innerShadowSize),
-            unquantizeFromU16(m_innerShadowAngle), unquantizeFromU16(m_innerShadowDistance),
-            m_innerShadowColor);
+            itemSize, unquantizeFromU16(m_radius), m_fillColor,
+            unquantizeFromU16(m_innerShadowSize), unquantizeFromU16(m_innerShadowAngle),
+            unquantizeFromU16(m_innerShadowDistance), m_innerShadowColor);
     }
     if (m_flags & DirtyFillCenterVisibility) {
         static_cast<UCShapeFillCenterNode*>(shapeNode->node(UCShapeNode::FillCenter))->setVisible(
@@ -467,7 +467,7 @@ QSGNode* UCShape::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData* data)
     const bool fillCornersVisible = static_cast<bool>(m_flags & FillCornersVisible);
     if (fillCornersVisible) {
         static_cast<UCShapeFillCornersNode*>(shapeNode->node(UCShapeNode::FillCorners))->update(
-            itemSize, static_cast<UCShapeType>(m_shape), unquantizeFromU16(m_radius), m_color,
+            itemSize, static_cast<UCShapeType>(m_shape), unquantizeFromU16(m_radius), m_fillColor,
             unquantizeFromU16(m_innerShadowSize), unquantizeFromU16(m_innerShadowAngle),
             unquantizeFromU16(m_innerShadowDistance), m_innerShadowColor);
     }
