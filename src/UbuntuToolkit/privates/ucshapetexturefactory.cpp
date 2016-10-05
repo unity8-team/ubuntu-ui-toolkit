@@ -26,8 +26,6 @@
 #include <QtGui/QPainter>
 #include <QtSvg/QSvgRenderer>
 
-#define RESTRICT __restrict
-
 // FIXME(loicm) Add a define to log ref counting info.
 
 // Log shape rendering and gaussian blur performance timings.
@@ -174,8 +172,8 @@ quint8* UCShapeTextureFactory<N>::renderMaskTexture(UCShapeType type, int radius
     const int height = width;
     const int finalBufferSize = stride * height * sizeof(quint8);
     const int painterBufferSize = radius * radius * sizeof(quint32);
-    quint8* RESTRICT bufferU8 = static_cast<quint8*>(malloc(finalBufferSize + painterBufferSize));
-    quint32* RESTRICT painterBufferU32 = reinterpret_cast<quint32*>(&bufferU8[finalBufferSize]);
+    quint8* __restrict bufferU8 = static_cast<quint8*>(malloc(finalBufferSize + painterBufferSize));
+    quint32* __restrict painterBufferU32 = reinterpret_cast<quint32*>(&bufferU8[finalBufferSize]);
 
     // Render the shape with QPainter.
     memset(painterBufferU32, 0, painterBufferSize);
@@ -274,8 +272,8 @@ quint16* UCShapeTextureFactory<N>::renderShadowTexture(UCShapeType type, int rad
     const int gutter = shadow;
     const int textureWidthPlusGutters = 2 * gutter + textureWidth;
     const int bufferSize = 2 * textureWidth * textureWidthPlusGutters * sizeof(float);
-    quint16* RESTRICT dataU16 = (quint16*) malloc(bufferSize);
-    float* RESTRICT dataF32 = (float*) dataU16;
+    quint16* __restrict dataU16 = (quint16*) malloc(bufferSize);
+    float* __restrict dataF32 = (float*) dataU16;
 
     // FIXME(loicm) Try filling unset bytes instead.
     memset(dataU16, 0, bufferSize);
@@ -333,14 +331,14 @@ quint16* UCShapeTextureFactory<N>::renderShadowTexture(UCShapeType type, int rad
     // Gaussian blur horizontal pass.
     const int gaussianIndex = shadow - 1;
     const float sumFactor = 1.0f / gaussianSums[gaussianIndex];
-    const float* RESTRICT gaussianKernel = &gaussianKernels[gaussianOffsets[gaussianIndex]];
-    float* RESTRICT tempF32 = &dataF32[textureWidthPlusGutters * textureWidth];
+    const float* __restrict gaussianKernel = &gaussianKernels[gaussianOffsets[gaussianIndex]];
+    float* __restrict tempF32 = &dataF32[textureWidthPlusGutters * textureWidth];
     for (int i = 0; i < textureWidth; i++) {
         const int index = textureWidthPlusGutters * i + gutter;
         const int offset = gutter + i;
         for (int j = 0; j < textureWidth; j++) {
             float sum = 0.0f;
-            float* RESTRICT src = &dataF32[index + j];
+            float* __restrict src = &dataF32[index + j];
             for (int k = -shadow; k <= shadow; k++) {
                 sum += src[k] * gaussianKernel[k];
             }
@@ -357,7 +355,7 @@ quint16* UCShapeTextureFactory<N>::renderShadowTexture(UCShapeType type, int rad
     // Fill the bottom gutter of the temporary buffer by repeating last row.
     for (int i = 0; i < textureWidth; i++) {
         const float edge = tempF32[textureWidthPlusGutters * i + gutter + textureWidth - 1];
-        float* RESTRICT dst = &tempF32[textureWidthPlusGutters * i + gutter + textureWidth];
+        float* __restrict dst = &tempF32[textureWidthPlusGutters * i + gutter + textureWidth];
         for (int j = 0; j < gutter; j++) {
             dst[j] = edge;
         }
@@ -376,10 +374,10 @@ quint16* UCShapeTextureFactory<N>::renderShadowTexture(UCShapeType type, int rad
     const int stride = getStride(textureWidth, sizeof(quint16), 4);
     for (int i = 0; i < textureWidth; i++) {
         const int index = textureWidthPlusGutters * i + gutter;
-        quint16* RESTRICT dst = &dataU16[stride * i];
+        quint16* __restrict dst = &dataU16[stride * i];
         for (int j = 0; j < textureWidth; j++) {
             float sum = 0.0f;
-            float* RESTRICT src = &tempF32[index + j];
+            float* __restrict src = &tempF32[index + j];
             for (int k = -shadow; k <= shadow; k++) {
                 sum += src[k] * gaussianKernel[k];
             }
