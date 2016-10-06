@@ -29,6 +29,12 @@ QML_FILES += 1.2/DatePicker.qml \
              1.3/Picker.qml \
              1.3/PickerRow.qml \
              1.3/SecondsModel.qml \
+             1.3/dateutils.js \
+             1.3/calendar.js \
+             1.3/DatePickerMonthDays.qml \
+             1.3/DatePickerMonthDaysWorker.js \
+             1.3/YearListDropdown.qml \
+             1.3/DatePickerHeader.qml \
              1.3/YearModel.qml
 
 load(ubuntu_qml_module)

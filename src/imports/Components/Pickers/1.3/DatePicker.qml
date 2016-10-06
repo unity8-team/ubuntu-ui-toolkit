@@ -16,6 +16,7 @@
 
 import QtQuick 2.4
 import Ubuntu.Components 1.3
+import 'dateutils.js' as DU
 
 /*!
     \qmltype DatePicker
@@ -167,7 +168,8 @@ import Ubuntu.Components 1.3
     insensitive. If minimum and maximum are within the same month, the month picker
     will also be insensitive.
   */
-StyledItem {
+Item {
+// StyledItem {
     id: datePicker
 
     /*!
@@ -237,7 +239,8 @@ StyledItem {
       The default values are the current date for the minimum, and 50 year distance
       value for maximum.
       */
-    property date minimum: Date.prototype.midnight.call(new Date())
+    //property date minimum: Date.prototype.midnight.call(new Date())
+    property date minimum: DU.clone(null, 'setDate', 1)
     /*!
       \qmlproperty int maximum
 
@@ -246,11 +249,12 @@ StyledItem {
 
       See \l minimum for more details.
      */
-    property date maximum: {
+    /*property date maximum: {
         var d = Date.prototype.midnight.call(new Date());
         d.setFullYear(d.getFullYear() + 50);
         return d;
-    }
+    }*/
+    property date maximum: DU.clone(minimum, 'setFullYear', minimum.getFullYear() + 50)
 
     /*!
       For convenience, the \b year value of the \l date property.
@@ -298,11 +302,13 @@ StyledItem {
       The property holds whether the component's pickers are moving.
       \sa Picker::moving
       */
-    readonly property alias moving: positioner.moving
+    readonly property alias moving: listView.moving
 
+ // implicitWidth: parent.width
     implicitWidth: units.gu(36)
+ // implicitHeight: content.height
     implicitHeight: units.gu(20)
-    activeFocusOnPress: true
+ // activeFocusOnPress: true
 
     /*! \internal */
     onMinimumChanged: {
@@ -323,103 +329,56 @@ StyledItem {
             date = maximum;
         }
     }
-    /*! \internal */
-    onWidthChanged: {
-        // use dayPicker narrowFormatLimit even if the dayPicker is hidden
-        // and clamp the width so it cannot have less width that the sum of
-        // the three tumblers' narrowFormatLimit
-        var minWidth = 0.0;
-        for (var i = 0; i < tumblerModel.count; i++) {
-            minWidth += tumblerModel.get(i).pickerModel.narrowFormatLimit;
-        }
-        width = Math.max(width, minWidth);
+
+    onDateChanged: {
+        if (!moving)
+            listView.positionViewAtIndex(DU.getMonthsRange(minimum, date), ListView.Visible)
     }
+
+    property int monthsRange: DU.getMonthsRange(minimum, maximum)
+    // FIXME: Move to Style
+    property int scrollDirection: Qt.Horizontal
+    state: ''
+
+    function cancelFlick() {
+        listView.cancelFlick()
+    }
+
+    function toggleYearList() {
+        datePicker.state = datePicker.state === 'years-months'? '' : 'years-months'
+    }
+
+    property int snapMode: ListView.SnapToItem
+    property int orientation: scrollDirection === Qt.Horizontal ? ListView.Horizontal : ListView.Vertical
+
     /*! \internal */
-    onModeChanged: internals.updatePickers()
+ // onModeChanged: internals.updatePickers()
     /*! \internal */
-    onLocaleChanged: internals.updatePickers()
+ // onLocaleChanged: internals.updatePickers()
 
     Component.onCompleted: {
         if (minimum === undefined) {
             minimum = date;
         }
-        internals.completed = true;
-        internals.updatePickers();
+     // internals.completed = true;
+     // internals.updatePickers();
     }
 
-    // models
-    YearModel {
-        id: yearModel
-        mainComponent: datePicker
-        pickerCompleted: internals.completed && internals.showYearPicker
-        pickerWidth: (!pickerItem) ? 0 : narrowFormatLimit
-        function syncModels() {
-            dayModel.syncModels();
-        }
-    }
-    MonthModel {
-        id: monthModel
-        mainComponent: datePicker
-        pickerCompleted: internals.completed && internals.showMonthPicker
-        pickerWidth: {
-            if (!pickerItem) {
-                return 0;
-            }
-            return MathUtils.clamp(datePicker.width - yearModel.pickerWidth - dayModel.pickerWidth, narrowFormatLimit, longFormatLimit);
-        }
-        function syncModels() {
-            dayModel.syncModels();
-        }
-    }
-    DayModel {
-        id: dayModel
-        mainComponent: datePicker
-        pickerCompleted: internals.completed && internals.showDayPicker
-        pickerWidth: {
-            if (!pickerItem) {
-                return 0;
-            }
-            var w = Math.max(datePicker.width * internals.dayPickerRatio, narrowFormatLimit);
-            if (w < longFormatLimit && w >= shortFormatLimit) {
-                return shortFormatLimit;
-            }
-            return w;
-        }
-    }
-    HoursModel {
-        id: hoursModel
-        mainComponent: datePicker
-        pickerCompleted: internals.completed && internals.showHoursPicker
-        pickerWidth: {
-            if (!pickerItem) {
-                return 0;
-            }
-            return narrowFormatLimit;
-        }
-    }
-    MinutesModel {
-        id: minutesModel
-        mainComponent: datePicker
-        pickerCompleted: internals.completed && internals.showMinutesPicker
-        pickerWidth: {
-            if (!pickerItem) {
-                return 0;
-            }
-            return narrowFormatLimit;
-        }
-    }
-    SecondsModel {
-        id: secondsModel
-        mainComponent: datePicker
-        pickerCompleted: internals.completed && internals.showSecondsPicker
-        pickerWidth: {
-            if (!pickerItem) {
-                return 0;
-            }
-            return narrowFormatLimit;
-        }
+    QtObject {
+        id: colors
+        // FIXME: Use Ubuntu Palette
+        property color orange:    '#e65e17'
+        property color lightGrey: '#dfdfdf'
+        property color grey:      '#cbcbcb'
+        property color darkGrey:  '#aaaaaa'
+        property color darkGrey2: '#5d5d5d'
     }
 
+    width: parent.width
+    height: content.height
+
+
+ /*
     styleName: "DatePickerStyle"
     Binding {
         target: __styleInstance
@@ -437,73 +396,8 @@ StyledItem {
         value: (internals.showHoursPicker || internals.showMinutesPicker || internals.showSecondsPicker) ?
                    ":" : ""
     }
+  */
 
-    // tumbler positioner
-    PickerRow {
-        id: positioner
-        parent: (datePicker.__styleInstance && datePicker.__styleInstance.hasOwnProperty("tumblerHolder")) ?
-                    datePicker.__styleInstance.tumblerHolder : datePicker
-        mainComponent: datePicker
-        model: tumblerModel
-        margins: internals.margin
-        anchors {
-            top: parent.top
-            bottom: parent.bottom
-            horizontalCenter: parent.horizontalCenter
-        }
-    }
-    // tumbler model
-    ListModel {
-        /*
-              Model to hold tumbler order for repeaters.
-              Roles:
-              - pickerModel
-              - pickerName
-              */
-        id: tumblerModel
-
-        /*
-          Signal triggered when the model is about to remove a picker. We cannot rely on
-          rowAboutToBeRemoved, as by the time the signal is called the list element is
-          already removed from the model.
-          */
-        signal pickerRemoved(int index)
-
-        // the function checks whether a pickerModel was added or not
-        // returns the index of the model object the pickerModel was found
-        // or -1 on error.
-        function pickerModelIndex(name) {
-            for (var i = 0; i < count; i++) {
-                if (get(i).pickerName === name) {
-                    return i;
-                }
-            }
-            return -1;
-        }
-
-        // the function checks whether a pickerModel is present in the list;
-        // moves the existing one to the given index or inserts it if not present
-        function setPickerModel(model, name, index) {
-            var idx = pickerModelIndex(name);
-            if (idx >= 0) {
-                move(idx, index, 1);
-            } else {
-                append({"pickerModel": model, "pickerName": name});
-            }
-        }
-
-        // removes the given picker
-        function removePicker(name) {
-            var idx = pickerModelIndex(name);
-            if (idx >= 0) {
-                pickerRemoved(idx);
-                remove(idx);
-            }
-        }
-    }
-
-    // component to calculate text fitting
-    Label { id: textSizer; visible: false }
     QtObject {
         id: internals
         property bool completed: false
@@ -581,33 +475,9 @@ StyledItem {
         }
 
         /*
-          Resets the pickers. Pickers will update their models with the given date,
-          minimum and maximum values.
-          */
-        function resetPickers() {
-            if (!completed) return;
-            for (var i = 0; i < tumblerModel.count; i++) {
-                var pickerItem = tumblerModel.get(i).pickerModel.pickerItem;
-                pickerItem.resetPicker();
-            }
-
-            // calculate the ratio for the dayPicker
-            var maxWidth = 0.0;
-            maxWidth += showYearPicker ? yearModel.longFormatLimit : 0.0;
-            maxWidth += showMonthPicker ? monthModel.longFormatLimit : 0.0;
-            maxWidth += showDayPicker ? dayModel.longFormatLimit : 0.0;
-            if (showDayPicker && maxWidth > 0.0) {
-                dayPickerRatio = (dayModel.longFormatLimit / maxWidth).toPrecision(3);
-            }
-        }
-
-        /*
             Detects the tumbler order from the date format of the locale
           */
         function arrangeTumblers() {
-            // disable completion so avoid accidental date changes
-            completed = false;
-
             // use short format to exclude any extra characters
             // FIXME: The js split(/\W/g) terminates the process on armhf with Qt 5.3 (v4 js) (https://bugreports.qt-project.org/browse/QTBUG-39255)
             var format = datePicker.locale.dateFormat(Locale.ShortFormat).match(/\w+/g);
@@ -619,54 +489,205 @@ StyledItem {
                 switch (format[i].substr(0, 1).toLowerCase()) {
                 case 'y':
                     if (showYearPicker) {
-                        tumblerModel.setPickerModel(yearModel, "YearPicker", formatIndex);
-                        formatIndex++;
                     } else {
-                        tumblerModel.removePicker("YearPicker");
                     }
 
                     break;
                 case 'm':
                     if (showMonthPicker) {
-                        tumblerModel.setPickerModel(monthModel, "MonthPicker", formatIndex);
-                        formatIndex++;
                     } else {
-                        tumblerModel.removePicker("MonthPicker");
                     }
 
                     break;
                 case 'd':
                     if (showDayPicker) {
-                        tumblerModel.setPickerModel(dayModel, "DayPicker", formatIndex);
-                        formatIndex++;
                     } else {
-                        tumblerModel.removePicker("DayPicker");
                     }
                     break;
                 }
             }
             // check hms
             if (showHoursPicker) {
-                tumblerModel.setPickerModel(hoursModel, "HoursPicker", formatIndex);
-                formatIndex++;
             } else {
-                tumblerModel.removePicker("HoursPicker");
             }
             if (showMinutesPicker) {
-                tumblerModel.setPickerModel(minutesModel, "MinutesPicker", formatIndex);
-                formatIndex++;
             } else {
-                tumblerModel.removePicker("MinutesPicker");
             }
             if (showSecondsPicker) {
-                tumblerModel.setPickerModel(secondsModel, "SecondsPicker", formatIndex);
-                formatIndex++;
             } else {
-                tumblerModel.removePicker("SecondsPicker");
+            }
+        }
+    }
+
+    states: [
+        State { name: '' },
+        State { name: 'years-months' }
+    ]
+
+    property real dropdownAnimDuration: UbuntuAnimation.FastDuration
+
+    transitions: [
+        Transition {
+            from: ''
+            to: 'years-months'
+            ParallelAnimation {
+                UbuntuNumberAnimation {
+                    target: headerShadow
+                    property: 'width'
+                    to: content.width
+                    duration: datePicker.dropdownAnimDuration / 2
+                }
+                UbuntuNumberAnimation {
+                    target: headerShadow
+                    property: 'opacity'
+                    to: 1
+                    duration: datePicker.dropdownAnimDuration / 2
+                }
+                UbuntuNumberAnimation {
+                    target: yearsListDropdown
+                    property: 'y'
+                    to: 0
+                    duration: datePicker.dropdownAnimDuration
+                }
+                SequentialAnimation {
+                    PauseAnimation {
+                        duration: datePicker.dropdownAnimDuration
+                    }
+                    UbuntuNumberAnimation {
+                        target: headerShadow
+                        property: 'width'
+                        to: 0
+                        duration: datePicker.dropdownAnimDuration / 1.5
+                    }
+                }
+            }
+        },
+        Transition {
+            from: 'years-months'
+            to: ''
+            ParallelAnimation {
+                property real duration: 300
+                UbuntuNumberAnimation {
+                    target: headerShadow
+                    property: 'width'
+                    to: content.width
+                    duration: datePicker.dropdownAnimDuration / 2
+                }
+                UbuntuNumberAnimation {
+                    target: headerShadow
+                    property: 'opacity'
+                    to: 1
+                    duration: datePicker.dropdownAnimDuration / 2
+                }
+                UbuntuNumberAnimation {
+                    target: yearsListDropdown
+                    property: 'y'
+                    to: -yearsListDropdown.height
+                    duration: datePicker.dropdownAnimDuration
+                }
+                SequentialAnimation {
+                    PauseAnimation {
+                        duration: datePicker.dropdownAnimDuration
+                    }
+                    UbuntuNumberAnimation {
+                        target: headerShadow
+                        property: 'width'
+                        to: 0
+                        duration: datePicker.dropdownAnimDuration / 1.5
+                    }
+                }
+            }
+        }
+    ]
+
+    Rectangle {
+        color: 'white'
+        anchors.fill: parent
+    }
+
+    Column {
+        id: content
+        width: parent.width
+        DatePickerHeader {
+            id: header
+            anchors.left: parent.left
+            anchors.right: parent.right
+            fontSize: datePicker.width > units.gu(45)? 'x-large' : 'large'
+            color: colors.darkGrey2
+            activeColor: colors.darkGrey
+            date: DU.clone(datePicker.date, 'setDate', 1)
+            minimum: datePicker.minimum
+            maximum: datePicker.maximum
+            onRequestNextMonth: datePicker.date = DU.clone(datePicker.date, 'setMonth', datePicker.date.getMonth() + 1)
+            onRequestPreviousMonth: datePicker.date = DU.clone(datePicker.date, 'setMonth', datePicker.date.getMonth() - 1)
+            onRequestToggleYearList: datePicker.toggleYearList()
+            yearsListOpened: datePicker.state === 'years-months'
+        }
+        Item {
+            width: parent.width
+            height: header.height * 0.5
+            Rectangle {
+                id: headerShadow
+                y: parent.height
+                opacity: 0
+                color: colors.lightGrey
+                width: 0
+                height: units.dp(1)
+                anchors.horizontalCenter: parent.horizontalCenter
+            }
+        }
+        Item {
+            width: parent.width
+            height: listView.height
+            ListView {
+                id: listView
+                clip: true
+                width: parent.width
+                height: currentItem.height
+                model: datePicker.monthsRange
+                snapMode: datePicker.snapMode
+                orientation: datePicker.orientation
+                highlightFollowsCurrentItem: true
+                highlightMoveDuration: 0
+                highlightRangeMode: ListView.StrictlyEnforceRange
+                Component.onCompleted: {
+                    // listView.flickDeceleration = flickDeceleration * 2
+                    // listView.maximumFlickVelocity = maximumFlickVelocity * 2
+                }
+                property bool indexInit: false
+                onCurrentIndexChanged: {
+                 // console.log('currentIndex changed', currentIndex)
+                    if (!indexInit && currentIndex === 0) {
+                        indexInit = true;
+                        return;
+                    }
+                    if (!listView.moving) {
+                        return;
+                    }
+                    datePicker.date = DU.clone(minimum, 'setMonth', minimum.getMonth() + currentIndex);
+                }
+
+                delegate: DatePickerMonthDays {
+                    id: panel
+                    width: datePicker.width
+                    displayedMonth: DU.clone(minimum, 'setMonth', minimum.getMonth() + index)
+                    onRequestNextMonth: datePicker.date = DU.clone(displayedMonth, 'setMonth', displayedMonth.getMonth() + 1)
+                    onRequestPreviousMonth: datePicker.date = DU.clone(displayedMonth, 'setMonth', displayedMonth.getMonth() - 1)
+                    onRequestDateChange: datePicker.date = date
+                }
             }
 
-            // re-enable completion
-            completed = true;
+            Item {
+                clip: true
+                width: parent.width
+                height: parent.height
+                YearListDropdown {
+                    id: yearsListDropdown
+                    minimum: datePicker.minimum
+                    maximum: datePicker.maximum
+                    onRequestDateChange: datePicker.date = newDate
+                }
+            }
         }
     }
 }
