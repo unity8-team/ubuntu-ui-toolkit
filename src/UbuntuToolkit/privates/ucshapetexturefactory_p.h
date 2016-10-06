@@ -98,7 +98,6 @@ private:
     static Q_CONSTEXPR int maskTextureSizeFromKey(quint32 key) {
         return maskTextureSize((key >> 12) & 0xfff);
     }
-    static quint8* renderMaskTexture(UCShapeType type, int radius);
 
     static quint32 makeShadowTextureKey(
         UCShapeType type, quint16 radius, quint16 shadow) {
@@ -117,6 +116,9 @@ private:
     static Q_CONSTEXPR int shadowTextureSizeFromKey(quint32 key) {
         return shadowTextureSize((key >> 12) & 0xfff, key & 0xfff);
     }
+
+    static void renderShape(void* buffer, UCShapeType type, int radius, int stride);
+    static quint8* renderMaskTexture(UCShapeType type, int radius);
     static quint16* renderShadowTexture(UCShapeType type, int radius, int shadow);
 
     const quint32 invalidKey = 0xffffffff;

@@ -68,9 +68,6 @@ private:
 static QHash<QOpenGLContext*, KeyHash> contextHash;
 static QMutex contextHashMutex;
 
-// QSvgRenderer being reentrant, we use a static instance with local data.
-static QSvgRenderer svg(QByteArray(squircleSvg), 0);
-
 template <int N>
 UCShapeTextureFactory<N>::UCShapeTextureFactory()
     : m_context(QOpenGLContext::currentContext())
@@ -162,26 +159,19 @@ quint32 UCShapeTextureFactory<N>::acquireTexture(
 
 // static
 template <int N>
-quint8* UCShapeTextureFactory<N>::renderMaskTexture(UCShapeType type, int radius)
+void renderShape(void* buffer, UCShapeType type, int radius, int stride)
 {
+    DASSERT(buffer);
     DASSERT(radius > 0);
+    DASSERT(stride > 0);
+    DASSERT((stride & 0x3) == 0);  // Ensure 32-bit alignment required by QImage.
 
-    const int border = 1;  // 1 pixel border around the edges for clamping reasons.
-    const int width = getStride(radius + 2 * border, 1, textureStride);
-    const int stride = getStride(width, 1, 4);  // OpenGL unpack pixel storage is 4 by default.
-    const int height = width;
-    const int finalBufferSize = stride * height * sizeof(quint8);
-    const int painterBufferSize = radius * radius * sizeof(quint32);
-    quint8* __restrict bufferU8 = static_cast<quint8*>(
-        alignedAlloc(32, finalBufferSize + painterBufferSize));
-    quint32* __restrict painterBufferU32 = reinterpret_cast<quint32*>(&bufferU8[finalBufferSize]);
-
-    // Render the shape with QPainter.
-    memset(painterBufferU32, 0, painterBufferSize);
-    QImage image(reinterpret_cast<quint8*>(painterBufferU32), radius, radius, radius * 4,
-                 QImage::Format_ARGB32_Premultiplied);
+    QImage image(buffer, radius, radius, stride, QImage::Format_ARGB32_Premultiplied);
     QPainter painter(&image);
+
     if (type == UCShapeType::Squircle) {
+        // QSvgRenderer being reentrant, we use a static instance with local data.
+        static QSvgRenderer svg(QByteArray(squircleSvg), 0);
         svg.render(&painter);
     } else {
         painter.setBrush(Qt::white);
@@ -189,6 +179,31 @@ quint8* UCShapeTextureFactory<N>::renderMaskTexture(UCShapeType type, int radius
         // Offsetting by 0.5 provides the best looking anti-aliasing.
         painter.drawEllipse(QRectF(-0.5, -0.5, radius * 2.0 + 0.5, radius * 2.0 + 0.5));
     }
+}
+
+// static
+template <int N>
+quint8* UCShapeTextureFactory<N>::renderMaskTexture(UCShapeType type, int radius)
+{
+    DASSERT(radius > 0);
+
+    // FIXME(loicm) Add a detailed explanation and layout of the mask texture.
+
+    const int border = 1;  // 1 pixel border around the edges for clamping reasons.
+    // FIXME(loicm) Looks creepy (and the 2nd getStride is most likely useless
+    //     since textureStride is 32).
+    const int width = getStride(radius + 2 * border, 1, textureStride);
+    const int stride = getStride(width, 1, 4);  // OpenGL unpack pixel storage is 4 by default.
+    const int height = width;
+    const int finalBufferSize = stride * height * sizeof(quint8);
+    const int painterBufferSize = radius * radius * sizeof(quint32);
+    quint8* __restrict bufferU8 = reinterpret_cast<quint8*>(
+        alignedAlloc(32, finalBufferSize + painterBufferSize));
+    quint32* __restrict painterBufferU32 = reinterpret_cast<quint32*>(&bufferU8[finalBufferSize]);
+
+    // Render the shape with QPainter.
+    memset(painterBufferU32, 0, painterBufferSize);
+    renderShape(painterBufferU32, type, radius, radius * 4);
 
     // Initialise the top and left borders containing the 1 pixel border and
     // texture stride of the final buffer.
@@ -196,18 +211,15 @@ quint8* UCShapeTextureFactory<N>::renderMaskTexture(UCShapeType type, int radius
     memset(bufferU8, 0x00, stride * offset);
     for (int i = 0; i < radius + border; i++) {
         memset(&bufferU8[(i + offset) * stride], 0x00, offset);
-        bufferU8[(i + offset) * stride + width - border] = 0xff;
-    }
-    memset(&bufferU8[(height - border) * stride + offset], 0xff, radius + border);
-
-    // Since QImage doesn't support floating-point formats, a conversion from
-    // U32 to U8 is required once rendered (we just convert one of the channel
-    // since the fill color is white).
-    for (int i = 0; i < radius; i++) {
+        // Since QImage doesn't support floating-point formats, a conversion
+        // from U32 to U8 is required once rendered (we just convert one of the
+        // channel since the fill color is white).
         for (int j = 0; j < radius; j++) {
             bufferU8[(i + offset) * stride + j + offset] = painterBufferU32[i * radius + j] & 0xff;
         }
+        bufferU8[(i + offset) * stride + width - border] = 0xff;
     }
+    memset(&bufferU8[(height - border) * stride + offset], 0xff, radius + border);
 
     return bufferU8;
 }
@@ -263,9 +275,9 @@ template <int N>
 quint16* UCShapeTextureFactory<N>::renderShadowTexture(UCShapeType type, int radius, int shadow)
 {
     // FIXME(loicm) shadow > 0 was asserted before but when the shadow item is
-    //     shrinked because if its size, the given shadow can be 0. 1) Rendering
-    //     with shadow == 0 hasn't been tested, 2) Shouldn't we clamp to 1?
-    DASSERT(shadow >= 0);
+    //     shrinked because if its size, the given shadow can be 0. Rendering
+    //     with shadow == 0 crashes, let's clamp to 1 for now.
+    shadow = qMax(1, shadow);
     DASSERT(radius >= 0);
 
     const int shadowPlusRadius = shadow + radius;
@@ -273,8 +285,8 @@ quint16* UCShapeTextureFactory<N>::renderShadowTexture(UCShapeType type, int rad
     const int gutter = shadow;
     const int textureWidthPlusGutters = 2 * gutter + textureWidth;
     const int bufferSize = 2 * textureWidth * textureWidthPlusGutters * sizeof(float);
-    quint16* __restrict dataU16 = (quint16*) alignedAlloc(32, bufferSize);
-    float* __restrict dataF32 = (float*) dataU16;
+    quint16* __restrict dataU16 = static_cast<quint16*>(alignedAlloc(32, bufferSize));
+    float* __restrict dataF32 = reinterpret_cast<float*>(dataU16);
 
     // FIXME(loicm) Try filling unset bytes instead.
     memset(dataU16, 0, bufferSize);
@@ -286,17 +298,8 @@ quint16* UCShapeTextureFactory<N>::renderShadowTexture(UCShapeType type, int rad
 #endif
 
     if (radius > 0) {
-        QImage image((quint8*)&dataF32[textureWidthPlusGutters * shadow + gutter + shadow], radius,
-                     radius, textureWidthPlusGutters * 4, QImage::Format_ARGB32_Premultiplied);
-        QPainter painter(&image);
-        if (type == UCShapeType::Squircle) {
-            svg.render(&painter);
-        } else {
-            painter.setBrush(Qt::white);
-            painter.setRenderHint(QPainter::Antialiasing, true);
-            painter.drawEllipse(QRectF(-0.5, -0.5, radius * 2.0 + 0.5, radius * 2.0 + 0.5));
-        }
-
+        renderShape(&dataF32[textureWidthPlusGutters * shadow + gutter + shadow], type, radius,
+                    textureWidthPlusGutters * 4);
         for (int i = shadow; i < shadowPlusRadius; i++) {
             for (int j = shadow; j < shadowPlusRadius; j++) {
                 const int index = i * textureWidthPlusGutters + gutter + j;
