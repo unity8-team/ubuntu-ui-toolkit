@@ -159,14 +159,15 @@ quint32 UCShapeTextureFactory<N>::acquireTexture(
 
 // static
 template <int N>
-void renderShape(void* buffer, UCShapeType type, int radius, int stride)
+void UCShapeTextureFactory<N>::renderShape(void* buffer, UCShapeType type, int radius, int stride)
 {
     DASSERT(buffer);
     DASSERT(radius > 0);
     DASSERT(stride > 0);
     DASSERT((stride & 0x3) == 0);  // Ensure 32-bit alignment required by QImage.
 
-    QImage image(buffer, radius, radius, stride, QImage::Format_ARGB32_Premultiplied);
+    QImage image(static_cast<quint8*>(buffer), radius, radius, stride,
+                 QImage::Format_ARGB32_Premultiplied);
     QPainter painter(&image);
 
     if (type == UCShapeType::Squircle) {
@@ -298,6 +299,7 @@ quint16* UCShapeTextureFactory<N>::renderShadowTexture(UCShapeType type, int rad
 #endif
 
     if (radius > 0) {
+        // Render the shape as ARGB32 and convert to float in the range [0, 1].
         renderShape(&dataF32[textureWidthPlusGutters * shadow + gutter + shadow], type, radius,
                     textureWidthPlusGutters * 4);
         for (int i = shadow; i < shadowPlusRadius; i++) {
@@ -342,7 +344,7 @@ quint16* UCShapeTextureFactory<N>::renderShadowTexture(UCShapeType type, int rad
         const int offset = gutter + i;
         for (int j = 0; j < textureWidth; j++) {
             float sum = 0.0f;
-            float* __restrict src = &dataF32[index + j];
+            const float* __restrict src = &dataF32[index + j];
             for (int k = -shadow; k <= shadow; k++) {
                 sum += src[k] * gaussianKernel[k];
             }
@@ -386,7 +388,7 @@ quint16* UCShapeTextureFactory<N>::renderShadowTexture(UCShapeType type, int rad
                 sum += src[k] * gaussianKernel[k];
             }
             const float shadow = sum * sumFactor;
-            const float shape = dataF32[i * textureWidthPlusGutters + j + gutter];
+            const float shape = dataF32[index + j];
             const quint16 shadowU16 = (quint16) (shadow * 255.0f + 0.5f);
             const quint16 shapeU16 = (quint16) (shape * 255.0f + 0.5f);
             dst[j] = shapeU16 << 8 | shadowU16;
