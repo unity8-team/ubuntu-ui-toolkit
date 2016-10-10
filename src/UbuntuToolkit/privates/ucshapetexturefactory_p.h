@@ -123,6 +123,7 @@ private:
 
     const quint32 invalidKey = 0xffffffff;
 
+    // FIXME(loicm) There's one context per key hash, so there might be a way to save a few bytes.
     QOpenGLContext* m_context;
     QHash<quint32, UCShapeTexture>* m_keyHash;
     quint32 m_keys[N];

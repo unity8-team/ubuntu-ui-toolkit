@@ -23,22 +23,6 @@
 
 #include <UbuntuToolkit/private/ucshapetexturefactory_p.h>
 
-class UCShapeFillCornersMaterial : public QSGMaterial
-{
-public:
-    UCShapeFillCornersMaterial();
-    QSGMaterialType* type() const Q_DECL_OVERRIDE;
-    QSGMaterialShader* createShader() const Q_DECL_OVERRIDE;
-    int compare(const QSGMaterial* other) const Q_DECL_OVERRIDE;
-
-    quint32 textureId() const { return m_textureId; }
-    void updateTexture(UCShapeType type, quint16 radius);
-
-private:
-    UCShapeTextureFactory<1> m_textureFactory;
-    quint32 m_textureId;
-};
-
 class UCShapeFillCenterNode : public QSGGeometryNode
 {
 public:
@@ -64,6 +48,22 @@ private:
     quint8 m_visible : 1;
     quint8 m_blending : 1;
     quint8 __padding : 6;
+};
+
+class UCShapeFillCornersMaterial : public QSGMaterial
+{
+public:
+    UCShapeFillCornersMaterial();
+    QSGMaterialType* type() const Q_DECL_OVERRIDE;
+    QSGMaterialShader* createShader() const Q_DECL_OVERRIDE;
+    int compare(const QSGMaterial* other) const Q_DECL_OVERRIDE;
+
+    quint32 textureId() const { return m_textureId; }
+    void updateTexture(UCShapeType type, quint16 radius);
+
+private:
+    UCShapeTextureFactory<1> m_textureFactory;
+    quint32 m_textureId;
 };
 
 class UCShapeFillCornersNode : public QSGGeometryNode

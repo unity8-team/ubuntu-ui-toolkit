@@ -166,16 +166,16 @@ public:
         setShaderSourceFile(QOpenGLShader::Fragment,
                             QStringLiteral(":/uc/privates/shaders/opaquecolor.frag"));
     }
-    char const* const* attributeNames() const override {
+    char const* const* attributeNames() const Q_DECL_OVERRIDE {
         static char const* const attributes[] = { "positionAttrib", "colorAttrib", 0 };
         return attributes;
     }
-    void initialize() override {
+    void initialize() Q_DECL_OVERRIDE {
         QSGMaterialShader::initialize();
         m_matrixId = program()->uniformLocation("matrix");
     }
     void updateState(
-        const RenderState& state, QSGMaterial* newEffect, QSGMaterial* oldEffect) override {
+        const RenderState& state, QSGMaterial* newEffect, QSGMaterial* oldEffect) Q_DECL_OVERRIDE {
         Q_UNUSED(newEffect);
         Q_UNUSED(oldEffect);
         if (state.isMatrixDirty()) {
@@ -194,12 +194,12 @@ public:
         setShaderSourceFile(QOpenGLShader::Fragment,
                             QStringLiteral(":/uc/privates/shaders/color.frag"));
     }
-    void initialize() override {
+    void initialize() Q_DECL_OVERRIDE {
         OpaqueColorShader::initialize();
         m_opacityId = program()->uniformLocation("opacity");
     }
     void updateState(
-        const RenderState& state, QSGMaterial* newEffect, QSGMaterial* oldEffect) override {
+        const RenderState& state, QSGMaterial* newEffect, QSGMaterial* oldEffect) Q_DECL_OVERRIDE {
         OpaqueColorShader::updateState(state, newEffect, oldEffect);
         if (state.isOpacityDirty()) {
             program()->setUniformValue(m_opacityId, state.opacity());

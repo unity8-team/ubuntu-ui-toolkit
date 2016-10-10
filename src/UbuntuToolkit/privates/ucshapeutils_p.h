@@ -136,9 +136,9 @@ class UCShapeOpaqueColorMaterial : public QSGMaterial
 {
 public:
     UCShapeOpaqueColorMaterial(bool blending = false);
-    int compare(const QSGMaterial* other) const override;
-    QSGMaterialType* type() const override;
-    QSGMaterialShader* createShader() const override;
+    int compare(const QSGMaterial* other) const Q_DECL_OVERRIDE;
+    QSGMaterialType* type() const Q_DECL_OVERRIDE;
+    QSGMaterialShader* createShader() const Q_DECL_OVERRIDE;
 };
 
 // Color material common to most shape items.
@@ -146,8 +146,8 @@ class UCShapeColorMaterial : public UCShapeOpaqueColorMaterial
 {
 public:
     UCShapeColorMaterial();
-    QSGMaterialType* type() const override;
-    QSGMaterialShader* createShader() const override;
+    QSGMaterialType* type() const Q_DECL_OVERRIDE;
+    QSGMaterialShader* createShader() const Q_DECL_OVERRIDE;
 };
 
 #endif  // UCSHAPEUTILS_P_H
