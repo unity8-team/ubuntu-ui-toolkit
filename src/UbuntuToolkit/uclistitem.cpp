@@ -509,6 +509,8 @@ void UCListItemPrivate::swipeEvent(const QPointF &localPos, UCSwipeEvent::Status
     if (event.m_contentPos != contentItem->position()) {
         contentItem->setPosition(event.m_contentPos);
         lastPos = localPos;
+        Q_Q(UCListItem);
+        q->swipePositionChanged();
         if (status == UCSwipeEvent::Updated) {
             setContentMoving(true);
             setSwiped(true);
@@ -2006,6 +2008,57 @@ void UCListItem::setSwipeEnabled(bool swipeEnabled)
     }
     d->swipeEnabled = swipeEnabled;
     Q_EMIT swipeEnabledChanged();
+}
+
+/*!
+ * \qmlproperty bool ListItem::swipePosition
+ * \since Ubuntu.Components 1.3
+ * The property controls the swiping of the leading- or trailing actions. This
+ * is useful when swiping needs to be triggered programatically, for example
+ * when demonstrating that actions are present and can be swiped.
+ * \qml
+ * import QtQuick 2.4
+ * import Ubuntu.Components 1.3
+ *
+ * ListItem {
+ *     id: listItem
+ *
+ *     leadingActions: ListItemActions {
+ *         actions: [
+ *             Action {
+ *                 iconName: "delete"
+ *             }
+ *         ]
+ *     }
+ *
+ *     UbuntuNumberAnimation {
+ *         target: listItem
+ *         property: "swipePosition"
+ *         to: units.gu(8)
+ *     }
+ * }
+ * \endqml
+ */
+qreal UCListItem::swipePosition() const
+{
+    Q_D(const UCListItem);
+    return d->contentItem->position().x();
+}
+void UCListItem::setSwipePosition(qreal swipePosition)
+{
+    Q_D(UCListItem);
+    if (!d->leadingActions || !d->trailingActions) {
+        return;
+    }
+    if (d->contentItem->position().x() == swipePosition) {
+        return;
+    }
+
+    d->setSwiped(true);
+    d->lockContentItem(false);
+    d->loadStyleItem();
+    QPointF localPos(swipePosition, 0.0);
+    d->swipeEvent(localPos, UCSwipeEvent::Updated);
 }
 
 /*!

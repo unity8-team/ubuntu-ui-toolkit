@@ -66,6 +66,7 @@ class UBUNTUTOOLKIT_EXPORT UCListItem : public UCStyledItemBase
 #endif
     Q_PROPERTY(bool swipeEnabled READ isSwipeEnabled WRITE setSwipeEnabled NOTIFY swipeEnabledChanged FINAL REVISION 1)
     Q_PROPERTY(bool swiped READ isSwiped NOTIFY swipedChanged FINAL REVISION 1)
+    Q_PROPERTY(qreal swipePosition READ swipePosition WRITE setSwipePosition NOTIFY swipePositionChanged FINAL REVISION 1)
 public:
     explicit UCListItem(QQuickItem *parent = 0);
     ~UCListItem();
@@ -89,6 +90,8 @@ public:
     UCListItemExpansion *expansion();
     bool isSwipeEnabled() const;
     void setSwipeEnabled(bool swipeEnabled);
+    qreal swipePosition() const;
+    void setSwipePosition(qreal swipePosition);
     bool isSwiped();
 
 protected:
@@ -123,6 +126,7 @@ Q_SIGNALS:
     void listItemChildrenChanged();
     Q_REVISION(1) void swipeEnabledChanged();
     Q_REVISION(1) void swipedChanged();
+    Q_REVISION(1) void swipePositionChanged();
 
     void clicked();
     void pressAndHold();
