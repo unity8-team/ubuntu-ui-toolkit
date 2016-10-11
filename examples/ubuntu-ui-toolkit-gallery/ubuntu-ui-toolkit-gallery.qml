@@ -59,5 +59,13 @@ MainView {
                 }
             }
         ]
+
+        // Prevent automatic opening of page when we are in 1-column mode.
+        Binding {
+            target: layout.primaryPage
+            property: "openPageOnIndexChanged"
+            when: layout.primaryPage
+            value: layout.columns > 1
+        }
     }
 }

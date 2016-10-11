@@ -85,13 +85,14 @@ Page {
     }
 
     onActiveChanged: {
-        if (layout.columns < 2) {
-            widgetList.currentIndex = -1;
-        }
-        if (active) {
+        print("active = "+active)
+        if (active && mainPage.openPageOnIndexChanged) {
             widgetList.openPage();
         }
     }
+
+    // Updated in ubuntu-ui-toolkit-gallery.qml
+    property bool openPageOnIndexChanged: true
 
     UbuntuListView {
         id: widgetList
@@ -104,7 +105,11 @@ Page {
         model: WidgetsModel {}
         currentIndex: -1
 
-        onCurrentIndexChanged: openPage()
+        onCurrentIndexChanged: {
+            if (mainPage.openPageOnIndexChanged) {
+                openPage();
+            }
+        }
 
         function openPage() {
             if (!mainPage.active || currentIndex < 0) return;
@@ -118,7 +123,10 @@ Page {
             enabled: source != ""
             // Used by Autopilot
             property string text: label
-            onClicked: widgetList.currentIndex = index
+            onClicked: {
+                widgetList.currentIndex = index;
+                widgetList.openPage();
+            }
             //follow ListItemLayout size
             height: layout.height + (divider.visible ? divider.height : 0)
             ListItemLayout {
