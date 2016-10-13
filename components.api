@@ -612,6 +612,7 @@ Ubuntu.Components.ListItem 1.3 1.2 UCListItem: StyledItem
     property bool selectMode
     property bool selected
     property bool swipeEnabled 1.3
+    property double swipePosition 1.3
     readonly property bool swiped 1.3
     property ListItemActions trailingActions
 Ubuntu.Components.ListItemActions 1.2 UCListItemActions: QtObject
