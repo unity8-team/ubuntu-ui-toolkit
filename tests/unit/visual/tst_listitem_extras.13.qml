@@ -215,17 +215,25 @@ Item {
 
         function test_button_inactive_while_swiped_data() {
             return [
-                {tag: "mouse", touch: false, dx: units.gu(20)},
-                {tag: "touch", touch: true, dx: units.gu(20)},
+                {tag: "mouse", touch: false, swipePosition: false, dx: units.gu(20)},
+                {tag: "touch", touch: true, swipePosition: false, dx: units.gu(20)},
+                {tag: "swipePosition", touch: false, swipePosition: true, dx: units.gu(20)},
+                {tag: "swipePosition", touch: true, swipePosition: true, dx: units.gu(20)},
             ];
         }
         function test_button_inactive_while_swiped(data) {
             clickSpy.target = activeItem;
-            if (data.touch) {
+            if (data.swipePosition) {
+                testWithActiveItem.swipePosition = data.dx;
+            } else if (data.touch) {
                 tug(testWithActiveItem, centerOf(testWithActiveItem).x, centerOf(testWithActiveItem).y, data.dx, 0);
-                TestExtras.touchClick(0, activeItem, centerOf(activeItem));
             } else {
                 swipe(testWithActiveItem, centerOf(testWithActiveItem).x, centerOf(testWithActiveItem).y, data.dx, 0);
+            }
+
+            if (data.touch) {
+                TestExtras.touchClick(0, activeItem, centerOf(activeItem));
+            } else {
                 mouseClick(activeItem, centerOf(activeItem).x, centerOf(activeItem).y);
             }
             expectFail(data.tag, "Button is inactive while swiped");
@@ -271,16 +279,20 @@ Item {
 
         function test_swipe_on_empty_actions_bug1500416_data() {
             return [
-                {tag: "swipe leading, touch", item: emptyActionList, dx: units.gu(5), touch: true},
-                {tag: "swipe trailing, touch", item: emptyActionList, dx: -units.gu(5), touch: true},
-                {tag: "swipe leading, mouse", item: emptyActionList, dx: units.gu(5), touch: false},
-                {tag: "swipe trailing, mouse", item: emptyActionList, dx: -units.gu(5), touch: false}
+                {tag: "swipe leading, touch", item: emptyActionList, dx: units.gu(5), touch: true, swipePosition: false},
+                {tag: "swipe trailing, touch", item: emptyActionList, dx: -units.gu(5), touch: true, swipePosition: false},
+                {tag: "swipe leading, mouse", item: emptyActionList, dx: units.gu(5), touch: false, swipePosition: false},
+                {tag: "swipe trailing, mouse", item: emptyActionList, dx: -units.gu(5), touch: false, swipePosition: false},
+                {tag: "swipe leading, swipePosition", item: emptyActionList, dx: units.gu(5), touch: false, swipePosition: true},
+                {tag: "swipe trailing, swipePosition", item: emptyActionList, dx: -units.gu(5), touch: false, swipePosition: true}
             ];
         }
         function test_swipe_on_empty_actions_bug1500416(data) {
             setupSpy(data.item, "contentMovementEnded");
             if (data.touch) {
                 tugNoWait(data.item, centerOf(data.item).x, centerOf(data.item).y, data.dx, 0);
+            } else if (data.swipePosition) {
+                data.item.swipePosition = data.dx;
             } else {
                 swipeNoWait(data.item, centerOf(data.item).x, centerOf(data.item).y, data.dx, 0);
             }
@@ -291,10 +303,12 @@ Item {
         function test_swipe_not_possible_when_swipe_disabled_data() {
             listView.positionViewAtBeginning();
             return [
-                {tag: "leading, touch", item: findChild(listView, "listItem0"), dx: units.gu(10), touch: true},
-                {tag: "trailing, touch", item: findChild(listView, "listItem0"), dx: -units.gu(10), touch: true},
-                {tag: "leading, mouse", item: findChild(listView, "listItem0"), dx: units.gu(10), touch: false},
-                {tag: "trailing, mouse", item: findChild(listView, "listItem0"), dx: -units.gu(10), touch: false},
+                {tag: "leading, touch", item: findChild(listView, "listItem0"), dx: units.gu(10), touch: true, swipePosition: false},
+                {tag: "trailing, touch", item: findChild(listView, "listItem0"), dx: -units.gu(10), touch: true, swipePosition: false},
+                {tag: "leading, mouse", item: findChild(listView, "listItem0"), dx: units.gu(10), touch: false, swipePosition: false},
+                {tag: "trailing, mouse", item: findChild(listView, "listItem0"), dx: -units.gu(10), touch: false, swipePosition: false},
+                {tag: "leading, swipePosition", item: findChild(listView, "listItem0"), dx: units.gu(10), touch: false, swipePosition: true},
+                {tag: "trailing, swipePosition", item: findChild(listView, "listItem0"), dx: -units.gu(10), touch: false, swipePosition: true},
             ];
         }
         function test_swipe_not_possible_when_swipe_disabled(data) {
@@ -303,6 +317,8 @@ Item {
             setupSpy(data.item, "contentMovementEnded");
             if (data.touch) {
                 tugNoWait(data.item, centerOf(data.item).x, centerOf(data.item).y, data.dx, 0);
+            } else if (data.swipePosition) {
+                data.item.swipePosition = data.dx;
             } else {
                 swipeNoWait(data.item, centerOf(data.item).x, centerOf(data.item).y, data.dx, 0);
             }
