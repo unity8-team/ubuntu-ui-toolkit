@@ -276,9 +276,10 @@ template <int N>
 quint16* UCShapeTextureFactory<N>::renderShadowTexture(UCShapeType type, int radius, int shadow)
 {
     // FIXME(loicm) shadow > 0 was asserted before but when the shadow item is
-    //     shrinked because if its size, the given shadow can be 0. Rendering
+    //     shrinked because of its size, the given shadow can be 0. Rendering
     //     with shadow == 0 crashes, let's clamp to 1 for now.
     shadow = qMax(1, shadow);
+    //DASSERT(shadow >= 0);
     DASSERT(radius >= 0);
 
     const int shadowPlusRadius = shadow + radius;

@@ -23,25 +23,49 @@
 
 UCShapeFillCenterNode::UCShapeFillCenterNode()
     : QSGGeometryNode()
-    , m_opaqueMaterial()
-    , m_material()
-    , m_geometry(attributeSet(), 8, 8, GL_UNSIGNED_SHORT)
-    , m_visible(1)
-    , m_blending(0)
+    , m_resources(Q_NULLPTR)
+    , m_radius(0)
+    , m_shadow(0)
+    , m_shape(UCShapeType::Squircle)
+    , m_flags(0)
 {
     DLOG("creating UCShapeFillCenterNode");
-    memcpy(m_geometry.indexData(), indices(), 8 * sizeof(quint16));
-    m_geometry.setDrawingMode(GL_TRIANGLE_STRIP);
-    m_geometry.setIndexDataPattern(QSGGeometry::StaticPattern);
-    m_geometry.setVertexDataPattern(QSGGeometry::AlwaysUploadPattern);
-    setGeometry(&m_geometry);
-    setOpaqueMaterial(&m_opaqueMaterial);
-    setMaterial(&m_material);
     qsgnode_set_description(this, QLatin1String("shapefillcenter"));
 }
 
-// static
-const quint16* UCShapeFillCenterNode::indices()
+UCShapeFillCenterNode::~UCShapeFillCenterNode()
+{
+    DLOG("detroying UCShapeFillCenterNode");
+    delete m_resources;
+}
+
+void UCShapeFillCenterNode::preprocess()
+{
+    DASSERT(m_flags & Textured);
+
+    if (m_flags & DirtyMask) {
+        static_cast<UCShapeFillCenterShadowMaterial<false>*>(
+            m_resources->material())->updateTexture(
+                static_cast<UCShapeType>(m_shape), m_radius, m_shadow);
+        static_cast<UCShapeFillCenterShadowMaterial<true>*>(
+            m_resources->opaqueMaterial())->updateTexture(
+                static_cast<UCShapeType>(m_shape), m_radius, m_shadow);
+        m_flags &= ~DirtyMask;
+    }
+}
+
+void UCShapeFillCenterNode::setVisible(bool visible)
+{
+    DLOG("UCShapeFillCenterNode::setVisible %d", visible);
+    if (static_cast<bool>(m_flags & Visible) != visible) {
+        m_flags = (m_flags & ~Visible) | (visible ? Visible : 0);
+        markDirty(DirtySubtreeBlocked);
+    }
+}
+
+void UCShapeFillCenterNode::update(
+    const QSizeF& itemSize, UCShapeType type, float radius, QRgb color, float shadowSize,
+    float shadowAngle, float shadowDistance, QRgb shadowColor)
 {
     // The geometry is made of 8 vertices indexed with a triangle strip mode.
     //       0 - 1
@@ -51,85 +75,193 @@ const quint16* UCShapeFillCenterNode::indices()
     //     4       5
     //      \     /
     //       6 - 7
-    static const quint16 indices[] = { 2, 4, 0, 6, 1, 7, 3, 5 };
-    return indices;
-}
+    const quint16 indices[] = { 2, 4, 0, 6, 1, 7, 3, 5 };
+    const int indexCount = ARRAY_SIZE(indices);
+    const int vertexCount = 8;
 
-// static
-const QSGGeometry::AttributeSet& UCShapeFillCenterNode::attributeSet()
-{
-    static const QSGGeometry::Attribute attributes[] = {
-        QSGGeometry::Attribute::create(0, 2, GL_FLOAT, true),
-        QSGGeometry::Attribute::create(1, 4, GL_UNSIGNED_BYTE)
-    };
-    static const QSGGeometry::AttributeSet attributeSet = {
-        2, sizeof(Vertex), attributes
-    };
-    return attributeSet;
-}
+    const quint8 style =
+        ((shadowSize <= 0.0f) || (qAlpha(shadowColor) == 0)) ? HasColor : (HasColor | HasShadow);
 
-void UCShapeFillCenterNode::setVisible(bool visible)
-{
-    DLOG("UCShapeFillCenterNode::setVisible %d", visible);
-    if (m_visible != visible) {
-        m_visible = visible;
-        markDirty(DirtySubtreeBlocked);
+    // Create new material/geometry set if needed.
+    if (style != (m_flags & StyleMask)) {
+        delete m_resources;
+        switch (style) {
+        case HasColor:
+            m_resources = new UCShapeColorResources(vertexCount, indexCount);
+            setFlag(QSGNode::UsePreprocess, false);
+            break;
+        case (HasColor | HasShadow):
+            m_resources = new UCShapeFillCenterShadowResources(vertexCount, indexCount);
+            setFlag(QSGNode::UsePreprocess, true);
+            break;
+        default:
+            NOT_REACHED();
+        }
+        setMaterial(m_resources->material());
+        setOpaqueMaterial(m_resources->opaqueMaterial());
+        memcpy(m_resources->geometry()->indexData(), indices, indexCount * sizeof(quint16));
+        setGeometry(m_resources->geometry());
+        m_flags = (m_flags & ~StyleMask) | style;
     }
-}
 
-void UCShapeFillCenterNode::update(
-    const QSizeF& itemSize, float radius, QRgb color, float shadowSize, float shadowAngle,
-    float shadowDistance, QRgb shadowColor)
-{
-    Q_UNUSED(shadowSize);
-    Q_UNUSED(shadowAngle);
-    Q_UNUSED(shadowDistance);
-    Q_UNUSED(shadowColor);
-    // FIXME(loicm) Add shadow support.
-
-    UCShapeFillCenterNode::Vertex* v =
-        reinterpret_cast<UCShapeFillCenterNode::Vertex*>(m_geometry.vertexData());
-    const float w = static_cast<float>(itemSize.width());
-    const float h = static_cast<float>(itemSize.height());
+    const float dpr = qGuiApp->devicePixelRatio();
+    const float w = floorf(static_cast<float>(itemSize.width()));
+    const float h = floorf(static_cast<float>(itemSize.height()));
     // Rounded down since Shadow doesn't support sub-pixel rendering.
     const float maxSize = floorf(qMin(w, h) * 0.5f);
     const float clampedRadius = qMin(floorf(radius), maxSize);
     const quint32 packedColor = packColor(color);
 
-    v[0].x = clampedRadius;
-    v[0].y = 0.0f;
-    v[0].color = packedColor;
-    v[1].x = w - clampedRadius;
-    v[1].y = 0.0f;
-    v[1].color = packedColor;
-    v[2].x = 0.0f;
-    v[2].y = clampedRadius;
-    v[2].color = packedColor;
-    v[3].x = w;
-    v[3].y = clampedRadius;
-    v[3].color = packedColor;
-    v[4].x = 0.0f;
-    v[4].y = h - clampedRadius;
-    v[4].color = packedColor;
-    v[5].x = w;
-    v[5].y = h - clampedRadius;
-    v[5].color = packedColor;
-    v[6].x = clampedRadius;
-    v[6].y = h;
-    v[6].color = packedColor;
-    v[7].x = w - clampedRadius;
-    v[7].y = h;
-    v[7].color = packedColor;
-    markDirty(QSGNode::DirtyGeometry);
+    // Update geometry depending on the style.
+    switch (style) {
+    case HasColor: {
+        UCShapeColorResources::Vertex* v =
+            reinterpret_cast<UCShapeColorResources::Vertex*>(m_resources->geometry()->vertexData());
+        v[0].x = clampedRadius;
+        v[0].y = 0.0f;
+        v[0].color = packedColor;
+        v[1].x = w - clampedRadius;
+        v[1].y = 0.0f;
+        v[1].color = packedColor;
+        v[2].x = 0.0f;
+        v[2].y = clampedRadius;
+        v[2].color = packedColor;
+        v[3].x = w;
+        v[3].y = clampedRadius;
+        v[3].color = packedColor;
+        v[4].x = 0.0f;
+        v[4].y = h - clampedRadius;
+        v[4].color = packedColor;
+        v[5].x = w;
+        v[5].y = h - clampedRadius;
+        v[5].color = packedColor;
+        v[6].x = clampedRadius;
+        v[6].y = h;
+        v[6].color = packedColor;
+        v[7].x = w - clampedRadius;
+        v[7].y = h;
+        v[7].color = packedColor;
+        markDirty(QSGNode::DirtyGeometry);
+        break;
+    }
+
+    case (HasColor | HasShadow): {
+        UCShapeFillCenterShadowResources::Vertex* v =
+            reinterpret_cast<UCShapeFillCenterShadowResources::Vertex*>(
+                m_resources->geometry()->vertexData());
+        float s, c;
+        sincosf(shadowAngle * -(M_PI / 180.0f), &s, &c);
+        const float offsetX = roundf(c * shadowDistance);
+        const float offsetY = roundf(s * shadowDistance);
+        const float clampedShadow = qMin(floorf(shadowSize), maxSize);
+        const float textureSize = (2.0f * clampedShadow + clampedRadius) * dpr;
+        const float textureSizeRounded = getStride(static_cast<int>(textureSize), 1, textureStride);
+        const float textureOffset = (textureSizeRounded - textureSize) / textureSizeRounded;
+        const float textureFactor = ((1.0f - textureOffset) * dpr) / textureSize;
+        const float midShadowS = (clampedShadow + floorf(w * 0.5f)) * textureFactor + textureOffset;
+        const float midShadowT = (clampedShadow + floorf(h * 0.5f)) * textureFactor + textureOffset;
+        const quint32 packedShadowColor = packColor(shadowColor);
+        v[0].x = clampedRadius;
+        v[0].y = 0.0f;
+        v[0].shadowS = (offsetX + clampedShadow + clampedRadius) * textureFactor + textureOffset;
+        v[0].shadowT = (offsetY + clampedShadow) * textureFactor + textureOffset;
+        v[0].midShadowS = midShadowS;
+        v[0].midShadowT = midShadowT;
+        v[0].color = packedColor;
+        v[0].shadowColor = packedShadowColor;
+        v[1].x = w - clampedRadius;
+        v[1].y = 0.0f;
+        v[1].shadowS =
+            (offsetX + clampedShadow + (w - clampedRadius)) * textureFactor + textureOffset;
+        v[1].shadowT = (offsetY + clampedShadow) * textureFactor + textureOffset;
+        v[1].midShadowS = midShadowS;
+        v[1].midShadowT = midShadowT;
+        v[1].color = packedColor;
+        v[1].shadowColor = packedShadowColor;
+        v[2].x = 0.0f;
+        v[2].y = clampedRadius;
+        v[2].shadowS = (offsetX + clampedShadow) * textureFactor + textureOffset;
+        v[2].shadowT = (offsetY + clampedShadow + clampedRadius) * textureFactor + textureOffset;
+        v[2].midShadowS = midShadowS;
+        v[2].midShadowT = midShadowT;
+        v[2].color = packedColor;
+        v[2].shadowColor = packedShadowColor;
+        v[3].x = w;
+        v[3].y = clampedRadius;
+        v[3].shadowS = (offsetX + clampedShadow + w) * textureFactor + textureOffset;
+        v[3].shadowT = (offsetY + clampedShadow + clampedRadius) * textureFactor + textureOffset;
+        v[3].midShadowS = midShadowS;
+        v[3].midShadowT = midShadowT;
+        v[3].color = packedColor;
+        v[3].shadowColor = packedShadowColor;
+        v[4].x = 0.0f;
+        v[4].y = h - clampedRadius;
+        v[4].shadowS = (offsetX + clampedShadow) * textureFactor + textureOffset;
+        v[4].shadowT =
+            (offsetY + clampedShadow + (h - clampedRadius)) * textureFactor + textureOffset;
+        v[4].midShadowS = midShadowS;
+        v[4].midShadowT = midShadowT;
+        v[4].color = packedColor;
+        v[4].shadowColor = packedShadowColor;
+        v[5].x = w;
+        v[5].y = h - clampedRadius;
+        v[5].shadowS = (offsetX + clampedShadow + w) * textureFactor + textureOffset;
+        v[5].shadowT =
+            (offsetY + clampedShadow + (h - clampedRadius)) * textureFactor + textureOffset;
+        v[5].midShadowS = midShadowS;
+        v[5].midShadowT = midShadowT;
+        v[5].color = packedColor;
+        v[5].shadowColor = packedShadowColor;
+        v[6].x = clampedRadius;
+        v[6].y = h;
+        v[6].shadowS = (offsetX + clampedShadow + clampedRadius) * textureFactor + textureOffset;
+        v[6].shadowT = (offsetY + clampedShadow + h) * textureFactor + textureOffset;
+        v[6].midShadowS = midShadowS;
+        v[6].midShadowT = midShadowT;
+        v[6].color = packedColor;
+        v[6].shadowColor = packedShadowColor;
+        v[7].x = w - clampedRadius;
+        v[7].y = h;
+        v[7].shadowS =
+            (offsetX + clampedShadow + (w - clampedRadius)) * textureFactor + textureOffset;
+        v[7].shadowT = (offsetY + clampedShadow + h) * textureFactor + textureOffset;
+        v[7].midShadowS = midShadowS;
+        v[7].midShadowT = midShadowT;
+        v[7].color = packedColor;
+        v[7].shadowColor = packedShadowColor;
+        markDirty(QSGNode::DirtyGeometry);
+
+        // Update data for the preprocess() call.
+        const quint16 deviceShadow = static_cast<quint16>(clampedShadow * dpr);
+        if (m_shadow != deviceShadow) {
+            m_shadow = deviceShadow;
+            m_flags |= DirtyShadow;
+        }
+        const quint16 deviceRadius = static_cast<quint16>(clampedRadius * dpr);
+        if (m_radius != deviceRadius) {
+            m_radius = deviceRadius;
+            m_flags |= DirtyRadius;
+        }
+        if (m_shape != static_cast<quint8>(type)) {
+            m_shape = static_cast<quint8>(type);
+            m_flags |= DirtyShape;
+        }
+        break;
+    }
+
+    default:
+        DNOT_REACHED();
+    }
 
     // Update the blending state of the opaque material (in QSG terms, an opaque
     // material is the material automatically used when the opacity is 1, but
     // even if the opacity is 1 we have to handle the case where the alpha of
     // the specified color is less than 1).
     const bool blending = qAlpha(color) < 255;
-    if (blending != static_cast<bool>(m_blending)) {
-        m_opaqueMaterial.setFlag(QSGMaterial::Blending, blending);
+    if (blending != static_cast<bool>(m_flags & Blending)) {
+        m_resources->opaqueMaterial()->setFlag(QSGMaterial::Blending, blending);
         markDirty(QSGNode::DirtyMaterial);
+        m_flags = (m_flags & ~Blending) | (blending ? Blending : 0);
     }
 }
 
@@ -152,7 +284,7 @@ UCShapeFillCornersShader::UCShapeFillCornersShader()
     setShaderSourceFile(QOpenGLShader::Vertex,
                         QStringLiteral(":/uc/privates/shaders/texture.vert"));
     setShaderSourceFile(QOpenGLShader::Fragment,
-                        QStringLiteral(":/uc/privates/shaders/luminance.frag"));
+                        QStringLiteral(":/uc/privates/shaders/colorcoverage.frag"));
 }
 
 char const* const* UCShapeFillCornersShader::attributeNames() const
@@ -225,7 +357,7 @@ UCShapeFillCornersNode::UCShapeFillCornersNode()
     , m_newRadius(0)
     , m_type(0)
     , m_newType(0)
-    , m_visible(1)
+    , m_visible(0)
 {
     DLOG("creating UCShapeFillCornersNode");
     setFlag(QSGNode::UsePreprocess);
@@ -310,7 +442,6 @@ void UCShapeFillCornersNode::update(
     const float textureStart = (textureSizeRounded - textureSize + border) / textureSizeRounded;
     const float textureEnd = (textureSizeRounded - border) / textureSizeRounded;
     const quint32 packedColor = packColor(color);
-
     v[0].x = 0.0f;
     v[0].y = 0.0f;
     v[0].s = textureStart;
@@ -331,7 +462,6 @@ void UCShapeFillCornersNode::update(
     v[3].s = textureStart;
     v[3].t = textureStart;
     v[3].color = packedColor;
-
     v[4].x = 0.0f;
     v[4].y = clampedRadius;
     v[4].s = textureStart;
@@ -342,7 +472,6 @@ void UCShapeFillCornersNode::update(
     v[5].s = textureStart;
     v[5].t = textureEnd;
     v[5].color = packedColor;
-
     v[6].x = 0.0f;
     v[6].y = h - clampedRadius;
     v[6].s = textureStart;
@@ -353,7 +482,6 @@ void UCShapeFillCornersNode::update(
     v[7].s = textureStart;
     v[7].t = textureEnd;
     v[7].color = packedColor;
-
     v[8].x = 0.0f;
     v[8].y = h;
     v[8].s = textureStart;
@@ -374,12 +502,11 @@ void UCShapeFillCornersNode::update(
     v[11].s = textureStart;
     v[11].t = textureStart;
     v[11].color = packedColor;
-
     markDirty(QSGNode::DirtyGeometry);
 
     // Update data for the preprocess() call.
-    if (m_radius != static_cast<quint8>(deviceRadius)) {
-        m_newRadius = static_cast<quint8>(deviceRadius);
+    if (m_radius != static_cast<quint16>(deviceRadius)) {
+        m_newRadius = static_cast<quint16>(deviceRadius);
     }
     if (m_type != static_cast<quint8>(type)) {
         m_newType = static_cast<quint8>(type);

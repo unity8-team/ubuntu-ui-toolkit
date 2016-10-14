@@ -240,17 +240,20 @@ RESOURCES += \
 OTHER_FILES += \
     $$PWD/privates/shaders/color.frag \
     $$PWD/privates/shaders/color.vert \
+    $$PWD/privates/shaders/colorcoverage.frag \
+    $$PWD/privates/shaders/fillcentershadow.frag \
+    $$PWD/privates/shaders/fillcentershadow.vert \
+    $$PWD/privates/shaders/fillcentershadow_opaque.frag \
     $$PWD/privates/shaders/frame.frag \
     $$PWD/privates/shaders/innershadow.frag \
-    $$PWD/privates/shaders/luminance.frag \
     $$PWD/privates/shaders/opaquecolor.frag \
     $$PWD/privates/shaders/texture.vert \
     $$PWD/privates/shaders/texture2.vert \
     $$PWD/shaders/shape.frag \
     $$PWD/shaders/shape.vert \
-    $$PWD/shaders/shape_no_dfdy.frag \
+    $$PWD/shaders/shape_mipmap.frag \
     $$PWD/shaders/shapeoverlay.frag \
     $$PWD/shaders/shapeoverlay.vert \
-    $$PWD/shaders/shapeoverlay_no_dfdy.frag
+    $$PWD/shaders/shapeoverlay_mipmap.frag
 
 load(ubuntu_qt_module)

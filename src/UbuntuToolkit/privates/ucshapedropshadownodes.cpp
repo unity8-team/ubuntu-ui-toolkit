@@ -53,7 +53,7 @@ UCShapeDropShadowShader::UCShapeDropShadowShader()
     setShaderSourceFile(QOpenGLShader::Vertex,
                         QStringLiteral(":/uc/privates/shaders/texture.vert"));
     setShaderSourceFile(QOpenGLShader::Fragment,
-                        QStringLiteral(":/uc/privates/shaders/luminance.frag"));
+                        QStringLiteral(":/uc/privates/shaders/colorcoverage.frag"));
 }
 
 char const* const* UCShapeDropShadowShader::attributeNames() const
@@ -128,7 +128,7 @@ UCShapeDropShadowNode::UCShapeDropShadowNode()
     , m_newRadius(0)
     , m_type(0)
     , m_newType(0)
-    , m_visible(1)
+    , m_visible(0)
 {
     DLOG("creating UCShapeDropShadowNode");
     setFlag(QSGNode::UsePreprocess);
@@ -195,8 +195,6 @@ void UCShapeDropShadowNode::update(
     const QSizeF& itemSize, UCShapeType type, float radius, float size, float angle, float distance,
     QRgb color)
 {
-    // Q_UNUSED(itemSize);Q_UNUSED(type);Q_UNUSED(radius);Q_UNUSED(size);Q_UNUSED(angle);Q_UNUSED(distance);Q_UNUSED(color)
-
     const float devicePixelRatio = qGuiApp->devicePixelRatio();
     const float w = static_cast<float>(itemSize.width());
     const float h = static_cast<float>(itemSize.height());
@@ -277,11 +275,11 @@ void UCShapeDropShadowNode::update(
     markDirty(QSGNode::DirtyGeometry);
 
     // Update data for the preprocess() call.
-    const quint8 deviceSize = static_cast<quint8>(clampedSize * devicePixelRatio);
+    const quint8 deviceSize = static_cast<quint16>(clampedSize * devicePixelRatio);
     if (m_size != deviceSize) {
         m_newSize = deviceSize;
     }
-    const quint8 deviceRadius = static_cast<quint8>(clampedRadius * devicePixelRatio);
+    const quint8 deviceRadius = static_cast<quint16>(clampedRadius * devicePixelRatio);
     if (m_radius != deviceRadius) {
         m_newRadius = deviceRadius;
     }

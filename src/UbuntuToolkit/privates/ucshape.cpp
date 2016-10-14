@@ -454,7 +454,7 @@ QSGNode* UCShape::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData* data)
     const bool fillCenterVisible = static_cast<bool>(m_flags & FillCenterVisible);
     if (fillCenterVisible) {
         static_cast<UCShapeFillCenterNode*>(shapeNode->node(UCShapeNode::FillCenter))->update(
-            itemSize, unquantizeFromU16(m_radius), m_fillColor,
+            itemSize, static_cast<UCShapeType>(m_shape), unquantizeFromU16(m_radius), m_fillColor,
             unquantizeFromU16(m_innerShadowSize), unquantizeFromU16(m_innerShadowAngle),
             unquantizeFromU16(m_innerShadowDistance), m_innerShadowColor);
     }

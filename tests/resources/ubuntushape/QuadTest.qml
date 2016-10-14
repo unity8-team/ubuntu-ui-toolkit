@@ -20,7 +20,7 @@ import Ubuntu.Components.Private 1.3
 
 Item {
     id: root
-    width: 800
+    width: 700
     height: 500
     focus: true
 
@@ -100,11 +100,11 @@ Item {
         } else if (event.key == Qt.Key_U) {
             quad.dropShadowColor = Qt.rgba(Math.random(), Math.random(), Math.random(), 1.0);
         } else if (event.key == Qt.Key_I) {
-            quad.innerShadowSize = quad.innerShadowSize + (shift ? 0.25 : -0.25);
+            quad.innerShadowSize = quad.innerShadowSize + (shift ? 1.0 : -1.0);
         } else if (event.key == Qt.Key_O) {
-            quad.innerShadowDistance = quad.innerShadowDistance + (shift ? 0.25 : -0.25);
+            quad.innerShadowDistance = quad.innerShadowDistance + (shift ? 2.0 : -2.0);
         } else if (event.key == Qt.Key_P) {
-            quad.innerShadowAngle = quad.innerShadowAngle + (shift ? 0.25 : -0.25);
+            quad.innerShadowAngle = quad.innerShadowAngle + (shift ? 2.5 : -0.5);
         } else if (event.key == Qt.Key_Q) {
             quad.innerShadowColor = Qt.rgba(Math.random(), Math.random(), Math.random(), 1.0);
         } else if (event.key == Qt.Key_S) {

@@ -131,23 +131,116 @@ static inline void* alignedAlloc(size_t alignment, size_t size)
 #endif
 }
 
-// Opaque color material common to most shape items.
-class UCShapeOpaqueColorMaterial : public QSGMaterial
+class UCShapeColorOpaqueShader : public QSGMaterialShader
 {
 public:
-    UCShapeOpaqueColorMaterial(bool blending = false);
-    int compare(const QSGMaterial* other) const Q_DECL_OVERRIDE;
-    QSGMaterialType* type() const Q_DECL_OVERRIDE;
-    QSGMaterialShader* createShader() const Q_DECL_OVERRIDE;
+    UCShapeColorOpaqueShader() {
+        setShaderSourceFile(QOpenGLShader::Vertex,
+                            QStringLiteral(":/uc/privates/shaders/color.vert"));
+        setShaderSourceFile(QOpenGLShader::Fragment,
+                            QStringLiteral(":/uc/privates/shaders/opaquecolor.frag"));
+    }
+    char const* const* attributeNames() const Q_DECL_OVERRIDE {
+        static char const* const attributes[] = { "positionAttrib", "colorAttrib", 0 };
+        return attributes;
+    }
+    void initialize() Q_DECL_OVERRIDE {
+        QSGMaterialShader::initialize();
+        m_matrixId = program()->uniformLocation("matrix");
+    }
+    void updateState(
+        const RenderState& state, QSGMaterial*, QSGMaterial*) Q_DECL_OVERRIDE {
+        if (state.isMatrixDirty()) {
+            program()->setUniformValue(m_matrixId, state.combinedMatrix());
+        }
+    }
+
+private:
+    int m_matrixId;
 };
 
-// Color material common to most shape items.
-class UCShapeColorMaterial : public UCShapeOpaqueColorMaterial
+class UCShapeColorShader : public UCShapeColorOpaqueShader
 {
 public:
-    UCShapeColorMaterial();
-    QSGMaterialType* type() const Q_DECL_OVERRIDE;
-    QSGMaterialShader* createShader() const Q_DECL_OVERRIDE;
+    UCShapeColorShader() : UCShapeColorOpaqueShader() {
+        setShaderSourceFile(QOpenGLShader::Fragment,
+                            QStringLiteral(":/uc/privates/shaders/color.frag"));
+    }
+    void initialize() Q_DECL_OVERRIDE {
+        UCShapeColorOpaqueShader::initialize();
+        m_opacityId = program()->uniformLocation("opacity");
+    }
+    void updateState(
+        const RenderState& state, QSGMaterial* newEffect, QSGMaterial* oldEffect) Q_DECL_OVERRIDE {
+        UCShapeColorOpaqueShader::updateState(state, newEffect, oldEffect);
+        if (state.isOpacityDirty()) {
+            program()->setUniformValue(m_opacityId, state.opacity());
+        }
+    }
+
+private:
+    int m_opacityId;
+};
+
+template <bool opaque>
+class UCShapeColorMaterial : public QSGMaterial
+{
+public:
+    UCShapeColorMaterial() {
+        setFlag(Blending, !opaque);
+    }
+    QSGMaterialType* type() const Q_DECL_OVERRIDE {
+        static QSGMaterialType type[2];
+        return opaque ? &type[0] : &type[1];
+    }
+    QSGMaterialShader* createShader() const Q_DECL_OVERRIDE {
+        return opaque ? new UCShapeColorOpaqueShader : new UCShapeColorShader;
+    }
+    int compare(const QSGMaterial*) const Q_DECL_OVERRIDE {
+        return 0;
+    }
+};
+
+class UCShapeResources
+{
+public:
+    virtual ~UCShapeResources() {}
+    virtual QSGMaterial* material() = 0;
+    virtual QSGMaterial* opaqueMaterial() = 0;
+    virtual QSGGeometry* geometry() = 0;
+};
+
+class UCShapeColorResources : public UCShapeResources
+{
+public:
+    UCShapeColorResources(int vertexCount, int indexCount, int indexType = GL_UNSIGNED_SHORT)
+        : m_geometry(attributeSet(), vertexCount, indexCount, indexType) {
+        m_geometry.setDrawingMode(GL_TRIANGLE_STRIP);
+        m_geometry.setIndexDataPattern(QSGGeometry::StaticPattern);
+        m_geometry.setVertexDataPattern(QSGGeometry::AlwaysUploadPattern);
+    }
+
+    QSGMaterial* material() Q_DECL_OVERRIDE { return &m_material; }
+    QSGMaterial* opaqueMaterial() Q_DECL_OVERRIDE { return &m_opaqueMaterial; }
+    QSGGeometry* geometry() Q_DECL_OVERRIDE { return &m_geometry; }
+
+    struct Vertex { float x, y; quint32 color; };
+
+private:
+    static const QSGGeometry::AttributeSet& attributeSet() {
+        static const QSGGeometry::Attribute attributes[] = {
+            QSGGeometry::Attribute::create(0, 2, GL_FLOAT, true),   // x, y
+            QSGGeometry::Attribute::create(1, 4, GL_UNSIGNED_BYTE)  // color
+        };
+        static const QSGGeometry::AttributeSet attributeSet = {
+            2, sizeof(Vertex), attributes
+        };
+        return attributeSet;
+    }
+
+    UCShapeColorMaterial<false> m_material;
+    UCShapeColorMaterial<true> m_opaqueMaterial;
+    QSGGeometry m_geometry;
 };
 
 #endif  // UCSHAPEUTILS_P_H

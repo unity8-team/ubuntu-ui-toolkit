@@ -23,26 +23,15 @@
 
 UCShapeFrameEdgesNode::UCShapeFrameEdgesNode()
     : QSGGeometryNode()
-    , m_opaqueMaterial()
-    , m_material()
-    , m_geometry(attributeSet(), 16, 22, GL_UNSIGNED_SHORT)
-    , m_visible(1)
+    , m_resources(16, 22, GL_UNSIGNED_SHORT)
+    , m_visible(0)
     , m_blending(0)
 {
     DLOG("creating UCShapeFrameEdgesNode");
-    memcpy(m_geometry.indexData(), indices(), 22 * sizeof(quint16));
-    m_geometry.setDrawingMode(GL_TRIANGLE_STRIP);
-    m_geometry.setIndexDataPattern(QSGGeometry::StaticPattern);
-    m_geometry.setVertexDataPattern(QSGGeometry::AlwaysUploadPattern);
-    setGeometry(&m_geometry);
-    setOpaqueMaterial(&m_opaqueMaterial);
-    setMaterial(&m_material);
-    qsgnode_set_description(this, QLatin1String("shapeframeedges"));
-}
 
-// static
-const quint16* UCShapeFrameEdgesNode::indices()
-{
+    setMaterial(m_resources.material());
+    setOpaqueMaterial(m_resources.opaqueMaterial());
+
     // The geometry is made of 16 vertices indexed with a triangle strip mode.
     //        0 ----- 1
     //         2 --- 3
@@ -53,7 +42,7 @@ const quint16* UCShapeFrameEdgesNode::indices()
     //    10             11
     //        12 --- 13
     //       14 ----- 15
-    static const quint16 indices[] = {
+    const quint16 indices[] = {
         0, 2, 1, 3,
         3, 4,  // Degenerate triangle.
         4, 10, 6, 8,
@@ -62,20 +51,15 @@ const quint16* UCShapeFrameEdgesNode::indices()
         11, 12,  // Degenerate triangle.
         12, 14, 13, 15
     };
-    return indices;
+    memcpy(m_resources.geometry()->indexData(), indices, 22 * sizeof(quint16));
+    setGeometry(m_resources.geometry());
+
+    qsgnode_set_description(this, QLatin1String("shapeframeedges"));
 }
 
-// static
-const QSGGeometry::AttributeSet& UCShapeFrameEdgesNode::attributeSet()
+UCShapeFrameEdgesNode::~UCShapeFrameEdgesNode()
 {
-    static const QSGGeometry::Attribute attributes[] = {
-        QSGGeometry::Attribute::create(0, 2, GL_FLOAT, true),
-        QSGGeometry::Attribute::create(1, 4, GL_UNSIGNED_BYTE)
-    };
-    static const QSGGeometry::AttributeSet attributeSet = {
-        2, sizeof(Vertex), attributes
-    };
-    return attributeSet;
+    DLOG("detroying UCShapeFrameEdgesNode");
 }
 
 void UCShapeFrameEdgesNode::setVisible(bool visible)
@@ -93,8 +77,8 @@ void UCShapeFrameEdgesNode::update(
     Q_UNUSED(space);
     // FIXME(loicm) Add space support.
 
-    UCShapeFrameEdgesNode::Vertex* v =
-        reinterpret_cast<UCShapeFrameEdgesNode::Vertex*>(m_geometry.vertexData());
+    UCShapeColorResources::Vertex* v =
+        reinterpret_cast<UCShapeColorResources::Vertex*>(m_resources.geometry()->vertexData());
     const float w = static_cast<float>(itemSize.width());
     const float h = static_cast<float>(itemSize.height());
     // FIXME(loicm) Rounded down since renderShape() doesn't support sub-pixel rendering.
@@ -161,7 +145,7 @@ void UCShapeFrameEdgesNode::update(
     // the specified color is less than 1).
     const bool blending = qAlpha(color) < 255;
     if (blending != static_cast<bool>(m_blending)) {
-        m_opaqueMaterial.setFlag(QSGMaterial::Blending, blending);
+        m_resources.opaqueMaterial()->setFlag(QSGMaterial::Blending, blending);
         markDirty(QSGNode::DirtyMaterial);
     }
 }
@@ -267,7 +251,7 @@ UCShapeFrameCornersNode::UCShapeFrameCornersNode()
     , m_newRadius{0, 0}
     , m_type(0)
     , m_newType(0)
-    , m_visible(1)
+    , m_visible(0)
 {
     DLOG("creating UCShapeFrameCornersNode");
     setFlag(QSGNode::UsePreprocess);
@@ -545,11 +529,11 @@ void UCShapeFrameCornersNode::update(
     markDirty(QSGNode::DirtyGeometry);
 
     // Update data for the preprocess() call.
-    if (m_radius[0] != static_cast<quint8>(deviceOuterRadius)) {
-        m_newRadius[0] = static_cast<quint8>(deviceOuterRadius);
+    if (m_radius[0] != static_cast<quint16>(deviceOuterRadius)) {
+        m_newRadius[0] = static_cast<quint16>(deviceOuterRadius);
     }
-    if (m_radius[1] != static_cast<quint8>(deviceInnerRadius)) {
-        m_newRadius[1] = static_cast<quint8>(deviceInnerRadius);
+    if (m_radius[1] != static_cast<quint16>(deviceInnerRadius)) {
+        m_newRadius[1] = static_cast<quint16>(deviceInnerRadius);
     }
     if (m_type != static_cast<quint8>(type)) {
         m_newType = static_cast<quint8>(type);

@@ -27,13 +27,8 @@
 class UCShapeFrameEdgesNode : public QSGGeometryNode
 {
 public:
-    struct Vertex { float x, y; quint32 color; };
-
-    static const quint16* indices();
-    static const QSGGeometry::AttributeSet& attributeSet();
-
     UCShapeFrameEdgesNode();
-    ~UCShapeFrameEdgesNode() { DLOG("detroying UCShapeFrameEdgesNode"); }
+    ~UCShapeFrameEdgesNode();
 
     bool isSubtreeBlocked() const Q_DECL_OVERRIDE { return m_visible == 0; }
 
@@ -41,9 +36,7 @@ public:
     void update(const QSizeF& itemSize, float radius, float thickness, float space, QRgb color);
 
 private:
-    UCShapeOpaqueColorMaterial m_opaqueMaterial;
-    UCShapeColorMaterial m_material;
-    QSGGeometry m_geometry;
+    UCShapeColorResources m_resources;
     quint8 m_visible : 1;
     quint8 m_blending : 1;
     quint8 __padding : 6;

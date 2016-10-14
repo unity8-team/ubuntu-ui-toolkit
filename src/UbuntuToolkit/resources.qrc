@@ -1,18 +1,21 @@
 <RCC>
     <qresource prefix="/uc">
-        <file>shaders/shape.frag</file>
-        <file>shaders/shape_mipmap.frag</file>
-        <file>shaders/shape.vert</file>
-        <file>shaders/shapeoverlay.frag</file>
-        <file>shaders/shapeoverlay_mipmap.frag</file>
-        <file>shaders/shapeoverlay.vert</file>
         <file>privates/shaders/color.frag</file>
         <file>privates/shaders/color.vert</file>
+        <file>privates/shaders/colorcoverage.frag</file>
+        <file>privates/shaders/fillcentershadow.frag</file>
+        <file>privates/shaders/fillcentershadow.vert</file>
+        <file>privates/shaders/fillcentershadow_opaque.frag</file>
         <file>privates/shaders/frame.frag</file>
         <file>privates/shaders/innershadow.frag</file>
-        <file>privates/shaders/luminance.frag</file>
         <file>privates/shaders/opaquecolor.frag</file>
         <file>privates/shaders/texture.vert</file>
         <file>privates/shaders/texture2.vert</file>
+        <file>shaders/shape.frag</file>
+        <file>shaders/shape.vert</file>
+        <file>shaders/shape_mipmap.frag</file>
+        <file>shaders/shapeoverlay.frag</file>
+        <file>shaders/shapeoverlay.vert</file>
+        <file>shaders/shapeoverlay_mipmap.frag</file>
     </qresource>
 </RCC>
