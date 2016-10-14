@@ -263,6 +263,7 @@ Item {
             compare(defaults.__styleInstance, null, "__styleInstance must be null.");
             compare(defaults.selected, false, "Not selected by default");
             compare(defaults.selectMode, false, "Not selectable by default");
+            compare(defaults.swipePosition, 0, "swipePosition must be 0 by default");
             compare(testColumn.ViewItems.selectMode, false, "The parent attached property is not selectable by default");
             compare(testColumn.ViewItems.selectedIndices.length, 0, "No item is selected by default");
             compare(listView.ViewItems.dragMode, false, "Drag mode is off on ListView");
@@ -423,16 +424,20 @@ Item {
         function test_tug_actions_data() {
             var item = findChild(listView, "listItem0");
             return [
-                {tag: "Trailing, mouse", item: item, pos: centerOf(item), dx: -units.gu(20), positiveDirection: false, mouse: true},
-                {tag: "Leading, mouse", item: item, pos: centerOf(item), dx: units.gu(20), positiveDirection: true, mouse: true},
-                {tag: "Trailing, touch", item: item, pos: centerOf(item), dx: -units.gu(20), positiveDirection: false, mouse: false},
-                {tag: "Leading, touch", item: item, pos: centerOf(item), dx: units.gu(20), positiveDirection: true, mouse: false},
+                {tag: "Trailing, mouse", item: item, pos: centerOf(item), dx: -units.gu(20), positiveDirection: false, mouse: true, swipePosition: false},
+                {tag: "Leading, mouse", item: item, pos: centerOf(item), dx: units.gu(20), positiveDirection: true, mouse: true, swipePosition: false},
+                {tag: "Trailing, touch", item: item, pos: centerOf(item), dx: -units.gu(20), positiveDirection: false, mouse: false, swipePosition: false},
+                {tag: "Leading, touch", item: item, pos: centerOf(item), dx: units.gu(20), positiveDirection: true, mouse: false, swipePosition: false},
+                {tag: "Trailing, swipePosition", item: item, pos: centerOf(item), dx: -units.gu(20), positiveDirection: false, mouse: false, swipePosition: true},
+                {tag: "Leading, swipePosition", item: item, pos: centerOf(item), dx: units.gu(20), positiveDirection: true, mouse: false, swipePosition: true},
             ];
         }
         function test_tug_actions(data) {
             listView.positionViewAtBeginning();
             if (data.mouse) {
                 swipe(data.item, data.pos.x, data.pos.y, data.dx, 0);
+            } else if (data.swipePosition) {
+                data.item.swipePosition = data.dx;
             } else {
                 tug(data.item, data.pos.x, data.pos.y, data.dx, 0);
             }
@@ -458,16 +463,20 @@ Item {
             var item0 = findChild(listView, "listItem0");
             var item1 = findChild(listView, "listItem1");
             return [
-                {tag: "Click on an other Item", item: item0, pos: centerOf(item0), dx: -units.gu(20), clickOn: item1, mouse: true},
-                {tag: "Click on the same Item", item: item0, pos: centerOf(item0), dx: -units.gu(20), clickOn: item0, mouse: true},
-                {tag: "Tap on an other Item", item: item0, pos: centerOf(item0), dx: -units.gu(20), clickOn: item1, mouse: false},
-                {tag: "Tap on the same Item", item: item0, pos: centerOf(item0), dx: -units.gu(20), clickOn: item0, mouse: false},
+                {tag: "Click on an other Item", item: item0, pos: centerOf(item0), dx: -units.gu(20), clickOn: item1, mouse: true, swipePosition: false},
+                {tag: "Click on the same Item", item: item0, pos: centerOf(item0), dx: -units.gu(20), clickOn: item0, mouse: true, swipePosition: false},
+                {tag: "Tap on an other Item", item: item0, pos: centerOf(item0), dx: -units.gu(20), clickOn: item1, mouse: false, swipePosition: false},
+                {tag: "Tap on the same Item", item: item0, pos: centerOf(item0), dx: -units.gu(20), clickOn: item0, mouse: false, swipePosition: false},
+                {tag: "Set swipePosition then click on an other Item", item: item0, pos: centerOf(item0), dx: -units.gu(20), clickOn: item1, mouse: false, swipePosition: true},
+                {tag: "Set swipePosition then click on the same Item", item: item0, pos: centerOf(item0), dx: -units.gu(20), clickOn: item0, mouse: false, swipePosition: true},
             ];
         }
         function test_rebound_when_pressed_outside_or_clicked(data) {
             listView.positionViewAtBeginning();
             if (data.mouse) {
                 swipe(data.item, data.pos.x, data.pos.y, data.dx, 0);
+            } else if (data.swipePosition) {
+                data.item.swipePosition = data.dx;
             } else {
                 tug(data.item, data.pos.x, data.pos.y, data.dx, 0);
             }
@@ -484,6 +493,8 @@ Item {
                 {tag: "Leading", item: item0, pos: centerOf(item0), dx: units.gu(20), clickOn: item0.contentItem, mouse: true},
                 {tag: "Trailing", item: item0, pos: centerOf(item0), dx: -units.gu(20), clickOn: item1, mouse: false},
                 {tag: "Leading", item: item0, pos: centerOf(item0), dx: units.gu(20), clickOn: item0.contentItem, mouse: false},
+                {tag: "Trailing, swipePosition", item: item0, pos: centerOf(item0), dx: -units.gu(10), clickOn: item1, mouse: false, swipePosition: true},
+                {tag: "Leading, swipePosition", item: item0, pos: centerOf(item0), dx: units.gu(10), clickOn: item0.contentItem, mouse: false, swipePosition: true},
             ];
         }
         function test_listview_not_interactive_while_tugged(data) {
@@ -492,6 +503,8 @@ Item {
             compare(listView.interactive, true, "ListView is not interactive");
             if (data.mouse) {
                 swipe(data.item, data.pos.x, data.pos.y, data.dx, units.gu(5));
+            } else if (data.swipePosition) {
+                data.item.swipePosition = data.dx;
             } else {
                 tug(data.item, data.pos.x, data.pos.y, data.dx, units.gu(5));
             }
