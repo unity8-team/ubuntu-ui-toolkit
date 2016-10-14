@@ -2057,6 +2057,7 @@ void UCListItem::setSwipePosition(qreal swipePosition)
     d->setSwiped(true);
     d->lockContentItem(false);
     d->loadStyleItem();
+    d->lastPos = QPointF(0.0, 0.0);
     QPointF localPos(swipePosition, 0.0);
     d->swipeEvent(localPos, UCSwipeEvent::Updated);
 }
