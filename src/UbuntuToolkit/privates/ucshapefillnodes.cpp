@@ -162,8 +162,8 @@ void UCShapeFillCenterNode::update(
         const float textureSizeRounded = getStride(static_cast<int>(textureSize), 1, textureStride);
         const float textureOffset = (textureSizeRounded - textureSize) / textureSizeRounded;
         const float textureFactor = ((1.0f - textureOffset) * dpr) / textureSize;
-        const float midShadowS = (clampedShadow + floorf(w * 0.5f)) * textureFactor + textureOffset;
-        const float midShadowT = (clampedShadow + floorf(h * 0.5f)) * textureFactor + textureOffset;
+        const float midShadowS = (clampedShadow + (w * 0.5f)) * textureFactor + textureOffset;
+        const float midShadowT = (clampedShadow + (h * 0.5f)) * textureFactor + textureOffset;
         const quint32 packedShadowColor = packColor(shadowColor);
         v[0].x = clampedRadius;
         v[0].y = 0.0f;
@@ -296,9 +296,10 @@ void UCShapeFillCornersNode::preprocess()
 {
     if (m_flags & (DirtyRadius | DirtyShape)) {
         static_cast<UCShapeColorMaskMaterial<false>*>(
-            m_resources->material())->updateTexture(static_cast<UCShapeType>(m_shape), m_radius);
+            m_resources->material())->updateMaskTexture(
+                static_cast<UCShapeType>(m_shape), m_radius);
         static_cast<UCShapeColorMaskMaterial<false>*>(
-            m_resources->opaqueMaterial())->updateTexture(
+            m_resources->opaqueMaterial())->updateMaskTexture(
                 static_cast<UCShapeType>(m_shape), m_radius);
     }
     m_flags &= ~DirtyMask;
@@ -346,6 +347,7 @@ void UCShapeFillCornersNode::update(
             NOT_REACHED();
         }
         setMaterial(m_resources->material());
+        m_resources->opaqueMaterial()->setFlag(QSGMaterial::Blending);
         setOpaqueMaterial(m_resources->opaqueMaterial());
         memcpy(m_resources->geometry()->indexData(), indices, indexCount * sizeof(quint16));
         setGeometry(m_resources->geometry());
@@ -553,16 +555,5 @@ void UCShapeFillCornersNode::update(
 
     default:
         DNOT_REACHED();
-    }
-
-    // Update the blending state of the opaque material (in QSG terms, an opaque
-    // material is the material automatically used when the opacity is 1, but
-    // even if the opacity is 1 we have to handle the case where the alpha of
-    // the specified color is less than 1).
-    const bool blending = qAlpha(color) < 255;
-    if (blending != static_cast<bool>(m_flags & Blending)) {
-        m_resources->opaqueMaterial()->setFlag(QSGMaterial::Blending, blending);
-        markDirty(QSGNode::DirtyMaterial);
-        m_flags = (m_flags & ~Blending) | (blending ? Blending : 0);
     }
 }

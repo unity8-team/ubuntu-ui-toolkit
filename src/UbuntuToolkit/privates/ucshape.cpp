@@ -19,6 +19,19 @@
 // FIXME(loicm) Add a description of the techniques and terms used in the shape
 //     item and nodes.
 
+// TODO(loicm): Try using half-sized textures to speed up CPU-based shadow
+//     rendering, switching to bilinear texture sampling at runtime. Evaluate
+//     the trade-off between texture creation (faster generation allows higher
+//     max radius and shadow sizes) and rendering speed.
+
+// TODO(loicm): Outer shadow rendering should provide a clippedShape (or
+//     knockedOutShape) mode that knocks out the pixels of the shape area. This
+//     is often what we need and that would allow to optimise rendering by
+//     removing transparent pixels (that are still rasterised, shaded and
+//     blended by the GPU...) with a dedicated mesh.
+
+// TODO(loicm): Add support for negative distances.
+
 #include "ucshape_p.h"
 
 #include <math.h>

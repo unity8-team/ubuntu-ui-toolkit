@@ -88,7 +88,7 @@ Item {
         if (event.key == Qt.Key_A) {
             quad.shape = (quad.shape + 1) % 2;
         } else if (event.key == Qt.Key_Z) {
-            quad.radius = quad.radius + (shift ? 0.25 : -0.25);
+            quad.radius = quad.radius + (shift ? 1.0 : -1.0);
         } else if (event.key == Qt.Key_E) {
             quad.fillColor = Qt.rgba(Math.random(), Math.random(), Math.random(), 1.0);
         } else if (event.key == Qt.Key_R) {

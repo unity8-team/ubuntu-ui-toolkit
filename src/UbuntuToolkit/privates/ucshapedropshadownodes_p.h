@@ -21,54 +21,37 @@
 
 #include <QtQuick/QSGNode>
 
-#include <UbuntuToolkit/private/ucshapetexturefactory_p.h>
-
-class UCShapeDropShadowMaterial : public QSGMaterial
-{
-public:
-    UCShapeDropShadowMaterial();
-    QSGMaterialType* type() const Q_DECL_OVERRIDE;
-    QSGMaterialShader* createShader() const Q_DECL_OVERRIDE;
-    int compare(const QSGMaterial* other) const Q_DECL_OVERRIDE;
-
-    quint32 textureId() const { return m_textureId; }
-    void updateTexture(UCShapeType type, quint16 radius, quint16 shadow);
-
-private:
-    UCShapeTextureFactory<1> m_textureFactory;
-    quint32 m_textureId;
-};
+#include <UbuntuToolkit/private/ucshaperesources_p.h>
 
 class UCShapeDropShadowNode : public QSGGeometryNode
 {
 public:
-    struct Vertex { float x, y, s, t; quint32 color; };
-
-    static const quint16* indices();
-    static const QSGGeometry::AttributeSet& attributeSet();
-
     UCShapeDropShadowNode();
-    ~UCShapeDropShadowNode() { DLOG("detroying UCShapeDropShadowNode"); }
+    ~UCShapeDropShadowNode();
 
     void preprocess() Q_DECL_OVERRIDE;
-    bool isSubtreeBlocked() const Q_DECL_OVERRIDE { return m_visible == 0; }
+    bool isSubtreeBlocked() const Q_DECL_OVERRIDE { return !(m_flags & Visible); }
 
     void setVisible(bool visible);
     void update(
-        const QSizeF& itemSize, UCShapeType type, float radius, float size, float angle,
-        float distance, QRgb color);
+        const QSizeF& itemSize, UCShapeType type, float radius, float shadowSize, float shadowAngle,
+        float shadowDistance, QRgb shadowColor);
 
 private:
-    UCShapeDropShadowMaterial m_material;
-    QSGGeometry m_geometry;
-    quint16 m_size;
-    quint16 m_newSize;
+    enum {
+        DirtyRadius = (1 << 0),
+        DirtyShadow = (1 << 1),
+        DirtyShape  = (1 << 2),
+        DirtyMask   = (DirtyRadius | DirtyShadow | DirtyShape),
+        Visible     = (1 << 3),
+        Blending    = (1 << 4)
+    };
+
+    UCShapeColorMaskResources m_resources;
     quint16 m_radius;
-    quint16 m_newRadius;
-    quint8 m_type : 1;
-    quint8 m_newType : 1;
-    quint8 m_visible : 1;
-    quint8 __padding : 5;
+    quint16 m_shadow;
+    quint8 m_shape;
+    quint8 m_flags;
 };
 
 #endif  // UCSHAPEDROPSHADOWNODES_P_H

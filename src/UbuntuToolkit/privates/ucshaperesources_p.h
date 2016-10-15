@@ -190,7 +190,7 @@ class UCShapeColorMaskShader : public UCShapeColorMaskOpaqueShader
 public:
     UCShapeColorMaskShader() : UCShapeColorMaskOpaqueShader() {
         setShaderSourceFile(QOpenGLShader::Fragment,
-                            QStringLiteral(":/uc/privates/shaders/colormask_opaque.frag"));
+                            QStringLiteral(":/uc/privates/shaders/colormask.frag"));
     }
     void initialize() Q_DECL_OVERRIDE {
         UCShapeColorMaskOpaqueShader::initialize();
@@ -230,9 +230,12 @@ public:
     quint32 textureId(int) const Q_DECL_OVERRIDE {
         return m_textureId;
     }
-    void updateTexture(UCShapeType type, quint16 radius) {
+    void updateMaskTexture(UCShapeType type, quint16 radius) {
         DASSERT(radius > 0);
         m_textureId = m_textureFactory.maskTexture(0, type, radius);
+    }
+    void updateShadowTexture(UCShapeType type, quint16 radius, quint16 shadow) {
+        m_textureId = m_textureFactory.shadowTexture(0, type, radius, shadow);
     }
 
 private:
