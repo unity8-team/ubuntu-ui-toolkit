@@ -2,14 +2,15 @@
     <qresource prefix="/uc">
         <file>privates/shaders/color.frag</file>
         <file>privates/shaders/color.vert</file>
-        <file>privates/shaders/colorcoverage.frag</file>
+        <file>privates/shaders/color_opaque.frag</file>
+        <file>privates/shaders/colormask.frag</file>
+        <file>privates/shaders/colormask.vert</file>
+        <file>privates/shaders/colormask_opaque.frag</file>
         <file>privates/shaders/fillcentershadow.frag</file>
         <file>privates/shaders/fillcentershadow.vert</file>
         <file>privates/shaders/fillcentershadow_opaque.frag</file>
         <file>privates/shaders/frame.frag</file>
         <file>privates/shaders/innershadow.frag</file>
-        <file>privates/shaders/opaquecolor.frag</file>
-        <file>privates/shaders/texture.vert</file>
         <file>privates/shaders/texture2.vert</file>
         <file>shaders/shape.frag</file>
         <file>shaders/shape.vert</file>

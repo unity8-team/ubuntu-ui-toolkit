@@ -34,6 +34,8 @@
 #include <QtGui/QGuiApplication>
 #include <QtGui/QOpenGLFunctions>
 
+#include "ucshaperesources_p.h"
+
 class UCShapeDropShadowShader : public QSGMaterialShader
 {
 public:

@@ -22,17 +22,11 @@
 #include <QtQuick/QSGNode>
 
 #include <UbuntuToolkit/private/ucshapetexturefactory_p.h>
+#include <UbuntuToolkit/private/ucshaperesources_p.h>
 
-class UCShapeTextureProvider
-{
-public:
-    virtual ~UCShapeTextureProvider() {}
-    virtual quint32 textureId(int index = 0) const = 0;
-};
-
-// ##########################################
-// # Fill center materials : color + shadow #
-// ##########################################
+// ################################
+// # Fill center shadow materials #
+// ################################
 
 class UCShapeFillCenterShadowOpaqueShader : public QSGMaterialShader
 {
@@ -167,9 +161,9 @@ private:
     QSGGeometry m_geometry;
 };
 
-// ########################
-// ### Fill center node ###
-// ########################
+// ####################
+// # Fill center node #
+// ####################
 
 class UCShapeFillCenterNode : public QSGGeometryNode
 {
@@ -207,35 +201,18 @@ private:
     quint8 m_flags;
 };
 
-class UCShapeFillCornersMaterial : public QSGMaterial
-{
-public:
-    UCShapeFillCornersMaterial();
-    QSGMaterialType* type() const Q_DECL_OVERRIDE;
-    QSGMaterialShader* createShader() const Q_DECL_OVERRIDE;
-    int compare(const QSGMaterial* other) const Q_DECL_OVERRIDE;
-
-    quint32 textureId() const { return m_textureId; }
-    void updateTexture(UCShapeType type, quint16 radius);
-
-private:
-    UCShapeTextureFactory<1> m_textureFactory;
-    quint32 m_textureId;
-};
+// #####################
+// # Fill corners node #
+// #####################
 
 class UCShapeFillCornersNode : public QSGGeometryNode
 {
 public:
-    struct Vertex { float x, y, s, t; quint32 color; };
-
-    static const quint16* indices();
-    static const QSGGeometry::AttributeSet& attributeSet();
-
     UCShapeFillCornersNode();
-    ~UCShapeFillCornersNode() { DLOG("detroying UCShapeFillCornersNode"); }
+    ~UCShapeFillCornersNode();
 
     void preprocess() Q_DECL_OVERRIDE;
-    bool isSubtreeBlocked() const Q_DECL_OVERRIDE { return m_visible == 0; }
+    bool isSubtreeBlocked() const Q_DECL_OVERRIDE { return !(m_flags & Visible); }
 
     void setVisible(bool visible);
     void update(
@@ -243,14 +220,24 @@ public:
         float shadowAngle, float shadowDistance, QRgb shadowColor);
 
 private:
-    UCShapeFillCornersMaterial m_material;
-    QSGGeometry m_geometry;
+    enum {
+        HasColor    = (1 << 0),
+        HasShadow   = (1 << 1),
+        HasBorder   = (1 << 2),
+        StyleMask   = (HasColor | HasShadow | HasBorder),
+        DirtyRadius = (1 << 3),
+        DirtyShadow = (1 << 4),
+        DirtyShape  = (1 << 5),
+        DirtyMask   = (DirtyRadius | DirtyShadow | DirtyShape),
+        Visible     = (1 << 6),
+        Blending    = (1 << 7)
+    };
+
+    UCShapeResources* m_resources;
     quint16 m_radius;
-    quint16 m_newRadius;
-    quint8 m_type : 1;
-    quint8 m_newType : 1;
-    quint8 m_visible : 1;
-    quint8 __padding : 5;
+    quint16 m_shadow;
+    quint8 m_shape;
+    quint8 m_flags;
 };
 
 #endif  // UCSHAPEFILLNODES_P_H

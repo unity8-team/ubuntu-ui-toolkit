@@ -52,6 +52,7 @@ HEADERS += \
     $$PWD/privates/ucshapedropshadownodes_p.h \
     $$PWD/privates/ucshapefillnodes_p.h \
     $$PWD/privates/ucshapeframenodes_p.h \
+    $$PWD/privates/ucshaperesources_p.h \
     $$PWD/privates/ucshapetexturefactory_p.h \
     $$PWD/privates/ucshapeutils_p.h \
     $$PWD/privates/ucpagewrapper_p.h \
@@ -168,6 +169,7 @@ SOURCES += \
     $$PWD/privates/ucshapedropshadownodes.cpp \
     $$PWD/privates/ucshapefillnodes.cpp \
     $$PWD/privates/ucshapeframenodes.cpp \
+    $$PWD/privates/ucshaperesources.cpp \
     $$PWD/privates/ucshapetexturefactory.cpp \
     $$PWD/privates/ucshapeutils.cpp \
     $$PWD/privates/ucpagewrapper.cpp \
@@ -240,14 +242,15 @@ RESOURCES += \
 OTHER_FILES += \
     $$PWD/privates/shaders/color.frag \
     $$PWD/privates/shaders/color.vert \
-    $$PWD/privates/shaders/colorcoverage.frag \
+    $$PWD/privates/shaders/color_opaque.frag \
+    $$PWD/privates/shaders/colormask.frag \
+    $$PWD/privates/shaders/colormask.vert \
+    $$PWD/privates/shaders/colormask_opaque.frag \
     $$PWD/privates/shaders/fillcentershadow.frag \
     $$PWD/privates/shaders/fillcentershadow.vert \
     $$PWD/privates/shaders/fillcentershadow_opaque.frag \
     $$PWD/privates/shaders/frame.frag \
     $$PWD/privates/shaders/innershadow.frag \
-    $$PWD/privates/shaders/opaquecolor.frag \
-    $$PWD/privates/shaders/texture.vert \
     $$PWD/privates/shaders/texture2.vert \
     $$PWD/shaders/shape.frag \
     $$PWD/shaders/shape.vert \

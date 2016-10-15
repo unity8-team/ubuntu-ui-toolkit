@@ -16,12 +16,12 @@
  * Author: Loïc Molinari <loic.molinari@canonical.com>
  */
 
-uniform sampler2D texture;
+uniform sampler2D maskTexture;
 uniform lowp float opacity;
-varying mediump vec2 texCoord;
+varying mediump vec2 maskCoord;
 varying lowp vec4 color;
 
 void main(void)
 {
-    gl_FragColor = vec4(texture2D(texture, texCoord).r * opacity) * color;
+    gl_FragColor = color * vec4(texture2D(maskTexture, maskCoord).r * opacity);
 }

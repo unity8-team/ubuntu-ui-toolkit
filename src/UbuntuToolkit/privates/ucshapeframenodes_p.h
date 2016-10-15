@@ -23,6 +23,7 @@
 #include <QtQuick/QSGNode>
 
 #include <UbuntuToolkit/private/ucshapetexturefactory_p.h>
+#include <UbuntuToolkit/private/ucshaperesources_p.h>
 
 class UCShapeFrameEdgesNode : public QSGGeometryNode
 {
