@@ -66,7 +66,7 @@ void UCShapeDropShadowNode::preprocess()
         static_cast<UCShapeColorMaskMaterial<false>*>(
             m_resources.material())->updateShadowTexture(
                 static_cast<UCShapeType>(m_shape), m_radius, m_shadow);
-        static_cast<UCShapeColorMaskMaterial<false>*>(
+        static_cast<UCShapeColorMaskMaterial<true>*>(
             m_resources.opaqueMaterial())->updateShadowTexture(
                 static_cast<UCShapeType>(m_shape), m_radius, m_shadow);
     }

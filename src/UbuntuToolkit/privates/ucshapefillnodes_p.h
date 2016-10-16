@@ -201,6 +201,146 @@ private:
     quint8 m_flags;
 };
 
+// #################################
+// # Fill corners shadow materials #
+// #################################
+
+class UCShapeFillCornersShadowOpaqueShader : public QSGMaterialShader
+{
+public:
+    UCShapeFillCornersShadowOpaqueShader() {
+        setShaderSourceFile(QOpenGLShader::Vertex,
+                            QStringLiteral(":/uc/privates/shaders/fillcornersshadow.vert"));
+        setShaderSourceFile(QOpenGLShader::Fragment,
+                            QStringLiteral(":/uc/privates/shaders/fillcornersshadow_opaque.frag"));
+    }
+    char const* const* attributeNames() const Q_DECL_OVERRIDE {
+        static char const* const attributes[] = {
+            "positionAttrib", "maskCoordAttrib", "shadowCoordAttrib", "midShadowCoordAttrib",
+            "colorAttrib", "shadowColorAttrib", 0
+        };
+        return attributes;
+    }
+    void initialize() Q_DECL_OVERRIDE {
+        QSGMaterialShader::initialize();
+        program()->bind();
+        program()->setUniformValue("texture", 0);
+        m_matrixId = program()->uniformLocation("matrix");
+    }
+    void updateState(
+        const RenderState& state, QSGMaterial* newEffect, QSGMaterial*) Q_DECL_OVERRIDE {
+        QOpenGLFunctions* funcs = QOpenGLContext::currentContext()->functions();
+        UCShapeTextureProvider* provider = dynamic_cast<UCShapeTextureProvider*>(newEffect);
+        funcs->glBindTexture(GL_TEXTURE_2D, provider->textureId());
+        if (state.isMatrixDirty()) {
+            program()->setUniformValue(m_matrixId, state.combinedMatrix());
+        }
+    }
+
+private:
+    int m_matrixId;
+};
+
+class UCShapeFillCornersShadowShader : public UCShapeFillCornersShadowOpaqueShader
+{
+public:
+    UCShapeFillCornersShadowShader() : UCShapeFillCornersShadowOpaqueShader() {
+        setShaderSourceFile(QOpenGLShader::Fragment,
+                            QStringLiteral(":/uc/privates/shaders/fillcornersshadow.frag"));
+    }
+    void initialize() Q_DECL_OVERRIDE {
+        UCShapeFillCornersShadowOpaqueShader::initialize();
+        m_opacityId = program()->uniformLocation("opacity");
+    }
+    void updateState(
+        const RenderState& state, QSGMaterial* newEffect, QSGMaterial* oldEffect) Q_DECL_OVERRIDE {
+        UCShapeFillCornersShadowOpaqueShader::updateState(state, newEffect, oldEffect);
+        if (state.isOpacityDirty()) {
+            program()->setUniformValue(m_opacityId, state.opacity());
+        }
+    }
+
+private:
+    int m_opacityId;
+};
+
+template <bool opaque>
+class UCShapeFillCornersShadowMaterial : public QSGMaterial, public UCShapeTextureProvider
+{
+public:
+    UCShapeFillCornersShadowMaterial() : m_textureId(0) {
+        setFlag(Blending, !opaque);
+    }
+
+    QSGMaterialType* type() const Q_DECL_OVERRIDE {
+        static QSGMaterialType type[2];
+        return opaque ? &type[0] : &type[1];
+    }
+    QSGMaterialShader* createShader() const Q_DECL_OVERRIDE {
+        return opaque ?
+            new UCShapeFillCornersShadowOpaqueShader : new UCShapeFillCornersShadowShader;
+    }
+    int compare(const QSGMaterial* other) const Q_DECL_OVERRIDE {
+        return reinterpret_cast<const UCShapeTextureProvider*>(other)->textureId() - m_textureId;
+    }
+
+    quint32 textureId(int) const Q_DECL_OVERRIDE {
+        return m_textureId;
+    }
+    void updateTexture(UCShapeType type, quint16 radius, quint16 shadow) {
+        m_textureId = m_textureFactory.shadowTexture(0, type, radius, shadow);
+    }
+
+private:
+    UCShapeTextureFactory<1> m_textureFactory;
+    quint32 m_textureId;
+};
+
+class UCShapeFillCornersShadowResources : public UCShapeResources
+{
+public:
+    UCShapeFillCornersShadowResources(
+        int vertexCount, int indexCount, int indexType = GL_UNSIGNED_SHORT)
+        : m_geometry(attributeSet(), vertexCount, indexCount, indexType) {
+        m_geometry.setDrawingMode(GL_TRIANGLE_STRIP);
+        m_geometry.setIndexDataPattern(QSGGeometry::StaticPattern);
+        m_geometry.setVertexDataPattern(QSGGeometry::AlwaysUploadPattern);
+    }
+
+    QSGMaterial* material() Q_DECL_OVERRIDE { return &m_material; }
+    QSGMaterial* opaqueMaterial() Q_DECL_OVERRIDE { return &m_opaqueMaterial; }
+    QSGGeometry* geometry() Q_DECL_OVERRIDE { return &m_geometry; }
+
+    struct Vertex {
+        float x, y;
+        float maskS, maskT;
+        float shadowS, shadowT;
+        float midShadowS, midShadowT;
+        quint32 color;
+        quint32 shadowColor;
+    };
+
+private:
+    static const QSGGeometry::AttributeSet& attributeSet() {
+        static const QSGGeometry::Attribute attributes[] = {
+            QSGGeometry::Attribute::create(0, 2, GL_FLOAT, true),    // x, y
+            QSGGeometry::Attribute::create(1, 2, GL_FLOAT),          // maskS, maskT
+            QSGGeometry::Attribute::create(2, 2, GL_FLOAT),          // shadowS, shadowT
+            QSGGeometry::Attribute::create(3, 2, GL_FLOAT),          // midShadowS, midShadowT
+            QSGGeometry::Attribute::create(4, 4, GL_UNSIGNED_BYTE),  // color
+            QSGGeometry::Attribute::create(5, 4, GL_UNSIGNED_BYTE)   // shadowColor
+        };
+        static const QSGGeometry::AttributeSet attributeSet = {
+            6, sizeof(Vertex), attributes
+        };
+        return attributeSet;
+    }
+
+    UCShapeFillCornersShadowMaterial<false> m_material;
+    UCShapeFillCornersShadowMaterial<true> m_opaqueMaterial;
+    QSGGeometry m_geometry;
+};
+
 // #####################
 // # Fill corners node #
 // #####################

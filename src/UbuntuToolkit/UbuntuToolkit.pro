@@ -249,6 +249,9 @@ OTHER_FILES += \
     $$PWD/privates/shaders/fillcentershadow.frag \
     $$PWD/privates/shaders/fillcentershadow.vert \
     $$PWD/privates/shaders/fillcentershadow_opaque.frag \
+    $$PWD/privates/shaders/fillcornersshadow.frag \
+    $$PWD/privates/shaders/fillcornersshadow.vert \
+    $$PWD/privates/shaders/fillcornersshadow_opaque.frag \
     $$PWD/privates/shaders/frame.frag \
     $$PWD/privates/shaders/innershadow.frag \
     $$PWD/privates/shaders/texture2.vert \
