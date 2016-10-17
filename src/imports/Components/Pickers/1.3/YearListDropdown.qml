@@ -1,5 +1,5 @@
-import QtQuick 2.2
-import Ubuntu.Components 1.1
+import QtQuick 2.4
+import Ubuntu.Components 1.3
 import 'dateutils.js' as DU
 
 Rectangle {
@@ -49,7 +49,7 @@ Rectangle {
                 Label {
                     width: parent.width - units.gu(1)
                     height: parent.height
-                    color: parent.parent.active? colors.orange : colors.darkGrey
+                    color: parent.parent.active? UbuntuColors.orange : UbuntuColors.darkGrey
                     text: DU.format(DU.clone(monthsPathView.date, 'setMonth', index), 'MMMM')
                     fontSize: 'x-large'
                     horizontalAlignment: Text.AlignRight
@@ -94,9 +94,6 @@ Rectangle {
 
         property bool isCurrentIndexInit: false
         onCurrentIndexChanged: {
-            // console.log('CI', currentIndex)
-            // console.log('curind', currentIndex)
-            // console.log(isCurrentIndexInit, 'curind')
             if (!isCurrentIndexInit) {
                 isCurrentIndexInit = true
                 return
@@ -106,7 +103,6 @@ Rectangle {
                 minimum.getFullYear() + currentIndex
             )
             root.requestDateChange(newDate)
-            console.log(newDate)
         }
 
         delegate: MouseArea {
@@ -116,7 +112,7 @@ Rectangle {
             onReleased: yearsListView.currentIndex = index
             Label {
                 id: item
-                color: parent.active? colors.orange : colors.darkGrey
+                color: parent.active? UbuntuColors.orange : UbuntuColors.darkGrey
                 width: parent.width - units.gu(1)
                 height: parent.height
                 x: units.gu(1)
@@ -128,7 +124,6 @@ Rectangle {
         }
 
         Component.onCompleted: {
-            // console.log(datePicker.date)
             // yearsListView.currentIndex = yearsListView.currentIndex
             yearsListView.positionViewAtIndex(yearsListView.currentIndex, ListView.SnapPosition)
         }

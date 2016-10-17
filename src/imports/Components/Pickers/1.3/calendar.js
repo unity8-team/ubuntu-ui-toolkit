@@ -75,5 +75,5 @@ Calendar.prototype = {
 };
 for (var i = 0; i < 11; i++) {
     var month = Qt.locale().monthName(i); // FIXME:, Locale.LongFormat);
-    Calendar[months[i]] = i;
+    Calendar[month] = i;
 }

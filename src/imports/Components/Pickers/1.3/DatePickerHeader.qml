@@ -1,5 +1,5 @@
-import QtQuick 2.2
-import Ubuntu.Components 1.1
+import QtQuick 2.4
+import Ubuntu.Components 1.3
 import './calendar.js' as Calendar
 import './dateutils.js' as DU
 
@@ -28,27 +28,35 @@ Item {
         onReleased: if (containsMouse) requestToggleYearList()
         anchors.fill: parent
         Row {
-            spacing: FontUtils.sizeToPixels(root.fontSize) / 2
+            spacing: 0
             anchors.horizontalCenter: parent.horizontalCenter
             height: parent.height
             Label {
                 id: month
-                fontSize: root.fontSize
+                textSize: root.fontSize === 'large' ? Label.Medium : Label.Large
                 text: DU.format(root.date, 'MMMM')
                 horizontalAlignment: Text.AlignHCenter
                 color: yearDropDown.containsPress? root.activeColor : root.color
             }
+            Item {
+                width: units.gu(0.5)
+                height: 1
+            }
             Label {
                 id: year
-                fontSize: root.fontSize
+                textSize: root.fontSize === 'large' ? Label.Medium : Label.Large
                 text: DU.format(root.date, 'yyyy')
                 horizontalAlignment: Text.AlignHCenter
                 color: yearDropDown.containsPress? root.activeColor : root.color
             }
+            Item {
+                width: units.gu(0.5)
+                height: 1
+            }
             Icon {
                 name: yearsListOpened? 'up' : 'down'
-                height: year.height / 2
-                y: height / 2
+                height: year.height / 1.5
+                y: parent.height / 2 - height / 2 + height * 0.1
                 color: yearDropDown.containsPress? root.activeColor : root.color
             }
         }
@@ -57,13 +65,14 @@ Item {
     MouseArea {
         visible: !DU.sameDay(root.date, minimum)
         anchors.left: parent.left
+        anchors.leftMargin: units.gu(1.7)
         width: parent.height
         height: width
         onReleased: if (containsMouse) requestPreviousMonth()
         Icon {
             anchors.left: parent.left
             anchors.verticalCenter: parent.verticalCenter
-            width: parent.width * 0.85
+            width: parent.width
             height: width
             color: parent.containsPress? root.activeColor : root.color
             name: 'previous'
@@ -73,13 +82,14 @@ Item {
     MouseArea {
         visible: !DU.sameDay(root.date, maximum)
         anchors.right: parent.right
+        anchors.rightMargin: units.gu(1.7)
         width: parent.height
         height: width
         onReleased: if (containsMouse) requestNextMonth()
         Icon {
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
-            width: parent.width * 0.85
+            width: parent.width
             height: width
             color: parent.containsPress? root.activeColor : root.color
             name: 'next'

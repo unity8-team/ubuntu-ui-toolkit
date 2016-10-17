@@ -23,6 +23,7 @@ Template {
     id: root
 
     property var stringListModel: ["starred", "media-record", "like", "language-chooser", "go-home", "email", "contact-group", "notification", "active-call"]
+    /*
     TemplateSection {
         className: "Picker"
         documentation: "qml-ubuntu-components-pickers-picker.html"
@@ -205,6 +206,7 @@ Template {
             }
         }
     }
+    */
     TemplateSection {
         className: "DatePicker"
         documentation: "qml-ubuntu-components-pickers-datepicker.html"

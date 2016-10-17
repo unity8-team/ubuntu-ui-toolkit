@@ -16,6 +16,7 @@
 
 import QtQuick 2.4
 import Ubuntu.Components 1.3
+import Ubuntu.Components.Private 1.3
 import 'dateutils.js' as DU
 
 /*!
@@ -304,11 +305,47 @@ Item {
       */
     readonly property alias moving: listView.moving
 
- // implicitWidth: parent.width
-    implicitWidth: units.gu(36)
- // implicitHeight: content.height
-    implicitHeight: units.gu(20)
+    implicitWidth: parent.width
+    implicitHeight: content.height
  // activeFocusOnPress: true
+
+    /*!
+      \qmlproperty Component delegate
+      Individual days are rendered by the delegate, in the case of \l mode
+      containing "Months". This is useful to customize the colors, frame, or
+      add visuals for calendar events.
+      Roles:
+        date: the date of the rendered day
+        text: the day as a string
+        currentMonth: the date lies in the currently selected month
+        pressed: whether this day is being pressed
+     */
+    property Component delegate: Label {
+        id: label
+        anchors.centerIn: parent
+        horizontalAlignment: Text.AlignHCenter
+        verticalAlignment: Text.AlignVCenter
+        property color dayColor: {
+            if (DU.sameDay(date, datePicker.date))
+                return theme.palette.normal.activity;
+            if (currentMonth)
+                return theme.palette.normal.backgroundText;
+            // FIXME: Original color is too light for Qt.lighter
+            return Qt.darker(theme.palette.normal.base);
+        }
+        color: pressed ? Qt.lighter(dayColor) : dayColor
+        textSize: Label.Medium
+        text: modelData.text
+
+        Frame {
+            anchors.fill: parent
+            thickness: units.dp(2)
+            radius: units.gu(1.7)
+            color: theme.palette.normal.backgroundText
+            property date today: new Date()
+            visible: date.getFullYear() == today.getFullYear() && date.getMonth() == today.getMonth() && DU.sameDay(date, today)
+        }
+    }
 
     /*! \internal */
     onMinimumChanged: {
@@ -338,6 +375,7 @@ Item {
     property int monthsRange: DU.getMonthsRange(minimum, maximum)
     // FIXME: Move to Style
     property int scrollDirection: Qt.Horizontal
+    property int snapMode: ListView.SnapToItem
     state: ''
 
     function cancelFlick() {
@@ -348,9 +386,6 @@ Item {
         datePicker.state = datePicker.state === 'years-months'? '' : 'years-months'
     }
 
-    property int snapMode: ListView.SnapToItem
-    property int orientation: scrollDirection === Qt.Horizontal ? ListView.Horizontal : ListView.Vertical
-
     /*! \internal */
  // onModeChanged: internals.updatePickers()
     /*! \internal */
@@ -360,23 +395,13 @@ Item {
         if (minimum === undefined) {
             minimum = date;
         }
-     // internals.completed = true;
-     // internals.updatePickers();
-    }
-
-    QtObject {
-        id: colors
-        // FIXME: Use Ubuntu Palette
-        property color orange:    '#e65e17'
-        property color lightGrey: '#dfdfdf'
-        property color grey:      '#cbcbcb'
-        property color darkGrey:  '#aaaaaa'
-        property color darkGrey2: '#5d5d5d'
+        internals.completed = true;
+        internals.updatePickers();
+     // internals.updateTimePickers();
     }
 
     width: parent.width
     height: content.height
-
 
  /*
     styleName: "DatePickerStyle"
@@ -401,16 +426,19 @@ Item {
     QtObject {
         id: internals
         property bool completed: false
-        property real margin: units.gu(1.5)
+        property real margin: units.gu(2)
         property real dayPickerRatio: 0.1
 
         property bool showYearPicker: true
         property bool showMonthPicker: true
         property bool showDayPicker: true
 
+        property int pickersCount: 3
+        property real pickerWidth: (parent.width - margin * pickersCount - 1) / pickersCount
         property bool showHoursPicker: false
         property bool showMinutesPicker: false
         property bool showSecondsPicker: false
+        property bool showDayNightPicker: showHoursPicker || showMinutesPicker || showSecondsPicker
 
         /*
           Update pickers.
@@ -595,26 +623,228 @@ Item {
                         to: 0
                         duration: datePicker.dropdownAnimDuration / 1.5
                     }
+                    UbuntuNumberAnimation {
+                        target: headerShadow
+                        property: 'opacity'
+                        to: 0
+                        duration: datePicker.dropdownAnimDuration / 3
+                    }
                 }
             }
         }
     ]
 
     Rectangle {
-        color: 'white'
+        color: theme.palette.normal.background
         anchors.fill: parent
     }
+
+    // TimePicker
+
+    function updateTimePickers() {
+        var pickersCount = (
+            (showHours? 1 : 0) +
+            (showMinutes? 1 : 0) +
+            (showSeconds? 1 : 0) +
+            (ampm && showHours? 1 : 0)
+        )
+
+        var pickerWidth = (
+            (container.width - margin * (pickersCount - 1)) / pickersCount
+        )
+
+        var pickerX = (function() {
+            var pos = 0
+            return function(update) {
+                if (!update) return pos
+                return pos = pos + pickerWidth + margin
+            }
+        }())
+
+        var separatorX = (function() {
+            var pos = 0
+            return function(update) {
+                if (!update) return pos
+                return pos = pos + pickerWidth - margin * 2
+            }
+        }())
+
+        if (showHours) {
+            pickerComp.createObject(container, {
+                type: 'hours',
+                width: pickerWidth,
+                height: root.height,
+            })
+            if (showMinutes) {
+                separatorComp.createObject(container, {
+                    x: pickerWidth + margin / 2,
+                })
+            }
+        }
+
+        if (showMinutes) {
+            pickerComp.createObject(container, {
+                type: 'minutes',
+                width: pickerWidth,
+                height: root.height,
+                x: pickerX(true),
+            })
+            if (showSeconds) {
+                separatorComp.createObject(container, {
+                    x: pickerX() + pickerWidth + margin / 2,
+                })
+            }
+        }
+
+        if (showSeconds) {
+            pickerComp.createObject(container, {
+                type: 'seconds',
+                width: pickerWidth,
+                height: root.height,
+                x: pickerX(true),
+            })
+        }
+
+        if (ampm && showHours) {
+            ampmComp.createObject(container, {
+                width: pickerWidth,
+                height: root.height,
+                x: pickerX(true),
+            })
+        }
+    }
+
+    Component {
+        id: separatorComp
+        Label {
+            anchors.verticalCenter: parent.verticalCenter
+            color: theme.palette.normal.backgroundText
+            text: ':'
+            textSize: Label.Medium
+            Component.onCompleted: x -= width / 2
+        }
+    }
+
+    Component {
+        id: ampmComp
+        ListView {
+            id: ampmListView
+            clip: true
+            model: ['AM', 'PM']
+            cacheBuffer: 0
+            snapMode: ListView.SnapToItem
+            orientation: ListView.Vertical
+
+            highlightFollowsCurrentItem: true
+            highlightMoveDuration: UbuntuAnimation.FastDuration
+            highlightRangeMode: ListView.StrictlyEnforceRange
+
+            preferredHighlightBegin: height / 2 - itemHeight / 2
+            preferredHighlightEnd: height / 2 + itemHeight / 2
+
+            onCurrentIndexChanged: {
+                var hour = date.getHours()
+
+                if (hour < 12 && currentIndex === 1) {
+                    hour += 12
+                } else if (hour > 12 && currentIndex === 0) {
+                    hour -= 12
+                }
+
+                root.requestDateChange(
+                    DU.clone(date, 'setHours', hour)
+                )
+            }
+
+            delegate: MouseArea {
+                property bool active: ListView.isCurrentItem
+                width: parent.width
+                height: itemHeight
+                onReleased: ampmListView.currentIndex = index
+                Label {
+                    id: item
+                    color: parent.active? colors.darkGrey2 : colors.grey
+                    width: parent.width - units.gu(1)
+                    height: parent.height
+                    x: units.gu(1)
+                    text: modelData
+                    textSize: Label.Medium
+                    horizontalAlignment: Text.AlignLeft
+                    verticalAlignment: Text.AlignVCenter
+                }
+            }
+            Component.onCompleted: {
+                // root.requestDisplayedMonthChange(DU.clone(newDate))
+                // yearsListView.currentIndex = yearsListView.currentIndex
+                // yearsListView.positionViewAtIndex(yearsListView.currentIndex, ListView.SnapPosition)
+                // console.log('SSS', root.date)
+                // currentIndex = (root.date.getHours() > 0 && root.date.getHours() < 13)? 0 : 1
+            }
+        }
+    }
+
+    Item {
+        anchors.fill: parent
+        anchors.leftMargin: root.margin
+        anchors.rightMargin: root.margin
+        visible: internals.showHoursPicker || internals.showMinutesPicker || internals.showSecondsPicker
+
+        Item {
+            id: container
+            anchors.fill: parent
+
+            HourPicker {
+                type: 'hours'
+                x: internals.pickerWidth + internals.margin
+                width: internals.pickerWidth
+                height: datePicker.height
+            }
+
+            HourPicker {
+                type: 'seconds'
+                x: internals.pickerWidth + internals.margin
+                width: internals.pickerWidth
+                height: datePicker.height
+            }
+        }
+    }
+
+    Item {
+        id: selectedShape
+        width: parent.width
+        height: parent.height / 5
+        y: parent.height / 2 - height / 2
+        visible: internals.showHoursPicker || internals.showMinutesPicker || internals.showSecondsPicker
+
+        Rectangle {
+            width: parent.width
+            height: units.dp(1)
+            y: 0
+            color: UbuntuColors.lightGrey
+        }
+
+        Rectangle {
+            width: parent.width
+            height: units.dp(1)
+            y: parent.height - height
+            color: UbuntuColors.lightGrey
+        }
+    }
+
+    // DatePicker
 
     Column {
         id: content
         width: parent.width
+        visible: internals.showMonthPicker || internals.showYearPicker || internals.showDayPicker
+
         DatePickerHeader {
             id: header
             anchors.left: parent.left
             anchors.right: parent.right
-            fontSize: datePicker.width > units.gu(45)? 'x-large' : 'large'
-            color: colors.darkGrey2
-            activeColor: colors.darkGrey
+            fontSize: 'large'
+            color: theme.palette.normal.backgroundText
+            activeColor: UbuntuColors.darkGrey
             date: DU.clone(datePicker.date, 'setDate', 1)
             minimum: datePicker.minimum
             maximum: datePicker.maximum
@@ -622,23 +852,29 @@ Item {
             onRequestPreviousMonth: datePicker.date = DU.clone(datePicker.date, 'setMonth', datePicker.date.getMonth() - 1)
             onRequestToggleYearList: datePicker.toggleYearList()
             yearsListOpened: datePicker.state === 'years-months'
+            visible: internals.showYearPicker
         }
+
         Item {
             width: parent.width
             height: header.height * 0.5
             Rectangle {
                 id: headerShadow
                 y: parent.height
+                visible: false
                 opacity: 0
-                color: colors.lightGrey
+                color: theme.palette.normal.baseText
                 width: 0
-                height: units.dp(1)
+                height: units.gu(1/16)
                 anchors.horizontalCenter: parent.horizontalCenter
             }
+            visible: internals.showYearPicker || internals.showMonthPicker
         }
+
         Item {
             width: parent.width
             height: listView.height
+            visible: internals.showDayPicker
             ListView {
                 id: listView
                 clip: true
@@ -646,17 +882,12 @@ Item {
                 height: currentItem.height
                 model: datePicker.monthsRange
                 snapMode: datePicker.snapMode
-                orientation: datePicker.orientation
+                orientation: datePicker.scrollDirection === Qt.Horizontal ? ListView.Horizontal : ListView.Vertical
                 highlightFollowsCurrentItem: true
                 highlightMoveDuration: 0
                 highlightRangeMode: ListView.StrictlyEnforceRange
-                Component.onCompleted: {
-                    // listView.flickDeceleration = flickDeceleration * 2
-                    // listView.maximumFlickVelocity = maximumFlickVelocity * 2
-                }
                 property bool indexInit: false
                 onCurrentIndexChanged: {
-                 // console.log('currentIndex changed', currentIndex)
                     if (!indexInit && currentIndex === 0) {
                         indexInit = true;
                         return;
@@ -674,6 +905,7 @@ Item {
                     onRequestNextMonth: datePicker.date = DU.clone(displayedMonth, 'setMonth', displayedMonth.getMonth() + 1)
                     onRequestPreviousMonth: datePicker.date = DU.clone(displayedMonth, 'setMonth', displayedMonth.getMonth() - 1)
                     onRequestDateChange: datePicker.date = date
+                    delegate: datePicker.delegate
                 }
             }
 
