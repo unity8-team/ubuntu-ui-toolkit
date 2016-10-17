@@ -38,10 +38,9 @@ Item {
         "innershadowDistance (o/O): " + quad.innerShadowDistance.toFixed(2) + "\n" +
         "innershadowAngle .. (p/P): " + quad.innerShadowAngle.toFixed(2) + "\n" +
         "innershadowColor .... (q): " + quad.innerShadowColor + "\n\n" +
-        "frameThickness .... (s/S): " + quad.frameThickness.toFixed(2) + "\n" +
-        "frameSpace ........ (d/D): " + quad.frameSpace.toFixed(2) + "\n" +
-        "frameColor .......... (f): " + quad.frameColor + "\n\n" +
-        "opacity ........... (g/G): " + quad.opacity.toFixed(2)
+        "borderSize ........ (s/S): " + quad.borderSize.toFixed(2) + "\n" +
+        "borderColor ......... (d): " + quad.borderColor + "\n\n" +
+        "opacity ........... (f/F): " + quad.opacity.toFixed(2)
 
     Item {
         id: scene
@@ -108,12 +107,10 @@ Item {
         } else if (event.key == Qt.Key_Q) {
             quad.innerShadowColor = Qt.rgba(Math.random(), Math.random(), Math.random(), 1.0);
         } else if (event.key == Qt.Key_S) {
-            quad.frameThickness = quad.frameThickness + (shift ? 0.25 : -0.25);
+            quad.borderSize = quad.borderSize + (shift ? 1.0 : -1.0);
         } else if (event.key == Qt.Key_D) {
-            quad.frameSpace = quad.frameSpace + (shift ? 0.25 : -0.25);
+            quad.borderColor = Qt.rgba(Math.random(), Math.random(), Math.random(), 1.0);
         } else if (event.key == Qt.Key_F) {
-            quad.frameColor = Qt.rgba(Math.random(), Math.random(), Math.random(), 1.0);
-        } else if (event.key == Qt.Key_G) {
             quad.opacity = quad.opacity + (shift ? 0.02 : -0.02);
         }
     }

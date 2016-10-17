@@ -71,15 +71,11 @@ class UCShape : public QQuickItem
     Q_PROPERTY(QColor innerShadowColor READ innerShadowColor WRITE setInnerShadowColor
                NOTIFY innerShadowColorChanged)
 
-    // Size of the frame in pixels.
-    Q_PROPERTY(qreal frameThickness READ frameThickness WRITE setFrameThickness
-               NOTIFY frameThicknessChanged)
+    // Size of the border in pixels.
+    Q_PROPERTY(qreal borderSize READ borderSize WRITE setBorderSize NOTIFY borderSizeChanged)
 
-    // Space in pixels between the edge of the shape and the frame.
-    Q_PROPERTY(qreal frameSpace READ frameSpace WRITE setFrameSpace NOTIFY frameSpaceChanged)
-
-    // Color of the frame.
-    Q_PROPERTY(QColor frameColor READ frameColor WRITE setFrameColor NOTIFY frameColorChanged)
+    // Color of the border.
+    Q_PROPERTY(QColor borderColor READ borderColor WRITE setBorderColor NOTIFY borderColorChanged)
 
 public:
     UCShape(QQuickItem* parent = 0);
@@ -108,12 +104,10 @@ public:
     void setInnerShadowAngle(qreal angle);
     QColor innerShadowColor() const;
     void setInnerShadowColor(const QColor& color);
-    qreal frameThickness() const;
-    void setFrameThickness(qreal thickness);
-    qreal frameSpace() const;
-    void setFrameSpace(qreal space);
-    QColor frameColor() const;
-    void setFrameColor(const QColor& color);
+    qreal borderSize() const;
+    void setBorderSize(qreal size);
+    QColor borderColor() const;
+    void setBorderColor(const QColor& color);
 
 Q_SIGNALS:
     void shapeChanged();
@@ -127,35 +121,27 @@ Q_SIGNALS:
     void innerShadowDistanceChanged();
     void innerShadowAngleChanged();
     void innerShadowColorChanged();
-    void frameThicknessChanged();
-    void frameSpaceChanged();
-    void frameColorChanged();
+    void borderSizeChanged();
+    void borderColorChanged();
 
 private:
     QSGNode* updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData* data) Q_DECL_OVERRIDE;
 
     enum {
-        DropShadowVisible   = (1 << 0),
-        FillCenterVisible   = (1 << 1),
-        FillCornersVisible  = (1 << 2),
-        FrameEdgesVisible   = (1 << 3),
-        FrameCornersVisible = (1 << 4),
-
-        DirtyDropShadowVisibility   = (1 << 5),
-        DirtyFillCenterVisibility   = (1 << 6),
-        DirtyFillCornersVisibility  = (1 << 7),
-        DirtyFrameEdgesVisibility   = (1 << 8),
-        DirtyFrameCornersVisibility = (1 << 9),
-
-        DirtyFlags = DirtyDropShadowVisibility | DirtyFillCenterVisibility
-                     | DirtyFillCornersVisibility | DirtyFrameEdgesVisibility
-                     | DirtyFrameCornersVisibility
+        DropShadowVisible          = (1 << 0),
+        FillCenterVisible          = (1 << 1),
+        FillCornersVisible         = (1 << 2),
+        DirtyDropShadowVisibility  = (1 << 3),
+        DirtyFillCenterVisibility  = (1 << 4),
+        DirtyFillCornersVisibility = (1 << 5),
+        DirtyFlags =
+            DirtyDropShadowVisibility | DirtyFillCenterVisibility | DirtyFillCornersVisibility
     };
 
     QRgb m_fillColor;
     QRgb m_dropShadowColor;
     QRgb m_innerShadowColor;
-    QRgb m_frameColor;
+    QRgb m_borderColor;
     quint16 m_radius;
     quint16 m_dropShadowSize;
     quint16 m_dropShadowDistance;
@@ -163,8 +149,7 @@ private:
     quint16 m_innerShadowSize;
     quint16 m_innerShadowDistance;
     quint16 m_innerShadowAngle;
-    quint16 m_frameThickness;
-    quint16 m_frameSpace;
+    quint16 m_borderSize;
     quint16 m_flags;
     quint8 m_shape : 1;
     quint8 __padding : 7;

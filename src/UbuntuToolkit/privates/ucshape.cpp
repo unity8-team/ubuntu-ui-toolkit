@@ -38,7 +38,6 @@
 
 #include "ucshapedropshadownodes_p.h"
 #include "ucshapefillnodes_p.h"
-#include "ucshapeframenodes_p.h"
 
 Q_CONSTEXPR qreal maxRadius = 128.0;
 // Gaussian kernels are precomputed at a specific size with an off-line tool.
@@ -46,11 +45,10 @@ Q_STATIC_ASSERT(static_cast<int>(maxRadius) <= gaussianCount);
 
 UCShape::UCShape(QQuickItem* parent)
     : QQuickItem(parent)
-    // Transparent by default to avoid instantiating the fill nodes.
-    , m_fillColor(qRgba(255, 255, 255, 0))
-    , m_dropShadowColor(qRgba(0, 0, 0, 255))
-    , m_innerShadowColor(qRgba(0, 0, 0, 255))
-    , m_frameColor(qRgba(255, 255, 255, 255))
+    , m_fillColor(qRgba(0xe9, 0x54, 0x20, 0xff))  // Ubuntu orange.
+    , m_dropShadowColor(qRgba(0, 0, 0, 0xff))
+    , m_innerShadowColor(qRgba(0, 0, 0, 0xff))
+    , m_borderColor(qRgba(0xff, 0xff, 0xff, 0xff))
     , m_radius(0)
     , m_dropShadowSize(0)
     , m_dropShadowDistance(0)
@@ -58,9 +56,9 @@ UCShape::UCShape(QQuickItem* parent)
     , m_innerShadowSize(0)
     , m_innerShadowDistance(0)
     , m_innerShadowAngle(0)
-    , m_frameThickness(0)
-    , m_frameSpace(0)
-    , m_flags(0)
+    , m_borderSize(0)
+    // the flags must be in sync with the default values above!
+    , m_flags(FillCenterVisible)
     , m_shape(Squircle)
 {
     setFlag(ItemHasContents);
@@ -91,21 +89,11 @@ void UCShape::setRadius(qreal radius)
     const quint16 quantizedRadius = quantizeToU16(radius);
     if (m_radius != quantizedRadius) {
         if ((m_radius > 0) != (quantizedRadius > 0)) {
-            if (quantizedRadius > 0) {
-                if (qAlpha(m_fillColor) > 0) {
+            if (qAlpha(m_fillColor) > 0) {
+                if (quantizedRadius > 0) {
                     m_flags |= FillCornersVisible | DirtyFillCornersVisibility;
-                }
-                if ((m_frameThickness > 0) && (qAlpha(m_frameColor) > 0)) {
-                    m_flags |= FrameCornersVisible | DirtyFrameCornersVisibility;
-                }
-            } else {
-                if (qAlpha(m_fillColor) > 0) {
-                    m_flags &= ~FillCornersVisible;
-                    m_flags |= DirtyFillCornersVisibility;
-                }
-                if ((m_frameThickness > 0) && (qAlpha(m_frameColor) > 0)) {
-                    m_flags &= ~FrameCornersVisible;
-                    m_flags |= DirtyFrameCornersVisibility;
+                } else {
+                    m_flags = (m_flags & ~FillCornersVisible) | DirtyFillCornersVisibility;
                 }
             }
         }
@@ -301,87 +289,34 @@ void UCShape::setInnerShadowColor(const QColor& color)
     }
 }
 
-qreal UCShape::frameThickness() const
+qreal UCShape::borderSize() const
 {
-    return unquantizeFromU16(m_frameThickness);
+    return unquantizeFromU16(m_borderSize);
 }
 
-void UCShape::setFrameThickness(qreal thickness)
+void UCShape::setBorderSize(qreal size)
 {
-    const quint16 quantizedSize = quantizeToU16(thickness);
-    if (m_frameThickness != quantizedSize) {
-        if ((m_frameThickness > 0) != (quantizedSize > 0)) {
-            if (quantizedSize > 0) {
-                if (qAlpha(m_frameColor) > 0) {
-                    m_flags |= FrameEdgesVisible | DirtyFrameEdgesVisibility;
-                    if (m_radius > 0) {
-                        m_flags |= FrameCornersVisible | DirtyFrameCornersVisibility;
-                    }
-                }
-            } else {
-                if (qAlpha(m_frameColor) > 0) {
-                    m_flags &= ~FrameEdgesVisible;
-                    m_flags |= DirtyFrameEdgesVisibility;
-                    if (m_radius > 0) {
-                        m_flags &= ~FrameCornersVisible;
-                        m_flags |= DirtyFrameCornersVisibility;
-                    }
-                }
-            }
-        }
-        m_frameThickness = quantizedSize;
+    const quint16 quantizedSize = quantizeToU16(size);
+    if (m_borderSize != quantizedSize) {
+        m_borderSize = quantizedSize;
         update();
-        Q_EMIT frameThicknessChanged();
+        Q_EMIT borderSizeChanged();
     }
 }
 
-qreal UCShape::frameSpace() const
-{
-    return unquantizeFromU16(m_frameSpace);
-}
-
-void UCShape::setFrameSpace(qreal space)
-{
-    const quint16 quantizedSpace = quantizeToU16(space);
-    if (m_frameSpace != quantizedSpace) {
-        m_frameSpace = quantizedSpace;
-        update();
-        Q_EMIT frameSpaceChanged();
-    }
-}
-
-QColor UCShape::frameColor() const
+QColor UCShape::borderColor() const
 {
     return QColor(
-        qRed(m_frameColor), qGreen(m_frameColor), qBlue(m_frameColor), qAlpha(m_frameColor));
+        qRed(m_borderColor), qGreen(m_borderColor), qBlue(m_borderColor), qAlpha(m_borderColor));
 }
 
-void UCShape::setFrameColor(const QColor& color)
+void UCShape::setBorderColor(const QColor& color)
 {
     const QRgb rgbColor = qRgba(color.red(), color.green(), color.blue(), color.alpha());
-    if (m_frameColor != rgbColor) {
-        if ((qAlpha(m_frameColor) > 0) != (qAlpha(rgbColor) > 0)) {
-            if (qAlpha(rgbColor) > 0) {
-                if (m_frameThickness > 0) {
-                    m_flags |= FrameEdgesVisible | DirtyFrameEdgesVisibility;
-                    if (m_radius > 0) {
-                        m_flags |= FrameCornersVisible | DirtyFrameCornersVisibility;
-                    }
-                }
-            } else {
-                if (m_frameThickness > 0) {
-                    m_flags &= ~FrameEdgesVisible;
-                    m_flags |= DirtyFrameEdgesVisibility;
-                    if (m_radius > 0) {
-                        m_flags &= ~FrameCornersVisible;
-                        m_flags |= DirtyFrameCornersVisibility;
-                    }
-                }
-            }
-        }
-        m_frameColor = rgbColor;
+    if (m_borderColor != rgbColor) {
+        m_borderColor = rgbColor;
         update();
-        Q_EMIT frameColorChanged();
+        Q_EMIT borderColorChanged();
     }
 }
 
@@ -392,9 +327,7 @@ public:
     ~UCShapeNode() { DLOG("detroying UCShapeNode"); }
 
     // Sorted by rendering order from back to front.
-    enum NodeType {
-        DropShadow = 0, FillCenter, FillCorners, FrameEdges, FrameCorners, NodeTypeCount
-    };
+    enum NodeType { DropShadow = 0, FillCenter, FillCorners, NodeTypeCount };
 
     QSGNode* node(NodeType type, bool instantiate = true)
     {
@@ -409,8 +342,6 @@ public:
                 case DropShadow: m_nodes[DropShadow] = new UCShapeDropShadowNode; break;
                 case FillCenter: m_nodes[FillCenter] = new UCShapeFillCenterNode; break;
                 case FillCorners: m_nodes[FillCorners] = new UCShapeFillCornersNode; break;
-                case FrameEdges: m_nodes[FrameEdges] = new UCShapeFrameEdgesNode; break;
-                case FrameCorners: m_nodes[FrameCorners] = new UCShapeFrameCornersNode; break;
                 default: DNOT_REACHED(); return Q_NULLPTR;
             }
             for (int i = type + 1; i < NodeTypeCount; ++i) {
@@ -438,7 +369,14 @@ QSGNode* UCShape::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData* data)
         return Q_NULLPTR;
     }
 
-    UCShapeNode* shapeNode = oldNode ? static_cast<UCShapeNode*>(oldNode) : new UCShapeNode;
+    UCShapeNode* shapeNode;
+    if (oldNode) {
+        shapeNode = static_cast<UCShapeNode*>(oldNode);
+    } else {
+        shapeNode = new UCShapeNode;
+        // Make sure the right visibility is set on the nodes.
+        m_flags |= DirtyFlags;
+    }
 
     // The strategy here is to instantiate shape node's children only when
     // required (for instance corner nodes are instantiated only when radius is
@@ -469,7 +407,8 @@ QSGNode* UCShape::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData* data)
         static_cast<UCShapeFillCenterNode*>(shapeNode->node(UCShapeNode::FillCenter))->update(
             itemSize, static_cast<UCShapeType>(m_shape), unquantizeFromU16(m_radius), m_fillColor,
             unquantizeFromU16(m_innerShadowSize), unquantizeFromU16(m_innerShadowAngle),
-            unquantizeFromU16(m_innerShadowDistance), m_innerShadowColor);
+            unquantizeFromU16(m_innerShadowDistance), m_innerShadowColor,
+            unquantizeFromU16(m_borderSize), m_borderColor);
     }
     if (m_flags & DirtyFillCenterVisibility) {
         static_cast<UCShapeFillCenterNode*>(shapeNode->node(UCShapeNode::FillCenter))->setVisible(
@@ -482,40 +421,14 @@ QSGNode* UCShape::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData* data)
         static_cast<UCShapeFillCornersNode*>(shapeNode->node(UCShapeNode::FillCorners))->update(
             itemSize, static_cast<UCShapeType>(m_shape), unquantizeFromU16(m_radius), m_fillColor,
             unquantizeFromU16(m_innerShadowSize), unquantizeFromU16(m_innerShadowAngle),
-            unquantizeFromU16(m_innerShadowDistance), m_innerShadowColor);
+            unquantizeFromU16(m_innerShadowDistance), m_innerShadowColor,
+            unquantizeFromU16(m_borderSize), m_borderColor);
     }
     if (m_flags & DirtyFillCornersVisibility) {
         UCShapeFillCornersNode* node = static_cast<UCShapeFillCornersNode*>(
             shapeNode->node(UCShapeNode::FillCorners, false));
         if (node) {
             node->setVisible(fillCornersVisible);
-        }
-    }
-
-    // Frame edges node.
-    const bool frameEdgesVisible = static_cast<bool>(m_flags & FrameEdgesVisible);
-    if (frameEdgesVisible) {
-        static_cast<UCShapeFrameEdgesNode*>(shapeNode->node(UCShapeNode::FrameEdges))->update(
-            itemSize, unquantizeFromU16(m_radius), unquantizeFromU16(m_frameThickness),
-            unquantizeFromU16(m_frameSpace), m_frameColor);
-    }
-    if (m_flags & DirtyFrameEdgesVisibility) {
-        static_cast<UCShapeFrameEdgesNode*>(shapeNode->node(UCShapeNode::FrameEdges))->setVisible(
-            frameEdgesVisible);
-    }
-
-    // Frame corners node.
-    const bool frameCornersVisible = static_cast<bool>(m_flags & FrameCornersVisible);
-    if (frameCornersVisible) {
-        static_cast<UCShapeFrameCornersNode*>(shapeNode->node(UCShapeNode::FrameCorners))->update(
-            itemSize, static_cast<UCShapeType>(m_shape), unquantizeFromU16(m_radius),
-            unquantizeFromU16(m_frameThickness), unquantizeFromU16(m_frameSpace), m_frameColor);
-    }
-    if (m_flags & DirtyFrameCornersVisibility) {
-        UCShapeFrameCornersNode* node = static_cast<UCShapeFrameCornersNode*>(
-            shapeNode->node(UCShapeNode::FrameCorners, false));
-        if (node) {
-            node->setVisible(frameCornersVisible);
         }
     }
 

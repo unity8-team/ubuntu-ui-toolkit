@@ -249,11 +249,16 @@ OTHER_FILES += \
     $$PWD/privates/shaders/fillcentershadow.frag \
     $$PWD/privates/shaders/fillcentershadow.vert \
     $$PWD/privates/shaders/fillcentershadow_opaque.frag \
+    $$PWD/privates/shaders/fillcentershadowborder.frag \
+    $$PWD/privates/shaders/fillcentershadowborder.vert \
+    $$PWD/privates/shaders/fillcentershadowborder_opaque.frag \
     $$PWD/privates/shaders/fillcornersshadow.frag \
     $$PWD/privates/shaders/fillcornersshadow.vert \
     $$PWD/privates/shaders/fillcornersshadow_opaque.frag \
+    $$PWD/privates/shaders/fillcornersshadowborder.frag \
+    $$PWD/privates/shaders/fillcornersshadowborder.vert \
+    $$PWD/privates/shaders/fillcornersshadowborder_opaque.frag \
     $$PWD/privates/shaders/frame.frag \
-    $$PWD/privates/shaders/innershadow.frag \
     $$PWD/privates/shaders/texture2.vert \
     $$PWD/shaders/shape.frag \
     $$PWD/shaders/shape.vert \

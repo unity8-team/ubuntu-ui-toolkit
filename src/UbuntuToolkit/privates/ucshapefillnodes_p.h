@@ -161,6 +161,165 @@ private:
     QSGGeometry m_geometry;
 };
 
+// #######################################
+// # Fill center shadow border materials #
+// #######################################
+
+class UCShapeFillCenterShadowBorderOpaqueShader : public QSGMaterialShader
+{
+public:
+    UCShapeFillCenterShadowBorderOpaqueShader() {
+        setShaderSourceFile(
+            QOpenGLShader::Vertex, QStringLiteral(
+                ":/uc/privates/shaders/fillcentershadowborder.vert"));
+        setShaderSourceFile(
+            QOpenGLShader::Fragment, QStringLiteral(
+                ":/uc/privates/shaders/fillcentershadowborder_opaque.frag"));
+    }
+    char const* const* attributeNames() const Q_DECL_OVERRIDE {
+        static char const* const attributes[] = {
+            "positionAttrib", "shadowCoordAttrib", "midShadowCoordAttrib", "borderCoordAttrib",
+            "colorAttrib", "shadowColorAttrib", "borderColorAttrib", 0
+        };
+        return attributes;
+    }
+    void initialize() Q_DECL_OVERRIDE {
+        QSGMaterialShader::initialize();
+        program()->bind();
+        program()->setUniformValue("shadowTexture", 0);
+        program()->setUniformValue("borderTexture", 1);
+        m_matrixId = program()->uniformLocation("matrix");
+    }
+    void updateState(
+        const RenderState& state, QSGMaterial* newEffect, QSGMaterial*) Q_DECL_OVERRIDE {
+        QOpenGLFunctions* funcs = QOpenGLContext::currentContext()->functions();
+        UCShapeTextureProvider* provider = dynamic_cast<UCShapeTextureProvider*>(newEffect);
+        funcs->glActiveTexture(GL_TEXTURE1);
+        funcs->glBindTexture(GL_TEXTURE_2D, provider->textureId(1));
+        funcs->glActiveTexture(GL_TEXTURE0);
+        funcs->glBindTexture(GL_TEXTURE_2D, provider->textureId(0));
+        if (state.isMatrixDirty()) {
+            program()->setUniformValue(m_matrixId, state.combinedMatrix());
+        }
+    }
+
+private:
+    int m_matrixId;
+};
+
+class UCShapeFillCenterShadowBorderShader : public UCShapeFillCenterShadowBorderOpaqueShader
+{
+public:
+    UCShapeFillCenterShadowBorderShader() : UCShapeFillCenterShadowBorderOpaqueShader() {
+        setShaderSourceFile(
+            QOpenGLShader::Fragment, QStringLiteral(
+                ":/uc/privates/shaders/fillcentershadowborder.frag"));
+    }
+    void initialize() Q_DECL_OVERRIDE {
+        UCShapeFillCenterShadowBorderOpaqueShader::initialize();
+        m_opacityId = program()->uniformLocation("opacity");
+    }
+    void updateState(
+        const RenderState& state, QSGMaterial* newEffect, QSGMaterial* oldEffect) Q_DECL_OVERRIDE {
+        UCShapeFillCenterShadowBorderOpaqueShader::updateState(state, newEffect, oldEffect);
+        if (state.isOpacityDirty()) {
+            program()->setUniformValue(m_opacityId, state.opacity());
+        }
+    }
+
+private:
+    int m_opacityId;
+};
+
+template <bool opaque>
+class UCShapeFillCenterShadowBorderMaterial : public QSGMaterial, public UCShapeTextureProvider
+{
+public:
+    UCShapeFillCenterShadowBorderMaterial() : m_textureId{0, 0} {
+        setFlag(Blending, !opaque);
+    }
+
+    QSGMaterialType* type() const Q_DECL_OVERRIDE {
+        static QSGMaterialType type[2];
+        return opaque ? &type[0] : &type[1];
+    }
+    QSGMaterialShader* createShader() const Q_DECL_OVERRIDE {
+        return opaque ?
+            new UCShapeFillCenterShadowBorderOpaqueShader : new UCShapeFillCenterShadowBorderShader;
+    }
+    int compare(const QSGMaterial* other) const Q_DECL_OVERRIDE {
+        const UCShapeTextureProvider* provider =
+            reinterpret_cast<const UCShapeTextureProvider*>(other);
+        if (provider->textureId(0) == m_textureId[0]) {
+            return provider->textureId(1) - m_textureId[1];
+        } else {
+            return -1;
+        }
+    }
+
+    quint32 textureId(int index) const Q_DECL_OVERRIDE {
+        DASSERT(index <= 1);
+        return m_textureId[index];
+    }
+    void updateShadowTexture(UCShapeType type, quint16 radius, quint16 shadow) {
+        m_textureId[0] = m_textureFactory.shadowTexture(0, type, radius, shadow);
+    }
+    void updateBorderTexture(UCShapeType type, quint16 radius) {
+        m_textureId[1] = m_textureFactory.maskTexture(1, type, radius);
+    }
+
+private:
+    UCShapeTextureFactory<2> m_textureFactory;
+    quint32 m_textureId[2];
+};
+
+class UCShapeFillCenterShadowBorderResources : public UCShapeResources
+{
+public:
+    UCShapeFillCenterShadowBorderResources(
+        int vertexCount, int indexCount, int indexType = GL_UNSIGNED_SHORT)
+        : m_geometry(attributeSet(), vertexCount, indexCount, indexType) {
+        m_geometry.setDrawingMode(GL_TRIANGLE_STRIP);
+        m_geometry.setIndexDataPattern(QSGGeometry::StaticPattern);
+        m_geometry.setVertexDataPattern(QSGGeometry::AlwaysUploadPattern);
+    }
+
+    QSGMaterial* material() Q_DECL_OVERRIDE { return &m_material; }
+    QSGMaterial* opaqueMaterial() Q_DECL_OVERRIDE { return &m_opaqueMaterial; }
+    QSGGeometry* geometry() Q_DECL_OVERRIDE { return &m_geometry; }
+
+    struct Vertex {
+        float x, y;
+        float shadowS, shadowT;
+        float midShadowS, midShadowT;
+        float borderS, borderT;
+        quint32 color;
+        quint32 shadowColor;
+        quint32 borderColor;
+    };
+
+private:
+    static const QSGGeometry::AttributeSet& attributeSet() {
+        static const QSGGeometry::Attribute attributes[] = {
+            QSGGeometry::Attribute::create(0, 2, GL_FLOAT, true),    // x, y
+            QSGGeometry::Attribute::create(1, 2, GL_FLOAT),          // shadowS, shadowT
+            QSGGeometry::Attribute::create(2, 2, GL_FLOAT),          // midShadowS, midShadowT
+            QSGGeometry::Attribute::create(3, 2, GL_FLOAT),          // borderS, borderT
+            QSGGeometry::Attribute::create(4, 4, GL_UNSIGNED_BYTE),  // color
+            QSGGeometry::Attribute::create(5, 4, GL_UNSIGNED_BYTE),  // shadowColor
+            QSGGeometry::Attribute::create(6, 4, GL_UNSIGNED_BYTE)   // borderColor
+        };
+        static const QSGGeometry::AttributeSet attributeSet = {
+            7, sizeof(Vertex), attributes
+        };
+        return attributeSet;
+    }
+
+    UCShapeFillCenterShadowBorderMaterial<false> m_material;
+    UCShapeFillCenterShadowBorderMaterial<true> m_opaqueMaterial;
+    QSGGeometry m_geometry;
+};
+
 // ####################
 // # Fill center node #
 // ####################
@@ -177,28 +336,31 @@ public:
     void setVisible(bool visible);
     void update(
         const QSizeF& itemSize, UCShapeType type, float radius, QRgb color, float shadowSize,
-        float shadowAngle, float shadowDistance, QRgb shadowColor);
+        float shadowAngle, float shadowDistance, QRgb shadowColor, float borderSize,
+        QRgb borderColor);
 
 private:
     enum {
-        HasColor    = (1 << 0),
-        HasShadow   = (1 << 1),
-        HasBorder   = (1 << 2),
-        StyleMask   = (HasColor | HasShadow | HasBorder),
-        Textured    = (HasShadow | HasBorder),
-        DirtyRadius = (1 << 3),
-        DirtyShadow = (1 << 4),
-        DirtyShape  = (1 << 5),
-        DirtyMask   = (DirtyRadius | DirtyShadow | DirtyShape),
-        Visible     = (1 << 6),
-        Blending    = (1 << 7)
+        HasColor          = (1 << 0),
+        HasShadow         = (1 << 1),
+        HasBorder         = (1 << 2),
+        StyleMask         = (HasColor | HasShadow | HasBorder),
+        Textured          = (HasShadow | HasBorder),
+        DirtyRadius       = (1 << 3),
+        DirtyShadow       = (1 << 4),
+        DirtyShape        = (1 << 5),
+        DirtyBorderRadius = (1 << 6),
+        DirtyMask         = (DirtyRadius | DirtyShadow | DirtyShape | DirtyBorderRadius),
+        Visible           = (1 << 7),
+        Blending          = (1 << 8)
     };
 
     UCShapeResources* m_resources;
     quint16 m_radius;
     quint16 m_shadow;
+    quint16 m_borderRadius;
+    quint16 m_flags;
     quint8 m_shape;
-    quint8 m_flags;
 };
 
 // #################################
@@ -357,7 +519,8 @@ public:
     void setVisible(bool visible);
     void update(
         const QSizeF& itemSize, UCShapeType type, float radius, QRgb color, float shadowSize,
-        float shadowAngle, float shadowDistance, QRgb shadowColor);
+        float shadowAngle, float shadowDistance, QRgb shadowColor, float borderSize,
+        QRgb borderColor);
 
 private:
     enum {

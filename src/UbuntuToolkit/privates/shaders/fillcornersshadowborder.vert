@@ -16,24 +16,25 @@
  * Author: Loïc Molinari <loic.molinari@canonical.com>
  */
 
-#define DEBUG_VERTEX_LAYOUT 0
-
-uniform sampler2D texture;
-uniform lowp float opacity;
-varying mediump vec2 texCoord1;
-varying mediump vec2 texCoord2;
+uniform highp mat4 matrix;
+attribute highp vec4 positionAttrib;
+attribute mediump vec2 maskCoordAttrib;
+attribute mediump vec2 shadowCoordAttrib;
+attribute mediump vec2 midShadowCoordAttrib;
+attribute lowp vec4 colorAttrib;
+attribute lowp vec4 shadowColorAttrib;
+varying mediump vec2 maskCoord;
+varying mediump vec2 shadowCoord;
+varying mediump vec2 midShadowCoord;
 varying lowp vec4 color;
+varying lowp vec4 shadowColor;
 
-void main(void)
+void main()
 {
-    lowp float shadow = texture2D(texture, texCoord1).r;
-    lowp float shape = texture2D(texture, texCoord2).a;
-    // Fused multiply-add friendly version of (shape * (1.0 - shadow))
-    lowp float shapedShadow = (shape * -shadow) + shape;
-    gl_FragColor = vec4(shapedShadow * opacity) * color;
-
-#if DEBUG_VERTEX_LAYOUT == 1
-    gl_FragColor = ((vec4(shapedShadow) * color)
-        + vec4(1.0, 0.0, 0.0, 1.0) * vec4(1.0 - (shapedShadow * color.a))) * vec4(opacity);
-#endif
+    maskCoord = maskCoordAttrib;
+    shadowCoord = shadowCoordAttrib;
+    midShadowCoord = midShadowCoordAttrib;
+    color = colorAttrib;
+    shadowColor = shadowColorAttrib;
+    gl_Position = matrix * positionAttrib;
 }

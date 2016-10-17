@@ -72,5 +72,5 @@ Item {
     // Mouse handling.
     Connections {
         target: scene != null ? area : null
-      }
+    }
 }

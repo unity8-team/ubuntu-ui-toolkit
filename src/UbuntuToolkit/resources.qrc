@@ -9,11 +9,16 @@
         <file>privates/shaders/fillcentershadow.frag</file>
         <file>privates/shaders/fillcentershadow.vert</file>
         <file>privates/shaders/fillcentershadow_opaque.frag</file>
+        <file>privates/shaders/fillcentershadowborder.frag</file>
+        <file>privates/shaders/fillcentershadowborder.vert</file>
+        <file>privates/shaders/fillcentershadowborder_opaque.frag</file>
         <file>privates/shaders/fillcornersshadow.frag</file>
         <file>privates/shaders/fillcornersshadow.vert</file>
         <file>privates/shaders/fillcornersshadow_opaque.frag</file>
+        <file>privates/shaders/fillcornersshadowborder.frag</file>
+        <file>privates/shaders/fillcornersshadowborder.vert</file>
+        <file>privates/shaders/fillcornersshadowborder_opaque.frag</file>
         <file>privates/shaders/frame.frag</file>
-        <file>privates/shaders/innershadow.frag</file>
         <file>privates/shaders/texture2.vert</file>
         <file>shaders/shape.frag</file>
         <file>shaders/shape.vert</file>
