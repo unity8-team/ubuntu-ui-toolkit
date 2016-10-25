@@ -36,6 +36,8 @@ QML_FILES += 1.2/DatePicker.qml \
              1.3/YearListDropdown.qml \
              1.3/DatePickerHeader.qml \
              1.3/HourPicker.qml \
+             1.3/DayNightPicker.qml \
+             1.3/DigitSeparator.qml \
              1.3/YearModel.qml
 
 load(ubuntu_qml_module)

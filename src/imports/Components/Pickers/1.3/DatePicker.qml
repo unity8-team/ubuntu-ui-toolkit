@@ -306,7 +306,7 @@ Item {
     readonly property alias moving: listView.moving
 
     implicitWidth: parent.width
-    implicitHeight: content.height
+    implicitHeight: content.visible ? content.height : timeContent.height
  // activeFocusOnPress: true
 
     /*!
@@ -387,7 +387,7 @@ Item {
     }
 
     /*! \internal */
- // onModeChanged: internals.updatePickers()
+    onModeChanged: internals.updatePickers()
     /*! \internal */
  // onLocaleChanged: internals.updatePickers()
 
@@ -397,7 +397,6 @@ Item {
         }
         internals.completed = true;
         internals.updatePickers();
-     // internals.updateTimePickers();
     }
 
     width: parent.width
@@ -433,8 +432,6 @@ Item {
         property bool showMonthPicker: true
         property bool showDayPicker: true
 
-        property int pickersCount: 3
-        property real pickerWidth: (parent.width - margin * pickersCount - 1) / pickersCount
         property bool showHoursPicker: false
         property bool showMinutesPicker: false
         property bool showSecondsPicker: false
@@ -496,53 +493,6 @@ Item {
                     console.warn("Date and Time picking not allowed at the same time.");
                     return;
                 }
-
-                arrangeTumblers();
-                resetPickers();
-            }
-        }
-
-        /*
-            Detects the tumbler order from the date format of the locale
-          */
-        function arrangeTumblers() {
-            // use short format to exclude any extra characters
-            // FIXME: The js split(/\W/g) terminates the process on armhf with Qt 5.3 (v4 js) (https://bugreports.qt-project.org/browse/QTBUG-39255)
-            var format = datePicker.locale.dateFormat(Locale.ShortFormat).match(/\w+/g);
-            // loop through the format to decide the position of the tumbler
-            var formatIndex = 0;
-            for (var i in format) {
-                if (!format[i].length) continue;
-                // check the first two characters
-                switch (format[i].substr(0, 1).toLowerCase()) {
-                case 'y':
-                    if (showYearPicker) {
-                    } else {
-                    }
-
-                    break;
-                case 'm':
-                    if (showMonthPicker) {
-                    } else {
-                    }
-
-                    break;
-                case 'd':
-                    if (showDayPicker) {
-                    } else {
-                    }
-                    break;
-                }
-            }
-            // check hms
-            if (showHoursPicker) {
-            } else {
-            }
-            if (showMinutesPicker) {
-            } else {
-            }
-            if (showSecondsPicker) {
-            } else {
             }
         }
     }
@@ -641,170 +591,48 @@ Item {
 
     // TimePicker
 
-    function updateTimePickers() {
-        var pickersCount = (
-            (showHours? 1 : 0) +
-            (showMinutes? 1 : 0) +
-            (showSeconds? 1 : 0) +
-            (ampm && showHours? 1 : 0)
-        )
-
-        var pickerWidth = (
-            (container.width - margin * (pickersCount - 1)) / pickersCount
-        )
-
-        var pickerX = (function() {
-            var pos = 0
-            return function(update) {
-                if (!update) return pos
-                return pos = pos + pickerWidth + margin
-            }
-        }())
-
-        var separatorX = (function() {
-            var pos = 0
-            return function(update) {
-                if (!update) return pos
-                return pos = pos + pickerWidth - margin * 2
-            }
-        }())
-
-        if (showHours) {
-            pickerComp.createObject(container, {
-                type: 'hours',
-                width: pickerWidth,
-                height: root.height,
-            })
-            if (showMinutes) {
-                separatorComp.createObject(container, {
-                    x: pickerWidth + margin / 2,
-                })
-            }
-        }
-
-        if (showMinutes) {
-            pickerComp.createObject(container, {
-                type: 'minutes',
-                width: pickerWidth,
-                height: root.height,
-                x: pickerX(true),
-            })
-            if (showSeconds) {
-                separatorComp.createObject(container, {
-                    x: pickerX() + pickerWidth + margin / 2,
-                })
-            }
-        }
-
-        if (showSeconds) {
-            pickerComp.createObject(container, {
-                type: 'seconds',
-                width: pickerWidth,
-                height: root.height,
-                x: pickerX(true),
-            })
-        }
-
-        if (ampm && showHours) {
-            ampmComp.createObject(container, {
-                width: pickerWidth,
-                height: root.height,
-                x: pickerX(true),
-            })
-        }
-    }
-
-    Component {
-        id: separatorComp
-        Label {
-            anchors.verticalCenter: parent.verticalCenter
-            color: theme.palette.normal.backgroundText
-            text: ':'
-            textSize: Label.Medium
-            Component.onCompleted: x -= width / 2
-        }
-    }
-
-    Component {
-        id: ampmComp
-        ListView {
-            id: ampmListView
-            clip: true
-            model: ['AM', 'PM']
-            cacheBuffer: 0
-            snapMode: ListView.SnapToItem
-            orientation: ListView.Vertical
-
-            highlightFollowsCurrentItem: true
-            highlightMoveDuration: UbuntuAnimation.FastDuration
-            highlightRangeMode: ListView.StrictlyEnforceRange
-
-            preferredHighlightBegin: height / 2 - itemHeight / 2
-            preferredHighlightEnd: height / 2 + itemHeight / 2
-
-            onCurrentIndexChanged: {
-                var hour = date.getHours()
-
-                if (hour < 12 && currentIndex === 1) {
-                    hour += 12
-                } else if (hour > 12 && currentIndex === 0) {
-                    hour -= 12
-                }
-
-                root.requestDateChange(
-                    DU.clone(date, 'setHours', hour)
-                )
-            }
-
-            delegate: MouseArea {
-                property bool active: ListView.isCurrentItem
-                width: parent.width
-                height: itemHeight
-                onReleased: ampmListView.currentIndex = index
-                Label {
-                    id: item
-                    color: parent.active? colors.darkGrey2 : colors.grey
-                    width: parent.width - units.gu(1)
-                    height: parent.height
-                    x: units.gu(1)
-                    text: modelData
-                    textSize: Label.Medium
-                    horizontalAlignment: Text.AlignLeft
-                    verticalAlignment: Text.AlignVCenter
-                }
-            }
-            Component.onCompleted: {
-                // root.requestDisplayedMonthChange(DU.clone(newDate))
-                // yearsListView.currentIndex = yearsListView.currentIndex
-                // yearsListView.positionViewAtIndex(yearsListView.currentIndex, ListView.SnapPosition)
-                // console.log('SSS', root.date)
-                // currentIndex = (root.date.getHours() > 0 && root.date.getHours() < 13)? 0 : 1
-            }
-        }
-    }
-
     Item {
-        anchors.fill: parent
+        id: timeContent
+        height: container.itemHeight * 5
         anchors.leftMargin: root.margin
         anchors.rightMargin: root.margin
         visible: internals.showHoursPicker || internals.showMinutesPicker || internals.showSecondsPicker
 
-        Item {
+        Row {
             id: container
             anchors.fill: parent
+            property real itemHeight: units.gu(2)
+            property int pickerCount: 3
+            property real pickerWidth: (container.width - internals.margin * container.pickerCount - 1) / container.pickerCount
 
             HourPicker {
                 type: 'hours'
-                x: internals.pickerWidth + internals.margin
-                width: internals.pickerWidth
-                height: datePicker.height
+                width: container.pickerWidth
+                height: container.height
+                ampm: internals.showDayPicker
+            }
+
+            HourPicker {
+                type: 'minutes'
+                width: container.pickerWidth
+                height: container.height
             }
 
             HourPicker {
                 type: 'seconds'
-                x: internals.pickerWidth + internals.margin
-                width: internals.pickerWidth
-                height: datePicker.height
+                width: container.pickerWidth
+                height: container.height
+            }
+
+            DayNightPicker {
+                width: container.pickerWidth
+                height: container.height
+                itemHeight: container.itemHeight
+            }
+
+            DigitSeparator {
+                width: container.pickerWidth
+                height: container.height
             }
         }
     }

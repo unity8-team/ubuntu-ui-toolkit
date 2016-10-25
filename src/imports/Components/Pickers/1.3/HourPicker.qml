@@ -4,7 +4,7 @@ import 'dateutils.js' as DU
 
 PathView {
     id: pathview
-    property real itemWidth: width
+    property date date: datePicker.date // FIXME:
     property real itemAlign: Text.AlignHCenter
     property string type
     property bool ampm: true
@@ -34,7 +34,7 @@ PathView {
 
         var method = null
         var value = null
-        var am = root.date.getHours() > 0 && root.date.getHours() < 13
+        var am = date.getHours() > 0 && date.getHours() < 13
 
         if (type === 'hours') {
             method = 'setHours'
@@ -56,25 +56,26 @@ PathView {
             return
         }
 
-        root.requestDateChange(DU.clone(date, method, value))
+        datePicker.date = DU.clone(date, method, value) // FIXME:
     }
     delegate: Item {
         property bool active: PathView.isCurrentItem
-        width: pathview.itemWidth
-        height: root.itemHeight
+        width: pathview.width
+        height: datePicker.itemHeight // FIXME:
         Label {
             width: parent.width
             height: parent.height
-            color: parent.active? UbuntuColors.darkGray : UbuntuColors.gray
+            // FIXME: What color?
+            color: parent.active? UbuntuColors.darkGrey : UbuntuColors.lightGrey
             text: {
                 if (pathview.type === 'hours') {
-                    return DU.format(DU.clone(root.date, 'setHours', index + 1), 'HH')
+                    return DU.format(DU.clone(date, 'setHours', index + 1), 'HH')
                 }
                 if (pathview.type === 'minutes') {
-                    return DU.format(DU.clone(root.date, 'setMinutes', index), 'mm')
+                    return DU.format(DU.clone(date, 'setMinutes', index), 'mm')
                 }
                 if (pathview.type === 'seconds') {
-                    return DU.format(DU.clone(root.date, 'setSeconds', index), 'ss')
+                    return DU.format(DU.clone(date, 'setSeconds', index), 'ss')
                 }
                 return ''
             }
@@ -85,11 +86,11 @@ PathView {
         }
     }
     path: Path {
-        startX: pathview.itemWidth / 2
-        startY: - root.itemHeight / 2
+        startX: pathview.width / 2
+        startY: - datePicker.itemHeight / 2 // FIXME:
         PathLine {
-            x: pathview.itemWidth / 2
-            y: pathview.height + root.itemHeight / 2
+            x: pathview.width / 2
+            y: pathview.height + datePicker.itemHeight / 2 // FIXME:
         }
     }
     Component.onCompleted: {
@@ -103,15 +104,11 @@ PathView {
                 }
                 break
             case 'minutes':
-                console.log('BBB', date)
                 currentIndex = date.getMinutes()
                 break
             case 'seconds':
                 currentIndex = date.getSeconds()
                 break
         }
-        // if (type === 'hours') {
-        // } else if (type === '
-        // indexInit = true
     }
 }
