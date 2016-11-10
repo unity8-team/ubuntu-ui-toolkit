@@ -246,6 +246,9 @@ OTHER_FILES += \
     $$PWD/privates/shaders/colormask.frag \
     $$PWD/privates/shaders/colormask.vert \
     $$PWD/privates/shaders/colormask_opaque.frag \
+    $$PWD/privates/shaders/fillcenterborder.frag \
+    $$PWD/privates/shaders/fillcenterborder.vert \
+    $$PWD/privates/shaders/fillcenterborder_opaque.frag \
     $$PWD/privates/shaders/fillcentershadow.frag \
     $$PWD/privates/shaders/fillcentershadow.vert \
     $$PWD/privates/shaders/fillcentershadow_opaque.frag \

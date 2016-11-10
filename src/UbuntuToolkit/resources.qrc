@@ -6,6 +6,9 @@
         <file>privates/shaders/colormask.frag</file>
         <file>privates/shaders/colormask.vert</file>
         <file>privates/shaders/colormask_opaque.frag</file>
+        <file>privates/shaders/fillcenterborder.frag</file>
+        <file>privates/shaders/fillcenterborder.vert</file>
+        <file>privates/shaders/fillcenterborder_opaque.frag</file>
         <file>privates/shaders/fillcentershadow.frag</file>
         <file>privates/shaders/fillcentershadow.vert</file>
         <file>privates/shaders/fillcentershadow_opaque.frag</file>

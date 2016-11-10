@@ -48,16 +48,32 @@ void UCShapeFillCenterNode::preprocess()
 {
     DASSERT(m_flags & Textured);
 
-    if (!(m_flags & HasBorder)) {
+    // FIXME(loicm) Could be made more consise (texture update methods in the resources?).
+
+    switch (m_flags & StyleMask) {
+    case (HasColor | HasShadow):
         if (m_flags & (DirtyRadius | DirtyShadow | DirtyShape)) {
             static_cast<UCShapeFillCenterShadowMaterial<false>*>(
-                m_resources->material())->updateTexture(
+                m_resources->material())->updateShadowTexture(
                     static_cast<UCShapeType>(m_shape), m_radius, m_shadow);
             static_cast<UCShapeFillCenterShadowMaterial<true>*>(
-                m_resources->opaqueMaterial())->updateTexture(
+                m_resources->opaqueMaterial())->updateShadowTexture(
                     static_cast<UCShapeType>(m_shape), m_radius, m_shadow);
         }
-    } else {
+        break;
+
+    case (HasColor | HasBorder):
+        if (m_flags & (DirtyRadius | DirtyBorderRadius | DirtyShape)) {
+            static_cast<UCShapeFillCenterBorderMaterial<false>*>(
+                m_resources->material())->updateBorderTexture(
+                    static_cast<UCShapeType>(m_shape), m_borderRadius);
+            static_cast<UCShapeFillCenterBorderMaterial<true>*>(
+                m_resources->opaqueMaterial())->updateBorderTexture(
+                    static_cast<UCShapeType>(m_shape), m_borderRadius);
+        }
+        break;
+
+    case (HasColor | HasShadow | HasBorder):
         if (m_flags & (DirtyRadius | DirtyShadow | DirtyShape)) {
             static_cast<UCShapeFillCenterShadowBorderMaterial<false>*>(
                 m_resources->material())->updateShadowTexture(
@@ -74,7 +90,12 @@ void UCShapeFillCenterNode::preprocess()
                 m_resources->opaqueMaterial())->updateBorderTexture(
                     static_cast<UCShapeType>(m_shape), m_borderRadius);
         }
+        break;
+
+    default:
+        NOT_REACHED();
     }
+
     m_flags &= ~DirtyMask;
 }
 
@@ -118,7 +139,7 @@ void UCShapeFillCenterNode::update(
     const int noBorderVertexCount = 8;
     const int borderVertexCount = 13;
 
-    quint8 style = ((shadowSize <= 0.0f) || (qAlpha(shadowColor) == 0))
+    quint16 style = ((shadowSize <= 0.0f) || (qAlpha(shadowColor) == 0))
         ? HasColor : (HasColor | HasShadow);
     if (borderSize >= 1.0f) {
         style |= HasBorder;
@@ -142,7 +163,10 @@ void UCShapeFillCenterNode::update(
             setFlag(QSGNode::UsePreprocess, true);
             break;
         case (HasColor | HasBorder):
-            NOT_REACHED();
+            m_resources = new UCShapeFillCenterBorderResources(borderVertexCount, borderIndexCount);
+            memcpy(m_resources->geometry()->indexData(), borderIndices,
+                   borderIndexCount * sizeof(quint16));
+            setFlag(QSGNode::UsePreprocess, true);
             break;
         case (HasColor | HasShadow | HasBorder):
             m_resources = new UCShapeFillCenterShadowBorderResources(
@@ -306,7 +330,120 @@ void UCShapeFillCenterNode::update(
     }
 
     case (HasColor | HasBorder): {
-        NOT_REACHED();
+        UCShapeFillCenterBorderResources::Vertex* v =
+            reinterpret_cast<UCShapeFillCenterBorderResources::Vertex*>(
+                m_resources->geometry()->vertexData());
+        float s, c;
+        sincosf(shadowAngle * -(M_PI / 180.0f), &s, &c);
+        const float midW = w * 0.5f;
+        const float midH = h * 0.5f;
+        const float clampedBorder = qMin(floorf(borderSize), maxSize);
+        const float clampedBorderRadius =
+            floorf(((maxSize - clampedBorder) / maxSize) * clampedRadius);
+        const float textureBorder = 1.0f;
+        const float borderTextureSize = (2.0f * textureBorder + clampedBorderRadius) * dpr;
+        const float borderTextureSizeRounded =
+            getStride(static_cast<int>(borderTextureSize), 1, textureStride);
+        const float borderTextureOffset =
+            (borderTextureSizeRounded - borderTextureSize) / borderTextureSizeRounded;
+        const float borderTextureFactor = ((1.0f - borderTextureOffset) * dpr) / borderTextureSize;
+        const float borderOffset = -(clampedBorder - textureBorder);
+        const quint32 packedBorderColor = packColor(borderColor);
+        v[0].x = clampedRadius;
+        v[0].y = 0.0f;
+        v[0].borderS = (clampedRadius + borderOffset) * borderTextureFactor + borderTextureOffset;
+        v[0].borderT = borderOffset * borderTextureFactor + borderTextureOffset;
+        v[0].color = packedColor;
+        v[0].borderColor = packedBorderColor;
+        v[1].x = midW;
+        v[1].y = 0.0f;
+        v[1].borderS = (midW + borderOffset) * borderTextureFactor + borderTextureOffset;
+        v[1].borderT = borderOffset * borderTextureFactor + borderTextureOffset;
+        v[1].color = packedColor;
+        v[1].borderColor = packedBorderColor;
+        v[2].x = w - clampedRadius;
+        v[2].y = 0.0f;
+        v[2].borderS = (clampedRadius + borderOffset) * borderTextureFactor + borderTextureOffset;
+        v[2].borderT = borderOffset * borderTextureFactor + borderTextureOffset;
+        v[2].color = packedColor;
+        v[2].borderColor = packedBorderColor;
+        v[3].x = 0.0f;
+        v[3].y = clampedRadius;
+        v[3].borderS = borderOffset * borderTextureFactor + borderTextureOffset;
+        v[3].borderT = (clampedRadius + borderOffset) * borderTextureFactor + borderTextureOffset;
+        v[3].color = packedColor;
+        v[3].borderColor = packedBorderColor;
+        v[4].x = w;
+        v[4].y = clampedRadius;
+        v[4].borderS = borderOffset * borderTextureFactor + borderTextureOffset;
+        v[4].borderT = (clampedRadius + borderOffset) * borderTextureFactor + borderTextureOffset;
+        v[4].color = packedColor;
+        v[4].borderColor = packedBorderColor;
+        v[5].x = 0.0f;
+        v[5].y = midH;
+        v[5].borderS = borderOffset * borderTextureFactor + borderTextureOffset;
+        v[5].borderT = (midH + borderOffset) * borderTextureFactor + borderTextureOffset;
+        v[5].color = packedColor;
+        v[5].borderColor = packedBorderColor;
+        v[6].x = midW;
+        v[6].y = midH;
+        v[6].borderS = (midW + borderOffset) * borderTextureFactor + borderTextureOffset;
+        v[6].borderT = (midH + borderOffset) * borderTextureFactor + borderTextureOffset;
+        v[6].color = packedColor;
+        v[6].borderColor = packedBorderColor;
+        v[7].x = w;
+        v[7].y = midH;
+        v[7].borderS = borderOffset * borderTextureFactor + borderTextureOffset;
+        v[7].borderT = (midH + borderOffset) * borderTextureFactor + borderTextureOffset;
+        v[7].color = packedColor;
+        v[7].borderColor = packedBorderColor;
+        v[8].x = 0.0f;
+        v[8].y = h - clampedRadius;
+        v[8].borderS = borderOffset * borderTextureFactor + borderTextureOffset;
+        v[8].borderT = (clampedRadius + borderOffset) * borderTextureFactor + borderTextureOffset;
+        v[8].color = packedColor;
+        v[8].borderColor = packedBorderColor;
+        v[9].x = w;
+        v[9].y = h - clampedRadius;
+        v[9].borderS = borderOffset * borderTextureFactor + borderTextureOffset;
+        v[9].borderT = (clampedRadius + borderOffset) * borderTextureFactor + borderTextureOffset;
+        v[9].color = packedColor;
+        v[9].borderColor = packedBorderColor;
+        v[10].x = clampedRadius;
+        v[10].y = h;
+        v[10].borderS = (clampedRadius + borderOffset) * borderTextureFactor + borderTextureOffset;
+        v[10].borderT = borderOffset * borderTextureFactor + borderTextureOffset;
+        v[10].color = packedColor;
+        v[10].borderColor = packedBorderColor;
+        v[11].x = midW;
+        v[11].y = h;
+        v[11].borderS = (midW + borderOffset) * borderTextureFactor + borderTextureOffset;
+        v[11].borderT = borderOffset * borderTextureFactor + borderTextureOffset;
+        v[11].color = packedColor;
+        v[11].borderColor = packedBorderColor;
+        v[12].x = w - clampedRadius;
+        v[12].y = h;
+        v[12].borderS = (clampedRadius + borderOffset) * borderTextureFactor + borderTextureOffset;
+        v[12].borderT = borderOffset * borderTextureFactor + borderTextureOffset;
+        v[12].color = packedColor;
+        v[12].borderColor = packedBorderColor;
+        markDirty(QSGNode::DirtyGeometry);
+
+        // Update data for the preprocess() call.
+        const quint16 deviceRadius = static_cast<quint16>(clampedRadius * dpr);
+        if (m_radius != deviceRadius) {
+            m_radius = deviceRadius;
+            m_flags |= DirtyRadius;
+        }
+        const quint16 deviceBorderRadius = static_cast<quint16>(clampedBorderRadius * dpr);
+        if (m_borderRadius != deviceBorderRadius) {
+            m_borderRadius = deviceBorderRadius;
+            m_flags |= DirtyBorderRadius;
+        }
+        if (m_shape != static_cast<quint8>(type)) {
+            m_shape = static_cast<quint8>(type);
+            m_flags |= DirtyShape;
+        }
         break;
     }
 
