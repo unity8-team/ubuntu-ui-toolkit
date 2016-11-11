@@ -15,6 +15,9 @@
         <file>privates/shaders/fillcentershadowborder.frag</file>
         <file>privates/shaders/fillcentershadowborder.vert</file>
         <file>privates/shaders/fillcentershadowborder_opaque.frag</file>
+        <file>privates/shaders/fillcornersborder.frag</file>
+        <file>privates/shaders/fillcornersborder.vert</file>
+        <file>privates/shaders/fillcornersborder_opaque.frag</file>
         <file>privates/shaders/fillcornersshadow.frag</file>
         <file>privates/shaders/fillcornersshadow.vert</file>
         <file>privates/shaders/fillcornersshadow_opaque.frag</file>

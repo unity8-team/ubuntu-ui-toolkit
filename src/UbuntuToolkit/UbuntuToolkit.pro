@@ -255,6 +255,9 @@ OTHER_FILES += \
     $$PWD/privates/shaders/fillcentershadowborder.frag \
     $$PWD/privates/shaders/fillcentershadowborder.vert \
     $$PWD/privates/shaders/fillcentershadowborder_opaque.frag \
+    $$PWD/privates/shaders/fillcornersborder.frag \
+    $$PWD/privates/shaders/fillcornersborder.vert \
+    $$PWD/privates/shaders/fillcornersborder_opaque.frag \
     $$PWD/privates/shaders/fillcornersshadow.frag \
     $$PWD/privates/shaders/fillcornersshadow.vert \
     $$PWD/privates/shaders/fillcornersshadow_opaque.frag \
