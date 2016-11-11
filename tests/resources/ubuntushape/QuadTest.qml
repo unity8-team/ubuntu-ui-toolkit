@@ -24,13 +24,13 @@ import Ubuntu.Components.Private 1.3
 Rectangle {  // FIXME(loicm) Replace with Item.
     id: root
 
-    readonly property color backgroundColor: "#dddddd"
     readonly property int fontSize: 15
     readonly property int spacing: 15
     readonly property real controlsWidth: 150.0
     readonly property variant shapes: [ Quad.Squircle, Quad.Circle ]
     readonly property color borderColor: Qt.rgba(0.0, 0.0, 0.0, 0.75)
     readonly property color canvasColor: Qt.rgba(1.0, 1.0, 1.0, 1.0)
+    readonly property color backgroundColor: Qt.rgba(0.87, 0.87, 0.87, 1.0)
     readonly property real defaultQuadWidth: 256.0
     readonly property real defaultQuadHeight: 256.0
 
@@ -53,7 +53,7 @@ Rectangle {  // FIXME(loicm) Replace with Item.
             Qt.rgba(0.91, 0.33, 0.1, 1),
             Qt.rgba(0, 0, 0, 1),
             Qt.rgba(0, 0, 0, 1),
-            Qt.rgba(1, 1, 1, 1)
+            Qt.rgba(0.91 * 1.75, 0.33 * 1.75, 0.1 * 1.75, 1),
         ]
         property variant liveColors: [ colors[0], colors[1], colors[2], colors[3] ]
         property int currentColorType: -1
