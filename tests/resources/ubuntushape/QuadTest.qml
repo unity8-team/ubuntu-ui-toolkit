@@ -58,12 +58,12 @@ Rectangle {  // FIXME(loicm) Replace with Item.
         property variant liveColors: [ colors[0], colors[1], colors[2], colors[3] ]
         property int currentColorType: -1
 
-        title: "Pick a color"
         showAlphaChannel: true
         modality: Qt.ApplicationModal
 
         onCurrentColorChanged: {
-            liveColors[currentColorType] = currentColor;
+            var c = currentColor;
+            liveColors[currentColorType] = Qt.rgba(c.r, c.g, c.b, c.a);
             liveColors = liveColors;  // Notify does not work on array elements.
         }
         onAccepted: {
@@ -72,7 +72,8 @@ Rectangle {  // FIXME(loicm) Replace with Item.
             colors = colors;  // Notify does not work on array elements.
         }
         onRejected: {
-            liveColors[currentColorType] = colors[currentColorType];
+            var c = colors[currentColorType];
+            liveColors[currentColorType] = Qt.rgba(c.r, c.g, c.b, c.a);
             liveColors = liveColors;  // Notify does not work on array elements.
         }
     }
@@ -238,8 +239,9 @@ Rectangle {  // FIXME(loicm) Replace with Item.
                 }
             }
             onClicked: {
-                colorDialog.color = quad.fillColor;
+                colorDialog.title = "Pick a fill color";
                 colorDialog.currentColorType = colorDialog.colorType["Fill"];
+                colorDialog.color = quad.fillColor;
                 colorDialog.open();
             }
         }
@@ -320,8 +322,9 @@ Rectangle {  // FIXME(loicm) Replace with Item.
                 }
             }
             onClicked: {
-                colorDialog.color = quad.dropShadowColor;
+                colorDialog.title = "Pick a drop shadow color";
                 colorDialog.currentColorType = colorDialog.colorType["DropShadow"];
+                colorDialog.color = quad.dropShadowColor;
                 colorDialog.open();
             }
         }
@@ -403,8 +406,9 @@ Rectangle {  // FIXME(loicm) Replace with Item.
                 }
             }
             onClicked: {
-                colorDialog.color = quad.innerShadowColor;
+                colorDialog.title = "Pick an inner shadow color";
                 colorDialog.currentColorType = colorDialog.colorType["InnerShadow"];
+                colorDialog.color = quad.innerShadowColor;
                 colorDialog.open();
             }
         }
@@ -455,8 +459,9 @@ Rectangle {  // FIXME(loicm) Replace with Item.
                 }
             }
             onClicked: {
-                colorDialog.color = quad.borderColor;
+                colorDialog.title = "Pick a border color";
                 colorDialog.currentColorType = colorDialog.colorType["Border"];
+                colorDialog.color = quad.borderColor;
                 colorDialog.open();
             }
         }
