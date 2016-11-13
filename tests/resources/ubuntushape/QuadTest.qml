@@ -206,9 +206,7 @@ Rectangle {  // FIXME(loicm) Replace with Item.
         QQC.Slider {
             id: radiusSlider
             width: controlsWidth
-            // FIXME(loicm) Fix rendering at small radii!
-            // minimumValue: 0.0; maximumValue: 256.0; stepSize: 1.0
-            minimumValue: 5.0; value: 5.0; maximumValue: 256.0; stepSize: 1.0
+            minimumValue: 0.0; maximumValue: 256.0; stepSize: 1.0
         }
         Text {
             font.pixelSize: fontSize; renderType: Text.NativeRendering; color: "black"
