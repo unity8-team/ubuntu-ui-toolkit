@@ -18,7 +18,7 @@
 
 // FIXME(loicm) The midShadow coords force a dependent texture read which is
 //     quite slow on some platforms. We should maybe add geometry to deal with
-//     the coords inversion. That will add complexity but improve perf.
+//     the coords inversion. That would add complexity but improve perf.
 
 #include "ucshapefillnodes_p.h"
 

@@ -186,9 +186,19 @@ void UCShapeTextureFactory<N>::renderShape(void* buffer, UCShapeType type, int r
 template <int N>
 quint8* UCShapeTextureFactory<N>::renderMaskTexture(UCShapeType type, int radius)
 {
-    DASSERT(radius > 0);
+    //  >────────────────< Texture size
+    //      >─<        >─< Borders (1 pixel each)
+    //  ┌────────────────┐
+    //  │ Texture offset │
+    //  │   ┌────────────┤
+    //  │   │ ┌────────┐ │
+    //  │   │ │        │ │
+    //  │   │ │ Radius │ │
+    //  │   │ │        │ │
+    //  │   │ └────────┘ │
+    //  └───┴────────────┘
 
-    // FIXME(loicm) Add a detailed explanation and layout of the mask texture.
+    DASSERT(radius >= 0);
 
     const int border = 1;  // 1 pixel border around the edges for clamping reasons.
     // FIXME(loicm) Looks creepy (and the 2nd getStride is most likely useless
@@ -202,24 +212,30 @@ quint8* UCShapeTextureFactory<N>::renderMaskTexture(UCShapeType type, int radius
         alignedAlloc(32, finalBufferSize + painterBufferSize));
     quint32* __restrict painterBufferU32 = reinterpret_cast<quint32*>(&bufferU8[finalBufferSize]);
 
-    // Render the shape with QPainter.
-    memset(painterBufferU32, 0, painterBufferSize);
-    renderShape(painterBufferU32, type, radius, radius * 4);
+    if (radius > 0) {
+        // Render the shape with QPainter.
+        memset(painterBufferU32, 0, painterBufferSize);
+        renderShape(painterBufferU32, type, radius, radius * 4);
+    }
 
-    // Initialise the top and left borders containing the 1 pixel border and
-    // texture stride of the final buffer.
     const int offset = width - radius - border;
+    // Fill top texture offset and border with 0x00.
     memset(bufferU8, 0x00, stride * offset);
     for (int i = 0; i < radius + border; i++) {
+        // Fill left texture offset with 0x00.
         memset(&bufferU8[(i + offset) * stride], 0x00, offset);
-        // Since QImage doesn't support floating-point formats, a conversion
-        // from U32 to U8 is required once rendered (we just convert one of the
-        // channel since the fill color is white).
+        // Fill texture mask. Since QImage doesn't support floating-point
+        // formats, a conversion from U32 to U8 is required (we just convert one
+        // of the channel since the fill color is white).
         for (int j = 0; j < radius; j++) {
             bufferU8[(i + offset) * stride + j + offset] = painterBufferU32[i * radius + j] & 0xff;
         }
+        // Set right border to 0xff.
         bufferU8[(i + offset) * stride + width - border] = 0xff;
     }
+    // Set left texture offset of the last row with 0x00.
+    memset(&bufferU8[(height - border) * stride], 0x00, offset);
+    // Set bottom border to 0xff.
     memset(&bufferU8[(height - border) * stride + offset], 0xff, radius + border);
 
     return bufferU8;
@@ -261,9 +277,7 @@ quint32 UCShapeTextureFactory<N>::maskTexture(int index, UCShapeType type, quint
     }
 
     // Render and upload texture data.
-    quint8* buffer = (radius > 0) ?
-        renderMaskTexture(type, radius) :
-        static_cast<quint8*>(calloc(textureSize * textureSize, 1));
+    quint8* buffer = renderMaskTexture(type, radius);
     funcs->glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, textureSize, textureSize, GL_LUMINANCE,
                            GL_UNSIGNED_BYTE, buffer);
     free(buffer);
