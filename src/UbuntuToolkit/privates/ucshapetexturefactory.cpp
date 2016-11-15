@@ -289,11 +289,19 @@ quint32 UCShapeTextureFactory<N>::maskTexture(int index, UCShapeType type, quint
 template <int N>
 quint16* UCShapeTextureFactory<N>::renderShadowTexture(UCShapeType type, int radius, int shadow)
 {
-    // FIXME(loicm) shadow > 0 was asserted before but when the shadow item is
-    //     shrinked because of its size, the given shadow can be 0. Rendering
-    //     with shadow == 0 crashes, let's clamp to 1 for now.
-    shadow = qMax(1, shadow);
-    //DASSERT(shadow >= 0);
+    //  >-<              >-<  Gutters
+    //    >-<          >-<    Shadows
+    //      >----------<      Radius
+    //  ┌─┬──────────────┬─┐
+    //  │ │ ┌──────────┐ │ │
+    //  │ │ │          │ │ │
+    //  │ │ │          │ │ │  <-- Buffer 1
+    //  │ │ │          │ │ │
+    //  │ │ │          │ │ │
+    //  │ │ └──────────┘ │ │
+    //  ├─┼──────────────┼─┤
+
+    DASSERT(shadow >= 0);
     DASSERT(radius >= 0);
 
     const int shadowPlusRadius = shadow + radius;
@@ -304,42 +312,67 @@ quint16* UCShapeTextureFactory<N>::renderShadowTexture(UCShapeType type, int rad
     quint16* __restrict dataU16 = static_cast<quint16*>(alignedAlloc(32, bufferSize));
     float* __restrict dataF32 = reinterpret_cast<float*>(dataU16);
 
-    // FIXME(loicm) Try filling unset bytes instead.
-    memset(dataU16, 0, bufferSize);
-
 #if PERF_DEBUG
     QElapsedTimer timer;
-    printf("texture rendering:\n  shape... ");
+    printf("texture rendering:\n  fill... ");
     timer.start();
 #endif
 
-    if (radius > 0) {
-        // Render the shape as ARGB32 and convert to float in the range [0, 1].
-        renderShape(&dataF32[textureWidthPlusGutters * shadow + gutter + shadow], type, radius,
-                    textureWidthPlusGutters * 4);
-        for (int i = shadow; i < shadowPlusRadius; i++) {
-            for (int j = shadow; j < shadowPlusRadius; j++) {
-                const int index = i * textureWidthPlusGutters + gutter + j;
-                dataF32[index] = (((quint32*)dataF32)[index] & 0xff) / 255.0f;
-            }
+    // Initialise 1st buffer.
+    //  ┌──────────────────┐
+    //  │ 0 0 0 0 0 0  ┌───┤
+    //  │ 0 0 0 0 0 0  │ 1 │
+    //  │ 0 0 0 0 0 0  │ 1 │
+    //  │ 0 0 0 0 0 0  │ 1 │
+    //  │ 0 0 0 0 0 0  │ 1 │
+    //  │ 0 ┌──────────┘ 1 │
+    //  └───┴──────────────┘
+    for (int i = 0; i < shadow; i++) {
+        for (int j = 0; j < textureWidthPlusGutters; j++) {
+            dataF32[i * textureWidthPlusGutters + j] = 0.0f;
+        }
+    }
+    for (int i = shadow; i < shadowPlusRadius; i++) {
+        for (int j = 0; j < gutter + shadowPlusRadius; j++) {
+            dataF32[i * textureWidthPlusGutters + j] = 0.0f;
+        }
+        for (int j = gutter + shadowPlusRadius; j < textureWidthPlusGutters; j++) {
+            dataF32[i * textureWidthPlusGutters + j] = 1.0f;
+        }
+    }
+    for (int i = shadowPlusRadius; i < textureWidth; i++) {
+        for (int j = 0; j < gutter + shadow; j++) {
+            dataF32[i * textureWidthPlusGutters + j] = 0.0f;
+        }
+        for (int j = gutter + shadow; j < textureWidthPlusGutters; j++) {
+            dataF32[i * textureWidthPlusGutters + j] = 1.0f;
         }
     }
 
 #if PERF_DEBUG
     printf("%6.2f ms\n", timer.nsecsElapsed() * 0.000001f);
-    printf("  quads... ");
+    printf("  shape... ");
     timer.start();
 #endif
 
-    // Fill bottom-right side of the corner.
-    for (int i = shadow; i < shadowPlusRadius; i++) {
-        for (int j = shadowPlusRadius; j < textureWidth + gutter; j++) {
-            dataF32[i * textureWidthPlusGutters + gutter + j] = 1.0f;
-        }
-    }
-    for (int i = shadowPlusRadius; i < textureWidth; i++) {
-        for (int j = shadow; j < textureWidth + gutter; j++) {
-            dataF32[i * textureWidthPlusGutters + gutter + j] = 1.0f;
+    // Render the shape as ARGB32 and convert to float.
+    //  ┌──────────────────┐
+    //  │   ┌──────────┐   │
+    //  │   │       111│   │
+    //  │   │   1111111│   │
+    //  │   │ 111111111│   │
+    //  │   │1111111111│   │
+    //  │   └──────────┘   │
+    //  └──────────────────┘
+    if (radius > 0) {
+        quint32* __restrict dataU32 = (quint32*) dataF32;
+        renderShape(&dataU32[textureWidthPlusGutters * shadow + gutter + shadow], type, radius,
+                    textureWidthPlusGutters * 4);
+        for (int i = shadow; i < shadowPlusRadius; i++) {
+            for (int j = gutter + shadow; j < gutter + shadowPlusRadius; j++) {
+                const int index = i * textureWidthPlusGutters + j;
+                dataF32[index] = (dataU32[index] & 0xff) / 255.0f;
+            }
         }
     }
 
@@ -350,7 +383,7 @@ quint16* UCShapeTextureFactory<N>::renderShadowTexture(UCShapeType type, int rad
 #endif
 
     // Gaussian blur horizontal pass.
-    const int gaussianIndex = shadow - 1;
+    const int gaussianIndex = qMax(0, shadow - 1);
     const float sumFactor = 1.0f / gaussianSums[gaussianIndex];
     const float* __restrict gaussianKernel = &gaussianKernels[gaussianOffsets[gaussianIndex]];
     float* __restrict tempF32 = &dataF32[textureWidthPlusGutters * textureWidth];
@@ -373,10 +406,16 @@ quint16* UCShapeTextureFactory<N>::renderShadowTexture(UCShapeType type, int rad
     timer.start();
 #endif
 
-    // Fill the bottom gutter of the temporary buffer by repeating last row.
+    // Fill the gutters of the second buffer.
     for (int i = 0; i < textureWidth; i++) {
-        const float edge = tempF32[textureWidthPlusGutters * i + gutter + textureWidth - 1];
-        float* __restrict dst = &tempF32[textureWidthPlusGutters * i + gutter + textureWidth];
+        int index = textureWidthPlusGutters * i;
+        float* __restrict dst = &tempF32[index];
+        for (int j = 0; j < gutter; j++) {
+            dst[j] = 0.0f;
+        }
+        index += gutter + textureWidth;
+        dst = &tempF32[index];
+        const float edge = tempF32[index - 1];
         for (int j = 0; j < gutter; j++) {
             dst[j] = edge;
         }

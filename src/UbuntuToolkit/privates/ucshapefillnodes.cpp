@@ -139,8 +139,8 @@ void UCShapeFillCenterNode::update(
     const int noBorderVertexCount = 8;
     const int borderVertexCount = 13;
 
-    quint16 style =
-        ((shadowSize <= 0.0f) || (qAlpha(shadowColor) == 0)) ? HasColor : (HasColor | HasShadow);
+    quint16 style = ((shadowSize <= 0.0f && shadowDistance <= 0.0f) || (qAlpha(shadowColor) == 0)) ?
+        HasColor : (HasColor | HasShadow);
     if (borderSize >= 1.0f) {
         style |= HasBorder;
     }
