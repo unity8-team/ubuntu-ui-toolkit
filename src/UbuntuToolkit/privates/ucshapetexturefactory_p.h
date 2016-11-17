@@ -111,7 +111,7 @@ private:
     static int shadowTextureSize(quint16 radius, quint16 shadow) {
         DASSERT((radius & 0xf000) == 0);
         DASSERT((shadow & 0xf000) == 0);
-        return getStride(2 * shadow + radius, 1, textureStride);
+        return getStride(2 * shadow + radius + 2, 1, textureStride);
     }
     static Q_CONSTEXPR int shadowTextureSizeFromKey(quint32 key) {
         return shadowTextureSize((key >> 12) & 0xfff, key & 0xfff);

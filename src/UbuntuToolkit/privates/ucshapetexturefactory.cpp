@@ -26,13 +26,14 @@
 #include <QtGui/QPainter>
 #include <QtSvg/QSvgRenderer>
 
-// FIXME(loicm) Add a define to log ref counting info.
-
-// Log shape rendering and gaussian blur performance timings.
-#define PERF_DEBUG 0
-#if PERF_DEBUG
+#define SHADOW_TEXTURE_DUMP_CHANNEL0 0
+#define SHADOW_TEXTURE_DUMP_CHANNEL1 0
+#define SHADOW_TEXTURE_DUMP_PERF     0
+#if SHADOW_TEXTURE_DUMP_PERF
 #include <QtCore/QElapsedTimer>
 #endif
+
+// FIXME(loicm) Add a define to log ref counting info.
 
 // We use explicit template instantiation for UCShapeTextureFactory so that we
 // can separate the implementation from the header. The drawback is that we have
@@ -292,136 +293,159 @@ quint16* UCShapeTextureFactory<N>::renderShadowTexture(UCShapeType type, int rad
     //  >-<              >-<  Gutters
     //    >-<          >-<    Shadows
     //      >----------<      Radius
-    //  ┌─┬──────────────┬─┐
-    //  │ │ ┌──────────┐ │ │
-    //  │ │ │          │ │ │
-    //  │ │ │          │ │ │  <-- Buffer 1
-    //  │ │ │          │ │ │
-    //  │ │ │          │ │ │
-    //  │ │ └──────────┘ │ │
-    //  ├─┼──────────────┼─┤
+    //  ┌─┬─────────────┬─┐
+    //  │ │ ┌─────────┐ │ │
+    //  │ │ │         │ │ │
+    //  │ │ │         │ │ │  <-- Buffer 1
+    //  │ │ │         │ │ │
+    //  │ │ │         │ │ │
+    //  │ │ └─────────┘ │ │
+    //  ├─┼─────────────┼─┤
 
     DASSERT(shadow >= 0);
     DASSERT(radius >= 0);
 
-    const int shadowPlusRadius = shadow + radius;
-    const int textureWidth = shadowPlusRadius + shadow;
+    // Get sizes, allocate data and get pointers to the buffers.
     const int gutter = shadow;
-    const int textureWidthPlusGutters = 2 * gutter + textureWidth;
-    const int bufferSize = 2 * textureWidth * textureWidthPlusGutters * sizeof(float);
-    quint16* __restrict dataU16 = static_cast<quint16*>(alignedAlloc(32, bufferSize));
-    float* __restrict dataF32 = reinterpret_cast<float*>(dataU16);
+    const int border = 1;
+    const int width = shadow + radius + shadow;
+    const int widthGutters = gutter + width + gutter;
+    const int widthBorders = border + width + border;
+    const int textureWidth = getStride(widthBorders, 1, textureStride);
+    const int textureSize = textureWidth * textureWidth * sizeof(quint16);
+    const int bufferSize = width * widthGutters * sizeof(float);
+    quint8* __restrict data = static_cast<quint8*>(alignedAlloc(32, textureSize + 2 * bufferSize));
+    quint16* __restrict texture = reinterpret_cast<quint16*>(data);
+    float* __restrict buffer1 = reinterpret_cast<float*>(&data[textureSize]);
+    float* __restrict buffer2 = reinterpret_cast<float*>(&data[textureSize + bufferSize]);
 
-#if PERF_DEBUG
+#if SHADOW_TEXTURE_DUMP_PERF
     QElapsedTimer timer;
     printf("texture rendering:\n  fill... ");
     timer.start();
 #endif
 
-    // Initialise 1st buffer.
-    //  ┌──────────────────┐
-    //  │ 0 0 0 0 0 0  ┌───┤
-    //  │ 0 0 0 0 0 0  │ 1 │
-    //  │ 0 0 0 0 0 0  │ 1 │
-    //  │ 0 0 0 0 0 0  │ 1 │
-    //  │ 0 0 0 0 0 0  │ 1 │
-    //  │ 0 ┌──────────┘ 1 │
-    //  └───┴──────────────┘
+    // Initialise buffer1.
+    // ┌─────────────────┐
+    // │ 0 0 0 0 0 0 ┌───┤
+    // │ 0 0 0 0 0 0 │ 1 │
+    // │ 0 0 0 0 0 0 │ 1 │
+    // │ 0 0 0 0 0 0 │ 1 │
+    // │ 0 0 0 0 0 0 │ 1 │
+    // │ 0 ┌─────────┘ 1 │
+    // └───┴─────────────┘
     for (int i = 0; i < shadow; i++) {
-        for (int j = 0; j < textureWidthPlusGutters; j++) {
-            dataF32[i * textureWidthPlusGutters + j] = 0.0f;
+        for (int j = 0; j < widthGutters; j++) {
+            buffer1[i * widthGutters + j] = 0.0f;
         }
     }
-    for (int i = shadow; i < shadowPlusRadius; i++) {
-        for (int j = 0; j < gutter + shadowPlusRadius; j++) {
-            dataF32[i * textureWidthPlusGutters + j] = 0.0f;
+    for (int i = shadow; i < shadow + radius; i++) {
+        for (int j = 0; j < gutter + shadow + radius; j++) {
+            buffer1[i * widthGutters + j] = 0.0f;
         }
-        for (int j = gutter + shadowPlusRadius; j < textureWidthPlusGutters; j++) {
-            dataF32[i * textureWidthPlusGutters + j] = 1.0f;
+        for (int j = gutter + shadow + radius; j < widthGutters; j++) {
+            buffer1[i * widthGutters + j] = 1.0f;
         }
     }
-    for (int i = shadowPlusRadius; i < textureWidth; i++) {
+    for (int i = shadow + radius; i < width; i++) {
         for (int j = 0; j < gutter + shadow; j++) {
-            dataF32[i * textureWidthPlusGutters + j] = 0.0f;
+            buffer1[i * widthGutters + j] = 0.0f;
         }
-        for (int j = gutter + shadow; j < textureWidthPlusGutters; j++) {
-            dataF32[i * textureWidthPlusGutters + j] = 1.0f;
+        for (int j = gutter + shadow; j < widthGutters; j++) {
+            buffer1[i * widthGutters + j] = 1.0f;
         }
     }
 
-#if PERF_DEBUG
+#if SHADOW_TEXTURE_DUMP_PERF
     printf("%6.2f ms\n", timer.nsecsElapsed() * 0.000001f);
     printf("  shape... ");
     timer.start();
 #endif
 
-    // Render the shape as ARGB32 and convert to float.
-    //  ┌──────────────────┐
-    //  │   ┌──────────┐   │
-    //  │   │       111│   │
-    //  │   │   1111111│   │
-    //  │   │ 111111111│   │
-    //  │   │1111111111│   │
-    //  │   └──────────┘   │
-    //  └──────────────────┘
+    // ┌─────────────────┐
+    // │   ┌─────────┐   │
+    // │   │ 0 0 0 1 │   │
+    // │   │ 0 1 1 1 │   │
+    // │   │ 0 1 1 1 │   │
+    // │   │ 1 1 1 1 │   │
+    // │   └─────────┘   │
+    // └─────────────────┘
+    // Render the shape in buffer1. We first render with QPainter as ARGB32,
+    // then we convert to float.
     if (radius > 0) {
-        quint32* __restrict dataU32 = (quint32*) dataF32;
-        renderShape(&dataU32[textureWidthPlusGutters * shadow + gutter + shadow], type, radius,
-                    textureWidthPlusGutters * 4);
-        for (int i = shadow; i < shadowPlusRadius; i++) {
-            for (int j = gutter + shadow; j < gutter + shadowPlusRadius; j++) {
-                const int index = i * textureWidthPlusGutters + j;
-                dataF32[index] = (dataU32[index] & 0xff) / 255.0f;
+        quint32* __restrict u32 = reinterpret_cast<quint32*>(buffer1);
+        renderShape(&u32[widthGutters * shadow + gutter + shadow], type, radius, widthGutters * 4);
+        for (int i = shadow; i < shadow + radius; i++) {
+            for (int j = gutter + shadow; j < gutter + shadow + radius; j++) {
+                const int index = i * widthGutters + j;
+                buffer1[index] = (u32[index] & 0xff) / 255.0f;
             }
         }
     }
 
-#if PERF_DEBUG
+#if SHADOW_TEXTURE_DUMP_PERF
     printf("%6.2f ms\n", timer.nsecsElapsed() * 0.000001f);
     printf("  hblur... ");
     timer.start();
 #endif
 
-    // Gaussian blur horizontal pass.
-    const int gaussianIndex = qMax(0, shadow - 1);
+    // ┌─┬─────────────┬─┐             ┌─┬─────────────┬─┐
+    // │ │ x x x x x x │ │             │ │ x x x x x x │ │
+    // │ │ x x A B C D │E│  buffer1    │ │ x x x x x x │ │
+    // │ │ x x x x x x │ │             │ │ x x x x x x │ │
+    // │ │ x x x x x x │ │    buffer2  │ │ x x x x x x │ │
+    // │ │ x x x x x x │ │             │ │ x F x x x x │ │
+    // │ │ x x x x x x │ │             │ │ x x x x x x │ │  F = gaussian(A,B,C,D,E)
+    // └─┴─────────────┴─┘             └─┴─────────────┴─┘
+    // Gaussian blur horizontal pass on buffer1 with transposed writes to
+    // buffer2. The transposition allows to compute the vertical pass with
+    // values on the same cache line.
+    const int gaussianIndex = qMax(0, shadow - 1);  // FIXME(loicm)
     const float sumFactor = 1.0f / gaussianSums[gaussianIndex];
     const float* __restrict gaussianKernel = &gaussianKernels[gaussianOffsets[gaussianIndex]];
-    float* __restrict tempF32 = &dataF32[textureWidthPlusGutters * textureWidth];
-    for (int i = 0; i < textureWidth; i++) {
-        const int index = textureWidthPlusGutters * i + gutter;
+    for (int i = 0; i < width; i++) {
+        const int index = widthGutters * i + gutter;
         const int offset = gutter + i;
-        for (int j = 0; j < textureWidth; j++) {
+        for (int j = 0; j < width; j++) {
             float sum = 0.0f;
-            const float* __restrict src = &dataF32[index + j];
+            const float* __restrict source = &buffer1[index + j];
             for (int k = -shadow; k <= shadow; k++) {
-                sum += src[k] * gaussianKernel[k];
+                sum += source[k] * gaussianKernel[k];
             }
-            tempF32[textureWidthPlusGutters * j + offset] = sum * sumFactor;
+            buffer2[widthGutters * j + offset] = sum * sumFactor;
         }
     }
 
-#if PERF_DEBUG
+#if SHADOW_TEXTURE_DUMP_PERF
     printf("%6.2f ms\n", timer.nsecsElapsed() * 0.000001f);
     printf("  gutters. ");
     timer.start();
 #endif
 
-    // Fill the gutters of the second buffer.
-    for (int i = 0; i < textureWidth; i++) {
-        int index = textureWidthPlusGutters * i;
-        float* __restrict dst = &tempF32[index];
+    // ┌─┬─────────────┬─┐
+    // │0│ x x x x x A │A│
+    // │0│ x x x x x B │B│
+    // │0│ x x x x x C │C│
+    // │0│ x x x x x D │D│
+    // │0│ x x x x x E │E│
+    // │0│ x x x x x F │F│
+    // └─┴─────────────┴─┘
+    // Fill gutters of buffer2.
+    for (int i = 0; i < width; i++) {
+        int index = widthGutters * i;
+        float* __restrict line = &buffer2[index];
         for (int j = 0; j < gutter; j++) {
-            dst[j] = 0.0f;
+            line[j] = 0.0f;
         }
-        index += gutter + textureWidth;
-        dst = &tempF32[index];
-        const float edge = tempF32[index - 1];
+        index += gutter + width;
+        line = &buffer2[index];
+        const float edge = buffer2[index - 1];
         for (int j = 0; j < gutter; j++) {
-            dst[j] = edge;
+            line[j] = edge;
         }
     }
 
-#if PERF_DEBUG
+#if SHADOW_TEXTURE_DUMP_PERF
     printf("%6.2f ms\n", timer.nsecsElapsed() * 0.000001f);
     printf("  vblur... ");
     timer.start();
@@ -431,29 +455,61 @@ quint16* UCShapeTextureFactory<N>::renderShadowTexture(UCShapeType type, int rad
     // already rendered), floating-point quantization to 8 bits and
     // store. Ensures the returned 16-bit buffer has a 4 bytes stride alignment
     // to fit the default OpenGL unpack alignment.
-    const int stride = getStride(textureWidth, sizeof(quint16), 4);
-    for (int i = 0; i < textureWidth; i++) {
-        const int index = textureWidthPlusGutters * i + gutter;
-        quint16* __restrict dst = &dataU16[stride * i];
-        for (int j = 0; j < textureWidth; j++) {
+    const int textureStride = getStride(textureWidth, sizeof(quint16), 4);
+    const int textureOffset = textureWidth - widthBorders;
+    const int textureOffsetBorder = textureOffset + border;
+    memset(texture, 0, textureOffsetBorder * textureStride * sizeof(quint16));
+    for (int i = 0; i < width; i++) {
+        const int textureIndex = (textureOffsetBorder + i) * textureStride;
+        memset(&texture[textureIndex], 0, textureOffsetBorder * sizeof(quint16));
+        quint16* __restrict line = &texture[textureIndex + textureOffsetBorder];
+        const int bufferIndex = widthGutters * i + gutter;
+        for (int j = 0; j < width; j++) {
+            float* __restrict source = &buffer2[bufferIndex + j];
             float sum = 0.0f;
-            float* __restrict src = &tempF32[index + j];
             for (int k = -shadow; k <= shadow; k++) {
-                sum += src[k] * gaussianKernel[k];
+                sum += source[k] * gaussianKernel[k];
             }
             const float shadow = sum * sumFactor;
-            const float shape = dataF32[index + j];
-            const quint16 shadowU16 = (quint16) (shadow * 255.0f + 0.5f);
-            const quint16 shapeU16 = (quint16) (shape * 255.0f + 0.5f);
-            dst[j] = shapeU16 << 8 | shadowU16;
+            const float shape = buffer1[bufferIndex + j];
+            const quint16 shadowU16 = static_cast<quint16>(shadow * 255.0f + 0.5f);
+            const quint16 shapeU16 = static_cast<quint16>(shape * 255.0f + 0.5f);
+            line[j] = shapeU16 << 8 | shadowU16;
         }
+        line[width] = line[width - 1];
     }
+    const int lastLineIndex = (textureWidth - border) * textureStride;
+    const int penultimateLineIndex = (textureWidth - 2 * border) * textureStride;
+    memset(&texture[lastLineIndex], 0, textureOffsetBorder * sizeof(quint16));
+    memcpy(&texture[lastLineIndex + textureOffsetBorder],
+           &texture[penultimateLineIndex + textureOffsetBorder], width * sizeof(quint16));
+    texture[lastLineIndex + textureOffsetBorder + width] = 0xffff;
 
-#if PERF_DEBUG
+#if SHADOW_TEXTURE_DUMP_PERF
     printf("%6.2f ms\n", timer.nsecsElapsed() * 0.000001f);
 #endif
 
-    return dataU16;
+    // Texture dump routines.
+#if SHADOW_TEXTURE_DUMP_CHANNEL0
+    for (int i = 0; i < textureStride; i++) {
+        for (int j = 0; j < textureWidth; j++) {
+            fprintf(stdout, "%02x", texture[i * textureStride + j] & 0xff);
+        }
+        fprintf(stdout, "\n");
+    }
+    fprintf(stdout, "\n");
+#endif
+#if SHADOW_TEXTURE_DUMP_CHANNEL1
+    for (int i = 0; i < textureStride; i++) {
+        for (int j = 0; j < textureWidth; j++) {
+            fprintf(stdout, "%02x", (texture[i * textureStride + j] >> 8) & 0xff);
+        }
+        fprintf(stdout, "\n");
+    }
+    fprintf(stdout, "\n");
+#endif
+
+    return texture;
 }
 
 template <int N>
@@ -476,7 +532,7 @@ quint32 UCShapeTextureFactory<N>::shadowTexture(
     // Bind the texture, initialise states and allocate space. The texture size
     // is a multiple of textureStride to allow GPUs to speed up uploads and
     // optimise storage.
-    const int textureSize = shadowTextureSize(radius, shadow);
+    const int textureWidth = shadowTextureSize(radius, shadow);
     QOpenGLFunctions* funcs = m_context->functions();
     funcs->glBindTexture(GL_TEXTURE_2D, textureId);
     if (isNewTexture) {
@@ -484,26 +540,18 @@ quint32 UCShapeTextureFactory<N>::shadowTexture(
         funcs->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         funcs->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         funcs->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        funcs->glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE_ALPHA, textureSize, textureSize, 0,
+        funcs->glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE_ALPHA, textureWidth, textureWidth, 0,
                             GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, NULL);
-    } else if (shadowTextureSizeFromKey(currentKey) != textureSize) {
-        funcs->glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE_ALPHA, textureSize, textureSize, 0,
+    } else if (shadowTextureSizeFromKey(currentKey) != textureWidth) {
+        funcs->glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE_ALPHA, textureWidth, textureWidth, 0,
                             GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, NULL);
     }
 
-    // FIXME(loicm) Should be filled at texture creation with the same size.
-    quint16* buffer = (quint16*) calloc(textureSize * textureSize, 2);
-    funcs->glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, textureSize, textureSize, GL_LUMINANCE_ALPHA,
-                           GL_UNSIGNED_BYTE, buffer);
-    free(buffer);
-
     // Render and upload texture data.
-    const int size = 2 * shadow + radius;
-    const int offset = textureSize - size;
-    buffer = renderShadowTexture(type, radius, shadow);
-    funcs->glTexSubImage2D(GL_TEXTURE_2D, 0, offset, offset, size, size, GL_LUMINANCE_ALPHA,
-                           GL_UNSIGNED_BYTE, buffer);
-    free(buffer);
+    quint16* texture = renderShadowTexture(type, radius, shadow);
+    funcs->glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, textureWidth, textureWidth, GL_LUMINANCE_ALPHA,
+                           GL_UNSIGNED_BYTE, texture);
+    free(texture);
 
     return textureId;
 }
