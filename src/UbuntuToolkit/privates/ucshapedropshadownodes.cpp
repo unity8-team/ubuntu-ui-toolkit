@@ -102,7 +102,7 @@ void UCShapeDropShadowNode::update(
     const float clampedShadow = qMin(floorf(shadowSize), maxSize);
     const float border = 1.0f;
     const float textureSize = (2.0f * clampedShadow + 2.0f * border + clampedRadius) * dpr;
-    const float textureSizeRounded = getStride(static_cast<int>(textureSize), 1, textureStride);
+    const float textureSizeRounded = getStride(static_cast<int>(textureSize), 1, textureRounding);
     const float textureOffset = (textureSizeRounded - textureSize) / textureSizeRounded;
     const float textureFactor = ((1.0f - textureOffset) * dpr) / textureSize;
     const float midW = w * 0.5f;

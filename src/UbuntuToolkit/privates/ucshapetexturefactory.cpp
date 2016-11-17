@@ -16,6 +16,13 @@
  * Author: Loïc Molinari <loic.molinari@canonical.com>
  */
 
+// FIXME(loicm) Add a define to log ref counting info.
+
+// FIXME(loicm) The getStride() calls in texture creation functions look creepy
+//     (and the 2nd getStride is useless since textureRounding is 32).
+
+// FIXME(loicm) Ensure buffers in texture creation functions are aligned.
+
 #include "ucshapetexturefactory_p.h"
 
 #include <QtCore/QHash>
@@ -26,14 +33,12 @@
 #include <QtGui/QPainter>
 #include <QtSvg/QSvgRenderer>
 
-#define SHADOW_TEXTURE_DUMP_CHANNEL0 0
-#define SHADOW_TEXTURE_DUMP_CHANNEL1 0
+#define SHADOW_TEXTURE_DUMP_CHANNEL0 0  // Stores the shadow.
+#define SHADOW_TEXTURE_DUMP_CHANNEL1 0  // Stores the mask.
 #define SHADOW_TEXTURE_DUMP_PERF     0
 #if SHADOW_TEXTURE_DUMP_PERF
 #include <QtCore/QElapsedTimer>
 #endif
-
-// FIXME(loicm) Add a define to log ref counting info.
 
 // We use explicit template instantiation for UCShapeTextureFactory so that we
 // can separate the implementation from the header. The drawback is that we have
@@ -187,59 +192,62 @@ void UCShapeTextureFactory<N>::renderShape(void* buffer, UCShapeType type, int r
 template <int N>
 quint8* UCShapeTextureFactory<N>::renderMaskTexture(UCShapeType type, int radius)
 {
-    //  >────────────────< Texture size
-    //      >─<        >─< Borders (1 pixel each)
+    DASSERT(radius >= 0);
+
+    // Texture layout.
+    //
+    //      >─<        >─< Borders (the geometry nodes use border clamping)
+    //        >────────<   Radius
+    //      >────────────< Width
     //  ┌────────────────┐
-    //  │ Texture offset │
+    //  │                │
     //  │   ┌────────────┤
     //  │   │ ┌────────┐ │
     //  │   │ │        │ │
-    //  │   │ │ Radius │ │
+    //  │   │ │        │ │
     //  │   │ │        │ │
     //  │   │ └────────┘ │
     //  └───┴────────────┘
+    //  >───<              Texture offset
+    //  >────────────────< Texture width
 
-    DASSERT(radius >= 0);
+    // Get sizes, allocate memory and get pointers to the buffers.
+    const int border = 1;
+    const int width = border + radius + border;
+    const int textureWidth = getStride(width, 1, textureRounding);
+    const int textureStride = getStride(textureWidth, sizeof(quint8), 4);
+    const int textureOffset = textureWidth - width;
+    const int textureOffsetBorder = textureOffset + border;
+    const int textureSize = textureStride * textureWidth * sizeof(quint8);
+    const int bufferSize = radius * radius * sizeof(quint32);
+    quint8* __restrict texture = static_cast<quint8*>(alignedAlloc(32, textureSize + bufferSize));
+    quint32* __restrict buffer = reinterpret_cast<quint32*>(&texture[textureSize]);
 
-    const int border = 1;  // 1 pixel border around the edges for clamping reasons.
-    // FIXME(loicm) Looks creepy (and the 2nd getStride is most likely useless
-    //     since textureStride is 32).
-    const int width = getStride(radius + 2 * border, 1, textureStride);
-    const int stride = getStride(width, 1, 4);  // OpenGL unpack pixel storage is 4 by default.
-    const int height = width;
-    const int finalBufferSize = stride * height * sizeof(quint8);
-    const int painterBufferSize = radius * radius * sizeof(quint32);
-    quint8* __restrict bufferU8 = reinterpret_cast<quint8*>(
-        alignedAlloc(32, finalBufferSize + painterBufferSize));
-    quint32* __restrict painterBufferU32 = reinterpret_cast<quint32*>(&bufferU8[finalBufferSize]);
-
+    // Render the shape with QPainter.
     if (radius > 0) {
-        // Render the shape with QPainter.
-        memset(painterBufferU32, 0, painterBufferSize);
-        renderShape(painterBufferU32, type, radius, radius * 4);
+        memset(buffer, 0, bufferSize);
+        renderShape(buffer, type, radius, radius * sizeof(quint32));
     }
 
-    const int offset = width - radius - border;
-    // Fill top texture offset and border with 0x00.
-    memset(bufferU8, 0x00, stride * offset);
+    // Fill texture. Since QImage doesn't support floating-point formats, a
+    // conversion of the QPainter buffer from U32 to U8 is required (we just
+    // convert one of the channel since the fill color is white).
+    memset(texture, 0, textureOffsetBorder * textureStride * sizeof(quint8));
     for (int i = 0; i < radius + border; i++) {
-        // Fill left texture offset with 0x00.
-        memset(&bufferU8[(i + offset) * stride], 0x00, offset);
-        // Fill texture mask. Since QImage doesn't support floating-point
-        // formats, a conversion from U32 to U8 is required (we just convert one
-        // of the channel since the fill color is white).
+        const int lineIndex = (textureOffsetBorder + i) * textureStride;
+        quint8* __restrict line = &texture[lineIndex];
+        memset(line, 0, textureOffsetBorder * sizeof(quint8));
+        line = &texture[lineIndex + textureOffsetBorder];
         for (int j = 0; j < radius; j++) {
-            bufferU8[(i + offset) * stride + j + offset] = painterBufferU32[i * radius + j] & 0xff;
+            line[j] = buffer[i * radius + j] & 0xff;
         }
-        // Set right border to 0xff.
-        bufferU8[(i + offset) * stride + width - border] = 0xff;
+        line[radius] = 0xff;
     }
-    // Set left texture offset of the last row with 0x00.
-    memset(&bufferU8[(height - border) * stride], 0x00, offset);
-    // Set bottom border to 0xff.
-    memset(&bufferU8[(height - border) * stride + offset], 0xff, radius + border);
+    const int lastLineIndex = (textureWidth - border) * textureStride;
+    memset(&texture[lastLineIndex], 0, textureOffsetBorder * sizeof(quint8));
+    memset(&texture[lastLineIndex + textureOffsetBorder], 0xff, (radius + border) * sizeof(quint8));
 
-    return bufferU8;
+    return texture;
 }
 
 // FIXME(loicm) We should maybe use a texture atlas storing all the radii to
@@ -259,10 +267,8 @@ quint32 UCShapeTextureFactory<N>::maskTexture(int index, UCShapeType type, quint
         return textureId;
     }
 
-    // Bind the texture, initialise states and allocate space. The texture size
-    // is a multiple of textureStride to allow GPUs to speed up uploads and
-    // optimise storage.
-    const int textureSize = maskTextureSize(radius);
+    // Bind the texture, initialise states and allocate space.
+    const int textureWidth = maskTextureSize(radius);
     QOpenGLFunctions* funcs = m_context->functions();
     funcs->glBindTexture(GL_TEXTURE_2D, textureId);
     if (isNewTexture) {
@@ -270,18 +276,18 @@ quint32 UCShapeTextureFactory<N>::maskTexture(int index, UCShapeType type, quint
         funcs->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         funcs->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         funcs->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        funcs->glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, textureSize, textureSize, 0,
+        funcs->glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, textureWidth, textureWidth, 0,
                             GL_LUMINANCE, GL_UNSIGNED_BYTE, NULL);
-    } else if (maskTextureSizeFromKey(currentKey) != textureSize) {
-        funcs->glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, textureSize, textureSize, 0,
+    } else if (maskTextureSizeFromKey(currentKey) != textureWidth) {
+        funcs->glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, textureWidth, textureWidth, 0,
                             GL_LUMINANCE, GL_UNSIGNED_BYTE, NULL);
     }
 
     // Render and upload texture data.
-    quint8* buffer = renderMaskTexture(type, radius);
-    funcs->glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, textureSize, textureSize, GL_LUMINANCE,
-                           GL_UNSIGNED_BYTE, buffer);
-    free(buffer);
+    quint8* texture = renderMaskTexture(type, radius);
+    funcs->glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, textureWidth, textureWidth, GL_LUMINANCE,
+                           GL_UNSIGNED_BYTE, texture);
+    free(texture);
 
     return textureId;
 }
@@ -290,6 +296,10 @@ quint32 UCShapeTextureFactory<N>::maskTexture(int index, UCShapeType type, quint
 template <int N>
 quint16* UCShapeTextureFactory<N>::renderShadowTexture(UCShapeType type, int radius, int shadow)
 {
+    DASSERT(radius >= 0);
+    DASSERT(shadow > 0);
+
+    // FIXME(loicm) Finish texture layout description.
     //  >-<              >-<  Gutters
     //    >-<          >-<    Shadows
     //      >----------<      Radius
@@ -302,16 +312,13 @@ quint16* UCShapeTextureFactory<N>::renderShadowTexture(UCShapeType type, int rad
     //  │ │ └─────────┘ │ │
     //  ├─┼─────────────┼─┤
 
-    DASSERT(shadow >= 0);
-    DASSERT(radius >= 0);
-
-    // Get sizes, allocate data and get pointers to the buffers.
+    // Get sizes, allocate memory and get pointers to the buffers.
     const int gutter = shadow;
     const int border = 1;
     const int width = shadow + radius + shadow;
     const int widthGutters = gutter + width + gutter;
     const int widthBorders = border + width + border;
-    const int textureWidth = getStride(widthBorders, 1, textureStride);
+    const int textureWidth = getStride(widthBorders, 1, textureRounding);
     const int textureSize = textureWidth * textureWidth * sizeof(quint16);
     const int bufferSize = width * widthGutters * sizeof(float);
     quint8* __restrict data = static_cast<quint8*>(alignedAlloc(32, textureSize + 2 * bufferSize));
@@ -400,7 +407,7 @@ quint16* UCShapeTextureFactory<N>::renderShadowTexture(UCShapeType type, int rad
     // Gaussian blur horizontal pass on buffer1 with transposed writes to
     // buffer2. The transposition allows to compute the vertical pass with
     // values on the same cache line.
-    const int gaussianIndex = qMax(0, shadow - 1);  // FIXME(loicm)
+    const int gaussianIndex = shadow - 1;
     const float sumFactor = 1.0f / gaussianSums[gaussianIndex];
     const float* __restrict gaussianKernel = &gaussianKernels[gaussianOffsets[gaussianIndex]];
     for (int i = 0; i < width; i++) {
@@ -451,10 +458,10 @@ quint16* UCShapeTextureFactory<N>::renderShadowTexture(UCShapeType type, int rad
     timer.start();
 #endif
 
+    // FIXME(loicm) Add schema.
     // Gaussian blur vertical pass, shape masking (simply reuse the shape
     // already rendered), floating-point quantization to 8 bits and
-    // store. Ensures the returned 16-bit buffer has a 4 bytes stride alignment
-    // to fit the default OpenGL unpack alignment.
+    // store.
     const int textureStride = getStride(textureWidth, sizeof(quint16), 4);
     const int textureOffset = textureWidth - widthBorders;
     const int textureOffsetBorder = textureOffset + border;
@@ -470,11 +477,11 @@ quint16* UCShapeTextureFactory<N>::renderShadowTexture(UCShapeType type, int rad
             for (int k = -shadow; k <= shadow; k++) {
                 sum += source[k] * gaussianKernel[k];
             }
-            const float shadow = sum * sumFactor;
-            const float shape = buffer1[bufferIndex + j];
-            const quint16 shadowU16 = static_cast<quint16>(shadow * 255.0f + 0.5f);
-            const quint16 shapeU16 = static_cast<quint16>(shape * 255.0f + 0.5f);
-            line[j] = shapeU16 << 8 | shadowU16;
+            const float shadowF32 = sum * sumFactor;
+            const float shapeF32 = buffer1[bufferIndex + j];
+            const quint16 shadowU16 = static_cast<quint16>(shadowF32 * 255.0f + 0.5f);
+            const quint16 shapeU16 = static_cast<quint16>(shapeF32 * 255.0f + 0.5f);
+            line[j] = (shapeU16 << 8) | shadowU16;
         }
         line[width] = line[width - 1];
     }
@@ -489,25 +496,56 @@ quint16* UCShapeTextureFactory<N>::renderShadowTexture(UCShapeType type, int rad
     printf("%6.2f ms\n", timer.nsecsElapsed() * 0.000001f);
 #endif
 
-    // Texture dump routines.
-#if SHADOW_TEXTURE_DUMP_CHANNEL0
-    for (int i = 0; i < textureStride; i++) {
-        for (int j = 0; j < textureWidth; j++) {
-            fprintf(stdout, "%02x", texture[i * textureStride + j] & 0xff);
-        }
-        fprintf(stdout, "\n");
+    return texture;
+}
+
+// static
+template <int N>
+quint16* UCShapeTextureFactory<N>::renderShadowTextureNoShadow(UCShapeType type, int radius)
+{
+    DASSERT(radius >= 0);
+
+    // This is basically a 16-bit texture version of renderMaskTexture() with
+    // the mask duplicated on the 2 bytes.
+
+    // Get sizes, allocate memory and get pointers to the buffers.
+    const int border = 1;
+    const int width = border + radius + border;
+    const int textureWidth = getStride(width, 1, textureRounding);
+    const int textureStride = getStride(textureWidth, sizeof(quint16), 4);
+    const int textureOffset = textureWidth - width;
+    const int textureOffsetBorder = textureOffset + border;
+    const int textureSize = textureStride * textureWidth * sizeof(quint16);
+    const int bufferSize = radius * radius * sizeof(quint32);
+    quint8* __restrict data = static_cast<quint8*>(alignedAlloc(32, textureSize + bufferSize));
+    quint16* __restrict texture = reinterpret_cast<quint16*>(data);
+    quint32* __restrict buffer = reinterpret_cast<quint32*>(&data[textureSize]);
+
+    // Render the shape with QPainter.
+    if (radius > 0) {
+        memset(buffer, 0, bufferSize);
+        renderShape(buffer, type, radius, radius * sizeof(quint32));
     }
-    fprintf(stdout, "\n");
-#endif
-#if SHADOW_TEXTURE_DUMP_CHANNEL1
-    for (int i = 0; i < textureStride; i++) {
-        for (int j = 0; j < textureWidth; j++) {
-            fprintf(stdout, "%02x", (texture[i * textureStride + j] >> 8) & 0xff);
+
+    // Fill texture. Since QImage doesn't support floating-point formats, a
+    // conversion of the QPainter buffer from U32 to U8 is required (we just
+    // convert one of the channel since the fill color is white).
+    memset(texture, 0, textureOffsetBorder * textureStride * sizeof(quint16));
+    for (int i = 0; i < radius + border; i++) {
+        const int lineIndex = (textureOffsetBorder + i) * textureStride;
+        quint16* __restrict line = &texture[lineIndex];
+        memset(line, 0, textureOffsetBorder * sizeof(quint16));
+        line = &texture[lineIndex + textureOffsetBorder];
+        for (int j = 0; j < radius; j++) {
+            const quint16 mask = buffer[i * radius + j] & 0xff;
+            line[j] = (mask << 8) | mask;
         }
-        fprintf(stdout, "\n");
+        line[radius] = 0xffff;
     }
-    fprintf(stdout, "\n");
-#endif
+    const int lastLineIndex = (textureWidth - border) * textureStride;
+    memset(&texture[lastLineIndex], 0, textureOffsetBorder * sizeof(quint16));
+    memset(&texture[lastLineIndex + textureOffsetBorder], 0xff,
+           (radius + border) * sizeof(quint16));
 
     return texture;
 }
@@ -529,9 +567,7 @@ quint32 UCShapeTextureFactory<N>::shadowTexture(
         return textureId;
     }
 
-    // Bind the texture, initialise states and allocate space. The texture size
-    // is a multiple of textureStride to allow GPUs to speed up uploads and
-    // optimise storage.
+    // Bind the texture, initialise states and allocate space.
     const int textureWidth = shadowTextureSize(radius, shadow);
     QOpenGLFunctions* funcs = m_context->functions();
     funcs->glBindTexture(GL_TEXTURE_2D, textureId);
@@ -548,10 +584,31 @@ quint32 UCShapeTextureFactory<N>::shadowTexture(
     }
 
     // Render and upload texture data.
-    quint16* texture = renderShadowTexture(type, radius, shadow);
+    quint16* texture = shadow > 0 ?
+        renderShadowTexture(type, radius, shadow) : renderShadowTextureNoShadow(type, radius);
     funcs->glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, textureWidth, textureWidth, GL_LUMINANCE_ALPHA,
                            GL_UNSIGNED_BYTE, texture);
-    free(texture);
 
+    // Texture dump debug.
+#if SHADOW_TEXTURE_DUMP_CHANNEL0
+    for (int i = 0; i < textureStride; i++) {
+        for (int j = 0; j < textureWidth; j++) {
+            fprintf(stdout, "%02x", texture[i * textureStride + j] & 0xff);
+        }
+        fprintf(stdout, "\n");
+    }
+    fprintf(stdout, "\n");
+#endif
+#if SHADOW_TEXTURE_DUMP_CHANNEL1
+    for (int i = 0; i < textureStride; i++) {
+        for (int j = 0; j < textureWidth; j++) {
+            fprintf(stdout, "%02x", texture[i * textureStride + j] >> 8);
+        }
+        fprintf(stdout, "\n");
+    }
+    fprintf(stdout, "\n");
+#endif
+
+    free(texture);
     return textureId;
 }

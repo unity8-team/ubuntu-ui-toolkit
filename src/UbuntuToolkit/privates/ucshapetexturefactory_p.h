@@ -23,7 +23,7 @@
 
 #include <UbuntuToolkit/private/ucshapeutils_p.h>
 
-const int textureStride = 32;
+const int textureRounding = 32;
 
 enum UCShapeType { Squircle = 0, Circle = 1 };
 
@@ -57,7 +57,7 @@ public:
     ~UCShapeTextureFactory();
 
     // Gets the 8-bit texture id of a shape at the given index for the given
-    // shape type and radius. The texture size is rounded up to textureStride
+    // shape type and radius. The texture size is rounded up to textureRounding
     // (for GPU optimisation reasons), the content padded to the bottom/right
     // and there's a one pixel border on the edges (for clamping reasons). If
     // the given radius is 0, the returned texture is filled with 0.
@@ -65,7 +65,7 @@ public:
 
     // Gets the 16-bit texture id of a gaussian blurred shape at the given index
     // for the given shape type and radius. The texture size is rounded up to
-    // textureStride (for GPU optimisation reasons) and the content padded to
+    // textureRounding (for GPU optimisation reasons) and the content padded to
     // the bottom/right (for clamping reasons). The least significant byte
     // stores the outer shadow with the inner area knocked out, the most
     // significant byte stored the inner shadow with the outer area knocked out.
@@ -93,7 +93,7 @@ private:
     }
     static int maskTextureSize(quint16 radius) {
         DASSERT((radius & 0xf000) == 0);
-        return getStride(radius + 2, 1, textureStride);
+        return getStride(radius + 2, 1, textureRounding);
     }
     static Q_CONSTEXPR int maskTextureSizeFromKey(quint32 key) {
         return maskTextureSize((key >> 12) & 0xfff);
@@ -111,7 +111,7 @@ private:
     static int shadowTextureSize(quint16 radius, quint16 shadow) {
         DASSERT((radius & 0xf000) == 0);
         DASSERT((shadow & 0xf000) == 0);
-        return getStride(2 * shadow + radius + 2, 1, textureStride);
+        return getStride(2 * shadow + radius + 2, 1, textureRounding);
     }
     static Q_CONSTEXPR int shadowTextureSizeFromKey(quint32 key) {
         return shadowTextureSize((key >> 12) & 0xfff, key & 0xfff);
@@ -120,6 +120,7 @@ private:
     static void renderShape(void* buffer, UCShapeType type, int radius, int stride);
     static quint8* renderMaskTexture(UCShapeType type, int radius);
     static quint16* renderShadowTexture(UCShapeType type, int radius, int shadow);
+    static quint16* renderShadowTextureNoShadow(UCShapeType type, int radius);
 
     const quint32 invalidKey = 0xffffffff;
 

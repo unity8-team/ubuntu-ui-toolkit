@@ -236,7 +236,7 @@ void UCShapeFillCenterNode::update(
         const float clampedShadow = qMin(floorf(shadowSize), maxSize);
         const float border = 1.0f;
         const float textureSize = (2.0f * clampedShadow + 2.0f * border + clampedRadius) * dpr;
-        const float textureSizeRounded = getStride(static_cast<int>(textureSize), 1, textureStride);
+        const float textureSizeRounded = getStride(static_cast<int>(textureSize), 1, textureRounding);
         const float textureOffset = (textureSizeRounded - textureSize) / textureSizeRounded;
         const float textureFactor = ((1.0f - textureOffset) * dpr) / textureSize;
         const float midShadowS =
@@ -344,7 +344,7 @@ void UCShapeFillCenterNode::update(
         const float textureBorder = 1.0f;
         const float borderTextureSize = (2.0f * textureBorder + clampedBorderRadius) * dpr;
         const float borderTextureSizeRounded =
-            getStride(static_cast<int>(borderTextureSize), 1, textureStride);
+            getStride(static_cast<int>(borderTextureSize), 1, textureRounding);
         const float borderTextureOffset =
             (borderTextureSizeRounded - borderTextureSize) / borderTextureSizeRounded;
         const float borderTextureFactor = ((1.0f - borderTextureOffset) * dpr) / borderTextureSize;
@@ -459,7 +459,7 @@ void UCShapeFillCenterNode::update(
         const float clampedShadow = qMin(floorf(shadowSize), maxSize);
         const float border = 1.0f;
         const float textureSize = (2.0f * clampedShadow + 2.0f * border + clampedRadius) * dpr;
-        const float textureSizeRounded = getStride(static_cast<int>(textureSize), 1, textureStride);
+        const float textureSizeRounded = getStride(static_cast<int>(textureSize), 1, textureRounding);
         const float textureOffset = (textureSizeRounded - textureSize) / textureSizeRounded;
         const float textureFactor = ((1.0f - textureOffset) * dpr) / textureSize;
         const float midW = w * 0.5f;
@@ -472,7 +472,7 @@ void UCShapeFillCenterNode::update(
         const float textureBorder = 1.0f;
         const float borderTextureSize = (2.0f * textureBorder + clampedBorderRadius) * dpr;
         const float borderTextureSizeRounded =
-            getStride(static_cast<int>(borderTextureSize), 1, textureStride);
+            getStride(static_cast<int>(borderTextureSize), 1, textureRounding);
         const float borderTextureOffset =
             (borderTextureSizeRounded - borderTextureSize) / borderTextureSizeRounded;
         const float borderTextureFactor = ((1.0f - borderTextureOffset) * dpr) / borderTextureSize;
@@ -834,7 +834,7 @@ void UCShapeFillCornersNode::update(
         const float deviceRadius = clampedRadius * dpr;
         const float border = 1.0f;
         const float textureSize = deviceRadius + 2 * border;
-        const float textureSizeRounded = getStride(static_cast<int>(textureSize), 1, textureStride);
+        const float textureSizeRounded = getStride(static_cast<int>(textureSize), 1, textureRounding);
         const float textureStart = (textureSizeRounded - textureSize + border) / textureSizeRounded;
         const float textureEnd = (textureSizeRounded - border) / textureSizeRounded;
         v[0].x = 0.0f;
@@ -922,7 +922,7 @@ void UCShapeFillCornersNode::update(
         const float clampedShadow = qMin(floorf(shadowSize), maxSize);
         const float border = 1.0f;
         const float textureSize = (2.0f * clampedShadow + 2.0f * border + clampedRadius) * dpr;
-        const float textureSizeRounded = getStride(static_cast<int>(textureSize), 1, textureStride);
+        const float textureSizeRounded = getStride(static_cast<int>(textureSize), 1, textureRounding);
         const float textureOffset = (textureSizeRounded - textureSize) / textureSizeRounded;
         const float textureFactor = ((1.0f - textureOffset) * dpr) / textureSize;
         const float midShadowS = (border + clampedShadow + (w * 0.5f)) * textureFactor + textureOffset;
@@ -1080,7 +1080,7 @@ void UCShapeFillCornersNode::update(
         const float maskBorder = 1.0f;
         const float maskTextureSize = deviceRadius + 2.0f * maskBorder;
         const float maskTextureSizeRounded =
-            getStride(static_cast<int>(maskTextureSize), 1, textureStride);
+            getStride(static_cast<int>(maskTextureSize), 1, textureRounding);
         const float maskTextureStart =
             (maskTextureSizeRounded - maskTextureSize + maskBorder) / maskTextureSizeRounded;
         const float maskTextureEnd = (maskTextureSizeRounded - maskBorder) / maskTextureSizeRounded;
@@ -1090,7 +1090,7 @@ void UCShapeFillCornersNode::update(
         const float textureBorder = 1.0f;
         const float borderTextureSize = (2.0f * textureBorder + clampedBorderRadius) * dpr;
         const float borderTextureSizeRounded =
-            getStride(static_cast<int>(borderTextureSize), 1, textureStride);
+            getStride(static_cast<int>(borderTextureSize), 1, textureRounding);
         const float borderTextureOffset =
             (borderTextureSizeRounded - borderTextureSize) / borderTextureSizeRounded;
         const float borderTextureFactor = ((1.0f - borderTextureOffset) * dpr) / borderTextureSize;
@@ -1222,7 +1222,7 @@ void UCShapeFillCornersNode::update(
         const float clampedShadow = qMin(floorf(shadowSize), maxSize);
         const float border = 1.0f;
         const float textureSize = (2.0f * clampedShadow + 2.0f * border + clampedRadius) * dpr;
-        const float textureSizeRounded = getStride(static_cast<int>(textureSize), 1, textureStride);
+        const float textureSizeRounded = getStride(static_cast<int>(textureSize), 1, textureRounding);
         const float textureOffset = (textureSizeRounded - textureSize) / textureSizeRounded;
         const float textureFactor = ((1.0f - textureOffset) * dpr) / textureSize;
         const float midShadowS = (border + clampedShadow + (w * 0.5f)) * textureFactor + textureOffset;
@@ -1233,7 +1233,7 @@ void UCShapeFillCornersNode::update(
         const float textureBorder = 1.0f;
         const float borderTextureSize = (2.0f * textureBorder + clampedBorderRadius) * dpr;
         const float borderTextureSizeRounded =
-            getStride(static_cast<int>(borderTextureSize), 1, textureStride);
+            getStride(static_cast<int>(borderTextureSize), 1, textureRounding);
         const float borderTextureOffset =
             (borderTextureSizeRounded - borderTextureSize) / borderTextureSizeRounded;
         const float borderTextureFactor = ((1.0f - borderTextureOffset) * dpr) / borderTextureSize;

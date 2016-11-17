@@ -354,11 +354,11 @@ void UCShapeFrameCornersNode::update(
     const float deviceOuterRadius = outerRadius * devicePixelRatio;
     // FIXME(loicm) Rounded down since renderShape() doesn't support sub-pixel rendering.
     const float outerRadiusRounded =
-        getStride(static_cast<int>(deviceOuterRadius + 2 * border), 1, textureStride);
+        getStride(static_cast<int>(deviceOuterRadius + 2 * border), 1, textureRounding);
     const float innerRadius = floorf(outerRadius * ((maxSize - clampedThickness) / maxSize));
     const float deviceInnerRadius = innerRadius * devicePixelRatio;
     const float innerRadiusRounded =
-        getStride(static_cast<int>(deviceInnerRadius + 2 * border), 1, textureStride);
+        getStride(static_cast<int>(deviceInnerRadius + 2 * border), 1, textureRounding);
 
     const float outerRadiusOffset = outerRadiusRounded - deviceOuterRadius - border;
     const float outerTextureFactor = 1.0f / outerRadiusRounded;
