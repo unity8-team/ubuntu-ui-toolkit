@@ -142,17 +142,14 @@ void UCShape::setDropShadowSize(qreal size)
 {
     const quint16 quantizedSize = quantizeToU16(size);
     if (m_dropShadowSize != quantizedSize) {
-        if ((m_dropShadowSize > 0) != (quantizedSize > 0)) {
+        if (((m_dropShadowSize > 0) != (quantizedSize > 0))
+            && ((m_dropShadowDistance == 0) && (qAlpha(m_dropShadowColor) > 0))) {
             if (quantizedSize > 0) {
-                if (qAlpha(m_dropShadowColor) > 0) {
-                    m_flags |= DropShadowVisible | DirtyDropShadowVisibility;
-                }
+                m_flags |= DropShadowVisible;
             } else {
-                if (qAlpha(m_dropShadowColor) > 0) {
-                    m_flags &= ~DropShadowVisible;
-                    m_flags |= DirtyDropShadowVisibility;
-                }
+                m_flags &= ~DropShadowVisible;
             }
+            m_flags |= DirtyDropShadowVisibility;
         }
         m_dropShadowSize = quantizedSize;
         update();
@@ -169,6 +166,15 @@ void UCShape::setDropShadowDistance(qreal distance)
 {
     const quint16 quantizedDistance = quantizeToU16(distance);
     if (m_dropShadowDistance != quantizedDistance) {
+        if ((m_dropShadowDistance > 0) != (quantizedDistance > 0)
+            && ((m_dropShadowSize == 0) && (qAlpha(m_dropShadowColor) > 0))) {
+            if (quantizedDistance > 0) {
+                m_flags |= DropShadowVisible;
+            } else {
+                m_flags &= ~DropShadowVisible;
+            }
+            m_flags |= DirtyDropShadowVisibility;
+        }
         m_dropShadowDistance = quantizedDistance;
         update();
         Q_EMIT dropShadowDistanceChanged();
@@ -205,17 +211,14 @@ void UCShape::setDropShadowColor(const QColor& color)
 {
     const QRgb rgbColor = qRgba(color.red(), color.green(), color.blue(), color.alpha());
     if (m_dropShadowColor != rgbColor) {
-        if ((qAlpha(m_dropShadowColor) > 0) != (qAlpha(rgbColor) > 0)) {
+        if (((qAlpha(m_dropShadowColor) > 0) != (qAlpha(rgbColor) > 0))
+            && ((m_dropShadowDistance > 0) || (m_dropShadowSize > 0))) {
             if (qAlpha(rgbColor) > 0) {
-                if (m_dropShadowSize > 0) {
-                    m_flags |= DropShadowVisible | DirtyDropShadowVisibility;
-                }
+                m_flags |= DropShadowVisible;
             } else {
-                if (qAlpha(rgbColor) > 0) {
-                    m_flags &= ~DropShadowVisible;
-                    m_flags |= DirtyDropShadowVisibility;
-                }
+                m_flags &= ~DropShadowVisible;
             }
+            m_flags |= DirtyDropShadowVisibility;
         }
         m_dropShadowColor = rgbColor;
         update();
@@ -359,10 +362,8 @@ private:
     QSGNode* m_nodes[NodeTypeCount];
 };
 
-QSGNode* UCShape::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData* data)
+QSGNode* UCShape::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData*)
 {
-    Q_UNUSED(data);
-
     const QSizeF itemSize(width(), height());
     if (itemSize.isEmpty()) {
         delete oldNode;
