@@ -39,10 +39,6 @@
 #include "ucshapedropshadownodes_p.h"
 #include "ucshapefillnodes_p.h"
 
-Q_CONSTEXPR qreal maxRadius = 128.0;
-// Gaussian kernels are precomputed at a specific size with an off-line tool.
-Q_STATIC_ASSERT(static_cast<int>(maxRadius) <= gaussianCount);
-
 UCShape::UCShape(QQuickItem* parent)
     : QQuickItem(parent)
     , m_fillColor(qRgba(0xe9, 0x54, 0x20, 0xff))  // Ubuntu orange.

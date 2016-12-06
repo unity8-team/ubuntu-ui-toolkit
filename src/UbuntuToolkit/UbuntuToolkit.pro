@@ -171,7 +171,6 @@ SOURCES += \
     $$PWD/privates/ucshapeframenodes.cpp \
     $$PWD/privates/ucshaperesources.cpp \
     $$PWD/privates/ucshapetexturefactory.cpp \
-    $$PWD/privates/ucshapeutils.cpp \
     $$PWD/privates/ucpagewrapper.cpp \
     $$PWD/privates/ucpagewrapperincubator.cpp \
     $$PWD/privates/ucscrollbarutils.cpp \

@@ -21,6 +21,8 @@
 
 #include <QtCore/QtGlobal>
 
+#include <unistd.h>
+
 #include <UbuntuToolkit/private/ucshapeutils_p.h>
 
 const int textureRounding = 32;
@@ -115,6 +117,11 @@ private:
     }
     static Q_CONSTEXPR int shadowTextureSizeFromKey(quint32 key) {
         return shadowTextureSize((key >> 12) & 0xfff, key & 0xfff);
+    }
+
+    static int cpuCacheLineSize() {
+        static int size = sysconf(_SC_LEVEL1_DCACHE_LINESIZE);
+        return size;
     }
 
     static void renderShape(void* buffer, UCShapeType type, int radius, int stride);

@@ -24,10 +24,16 @@
 // Logging macros, debug macros are compiled out for release builds.
 #define LOG(...) qDebug(__VA_ARGS__)
 #define WARN(...) qWarning(__VA_ARGS__)
-#define ASSERT(cond) do { if (Q_UNLIKELY(!(cond))) \
-    qFatal("Assertion `"#cond"' failed in file %s, line %d", __FILE__, __LINE__); } while (0)
-#define ASSERT_X(cond,message) do { if (Q_UNLIKELY(!(cond))) \
-    qFatal("Assertion "#message" failed in file %s, line %d", __FILE__, __LINE__); } while (0)
+#define ASSERT(cond) \
+    do { if (Q_UNLIKELY(!(cond)))                                               \
+        qFatal("Assertion `" QT_STRINGIFY(cond) "' failed in file %s, line %d", \
+               __FILE__, __LINE__);                                             \
+    } while (0)
+#define ASSERT_X(cond,message) \
+    do { if (Q_UNLIKELY(!(cond)))                                                \
+        qFatal("Assertion " QT_STRINGIFY(message) " failed in file %s, line %d", \
+               __FILE__, __LINE__);                                              \
+    } while (0)
 #define NOT_REACHED() \
     qFatal("Assertion `not reached' failed in file %s, line %d", __FILE__, __LINE__);
 #if !defined(QT_NO_DEBUG)
@@ -49,23 +55,21 @@ template<typename T, size_t N> Q_CONSTEXPR size_t ARRAY_SIZE(T (&)[N]) { return 
 
 #define IS_POWER_OF_TWO(n) !((n) & ((n) - 1))
 
-// Squircle SVG defintion and approximate normalised coverage at Pi/4 (used to
-// correctly set vertex positions and minimise the amount of rasterised
-// fragments of geometry nodes).
+#define IS_ALIGNED(n, alignment) (IS_POWER_OF_TWO(alignment) && !((quint64(n)) & ((alignment) - 1)))
+
+// Squircle SVG definition.
 const char squircleSvg[] =
     "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
     "<svg><g>"
     "<path d=\"M35.9998055,36.0003433 L0,36.000344 C0,3.372032 3.345315,0 35.999805,0 "
     "          L35.9998055,36.0003433 Z\" fill=\"#ffffff\"></path>"
     "</g></svg>";
-const float squircleCoverage = 0.172f;
 
-// Gaussian kernels. Changing one field requires an update of the others, use
-// creategaussianarrays in the tools folder.
-const int gaussianCount = 128;
-extern const int gaussianOffsets[];
-extern const float gaussianKernels[];
-extern const float gaussianSums[];
+// Linear interpolation.
+static inline Q_DECL_CONSTEXPR float lerp(float t, float a, float b)
+{
+    return (t * (b - a)) + a;
+}
 
 // Get the stride of a buffer of the given width and bytes per pixel for a
 // specific alignment.
