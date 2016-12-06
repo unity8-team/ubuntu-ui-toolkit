@@ -95,7 +95,8 @@ private:
     }
     static int maskTextureSize(quint16 radius) {
         DASSERT((radius & 0xf000) == 0);
-        return getStride(radius + 2, 1, textureRounding);
+        const int border = 1;
+        return roundUp(border + radius + border, textureRounding);
     }
     static Q_CONSTEXPR int maskTextureSizeFromKey(quint32 key) {
         return maskTextureSize((key >> 12) & 0xfff);
@@ -113,7 +114,8 @@ private:
     static int shadowTextureSize(quint16 radius, quint16 shadow) {
         DASSERT((radius & 0xf000) == 0);
         DASSERT((shadow & 0xf000) == 0);
-        return getStride(2 * shadow + radius + 2, 1, textureRounding);
+        const int border = 1;
+        return roundUp(border + shadow + radius + shadow + border, textureRounding);
     }
     static Q_CONSTEXPR int shadowTextureSizeFromKey(quint32 key) {
         return shadowTextureSize((key >> 12) & 0xfff, key & 0xfff);

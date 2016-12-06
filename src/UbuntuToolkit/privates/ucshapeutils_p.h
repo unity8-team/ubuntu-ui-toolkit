@@ -71,14 +71,11 @@ static inline Q_DECL_CONSTEXPR float lerp(float t, float a, float b)
     return (t * (b - a)) + a;
 }
 
-// Get the stride of a buffer of the given width and bytes per pixel for a
-// specific alignment.
-// FIXME(loicm) The bytesPerPixel thing seems broken.
-static inline int getStride(int width, int bytesPerPixel, int alignment)
+// Round a value up to the next power-of-two boundary.
+static inline int roundUp(size_t value, size_t boundary)
 {
-    DASSERT(!(bytesPerPixel & (bytesPerPixel - 1)));  // Power-of-two
-    DASSERT(!(alignment & (alignment - 1)));          // Power-of-two
-    return ((width * bytesPerPixel + alignment - 1) & ~(alignment - 1)) / bytesPerPixel;
+    DASSERT(!(boundary & (boundary - 1)));  // Power-of-two
+    return (value + boundary - 1) & ~(boundary - 1);
 }
 
 // Pack a color in a premultiplied ABGR32 value.
@@ -118,7 +115,7 @@ static inline qreal unquantizeFromU16(quint16 value)
 // must be a power-of-two and size a multiple of alignment.
 // FIXME(loicm) Add a statically compiled lib in src/ to share functions like
 //     that between the different UITK libs?
-static inline void* alignedAlloc(size_t alignment, size_t size)
+static inline void* alignedAlloc(size_t size, size_t alignment)
 {
     DASSERT(IS_POWER_OF_TWO(alignment));
     // DASSERT(((size % alignment) == 0));  // FIXME(loicm) ASSERT doesn't support '%'...
