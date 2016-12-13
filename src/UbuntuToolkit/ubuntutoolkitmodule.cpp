@@ -399,6 +399,7 @@ void UbuntuToolkitModule::defineModule()
     qmlRegisterType<ActionList>(uri, 1, 3, "ActionList");
     qmlRegisterType<ExclusiveGroup>(uri, 1, 3, "ExclusiveGroup");
     qmlRegisterType<UCActionItem, 1>(uri, 1, 3, "ActionItem");
+    qmlRegisterType<UCActionMnemonic>();
 }
 
 void UbuntuToolkitModule::undefineModule()
