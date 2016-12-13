@@ -379,7 +379,7 @@ void UCActionItem::setAction(UCAction *action)
  * occurences of the \& character, the first one will be considered for the shortcut.
  * However \&\& can be used for a single \& in the text, not as a mnemonic.
  * The \& character cannot be used as shortcut.
- */ */
+ */
 QString UCActionItem::text()
 {
     Q_D(UCActionItem);
