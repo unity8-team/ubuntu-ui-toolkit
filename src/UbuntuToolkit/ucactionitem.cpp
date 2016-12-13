@@ -224,13 +224,12 @@ void UCActionItemPrivate::_q_onKeyboardAttached()
 void UCActionItemPrivate::_q_updateMnemonic()
 {
     Q_Q(UCActionItem);
-    if (!action) return;
 
     const QString displayText = action ? action->text() : QString();
 
     QKeySequence sequence = QKeySequence::mnemonic(displayText);
     if (!sequence.isEmpty()) {
-        sequence = sequence[0] & ~Qt::ALT;
+        sequence = sequence[0] & ~Qt::ALT; // QKeySequence::mnemonic adds alt.
         sequence = sequence[0] | mnemonic.modifier();
     }
 
