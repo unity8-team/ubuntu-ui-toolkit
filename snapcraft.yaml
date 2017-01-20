@@ -1,0 +1,68 @@
+name: ubuntu-language-pack-base
+version: '1'
+summary: Base language pack
+description: |
+  Base language pack providing localization data, which isn't part of the core
+  snap, to any existing snap.
+grade: stable
+confinement: strict
+
+slots:
+  platform:
+    content: ubuntu-language-pack-base1
+    interface: content
+    read:
+      - .
+
+parts:
+  locales:
+    plugin: nil
+    stage-packages:
+      - locales-all
+    prime:
+      - usr/lib/locale
+
+  osk:
+    plugin: nil
+    stage-packages:
+      - ubuntu-keyboard-arabic
+      - ubuntu-keyboard-autopilot
+      - ubuntu-keyboard-azerbaijani
+      - ubuntu-keyboard-bosnian
+      - ubuntu-keyboard-catalan
+      - ubuntu-keyboard-chinese-chewing
+      - ubuntu-keyboard-chinese-pinyin
+      - ubuntu-keyboard-croatian
+      - ubuntu-keyboard-czech
+      - ubuntu-keyboard-danish
+      - ubuntu-keyboard-dev
+      - ubuntu-keyboard-dutch
+      - ubuntu-keyboard-emoji
+      - ubuntu-keyboard-english
+      - ubuntu-keyboard-esperanto
+      - ubuntu-keyboard-finnish
+      - ubuntu-keyboard-french
+      - ubuntu-keyboard-german
+      - ubuntu-keyboard-greek
+      - ubuntu-keyboard-hebrew
+      - ubuntu-keyboard-hungarian
+      - ubuntu-keyboard-icelandic
+      - ubuntu-keyboard-italian
+      - ubuntu-keyboard-japanese
+      - ubuntu-keyboard-korean
+      - ubuntu-keyboard-latvian
+      - ubuntu-keyboard-norwegian-bokmal
+      - ubuntu-keyboard-polish
+      - ubuntu-keyboard-portuguese
+      - ubuntu-keyboard-romanian
+      - ubuntu-keyboard-russian
+      - ubuntu-keyboard-scottish-gaelic
+      - ubuntu-keyboard-serbian
+      - ubuntu-keyboard-slovenian
+      - ubuntu-keyboard-spanish
+      - ubuntu-keyboard-swedish
+      - ubuntu-keyboard-ukrainian
+    prime:
+      - etc/xdg/maliit.org/
+      - usr/lib/maliit/plugins
+      - usr/share/maliit/plugins
