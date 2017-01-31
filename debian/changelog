@@ -1,3 +1,10 @@
+ubuntu-ui-toolkit (1.3.2151+17.04.20170131.1) zesty; urgency=medium
+
+  * Add support for interacting with Content Hub Clipboard UI via DBus
+    calls (LP: #1563440)
+
+ -- Arthur Renato Mello <arthur.mello@canonical.com>  Tue, 31 Jan 2017 19:33:18 +0000
+
 ubuntu-ui-toolkit (1.3.2151+17.04.20161223) zesty; urgency=medium
 
   [ Zsombor Egri ]
