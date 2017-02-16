@@ -34,6 +34,22 @@ MainView {
     }
 
     UbuntuTestCase {
+        id: hiddenTest
+        name: "Popups.Dialog.Hidden"
+
+        property bool dialogDestroyed: false
+
+        function test_dismiss_dialog_no_focus_window_bug1664620() {
+            verify(!hiddenTest.windowShown);
+            var dlg = PopupUtils.open(dialog);
+            waitForRendering(dlg);
+            dlg.Component.destruction.connect(function() { hiddenTest.dialogDestroyed = true });
+            keyClick(Qt.Key_Escape);
+            tryCompare(hiddenTest, "dialogDestroyed", true, 500, "Dialog not destroyed");
+        }
+    }
+
+    UbuntuTestCase {
         id: test
         name: "Popups.Dialog"
         when: windowShown
