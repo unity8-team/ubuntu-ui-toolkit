@@ -58,6 +58,16 @@ public:
         }
 
         Q_FOREACH(const QString &name, names) {
+            // In RTL mode we have to lookup -rtl icon, 
+            // if the icon doesn't exist we just lookup the normal icon
+            // Ex : in RTL the back boutton arrow should point to the right, 
+            // so we have to lookup "back-rtl" instead of "back" which point to the left
+            if (QGuiApplication::layoutDirection() == Qt::RightToLeft) {
+                QImage image = lookupIcon(name + "-rtl", impsize, size);
+                if (!image.isNull())
+                    return image;
+            }
+
             QImage image = lookupIcon(name, impsize, size);
             if (!image.isNull())
                 return image;
